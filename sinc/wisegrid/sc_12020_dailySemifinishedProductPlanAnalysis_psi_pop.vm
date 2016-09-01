@@ -1,0 +1,466 @@
+############################################################
+## ÇÁ·Î±×·¥ID      : sc_12020_dailySemifinishedProductPlanAnalysis_psi_pop
+## ÇÁ·Î±×·¥¸í      : ¹ÝÁ¦Ç° »ý»ê°èÈ¹ Á¶Á¤(½ºÇÁ) °èÈ¹ Ãß°¡ ÆË¾÷
+## °³¹ßÀÚ          : ±èÇö
+## °³¹ßÀÏÀÚ        : 
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2009-04-09  KH        Create 
+##
+############################################################
+
+
+## ºñÁ¤»óÀû Á¢±Ù ¹æÁö 
+#loginCheck()
+## È­¸é resizing À» À§ÇÑ size º¯¼ö 
+##set( $resizeFuncCallCode = "setGridAutoResize('117', '125')" )
+#set( $resizeFuncCallCode = "setWiseGridAutoResize('40', '52')" ) 
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/scheduling.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## ±â´É ¹öÆ° ¿µ¿ª
+	
+	<script> 
+		//areaBtn.innerHTML = " &nbsp; <input type=\"button\" name=\"btnExecIF\" id=\"btnExecIF\" value=\" Á¶È¸\" onClick=\"GoSearch('sc_12020_dailySemifinishedProductPlanAnalysisNewStockChk_popup'); \" class=\"btn1_on\">";
+	</script>   
+	
+    ## Á¶È¸ ¿µ¿ª
+    <tr>
+        <td width="100%" valign="top">
+            <table border="0" width="100%" cellpading="0" cellspacing="0">
+                <tr height="2">
+                    <td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+                </tr>
+                <tr>
+                    <td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+                    <td width="100%">
+                        <table border="0" width="100%" cellpading="0" cellspacing="0" id="search_menu" style="background-color:#f2f2f2; display:block; ">
+                            <tr align='right'>
+                             <input name='week_start_date' type='hidden' >
+                             <input type="button" name="btnQtyChk" value=" ÀúÀå" onClick="GoSave(); " class="btn1_on"/>
+                            </tr>
+                        </table> 
+                    </td>
+                    <td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+                </tr>
+                <tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+            </table>
+        </td> 
+    </tr>
+
+    <input name="search_h" type="hidden" value="45"> ## search Á¶°Ç ºÎºÐ ³ôÀÌ 
+    <tr><td height="1"></td></tr>
+    ## TAB ¿µ¿ª
+    <tr>
+        <td valign="top">
+        ## tab ÁÂÃø ¿©¹é
+        #tabLeft()                
+            
+            <table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>                    
+
+            <table name="grid" width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+                <tr>
+                    <td >
+                        <script>initWiseGrid("WiseGrid", "100%", "300");</script>
+                    </td>                     
+                </tr> 
+            </table> 
+            
+            <table height="5"><tr><td></td></tr></table>
+            <table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+                <input type="hidden" name="_moon_service" value="${_moon_service}">
+                <input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+                <input type="hidden" name="_user_id" value="$!{_user_id}">
+            </td></tr></table>
+            
+            </td></tr></table>
+            
+            ## waiting Ç¥½Ã¿µ¿ª
+            #waitingArea()
+                    
+        </td>
+    </tr>
+</table>
+
+<script>
+
+// È­¸é resize
+$!{resizeFuncCallCode};
+function window.onresize() { $!{resizeFuncCallCode}; }
+
+// µµ¿ò¸» ³»¿ë ÀÔ·Â
+var helpStr = "¢Â Job Change ½Ã°£ ";    
+helpCont.innerHTML = helpStr;
+hDynamicHeight = 0; 
+
+
+//-----------------------------------------             Àü¿ª º¯¼ö            ----------------------------------------------//
+
+var mode = '';
+var class_path = "com.wisegrid.admin.";					
+var job_id = 'sc_12020_dailySemifinishedProductPlanAnalysis_psi_pop';
+var job_id2= 'sc_12020_dailySemifinishedProductPlanAnalysis_psi';
+
+var GridObj;
+
+var GridHeaderString = "";
+
+var color01 = '188|210|238'; // ¿¬Àå ¹è°æ»ö
+var color02 = '238|180|180'; // ÈÞµ¿ ¹è°æ»ö
+
+var weekCnt = 1;
+
+var str = ''; //º»Ã¢ °øÀå Á¶È¸Á¶°Ç
+
+/******************************************          Action Function         **********************************************/
+
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢È­¸é¿¡ 'Á¶È¸'¸¦ ´©¸£¸é È£Ãâ Fnc
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+function GoSearch(service) 
+{
+    doQuery();    
+}
+  
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢È­¸é¿¡ 'ÀúÀå'¸¦ ´©¸£¸é È£Ãâ Fnc
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+function GoSave  (service)
+{
+	doSave();
+}
+ 
+
+/*******************************************   WiseGrid ÃÊ±âÈ­ ¹× ¼³Á¤  *****************************************************/
+
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢WiseGrid ¿ÀºêÁ§Æ®°¡ »ý¼ºµÇ°í ÃÊ±âÈ­µÈ ÈÄ ¹ß»ýÇÏ´Â 
+  ¦¢JavaScript EventÀÎ Initialize()¸¦ ¹Þ¾Æ ±×¸®µåÀÇ Çì´õ¸¦ ¼ÂÆÃÇÑ´Ù.
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+function init() {
+	
+	GridObj = document.WiseGrid;
+	
+    var len = opener.document.frm.selected_plant.length;            
+    var cnt = 0;                                             
+    for( i = 0 ; i < len ; i++)                              
+    {                                                        
+        if( opener.document.frm.selected_plant[i].checked == true ) 
+        {                                                    
+            if( cnt > 0 ) str += "','";                      
+            str += opener.document.frm.selected_plant[i].value;		
+            cnt++;	                                        
+        }                                                    
+    }		                                                
+    if( cnt == 0 )                                           
+    {                                                        
+        alert("¼±ÅÃµÈ °øÀåÀÌ ¾ø½À´Ï´Ù!!");                   
+        return;                                              
+    }                                                        
+                                                                
+	
+	setProperty(GridObj); //WiseGrid Default¼³Á¤ ºÎºÐ (WiseGrid_Property.jsÆÄÀÏ ³»¿¡ ¼±¾ðµÇ¾î ÀÖ´Ù.)
+    setDefault();        //È­¸é ±âº» ¼³Á¤ 
+    setHeader(GridObj);  //ÇØ´õ»ý¼º 
+}
+
+
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢ÇØ´õ»ý¼º
+  ¦¢-.fnc:ÇØ´õ¸¦ °¡Á®¿À´Â °á°ú°ªÀÌ returnµÇ¸é È£ÃâµÇ´Â Fnc¸í
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+   function setHeader(GridObj) 
+   {        
+       commonUtil.getCodeList("job_id", job_id , "gird_header_list",defaultHeader); 
+       
+   }
+   
+
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢È­¸é ±âº» ¼³Á¤ ºÎºÐ.
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+function setDefault()
+{
+}
+ 
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢DB¿¡ µî·ÏµÈ È­¸é ÇØ´õ Á¤º¸¸¦ °¡Á®¿Â´Ù.
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+   function defaultHeader(result)
+   {
+       var arrHeader = '';
+       for( var i=0 ;i<result.length ;i++) //ÀüÃ¼ Row¸¸Å­ ¹Ýº¹ ÇÑ´Ù.
+       {
+           arrHeader = result[i].split('!%!');
+           GridObj.AddHeader(arrHeader[1]  ,arrHeader[2]  ,arrHeader[3]  ,arrHeader[4]  ,arrHeader[5]  ,arrHeader[6]);        
+       }
+       commonUtil.getCodeList("", "" , "daily_header",headerResult); //³¯Â¥Çü ÇØ´õ¸¦ ¸¸µé¾î ÁØ´Ù.
+
+   }     
+ 
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢³¯Â¥ ÇüÅÂÀÇ ÇØ´õ¿¡ ¸íÀ» »ý¼ºÇÑ´Ù.
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+   function headerResult(result)
+   {
+       var dateArray = ''; //³¯Â¥Row¸¦ '!%!'±âÁØÀ¸·Î ¹è¿­À» ¸¸µé±â À§ÇÑ º¯¼ö.
+       var dayCount  = 1;  //³¯Â¥ ¼øÀ§
+       if(opener.document.all.checked_weekly[0].checked) weekNo=1;
+       if(opener.document.all.checked_weekly[1].checked) weekNo=2;
+       if(opener.document.all.checked_weekly[2].checked) weekNo=3;
+       
+       headerCount=result.length;       
+       
+       for( var i=0 ;i<result.length ;i++) //ÀüÃ¼ Row¸¸Å­ ¹Ýº¹ ÇÑ´Ù.
+       {
+            if( result[i].substr(0,1)==weekNo) //È­¸é¿¡ ¼±ÅÃµÈ ÁÖÂ÷¿¡ ´ëÇÑ °Í¸¸ º¾´À´Ù.
+            {
+                dateArray = '';
+                dateArray = result[i].split('!%!'); //'!%!'·Î ±¸ºÐµÈ µ¥ÀÌÅÍ¸¦ splitÇÏ¿© ¹è¿­·Î ÀúÀåÇÑ´Ù.
+                
+                if( dayCount=='1' ) //¼±ÅÃµÈ ÁÖÂ÷ÀÇ ¿ù¿äÀÏÀ» ÀÔ·ÂÇÑ´Ù.
+                    document.all.week_start_date.value = dateArray[7];
+
+                //ÇØ´õ ±×·ì»ý¼º
+                GridObj.AddGroup("GRP_DATE"+dayCount,dateArray[1]+' '+dateArray[2]+'/'+dateArray[3]+'('+dateArray[4]+')');  //³¯Â¥ ±×·ì
+                GridObj.AppendHeader("GRP_DATE"+dayCount,"D0"+dayCount+"A");
+                GridObj.AppendHeader("GRP_DATE"+dayCount,"D0"+dayCount+"B");
+                GridObj.AppendHeader("GRP_DATE"+dayCount,"D0"+dayCount+"C"); 
+                dayCount++;
+            } 
+       }
+       GridObj.BoundHeader()    
+
+       GridObj.SetColHide("CRUD", true);
+       GridObj.SetColHide("PLANT_ID", true);
+       GridObj.SetColHide("LINE_ID", true);
+       GridObj.SetColHide("PROC_ID", true);
+       GridObj.SetColHide("PROD_VER", true);
+       GridObj.SetColHide("VERSION", true);
+       GridObj.SetColHide("ITEM_NAME", true);
+       GridObj.SetColHide("WEEK_START_DATE", true);
+       
+       GridObj.SetColHide("BG01A", true);  GridObj.SetColHide("BG02A", true);  GridObj.SetColHide("BG03A", true);  GridObj.SetColHide("BG04A", true);  GridObj.SetColHide("BG05A", true);  GridObj.SetColHide("BG06A", true);  GridObj.SetColHide("BG07A", true);
+       GridObj.SetColHide("BG01B", true);  GridObj.SetColHide("BG02B", true);  GridObj.SetColHide("BG03B", true);  GridObj.SetColHide("BG04B", true);  GridObj.SetColHide("BG05B", true);  GridObj.SetColHide("BG06B", true);  GridObj.SetColHide("BG07B", true);
+       GridObj.SetColHide("BG01C", true);  GridObj.SetColHide("BG02C", true);  GridObj.SetColHide("BG03C", true);  GridObj.SetColHide("BG04C", true);  GridObj.SetColHide("BG05C", true);  GridObj.SetColHide("BG06C", true);  GridObj.SetColHide("BG07C", true);
+
+   	   GridObj.SetCRUDMode("CRUD", "Ãß°¡", "¼öÁ¤", "»èÁ¦"); //¼öÁ¤,»èÁ¦,Ãß°¡ ±¸ºÐ ºÎºÐ.
+       
+       doQuery();
+   }
+  
+  
+  
+
+/***********************************************   WiseGrid Åë½Å  **********************************************************/
+
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢Ã¹¹øÂ° ±×¸®µåÀÇ Á¶È¸ Äõ¸®¸¦ È£Ãâ Fnc
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+function doQuery() {
+
+    var servlet_url = Project_name+"/servlet/com.wisegrid.admin."+job_id;
+    
+    //WiseGrid°¡ ¼­¹ö¿¡ Àü¼ÛÇÒ mode¸¦ ¼ÂÆÃÇÑ´Ù.
+    GridObj.SetParam("mode", "search");
+    GridObj.Setparam("plant_id",str);
+    GridObj.Setparam("week_start_date",document.all.week_start_date.value);
+    GridObj.SetParam("_user_id",document.all._user_id.value);           
+    
+    //WiseGrid°¡ ¼­¹ö¿Í Åë½Å½Ã¿¡ µ¥ÀÌÅÍ¸¦ Àü´ÞÇÑ
+    GridObj.DoQuery(servlet_url, "CRUD");
+
+}
+
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢ÀúÀå È£Ãâ Fnc
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/	
+function doSave() {
+    var servlet_url = Project_name+"/servlet/com.wisegrid.admin."+job_id2;
+    
+    //WiseGrid°¡ ¼­¹ö¿¡ Àü¼ÛÇÒ mode¸¦ ¼ÂÆÃÇÑ´Ù.
+    GridObj.SetParam("mode", "cal");
+    GridObj.SetParam("_user_id",document.all._user_id.value);
+    
+    //WiseGrid°¡ ¼­¹ö¿Í Åë½Å½Ã¿¡ µ¥ÀÌÅÍ¸¦ Àü´ÞÇÑ
+    GridObj.DoQuery(servlet_url, "CRUD");
+}
+
+/* INSERT */
+function doInsert() {
+    
+    GridObj.SetParam("mode", "insert");
+
+    GridObj.DoQuery(servlet_url, "SELECTED");
+}
+
+/* UPDATE */
+function doUpdata() {
+	
+    GridObj.SetParam("mode", "update");
+
+    GridObj.DoQuery(servlet_url, "SELECTED");
+}
+
+/* DELETE */
+function doDelete() {
+    
+    GridObj.SetParam("mode", "delete");
+
+    GridObj.DoQuery(servlet_url, "SELECTED");
+}
+
+/*******************************************   WiseGrid Åë½Å ÈÄ  ¼³Á¤  ******************************************************/
+
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢µ¥ÀÌÅÍ Á¶È¸°¡ Á¤»óÀûÀ¸·Î ¿Ï·áµÇ¸é ¹ß»ýµÇ´Â Event¿¡ ´ëÇÑ Fnc
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+function GridEndQuery() 
+{
+    var mode = GridObj.GetParam("mode");
+    var error_msg = '';
+    
+    if(mode == "search") //Á¶È¸°¡ ¿Ï·áµÈ °æ¿ì
+    {
+        if(GridObj.GetStatus() == "true") 
+        {                           
+        	                                
+            //µ¥ÀÌÅÍ¸¦ ±×·ìÇÎ ÇÑ´Ù.                                                     
+            GridObj.SetGroupMerge("PLANT_NAME,LINE_NAME");             
+            gridColSet(GridObj);
+						
+        } else    
+        { 
+            error_msg = GridObj.GetMessage(); 
+            alert(error_msg);            
+        }
+    }
+}
+
+
+/*********************************************   WiseGrid Event   *********************************************************/
+
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢±×¸®µåÀÇ µ¥ÀÌÅÍ°¡ º¯°æ µÇ¾úÀ» °æ¿ì Ã³¸®µÇ´Â Fnc
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+function GridChangeCell(strColumnKey, nRow) 
+{
+
+} 
+
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢±×¸®µåÀÇ ¿ø Å¬¸¯ ÀÌº¥Æ®
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+function GridCellClick(strColumnKey, nRow){     
+
+}        
+
+
+/*********************************************   ±âÅ¸ Function   **********************************************************/
+
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢±×¸®µåÀÇ »çÀÌÁî Á¶Àý Fnc
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+function setWiseGridAutoResize( tab_h, table_h ){
+    
+    var maxWidthValue;
+    var maxHeightValue;
+    
+    if (document.layers) {
+        //Nescape
+        maxWidthValue = window.innerWidth;
+        maxHeightValue = window.innerHeight;
+    }
+    if (document.all) {
+        //explore
+        maxWidthValue = document.body.clientWidth;
+        maxHeightValue = document.body.clientHeight;
+    } 
+    
+    var tabHeightValue = Number(maxHeightValue) - Number(tab_h) ; 
+    var tableHeightValue = Number(maxHeightValue) - Number(table_h) ; 
+    
+    var search_h = document.frm.search_h.value; 
+    if( search_menu.style.display == "none" ) 
+    { 
+        tabHeightValue += Number(search_h); 
+        tableHeightValue += Number(search_h); 
+    } 
+    
+    // È­¸é size Ãà¼Ò ½Ã È­¸éÀÌ ³Ê¹« ÀÛ¾Æ ±×¸®µå Å©±â°¡ À½¼ö°¡ µÇ¸é ¿¡·¯°¡ ³ª¹Ç·Î ±× °æ¿ì ¹«Á¶°Ç 1·Î ¼¼ÆÃ 
+    // ==> È­¸éÀÌ ´õÀÌ»ó Ãà¼ÒµÇÁö ¾ÊÀ½ 
+    if( tabHeightValue < 1 ) 
+        tabHeightValue = 1; 
+    if( tableHeightValue < 1 ) 
+        tableHeightValue = 1; 
+    
+    //tabPage1.style.height = tabHeightValue + "px"; 
+    //tbMain.style.height = tableHeightValue + "px"; 
+	document.WiseGrid.height = tableHeightValue + "px"; 	 
+        
+}     
+ 
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢ÁÖÂ÷ ¼±ÅÃ Fnc
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/	
+function onChangeDate(obj){
+	alert("!!");
+	GridObj.ClearGrid();
+	setHeader(GridObj);
+	//doQuery();
+	//GridObj2.ClearGrid();
+	//setHeader2(GridObj2);
+	//doQuery2();
+}
+
+
+ /*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+   ¦¢±×¸®µå ÄÃ·³ Set
+   ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+    function gridColSet(obj)    
+    {
+        var rowLeng = obj.GetRowCount();
+        var work_allocation= new Array();
+        
+        for( var row=0 ; row<rowLeng ; row++ ) //row¼ö¸¸Å­ ¹Ýº¹
+        {
+            for( var col=1 ;col<=7 ;col++) 
+            {
+                
+                //º¸Á¤rowÀÌÁö¸¸ ±Ù¹«Á¶°¡ ¾ø´Â°æ¿ì´Â º¸Á¤ ºÒ°¡´É
+                //´Ü, ±Ù¹«Á¶°¡¾øÁö¸¸ ¼ö·®ÀÌ ÀÖ´Â °æ¿ì´Â º¸Á¤ °¡´ÉÇÏ´Ù.
+                work_allocation[0]=obj.GetCellValue('BG0'+col+'A' ,row);  //±Ù¹«Á¶Á¤º¸¸¦ °¡Á®¿Â´Ù.
+                work_allocation[1]=obj.GetCellValue('BG0'+col+'B' ,row);
+                work_allocation[2]=obj.GetCellValue('BG0'+col+'C' ,row);
+
+                if(work_allocation[0]=='null') 
+                { 
+                    obj.SetCellActivation("D0"+col+"A", row, 'activatenoedit');    
+                    obj.SetCellFontBold(  "D0"+col+"A", row, 'false');   
+                    obj.SetCellFgColor(   'D0'+col+'A', row, '174|174|174'); 
+                }
+                if(work_allocation[1]=='null') 
+                { 
+                    obj.SetCellActivation("D0"+col+"B", row, 'activatenoedit');    
+                    obj.SetCellFontBold(  "D0"+col+"B", row, 'false');    
+                    obj.SetCellFgColor(   'D0'+col+'B', row, '174|174|174'); 
+                }
+                if(work_allocation[2]=='null') 
+                { 
+                    obj.SetCellActivation("D0"+col+"C", row, 'activatenoedit');    
+                    obj.SetCellFontBold(  "D0"+col+"C", row, 'false');    
+                    obj.SetCellFgColor(   'D0'+col+'C', row, '174|174|174'); 
+                }
+            }
+        }        
+    }
+	
+</script> 

@@ -1,0 +1,366 @@
+## 프로그램명 : 시생산 칼린더
+## 개발자 : 허준성
+## 개발일자 : 2008-09-04 목요일
+
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('125', '155')" )
+<script type='text/javascript' src='${project}/dwr/interface/smsCaller.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						#button("search")
+						#toolbar_nscm($_moon_toolbar "" "" "md_05130_testProdCalendar_save_comp" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" 
+							id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr>
+            					<td width="15%" align="right">공장 :</td> 
+            					<td width="18%" align="left"> 
+									<select name="selected_plant" style="width:145px; " onChange="doChangePlant(this); ")> 
+										<option value="">선택</option>
+									#foreach( $condition in $combo_plant_list )  
+										<option value="$condition.get(0)" #if($!{selected_plant} == "$condition.get(0)") selected #else #end >$condition.get(1)</option>											
+									#end 
+   									</select> 
+            					</td> 
+								<td width="15%" align="right">라인 :</td> 
+								<td width="18%" align="left">  																	    
+            						<a id="divSelectedLine">
+    									<select name="selected_line" style="width:120px; "> 
+    										<option value="">전체</option> 
+                						</select>  
+									</a>
+									<input type="hidden" name="selected_line_id">
+            					</td>
+								<td width="15%" align="right">작업장 :</td>  
+            					<td width="19%" align="left">   
+            						<a id="divProcSelect">     
+            							<select name="selected_proc" style="width:145px; ">  
+            								<option value="">전체</option>										
+            							</select>
+            						</a>
+            					</td>		
+            				</tr>
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="24"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+								<img src="/nscm/sinc/template/basic/skin/nongshim/images/common/dot_sub6.gif" width="16" height="13">Total :
+								<span id="areaTot" class="f_color_o b">$!{_moon_service_count}</span>
+							</td>
+						</tr>
+					</table>
+					
+					<table id="tbMain" border="0" width="100%" cellpadding="0" cellspacing="0"><tr><td>
+						<div id="topLeft" style="height:40px; width:110px; overflow:hidden; ">
+							<table width="110px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead>
+									<tr height="40px">
+										<td width="30px">번호</td>
+										<td width="80px">요청번호</td>
+									</tr> 
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td>
+					<td> 
+						<div id="topLine" style="height:40px; width:626px;overflow:hidden;">
+							<table width="1840px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead>
+									<tr height="40px">
+										##<td width="80px">공장</td>
+										<td width="120px">라인</td>
+										<td width="200px">작업장</td>
+										<td width="80px">시작 기간</td>
+										<td width="80px">종료 기간</td>
+										<td width="30px">시간</td>
+										<td width="40px">시작시간</td>
+										<td width="40px">종료시간</td>
+										<td width="350px">설명</td>
+										<td width="100px">WBS<br>CODE</td>
+										<td width="350px">WBS명</td>
+										<td width="70px">사번</td>
+										<td width="70px">청구인</td>
+										<td width="40px">취소</td>
+										<td width="95px">착수일</td>
+										<td width="40px">착수시간</td>
+										<td width="95px">종료일</td>
+										<td width="40px">종료시간</td>
+										<td width="40px">확인</td>
+										<td width="100px" class="right">생산<br>오더번호</td>
+									</tr>
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td></tr>	
+					<tr><td valign="top">
+						<div id="leftDisplay" style="width:110px; overflow:hidden; ">
+							<table width="110px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="left_tbody">
+								## REQ_NO(0),PLANT_ID(1),PLANT_NAME(2),LINE_ID(3),LINE_NAME(4),PROC_ID(5)
+								## PROC_NAME(6),START_TERM(7),END_TERM(8),TEST_TIME(9),DESCRIPTION(10)
+								## START_DATE(11),START_TIME(12),END_DATE(13),END_TIME(14),CONFIRM_FLAG(15)
+								#foreach( $tr in $md_05130_testProdCalendar )
+									<tr id="left_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+										## 번호
+										<td width="30px" align="center" style="background-color:${search_bgcolor}; ">
+											<a id="divRowNo">$velocityCount</a>
+										</td>
+										## 요청번호
+										<td width="80px" align="center">
+											<a id="divReqNo">&nbsp;$tr.get(0)</a>
+											<input type="hidden" name="req_no" value="$tr.get(0)"> ##req_no
+										</td>
+									</tr>
+								#end
+								</tbody>
+							</table> 
+						</div>
+					</td> 
+					<td valign="top"> 
+						<div id="mainDisplay" class="ns_scroll" style="border:0; width:645px; overflow-y:scroll; overflow-x:scroll; " onscroll="scrollX(); scrollY(); ">
+							<table width="1840px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="main_tbody">
+								## REQ_NO(0),PLANT_ID(1),PLANT_NAME(2),LINE_ID(3),LINE_NAME(4),PROC_ID(5)
+								## PROC_NAME(6),START_TERM(7),END_TERM(8),TEST_TIME(9),DESCRIPTION(10)
+								## START_DATE(11),START_TIME(12),END_DATE(13),END_TIME(14),CONFIRM_FLAG(15)
+								#foreach( $tr in $md_05130_testProdCalendar )
+									<tr id="main_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+										## 공장
+										##<td width="80px" align="left">
+										##	<a id="divPlant">&nbsp;$tr.get(2)</a>
+										##	<input type="hidden" name="plant_id" value="$tr.get(1)"> ##plant_id
+										##</td>
+										<input type="hidden" name="plant_id" value="$tr.get(1)"> ##plant_id
+										## 라인
+										<td width="120px" align="left">
+											<a id="divLine">&nbsp;$tr.get(4)</a>
+											<input type="hidden" name="line_id" value="$tr.get(3)"> ##line_id
+										</td>
+										## 작업장
+										<td width="200px" align="left">
+											<a id="divProc">&nbsp;$tr.get(6)</a>
+											<input type="hidden" name="proc_id" value="$tr.get(5)"> ##proc_id
+										</td>
+										## Start Term
+										<td width="80px" align="center">
+											<a id="divStartTerm">&nbsp;$tr.get(7)</a>
+										</td>
+										## End Term
+										<td width="80px" align="center">
+											<a id="divEndTerm">&nbsp;$tr.get(8)</a>
+										</td>
+										## Test Time
+										<td width="30px" align="center" >
+											<a id="divTestTime">&nbsp;$tr.get(9)</a>
+										</td>
+										## REQ_START_TIME
+										<td width="40px" align="center">
+											<a id="divReqStartTime">&nbsp;$tr.get(21)</a>
+										</td>
+										## REQ_END_TIME
+										<td width="40px" align="center">
+											<a id="divReqEndTime">&nbsp;$tr.get(22)</a>
+										</td>
+										## DESCRIPTION
+										<td width="350px" align="left">
+											<a id="divDesc">&nbsp;$tr.get(10)</a>
+										</td>
+										## WBS CODE
+										<td width="100px" align="left">
+											<a id="divWbsCode">&nbsp;$tr.get(16)</a>
+										</td>
+										## 소속
+										<td width="350px" align="left">
+											<a id="divWbsName">&nbsp;$tr.get(17)</a>
+											<input type="hidden" name="WbsName" value="$tr.get(17)">
+										</td>
+										## 사번
+										<td width="70px" align="center">
+											<a id="divReqNo">&nbsp;$tr.get(18)</a>
+										</td>
+										## 청구인
+										<td width="70px" align="center">
+											<a id="divReqName">&nbsp;$tr.get(19)</a>
+											<input type="hidden" name="ReqName" value="$tr.get(19)">
+										</td>
+										## REQ_CANCEL_FLAG
+										<td width="40px" align="center" >
+											<input type="checkbox" name="cancel_flag" value="$tr.get(23)" disabled
+												class="normal" #if("$tr.get(23)" == "C") checked  #end
+												style="text-align:center; border-width:0; "></input>
+											<input type="hidden" name="cancel_value" value="$tr.get(23)">
+										</td>
+										## START_DATE
+										<td width="95px" align="center" onClick="setEditMode(this); " >
+											<a id="divStartDate">&nbsp;$tr.get(11)</a><input type="hidden" name="start_date" value="$tr.get(11)" >
+										</td>
+										## START_TIME
+										<td width="40px" align="left" onClick="setEditMode(this); " >
+											<a id="divStartTime">&nbsp;$tr.get(12)</a><input 
+												type="text" name="start_time" class="normal" value="$tr.get(12)" size="4" maxlength="4"
+												onFocusOut="setViewMode(this); " onkeypress="filterKey('[0-9]')" ondblClick="this.select(); "
+												style="width:100%; text-align:left; display:none; " onKeyDown="moveNextBox(this); ">
+										</td>
+										## END_DATE
+										<td width="95px" align="center" onClick="setEditMode(this); " >
+											<a id="divEndDate">&nbsp;$tr.get(13)</a><input type="hidden" name="end_date" value="$tr.get(13)">
+										</td>
+										## END_TIME
+										<td width="40px" align="left" onClick="setEditMode(this); " >
+											<a id="divEndTime">&nbsp;$tr.get(14)</a><input 
+												type="text" name="end_time" class="normal" value="$tr.get(14)" size="4" maxlength="4"
+												onFocusOut="setViewMode(this); " onkeypress="filterKey('[0-9]')" ondblClick="this.select(); "
+												style="width:100%; text-align:left; display:none; " onKeyDown="moveNextBox(this); ">
+										</td>
+										## CONFIRM_FLAG
+										<td width="40px" align="center" >
+											<input type="checkbox" name="check_flag" value="$tr.get(15)" 
+												class="normal" #if("$tr.get(15)" == "Y") checked #end
+												style="text-align:center; border-width:0; " onKeyDown="moveNextBox(this); "></input>
+											<input type="hidden" name="old_check_value" value="$tr.get(15)">
+											<input type="hidden" name="check_value" value="$tr.get(15)">	
+										</td>
+										## 생산오더번호
+										<td width="100px" align="center" class="right">
+											<a id="divProdNo">&nbsp;$tr.get(20)</a>
+											<input type="hidden" name="prod_no" value="$tr.get(20)">
+										</td>
+										<input type="hidden" name="req_hp_no" value="$tr.get(24)"> ## 요청자 HP번호
+										<input type="hidden" name="con_hp_no" value="$tr.get(25)"> ## 확인자 HP번호
+									</tr>
+								#end
+								</tbody>
+							</table>
+						</div>
+					</td></tr></table>
+					
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+						
+					<input type="hidden" name="_moon_service">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					<input type="hidden" name="_user_id" value="$!{_user_id}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 공장을  선택한 후 조회 버튼을 클릭하시면 선택하신 공장에 해당하는 데이타가 조회 됩니다.";
+	helpStr += "<br>◈ 수정이 가능한 컬럼은 착수일, 착수시간, 종료일, 종료시간, 확인 입니다";
+	helpStr += "<br>◈ 값을 수정한 후 저장 버튼을 클릭하시면 데이타가 저장됩니다.";
+	helpStr += "<br>◈ 착수일을 입력하시면 종료일의 날짜가 착수일값으로 자동 셋팅됩니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+	
+	// combo box:공장 선택시 combo box:작업장,VERSION 리스트 채움
+	function doChangePlant(obj){
+		var plant_id = obj.value;
+		var div_line = "<select name=\"selected_line\" onChange=\"doChangeProc(document.frm.selected_plant, this);\" style=\"width:120px; \" >";
+		div_line += "<option value=\"\">전체</option>";		
+	#foreach( $condition in $sim_oper_combo_line_list )
+		if( plant_id == "$condition.get(2)"){
+			div_line += "<option value=\"$condition.get(0)!%!$condition.get(1)\" ";
+				if("$condition.get(0)!%!$condition.get(1)" == "$!{selected_line}"){
+					div_line += " selected ";
+				}
+			div_line += ">$condition.get(1)</option>";
+		}
+	#end
+		div_line += "</select>";
+		divSelectedLine.innerHTML = div_line;
+		
+		var lineArr = document.frm.selected_line.value.split("!%!");
+    	if( lineArr.length == 2 ) {
+    		document.frm.selected_line_id.value = lineArr[0].trim();
+    	}
+	}
+	doChangePlant(document.frm.selected_plant); 
+	
+	// combo box:작업장 리스트 채움
+	function doChangeProc(plant, line){ 
+
+		var lineArr = line.value.split("!%!");
+    	if( lineArr.length == 2 ) {
+    		document.frm.selected_line_id.value = lineArr[0].trim();
+    	}else{
+			document.frm.selected_line_id.value = "";
+		}
+		var line_id = document.frm.selected_line_id.value;
+		
+		var div_proc = "<select name=\"selected_proc\" style=\"width:145px; \"> "; 
+		div_proc += "<option  value=\"\">전체</option> ";    
+	#foreach( $condition in $sch_capa_rate_combo_proc_list )
+		if ( (plant.value == "$condition.get(0)") && (line_id == "$condition.get(1)") ) { 
+			div_proc += "<option value=\"$condition.get(2)\""; 
+				if("$condition.get(2)" == "$!{selected_proc}")
+					div_proc += " selected ";
+			div_proc += ">$condition.get(3)</option>"; 
+		}
+	#end 
+		div_proc += "</select>"; 
+		divProcSelect.innerHTML = div_proc;		
+	}
+	
+	doChangeProc(document.frm.selected_plant, document.frm.selected_line);
+	
+	checkCancelFlag();
+	
+</script>

@@ -1,0 +1,257 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize2('125', '155')" )
+
+## 이전 화면으로 이동할 때 조회조건을 기억하기 위한 parameter
+<input type="hidden" name="period_type_pre" value="$!{period_type_pre}">
+<input type="hidden" name="perpage_pre" value="${perpage_pre}">
+<input type="hidden" name="pagenumber_pre" value="$!{pagenumber_pre}">
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						<input type="button" name="btnBack" value=" 이전화면" onClick="moveBack(); " class="btn1_on">
+						#button("search")
+						#toolbar_nscm($_moon_toolbar "" "" "md_01050_engineBatchMaster_detail_save_comp" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" 
+							id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr>
+            					<td width="10%" align="right">
+            						계획주기 :
+            					</td>
+            					<td width="15%" align="left">
+									<select name="period_type" onChange="setCatList(this); ">
+									#foreach( $record in $md_01050_period_type_list )
+										<option value="$record.get(0)" 
+											#if( "$!{period_type}" == "$record.get(0)" ) selected #end>$record.get(1)</option>
+									#end
+									</select>
+            					</td>
+            					<td width="10%" align="right">
+            						계획부문 :
+            					</td>
+            					<td width="30%" align="left">
+									<a id="areaCatList"></a>
+									<input type="hidden" name="cat_id" value="$!{cat_id}">
+									<input type="hidden" name="sub_cat" value="$!{sub_cat}">
+            					</td>
+            					<td width="10%" align="right">
+            						JOB 타입 :
+            					</td>
+            					<td width="25%" align="left">
+									<select name="job_type_sel">
+										<option value="">전체</option>
+									#foreach( $record in $md_01050_job_type_list )
+										<option value="$record.get(0)" 
+											#if( "$record.get(0)" == "$!{job_type_sel}" ) selected #end>$record.get(0)</option>
+									#end
+									</select>
+									<input type="hidden" name="job_type_key" value="$!{job_type_sel}">
+            					</td>
+            				</tr>
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="23"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+								<img src="/nscm/sinc/template/basic/skin/nongshim/images/common/dot_sub6.gif" width="16" height="13">Total :
+								<span id="areaTot" class="f_color_o b">$!{_moon_service_count}</span>
+							</td>
+						</tr>
+					</table>
+					
+					<table id="tbMain" border="0" width="100%" cellpadding="0" cellspacing="0"><tr><td>
+						<div id="topLine" style="height:40px; width:626px;overflow:hidden;">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead>
+									<tr height="40px">
+										<td width="5%">번호</td>
+										<td width="6%" onClick="addRow(this); " id="areaAdd" 
+											onMouseOver="this.style.cursor='pointer'; " onMouseOut="this.style.cursor=''; ">추가<br>삭제</td>
+										<td width="13%">JOB 타입</td>
+										<td width="8%">순번</td>
+										<td width="30%">SP ID</td>
+										<td width="30%">설명</td>
+										<td width="8%" class="right">수행여부</td>
+									</tr>
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td></tr>	
+					<tr><td valign="top"> 
+						<div id="mainDisplay" class="ns_scroll" style="border:0; width:645px; overflow-y:scroll; ">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="main_tbody">
+								## (0)JOB_TYPE (1)SEQ (2)SP_ID (3)DESCR (4)EXEC_FLAG
+								#foreach( $tr in $md_01050_engineBatchMaster_detail )
+									<tr id="main_tr" height="22px" onMouseOver="bgOver2(this); " onMouseOut="bgOut2(this); ">
+										## 번호
+										<td width="5%" align="center" style="background-color:${search_bgcolor}; ">
+											<a id="divRowNo">$velocityCount</a>
+										</td>
+										## 추가/삭제
+										<td width="6%" align="center">
+											<input name="btnAddRow" type="button" value="O" class="button1_1"
+												style="width:17px; text-align:center; font-weight:bold; " onClick="addRow(this); "
+												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"><input
+												name="btnDelRow" type="button" value="X" class="button1_1"
+												style="width:17px; text-align:center; font-weight:bold; " onClick="delRow(this); "
+												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'">
+										</td>
+										## (0)JOB 타입 (0)JOB_TYPE
+										<td width="13%" align="center" onClick="setEditMode(this); ">
+											<a id="divJobType">$tr.get(0)</a><select
+												name="job_type" style="width:100%; display:none; " onFocusOut="setViewMode(this); "
+												onKeyDown="moveNextBox(this); ">
+    											##<option value="">선택</option>
+    										#foreach( $record in $md_01050_job_type_list )
+    											<option value="$record.get(0)" 
+													#if( "$tr.get(0)" == "$record.get(0)" ) selected #end>$record.get(0)</option>
+    										#end
+											</select>
+										</td>
+										## 순번 (1)SEQ
+										<td width="8%" align="center" onClick="setEditMode(this); ">
+											<a id="divSeq">$tr.get(1)</a><input 
+												type="text" name="seq" class="normal" value="$tr.get(1)"
+												onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); " onDblClick="this.select(); "
+												style="width:100%; text-align:center; display:none; ">
+										</td>
+										## SP ID (2)SP_ID
+										<td width="30%" align="left" onClick="setEditMode(this); ">
+											<a id="divSpId">&nbsp;$tr.get(2)</a><input 
+												type="text" name="sp_id" class="normal" value="$tr.get(2)"
+												onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); " onDblClick="this.select(); "
+												style="width:100%; text-align:left; padding-left:5px; display:none; ">
+										</td>
+										## 설명 (3)DESCR
+										<td width="30%" align="left" onClick="setEditMode(this); ">
+											<a id="divDescr">&nbsp;$tr.get(3)</a><input 
+												type="text" name="descr" class="normal" value="$tr.get(3)"
+												onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); " onDblClick="this.select(); "
+												style="width:100%; text-align:left; padding-left:5px; display:none; ">
+										</td>
+										## 수행여부 (4)EXEC_FLAG
+										<td width="8%" align="center" onClick="setEditMode(this); " class="right">
+											<a id="divExecFlag">$tr.get(4)</a><select 
+												name="exec_flag" style="width:100%; display:none; " onFocusOut="setViewMode(this); "
+												onKeyDown="moveNextBox(this); ">
+												<option value="Y" #if( "$!{$tr.get(4)}" == "Y" ) selected #end>YES</option>
+												<option value="N" #if( "$!{$tr.get(4)}" == "N" ) selected #end>NO</option>
+											</select>
+										</td>
+									</tr>
+								#end
+								</tbody>
+							</table>
+						</div>
+					</td></tr></table>
+					
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+						
+					<input type="hidden" name="_moon_service">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 조회 조건 영역의 계획 주기, 계획 부문, JOB 타입을 선택하고 조회 버튼을 클릭하여 엔진 배치 마스터 상세 정보를 조회합니다.";
+	helpStr += "<br>◈ 데이터 조회 후, 각 항목을 원하는 데이터로 수정한 뒤, 저장 버튼을 클릭하여 수정 내용을 저장합니다.";
+	helpStr += "<br>◈ 추가/삭제 항목의 O 버튼을 클릭하면, 클릭한 버튼의 하단에 새로운 라인이 생성됩니다.";
+	helpStr += "<br>◈ 추가/삭제 항목의 X 버튼을 클릭하면, 클릭한 버튼의 라인이 삭제됩니다.";
+	helpStr += "<br>◈ 추가/삭제 항목의 헤더 부분을 클릭하면, 가장 상단에 새로운 라인이 생성됩니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+	// 계획주기 선택에 따라 계획부문 COMBO 설정
+	function setCatList(objBox) {
+		
+		var perion_type = objBox.value;
+		var selStr = "<select name=\"cat_list\" onChange=\"setCatSub(this); \">";
+	## PERIOD_TYPE CAT_ID CAT_NAME SUB_CAT PLANT_ID PLANT_NAME
+	#foreach( $record in $md_01050_period_type_to_plant_id_list )
+		if( "$record.get(0)" == perion_type && "$record.get(4)" == "" ) {
+			selStr += "<option value=\"$record.get(1)!%!$record.get(3)\">$record.get(2)</option>";
+		}
+		else if( "$record.get(0)" == perion_type && "$record.get(4)" != "" ) {
+			selStr += "<option value=\"$record.get(1)!%!$record.get(3)\">$record.get(2) - $record.get(5)</option>";
+		}
+	#end
+		selStr += "</select>";
+		areaCatList.innerHTML = selStr;
+		setCatSub(document.frm.cat_list);
+		
+	}
+	
+	// 화면 로드 시, 계획부문 COMBO 그리기
+	setCatList(document.frm.period_type);
+	// 화면 로드 시, 계획부문 COMBO 값 표시
+	document.frm.cat_list.value = "$!{cat_id}!%!$!{sub_cat}";
+	// 화면 로드 시, CAT_ID, SUB_CAT 설정
+	document.frm.cat_id.value = "$!{cat_id}";
+	document.frm.sub_cat.value = "$!{sub_cat}";
+	
+	// JOB_TYPE combo
+	var selStrJobType = "<select name=\"job_type\" style=\"width:100%; display:none; \" onFocusOut=\"setViewMode(this); \" ";
+	selStrJobType += "onKeyDown=\"moveNextBox(this); \">";
+	selStrJobType += "<option value=\"\">선택</option>";
+    #foreach( $record in $md_01050_job_type_list )
+    	selStrJobType += "<option value=\"$record.get(0)\">$record.get(0)</option>";
+    #end
+	selStrJobType += "</select>";
+	
+</script>

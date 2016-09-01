@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>	
+
+<!--
+=====================================================================================================
+	TEMPLATE 
+=====================================================================================================
+--> 
+
+
+	<!-- combo 비용기반 무한 CAPA 버젼 조회 --> 
+	<query id="sc_01010_capaAssignMaterialCompare_list_combo_version1"  paging="false"> 
+
+		select aa.version
+		 from (select pv.version
+		         from plan_version_log pv, dual a
+		        where pv.period_type = 'DAILY'
+		          and pv.cat_id = 'FA'
+		          and commts = '비용기반 무한CAPA'
+		          and pv.version is not null
+		        group by pv.version
+		        order by pv.version desc
+		      ) aa
+		where   10 > rownum	 
+
+	</query>
+
+
+
+	<!-- combo 비용기반 CAPA 제약 버젼 조회 --> 
+	<query id="sc_01010_capaAssignMaterialCompare_list_combo_version2"  paging="false"> 
+
+		select aa.version
+		  from (select pv.version
+		          from plan_version_log pv, dual a 
+		         where pv.period_type = 'DAILY'
+		           and pv.cat_id = 'FA'
+		           and commts = '비용기반 CAPA제약'
+		           and pv.version is not null
+		         group by pv.version
+		         order by pv.version desc
+		       )aa
+		 where  10 > rownum 
+
+	</query>
+
+
+
+	<!-- combo 설비유형 코드 --> 
+	<query id="sc_01010_capaAssignMaterialCompare_list_combo_res_code"  paging="false"> 
+		select cm.cd as cd, cm.cd_name as cd_name
+		  from code_mst cm, dual a
+		 where cm.cd_grp = 'CAT06'
+		 order by cm.cd
+	</query>
+
+
+
+
+	<!-- combo 품목 조회 --> 
+	<query id="sc_01010_capaAssignMaterialCompare_list_combo_item_list"  paging="false"> 
+
+		select ls.item_id||'!%!'||ls.item_name as result
+		  from (/* Capa 제약없음 */
+		        select im.cat06, cd.cat06_name, ct.item_id, ct.item_name
+		          from fa_cost_trace ct,
+		               item_mst im,
+		               (select cd cat06, cd_name cat06_name
+		                  from code_mst
+		                 where cd_grp = 'CAT06'
+		               ) cd
+		         where ct.version = '$!{version1}' 
+		           and ct.item_id = im.item_id
+		           and im.cat06   = cd.cat06
+		           and im.cat06   like '%$!{res_code}%'
+		        union
+		        /* Capa 제약 */
+		        select im.cat06, cd.cat06_name, ct.item_id, ct.item_name
+		          from fa_cost_trace ct,
+		               item_mst im,
+		               (select cd cat06, cd_name cat06_name
+		                  from code_mst
+		                 where cd_grp = 'CAT06'
+		               ) cd
+		         where ct.version = '$!{version2}'
+		           and ct.item_id = im.item_id
+		           and im.cat06   = cd.cat06
+		           and im.cat06   like '%$!{res_code}%'
+		       ) ls
+		 order by ls.item_name
+		 
+	</query>
+	
+	
+	<!-- combo 공장 리스트 조회 --> 
+	<query id="sc_01010_capaAssignMaterialCompare_list_combo_factory"  paging="false"> 
+		select hy.htype plant_id, hy.hid_name plant_name
+		  from hrchy hy, dual a
+		 where hy.lvl_type = '공장'
+		   and hy.htype   != '1300'
+		 order by hy.htype
+	</query>	
+	
+	
+	
+	
+
+	
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</queries>	

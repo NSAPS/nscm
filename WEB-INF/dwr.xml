@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE dwr PUBLIC "-//GetAhead Limited//DTD Direct Web Remoting 2.0//EN" "http://www.getahead.ltd.uk/dwr/dwr20.dtd">
+
+<dwr>
+	
+	<init>
+		<converter id="testbean" class="uk.ltd.getahead.dwrdemo.test.TestBean2Converter"/>
+	</init>
+	
+	<allow>
+		
+		<!--
+		<filter class="org.directwebremoting.filter.ExtraLatencyAjaxFilter">
+			<param name="delay" value="200"/>
+		</filter>
+		-->
+		
+		<!-- 여기에 새로운 tool 추가 -->
+		
+		<!-- 기본 필요 method CLASS --> 
+		<create creator="new" javascript="commonUtil" scope="session">
+			<param name="class" value="com.zionex.t3sinc.common.CommonUtil"/> 
+		</create>
+		
+		<!-- 보충수송 CLASS --> 
+		<create creator="new" javascript="replenishPlan" scope="session">
+			<param name="class" value="com.zionex.t3sinc.common.ReplenishPlan"/> 
+		</create>
+		
+		<!-- 컨트롤보드 CLASS --> 
+		<create creator="new" javascript="controlBoard" scope="session">
+			<param name="class" value="com.zionex.t3sinc.common.ControlBoard"/> 
+		</create>
+    	
+    	<!-- 생산계획 CLASS -->
+    	<create creator="new" javascript="scheduling" scope="session">
+    		<param name="class" value="com.zionex.t3sinc.common.Scheduling"/>
+    	</create>
+    	
+    	<!-- 수요예측 CLASS -->
+    	<create creator="new" javascript="forecast" scope="session">
+    		<param name="class" value="com.zionex.t3sinc.common.Forecast"/>
+    	</create>
+    	<create creator="new" javascript="nongshim" scope="session">
+			<param name="class" value="com.zionex.t3sinc.common.NongshimTool"/>
+		</create>
+		
+	</allow>
+	
+</dwr>

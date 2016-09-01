@@ -1,0 +1,84 @@
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	<tr>
+		<td height="25" align="right" bgcolor="${toolbar_bgcolor}" class="line">
+			<table align="right" width="100%" height="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+				<tr>					
+					<td align="right">						
+						#toolbar_nscm($_moon_toolbar "" "" "" "")
+					</td>
+				</tr>
+			</table>
+		</td>                                                                                                                                                                                                                  
+	</tr>
+	<tr id="search_menu" style="DISPLAY:block">
+		<td height="20" valign="top" bgcolor="${search_bgcolor}" class="line">
+			<div class="tab-pane" id="calendarHeadTbp">				
+				<div class="tab-page" id="tabPage1">
+					<h2 class="tab">일별지수 관리</h2>			
+        			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; display:block; ">
+        				<tr>
+        					<td height="10"></td>
+        				</tr>
+        				<tr>
+        					<td align="left">
+        						<table height="21" border="0" cellpadding="0" cellspacing="0">					
+        							<tr>
+        								<td width="100" align="center" class="td1"> 
+        									<span>기준년월</span>
+        								</td>
+        								<td align="left">
+        									<select name="std_yyyymm" style="width:100;" onChange="searchIFrameData('fc_01030_calendarMgmt_tailer');"">
+            									<option value="">선택</option>
+            									#foreach( $choice in $!{fc_01030_calendarMgmt_yyyymm} )
+            										<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{std_yyyymm}") selected #end >$choice.get(0)</option>
+            									#end
+            								</select>									
+        								</td>
+        							</tr>															 										 					
+        						</table>
+        					</td>					
+        				 </tr>	
+        		  		 <tr height="10"><td></td></tr>
+        		     </table>
+        	 	 </div>
+				 <div class="tab-page" id="tabPage2">
+					<h2 class="tab">달력 생성</h2>			
+        			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; display:block; ">
+        				<tr>
+        					<td height="10"></td>
+        				</tr>
+        				<tr>
+        					<td align="left">
+        						<table height="21" border="0" cellpadding="0" cellspacing="0">					
+        							<tr>
+        								<td width="100" align="center" class="td1"> 
+        									<span>기간</span>
+        								</td>        								      
+                    					<td width="100">  																	    
+                    						#date_sole_no_title( "sdate" "7" "normal" "startBtn" $date.get('yyyy-MM'))&nbsp~&nbsp 
+                    					</td>										
+										<td width="100"> 														    
+                    						#date_sole_no_title( "edate" "7" "normal" "endBtn" $date.get('yyyy-MM'))	
+                    					</td>
+										<td align="left">
+                    						<input type="button" name="btnCalCrt" value="달력생성" onClick="updateData('fc_01030_calendarMgmt_create_action');" class="btn1_on">						
+                    					</td>
+        							</tr>															 										 					
+        						</table>
+        					</td>					
+        				 </tr>	
+        		  		 <tr height="10"><td></td></tr>
+        		     </table>
+        	 	 </div>
+			 </div>
+		 </td>   
+	 </tr>	 
+	 <tr class="line" height="10"><td></td></tr>
+	 <tr>
+	 	 <td valign="top">
+			<iframe id="child" name="iframe" src="service.do?_moon_service=fc_01030_calendarMgmt_tailer&amp;_moon_perpage=100&amp;_moon_pagenumber=1" width="100%" height="100%" scrolling="no" topmargin="0" leftmargin="0" frameborder="NO" border="0" framespacing="0"></iframe>			
+		 </td>
+	 </tr>
+	 <input type="hidden" name="_moon_service" value="${_moon_service}">
+	 <input type="hidden" name="_moon_pagenumber" value="${_moon_pagenumber}">
+</table>

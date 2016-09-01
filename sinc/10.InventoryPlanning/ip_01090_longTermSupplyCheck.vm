@@ -1,0 +1,212 @@
+############################################################
+## 프로그램ID      : ip_07020_Order_Trace_list.vm
+## 프로그램명      : SCM주문추적조회
+## 개발자          : 남웅용
+## 개발일자        : 2009-10-13
+##
+## 관련 job file   : job_sinc_10_inventoryPlanning_04.xml  
+## 관련 query file : query_sinc_10_inventoryPlanning_04.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2009-10-13  남웅용      create
+##
+############################################################
+
+   
+## 비정상적 접근 방지 
+#loginCheck()      
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setGridAutoResize('79', '190')" )  ## ('79', '170')" )       
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/scheduling.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+
+## 두번째 와이즈 그리드 설정을 위한 변수 선언 
+<script language="javascript" for="WiseGrid2" event="Initialize()">
+	init2();
+</script>
+<!--  	서버와의 통신이 정상적으로 완료되면 발생한다.   -->
+<script language="javascript" for="WiseGrid2" event="EndQuery()">
+	GridEndQuery2();
+</script>	
+	
+## 두번째 와이즈 그리드 설정을 위한 변수 선언 
+<script language="javascript" for="WiseGrid3" event="Initialize()">
+	init3();
+</script>
+<!--  	서버와의 통신이 정상적으로 완료되면 발생한다.   -->
+<script language="javascript" for="WiseGrid3" event="EndQuery()">
+	GridEndQuery3();
+</script>		
+
+## 두번째 와이즈 그리드 설정을 위한 변수 선언 
+<script language="javascript" for="WiseGrid4" event="Initialize()">
+	init4();
+</script>
+<!--  	서버와의 통신이 정상적으로 완료되면 발생한다.   -->
+<script language="javascript" for="WiseGrid4" event="EndQuery()">
+	GridEndQuery4();
+</script>		
+
+## 두번째 와이즈 그리드 설정을 위한 변수 선언 
+<script language="javascript" for="WiseGrid5" event="Initialize()">
+	init5();
+</script>
+<!--  	서버와의 통신이 정상적으로 완료되면 발생한다.   -->
+<script language="javascript" for="WiseGrid5" event="EndQuery()">
+	GridEndQuery5();
+</script>		
+
+## 두번째 와이즈 그리드 설정을 위한 변수 선언 
+<script language="javascript" for="WiseGrid6" event="Initialize()">
+	init6();
+</script>
+<!--  	서버와의 통신이 정상적으로 완료되면 발생한다.   -->
+<script language="javascript" for="WiseGrid6" event="EndQuery()">
+	GridEndQuery6();
+</script>		
+
+
+<!--	 WiseGrid의 셀의 내용이 변경되었을때 발생한다. -->
+<script language="javascript" for="WiseGrid2" event="ChangeCell(strColumnKey,nRow,nOldValue,nNewValue)">
+	Grid2ChangeCell(strColumnKey, nRow,nOldValue,nNewValue);
+</script>
+
+<!--	 WiseGrid의 셀의 내용이 변경되었을때 발생한다. -->
+<script language="javascript" for="WiseGrid3" event="ChangeCell(strColumnKey,nRow,nOldValue,nNewValue)">
+	Grid3ChangeCell(strColumnKey, nRow,nOldValue,nNewValue);
+</script>
+
+
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+    ## 조회 영역
+	## TAB 영역
+	##<br>
+	<tr>
+    	<td width="80%" valign="top" align="left">    
+			<font color="black">
+			##<input type="text" name="simul_data2" class="normal" style="width:50px; text-align:left; font:12px/15px 맑은 고딕 bold; ">				
+			<input type="button" name="btnSearch" value="(3+1)/2" onClick="refresh('31week'); " class="btn1_on">
+			<input type="button" name="btnSearch" value="3주평균"  onClick="refresh('3week'); "  class="btn1_on">
+			<input type="button" name="btnSearch" value="1주평균"  onClick="refresh('1week'); "  class="btn1_on">
+			<input type="text" name="simul_data" size="60" class="normal" onKeyPress="enterCheck('$_moon_service'); " 
+				style="width:60px; padding-left:1px; " onBlur="strCheck(); " onClick="select(); " 
+				onChange="strCheck(this); " value="$commonUtil.replaceQuot($!{simul_data})">
+			<input type="button" name="btnSearch" value="Simulation"  onClick="refresh('simul'); "  class="btn2_on">
+			##<input type="button" name="btnSearch" value="판매계획" onClick="refresh('plan'); " 	class="btn1_on">
+			##&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<input type="text" name="test" class="normal" style="width:0px; text-align:left; font:12px/15px 맑은 고딕 bold; ">			
+				<b>
+				##$!{item_id} - $!{item_name}
+				</b></font>
+			<input type="hidden" name="item_id" value ="$!{item_id}">								
+			<input type="hidden" name="item_name" value ="$!{item_name}">
+			<input type="hidden" name="week_flag" value ="$!{week_flag}">
+			##<input type="hidden" name="division" value ="$!{division}">
+			<input type="hidden" name="sel_gubn" value ="$!{sel_gubn}">
+
+			<select name="division" onChange="refresh('31week');"> 		  						
+				<option value="01" #if("$!{division}" == "01" 	) selected #end>면/스낵</option>
+				<option value="02" #if("$!{division}" == "02" 	) selected #end>면</option>
+				<option value="03" #if("$!{division}" == "03" 	) selected #end>스낵</option>
+				<option value="04" #if("$!{division}" == "04" 	) selected #end>기타제품</option>
+				<option value="05" #if("$!{division}" == "05" 	) selected #end>상품(삼다수,냉동제외)</option>
+				<option value="06" #if("$!{division}" == "06" 	) selected #end>삼다수2L</option>
+				<option value="061" #if("$!{division}" == "061" ) selected #end>삼다수0.5L</option>
+				<option value="07" #if("$!{division}" == "07" 	) selected #end>수출</option>
+			</select> 						
+			<select name="cat03" onChange="refresh('31week');"> 		
+      			<option value=""#if( "$!{cat03}" == "" ) selected #end>전체</option> 
+				#foreach( $condition in $ip_01090_CAT03 )
+					<option value="$condition.get(0)"  #if( "$!{cat03}" == "$condition.get(0)" ) selected #end>$condition.get(1)</option>
+				#end
+			</select>			
+		</td>
+	</tr>
+	<tr>
+        <td width="100%" valign="top">
+            <table border="0" width="100%" cellpading="0" cellspacing="0">
+                <tr height="2">
+                    <td colspan="3" style="background-color:#d0d0d0; " ></td>
+                </tr>
+                <tr height="2">
+					<td colspan="3" style="background-color:#d0d0d0; " ></td>
+				</tr>
+            </table>
+        </td> 
+    </tr>
+    <tr>
+        <td align="left" width="100%" height="65px">    
+            <script>initWiseGrid("WiseGrid4", "100%", "100%");</script>
+        </td>
+	</tr>
+    <tr>
+        <td align="left" width="100%" height="65px">    
+            <script>initWiseGrid("WiseGrid5", "100%", "100%");</script>
+        </td>
+	</tr>
+	<tr>
+        <td width="100%" valign="top" >
+            <table border="0" width="100%" cellpading="0" cellspacing="0">
+                <tr height="2">
+                    <td  style="background-color:#d0d0d0; " ></td>
+                </tr>  
+                <tr height="2">
+					<td  style="background-color:#d0d0d0; " ></td>
+				</tr>
+            </table>
+        </td> 
+    </tr>
+	<input name="search_h" type="hidden" value="45"> ## search 조건 부분 높이 
+            <tr height="2">  
+                <td align="left" width="33%" height="30px">
+                    <script>initWiseGrid("WiseGrid", "43%", "100%");</script>
+                    <script>initWiseGrid("WiseGrid2", "28.5%", "100%");</script>
+                    <script>initWiseGrid("WiseGrid3", "28.5%", "100%");</script> 
+                </td>
+##        		<td colspan="3" style="background-color:#d0d0d0; " ></td>
+##                <td align="left" width="33%" height="30px">
+##                </td>
+##        		<td colspan="3" style="background-color:#d0d0d0; " ></td>
+##        		<td align="left" width="33%" height="30px">
+##                </td>  
+            </tr>
+	
+	## TAB 영역
+    <tr>
+        <td valign="top">
+        ## tab 좌측 여백
+        ##tabLeft()               
+            <table height="5"><tr><td></td></tr></table>
+            <table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+                <input type="hidden" name="_moon_service" value="${_moon_service}">
+                <input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+                <input type="hidden" name="_user_id" value="$!{_user_id}">
+            </td></tr></table>
+            
+            
+        </td>
+    </tr>
+</table>
+
+<script>
+    
+    // 화면 resize
+    $!{resizeFuncCallCode};
+    function window.onresize() { $!{resizeFuncCallCode}; }
+	//init();
+	//GoSearch();
+    
+    // 도움말 내용 입력
+    var helpStr = "◈ ";    
+    helpCont.innerHTML = helpStr;
+    hDynamicHeight = 0; 
+           
+</script> 

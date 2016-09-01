@@ -1,0 +1,158 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize2('90', '137')" )
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						#toolbar($_moon_toolbar "moon_board_admin_create" "" "" "moon_board_admin_delete")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr style="display:none; ">
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2">
+					<td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; ">
+            				<tr id="search_menu" style="display:block; ">
+            					<td width="10%" align="right">
+									&nbsp;
+            					</td>
+            					<td width="90%" align="left">
+									&nbsp;
+            					</td>
+            				</tr> 
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2">
+					<td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="0"> ## search 조건 부분 높이 
+	##<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>						
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>#page_info()</td>
+							<td align="right">#table_display()</td>
+						</tr>
+					</table>
+					
+					<table id="tbMain" border="0" width="100%" cellpadding="0" cellspacing="0"><tr><td>
+						<div id="topLine" style="height:30px; width:100%; overflow:hidden; "> 
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead>
+									<tr align="center" height="30px"> 
+										<td width="5%" 	align="center">번호</td>
+										<td width="15%" align="center">게시판 ID</td>
+										<td width="40%" align="center">게시판 설명</td>
+										<td width="15%" align="center">관리 상세화면</td>
+										<td width="10%" align="center">전체등록수</td>
+										<td width="10%" align="center">등록일</td>
+										<td width="5%" 	align="center" class="right">삭제</td>
+									</tr>
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td></tr>	
+					<tr><td valign="top">
+						<div id="mainDisplay" class="ns_scroll" style="border:0; width:100%; overflow-y:scroll; " onScroll="scrollY(); ">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; "> 
+								<tbody> 
+								#foreach( $tr in ${moon_board_admin} )
+									<tr id="main_tr" height="20px" 
+										onMouseOver="this.style.backgroundColor='#eeeeee'" onMouseOut="this.style.backgroundColor='#ffffff'"> 
+										<td align="center" width="5%">
+											$math.add($math.mul($_moon_perpage, $math.sub($_moon_pagenumber, 1)), $velocityCount)
+										</td>
+            						#if( "$!{tr.get(0)}" == "FREE_BOARD" ) 
+										<td align="center" width="15%">
+											&nbsp;
+											<a href="service.do?_moon_service=moon_board_list_free_board&_board_id=$!{tr.get(0)}">
+												$!tr.get(0)
+											</a>
+										</td>
+            						#else 
+										<td align="center" width="15%">
+											&nbsp;<a href="service.do?_moon_service=moon_board_list&_board_id=$!{tr.get(0)}">$!tr.get(0)</a>
+										</td>
+            						#end
+										<td align="left" width="40%">&nbsp;$!tr.get(1)</td>
+										<td align="center" width="15%">
+											&nbsp;<a href="service.do?_moon_service=moon_board_admin_detail&_board_id=$!{tr.get(0)}">보기</a>
+										</td>
+										<td align="center" width="10%">$!tr.get(2)</td>
+										<td align="center" width="10%">$!tr.get(3)</td>
+										<td align="center" width="5%" class="right">
+											#checkbox3("_board_admin_del" "$!{tr.get(0)}")
+											<script></script>
+										</td>
+									</tr>
+								#end 
+								</tbody>
+							</table>
+						</div>
+					</td></tr></table>
+					
+					<table height="5"><tr><td></td></tr></table>
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+						$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+						<input type="hidden" name="_moon_service" value="${_moon_service}">
+						<input type="hidden" name="_moon_pagenumber" value="${_moon_pagenumber}">
+					</td></tr></table>
+					
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 조회된 리스트의 게시판이름을 클릭하면 해당 게시판의 게시물목록 화면으로 이동합니다.";
+	helpStr += "<br>◈ 조회된 리스트의 관리상세 화면 보기를 클릭하면 해당 게시판의 관리상세 화면으로 이동합니다.";
+	helpStr += "<br>◈ 상단의 등록버튼을 클릭하면 게시판등록 화면으로 이동합니다.";
+	helpStr += "<br>◈ 삭제에 체크하고 상단의 삭제버튼을 클릭하면 해당 게시판이 삭제됩니다.";
+	helpCont.innerHTML = helpStr;
+	// 도움말 zoomOut 높이 조절 변수
+	var hDynamicHeight = 0;
+	
+</script>

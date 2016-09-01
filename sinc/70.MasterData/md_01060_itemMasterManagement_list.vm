@@ -1,0 +1,243 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+##set( $resizeFuncCallCode = "setGridAutoResize('117', '177')" )
+#set( $resizeFuncCallCode = "setGridAutoResize('100', '360')" )       
+####set( $resizeFuncCallCode = "setGridAutoResize('120', '200')" ) 
+
+## 등록/수정 화면 이동한 후, 본 화면으로 이동할 때 조회조건을 기억하기 위한 parameter
+<input type="hidden" name="item_type_pre" value="$!{item_type}">
+<input type="hidden" name="serch_word_pre" value="$!{serch_word}">
+<input type="hidden" name="perpage_pre" value="${_moon_perpage}">
+<input type="hidden" name="pagenumber_pre" value="$!{_moon_pagenumber}">
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						#button("search")
+						#toolbar_nscm($_moon_toolbar "" "" "" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr> 
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; ">
+            				<tr id="search_menu" style="display:block; ">
+								<td width="80px" align="right">
+									내수/수출 :
+								</td> 
+								<td width="45px" align="left">
+									<select name="domain" >
+                              			<option value="AL" #if( "${domain}" == "AL" ) selected #end>전체</option>
+                              			<option value="DO" #if( "${domain}" == "DO" ) selected #end>내수</option>
+                              			<option value="EX" #if( "${domain}" == "EX" ) selected #end>수출</option> 
+									</select>
+									##<input type="hidden" name="item_type_pre" value ="$!{item_type}" >
+								</td>
+								<td width="65px" align="right">
+									자재유형 :
+								</td> 
+								<td width="70px" align="left"> 
+									<select name="item_type" >
+                              			##<option value="">선택</option>
+										#foreach( $condition in $md_01060_combo_item_type )
+											<option value="$condition.get(0)"  #if( "${item_type}" == "$condition.get(0)" ) selected #end>$condition.get(1)</option>
+										#end
+									</select>
+									##<input type="hidden" name="item_type_pre" value ="$!{item_type}" >
+								</td>
+								<td width="95px" align="right"> 
+									품목코드/품목명 :
+								</td> 
+								<td width="10px" align="left">
+									<input type="text" name="serch_word" size="20" class="normal" onKeyPress="enterCheck('$_moon_service'); " 
+										style="width:140px; padding-left:5px; " onBlur="strCheck(); " ondblClick="select(); " 
+										onChange="strCheck(this); " value="$commonUtil.replaceQuot($!{serch_word})">
+									<input type="hidden" name="serch_word_pre" value ="$!{serch_word}" >
+								</td>
+								<td width="90px" align="right">
+									판매중지 :
+								</td> 
+								<td width="100px" align="left"> 
+									<select name="sell_stop_date" >
+                              			<option value="99991231" #if( "${sell_stop_date}" == "99991231" ) selected #end>미포함</option>
+                              			<option value="00000000" #if( "${sell_stop_date}" == "00000000" ) selected #end>포함</option>
+									</select>
+									##<input type="hidden" name="item_type_pre" value ="$!{item_type}" >
+								</td>
+
+								<td></td>
+            				</tr> 
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="23"> ## search 조건 부분 높이 
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>						
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>									
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>#page_info()</td>
+							<td align="right">#table_display()</td> 
+						</tr>
+					</table>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>	
+								
+                                #set( $header = "품목번호!%!품목명!%!스팩!%!스팩\n단위!%!멀티포장\n여부!%!멀티포장\n수량!%!멀티포장\n수량단위!%!품목이력\n연결!%!파레트당\nBOX수!%!수송계획\n기준정보!%!공장할당\n기준정보!%!판매계획\n제품분류!%!CM 구분!%!수송중지\nFLAG!%!최소Picking\n수량!%!Package\nProcess 여부!%!제품특징1!%!제품특징2!%!제품특징4!%!제품특징5!%!수송비 할당!%!제조비 할당!%!제품군!%!배합유형!%!자재그룹!%!영업품종\n그룹1!%!영업품종\n그룹2!%!영업품종\n그룹3!%!영업품종\n그룹4!%!영업품종\n그룹5!%!계층타입1!%!계층타입2!%!계층타입3!%!계층타입4!%!계층타입5!%!기본단위내\n수량!%!기본단위!%!총중량!%!순중량!%!부피!%!부피단위" )
+                                #set( $headerType = "TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!NUMBER!%!NUMBER!%!NUMBER!%!TEXT" )
+                                #set( $colwidth = "80!%!150!%!100!%!40!%!60!%!60!%!60!%!60!%!60!%!90!%!110!%!70!%!70!%!70!%!70!%!100!%!70!%!70!%!100!%!70!%!70!%!70!%!70!%!100!%!70!%!70!%!70!%!70!%!100!%!70!%!100!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70" )
+                                #set( $colalign = "CENTER!%!LEFT!%!LEFT!%!CENTER!%!CENTER!%!RIGHT!%!CENTER!%!CENTER!%!RIGHT!%!CENTER!%!CENTER!%!CENTER!%!CENTER!%!CENTER!%!RIGHT!%!CENTER!%!CENTER!%!CENTER!%!CENTER!%!CENTER!%!CENTER!%!CENTER!%!CENTER!%!CENTER!%!CENTER!%!CENTER!%!CENTER!%!CENTER!%!CENTER!%!CENTER!%!CENTER!%!CENTER!%!CENTER!%!CENTER!%!RIGHT!%!RIGHT!%!CENTER!%!RIGHT!%!RIGHT!%!RIGHT!%!CENTER" )
+								
+    							#set( $data = $zlattice.getBody($!{md_01060_itemMasterManagement_list},"!%!", "/%/") ) 
+								
+								<textarea id="txt1" style="display:none;" rows="0" cols="0"> 
+        							<object name='grid'
+        								classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93" width="100%" height="375"
+        								codebase="http://java.sun.com/update/1.5.0/jinstall-1_5_0_03-windows-i586.cab#Version=1,5,3,0">
+            							##codebase="http://javadl.sun.com/webapps/download/AutoDL?BundleId=19588#Version=6,0,050,13">
+        								<!--Necessary-->     
+                                        <param name="code" value="com.zionex.t3sinc.ui.ZLattice">
+                                        <param name="archive" value="zLattice.jar">
+                                        <param name="headertypes" value= "$headerType">
+                                        <param name="headers"  value= "$header">
+                                        <param name="data" value= "$data">
+                                        <!--Necessary for Modification Grid -->
+                                        <param name="names" value= "" >
+                                        <!--Necessary for Cookie -->
+                                        <param name="identity" value="md_01060_itemMasterManagement_list">
+                                        <!--Necessary in TYPE COMBO 
+                                        <param name="combo9" value="DATA1!%!DATA2!%!DATA3">-->
+                                        <!--optional - Default Value 있음-->
+                                        <param name="columndelimeter" value="!%!"> <!-- defalut : !%! -->
+                                        <param name="rowdelimeter" value="/%/"> <!-- defalut : /%/ -->
+                                        <param name="showgroupingfunction" value="false">  <!-- defalut : true -->
+                                        <param name="showprintingfunction" value="false">   <!-- defalut : true -->
+                                        <param name="showlockingfunction" value="false"> <!-- defalut : true -->
+                                        <param name="showpagingfunction" value="false"> <!-- defalut : true -->
+                                        <param name="enablesorting" value="true">   <!-- defalut : true -->
+                                        <param name="groupingcolumn" value="-1"> <!-- defalut : 그루핑 없음 -->
+                                        <param name="groupsumcolumn" value="0"> <!-- defalut : 그루핑 없음 -->
+                                        <param name="lockedcolumn" value="2"> <!-- defalut : 락킹 없음 --> 
+                                        <param name="presentpage" value="$_moon_pagenumber">   <!-- defalut : 1 --> 
+                                        <param name="listinpage" value="$_moon_perpage">   <!-- defalut : 40 -->
+                                        <param name="bordertype" value="PLANE"> <!-- default - PLANE -->
+                                        <param name="indateformat" value="yyyy-MM-dd"> <!-- default - yyyyMMdd -->
+                                        <param name="outdateformat" value="yyyy-MM-dd">  <!-- default - yyyyMMdd -->									
+										<param name="outnumberformat" value="&#035;,&#035;&#035;0.0"> 									 
+                                        <param name="columnwidth" value="$colwidth"> <!-- default -80 -->
+                                        <param name="hasverticaltotal" value="false"> <!-- default -true -->
+                                        <param name="hashorizontaltotal" value="false"> <!-- default -true -->
+                                        <param name="totalrowcolor" value="909090"> <!-- default ? E6E6FA -->
+                                        <param name="totalverticalrowcolor" value="909090"> <!-- default ? E6E6FF -->
+                                        <param name="totalhorizontalrowcolor" value="a1a1a1"> <!-- default ? E6E6FF -->
+                                        <param name="hascookie" value="false"> <!-- default -false -->
+                                        <param name="enableinserting" value="false"> <!-- default -false -->
+                                        <param name="enabledeleting" value="false"> <!-- default -false -->
+                                        <param name="enableediting" value="false"> <!-- default -false -->
+										<param name="enabledragging" value="true">
+                                        <!--optional - Default Value 없음-->
+                                        ##set( $colCor = "12=dfdfdf&13=dfdfdf&14=dfdfdf&18=dfdfdf&19=dfdfdf&20=dfdfdf" ) 
+										<param name="columncolor" value="$!{colCor}">
+										<param name="rowcolor" value="$!{rowCol}">
+                                        <param name="onclickrowfunc" value="onclickfunc">
+										<param name="callingfunction" value="DOUBLECLICKED_CALLING">
+                                        <param name="disablecolumns" value="">
+                                        <param name="columnalign" value="$colalign">
+                                        <param name="font" value="굴림">
+                                        <param name="fontsize" value="12"> 
+										<param name="columnheight" value="44">
+										<param name="headertype" value="HORIZONTAL_HEADER">
+        							</object>
+        						</textarea> 
+								<script language="javascript" src="${project}/object_activity.jsp?txtID=txt1"></script>
+							</td>
+						</tr>
+					</table> 
+					
+					<table height="5"><tr><td></td></tr></table>
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+						$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+						<input type="hidden" name="_moon_service" value="${_moon_service}">
+						<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+						<input type="hidden" name="_user_id" value="$!{_user_id}">
+					</td></tr></table>
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+				
+    				##상세조회 iframe+-
+					<table id="tbBottom" border="0" width="100%" cellpadding="0" cellspacing="0" height="220px"> 
+						<tr>
+							<td >								
+								<iframe name="gridDetailInfo" height="100%" width="100%" height="100%" border="0" frameSpacing="0" frameBorder="0" 
+									src="service.do?_moon_service=md_01070_itemMasterDetail_list&amp;_moon_perpage=100&amp;_moon_pagenumber=1&amp;" 
+									scrolling="no" class="iframe">
+								</iframe>
+							</td>							 
+						</tr>
+					</table>
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+
+
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 수송 지시서를 조회하고 발행하는 화면입니다.";
+	helpStr += "<br>◈ 조회조건을 선택하시고 조회 버튼을 누르시면 원하는 데이타를 조회할 수 있습니다.";
+	helpStr += "<br>◈ 아이템 조건을 입력할때 제품명이나 제품코드를 다 입력하지 않아도 비슷한 데이타가 모두 조회됩니다.";
+	helpStr += "<br>◈ 발행 버튼 클릭시 미 발행된 Row수를 알려주며, 다시 한번 확인하게 됩니다.";
+	helpCont.innerHTML = helpStr;
+	// 도움말 zoomOut 높이 조절 변수
+	var hDynamicHeight = 0;
+	
+	// combo box:VERSION 선택시 공장 리스트 채움
+	function checkConfirm(){
+		
+		if(!confirm("현재 발행되지 않은 Row가 "+ "$!{brand_no_count_of_transBillPublishment.get(0)}" +"개 존재합니다. 발행하시겠습니까?"))
+			return true;
+		else
+			return false;
+	}
+	
+</script> 

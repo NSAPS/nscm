@@ -1,0 +1,968 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('142', '177')" )       
+ 
+## 코드 중복 체크를 위해 dwr 선언 
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+## 공장을 저정하기 위한 변수
+<input type="hidden" name="stored_plant" value="$!{selected_plant}"> 
+<input type="hidden" name="stored_team" value="$!{selected_won}"> 
+<input type="hidden" name="stored_line" value="$!{selected_line}"> 
+## 근무일자를 저정하기 위한 변수
+<input type="hidden" name="stored_duty_date" value="$!{duty_date}">
+
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr> 
+                	<td align="left">
+					<input type="button" name="btnApplyWorkDiaryNext" value="차주이후반영" onClick="SaveApplyWorkDiaryNext(); "
+							class="btn3_on" >
+					</td>	
+					<td align="right">##$!{create_button_able_check.get(0).get(0)}  
+						<input type="button" name="btnTime" value=" 시간조정" onClick="aaa(); " class="btn1_on"
+							#if("$!{selected_plant}" == "") disabled 
+							#elseif($create_button_able_check.size() == 0) disabled 
+							#end>
+						##<input type="button" name="btnCreate" value=" 생성" onClick="GoSearch('sc_01050_shiftOperationCalendar_list_create_comp')" class="btn1_on"
+						##	#if("$!{create_button_able_check.get(0).get(0)}" == "Y") disabled 
+						##	#elseif("$!{selected_plant}" == "") disabled
+						##	#end>
+						#button("search")
+						&nbsp;&nbsp;&nbsp;&nbsp;
+						<input type="button" name="btnSave" value="  저장" onClick="GoSave('sc_01050_shiftOperationCalendar_list_save_comp');" class="btn_sav_on" >
+						##toolbar_nscm($_moon_toolbar "" "" "sc_01050_shiftOperationCalendar_list_save_comp" "sc_01050_shiftOperationCalendar_list_del_comp")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역 
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table id="search_menu" style="display:block; " border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; ">
+            				#set($td1_1	= "10%")
+							#set($td1_2	= "14%")  
+							#set($td2_1	= "10%") 
+							#set($td2_2	= "10%") 
+							#set($td3_1	= "12%") 
+							#set($td3_2	= "19%")  
+							#set($td4_1	= "10%")
+							#set($td4_2	= "15%") 
+							<tr >
+            					<td width="$td1_1" align="right">공장 :</td> 
+            					<td width="$td1_2" align="left">    
+									<select name="selected_plant" style="width:100px; " onChange="doChangePlant(this); ")> 
+										<option value="">선택</option>
+									#foreach( $condition in $combo_plant_list )  
+										<option value="$condition.get(0)" #if($!{selected_plant} == "$condition.get(0)") selected #else #end >$condition.get(1)</option>											
+									#end 
+   									</select> 
+            					</td> 
+								<td width="$td2_1" align="right">원가부문 :</td>  
+            					<td width="$td2_2" align="left">
+									<a id="divSelectedWon">
+    									<select name="selected_won" style="width:90px; "> 
+    										<option value="">전체</option> 
+                						</select>  
+									</a>
+            					</td> 
+								<td width="$td3_1" align="right">라인 :</td> 
+								<td width="$td3_2">  																	    
+            						<a id="divSelectedLine">
+    									<select name="selected_line" style="width:130px; "> 
+    										<option value="">전체</option> 
+                						</select>  
+									</a>
+            					</td>
+								<td width="$td4_1" align="right">근무 일자 :</td> 
+								<td width="$td4_2">  																	    
+            						#date_sole_no_title( "duty_date" "10" "normal" "dutyBtn" "$date.get('yyyy-MM-dd')")
+								</td>
+							</tr>
+							<tr>            					  
+								<td width="$td1_1" align="right">일괄 적용 :</td>
+								<td colspan="3" >
+									<select name="selected_duty_day_from" style="width:45px; ">
+										<option value="0">일</option> 
+										<option value="6">월</option>
+										<option value="12">화</option>
+										<option value="18">수</option>
+										<option value="24">목</option>    
+										<option value="30">금</option> 
+										<option value="36">토</option>  
+									</select>~<select name="selected_duty_day_to" style="width:45px; "> 
+										<option value="0">일</option>
+										<option value="6">월</option>
+										<option value="12">화</option>
+										<option value="18">수</option>
+										<option value="24">목</option>
+										<option value="30">금</option>
+										<option value="36">토</option>
+									</select><select name="selected_shift" style="width:50px"> 
+										<option value="1">조</option>
+										<option value="3">주</option>
+										<option value="5">야</option>
+										<option value="ALL">전체</option>
+									</select><select name="selected_o_n" style="width:50px">
+										<option value="O">연장</option>
+										<option value="N">정상</option> 
+									</select><input  
+										name="btn_batch_prod_date" type="button" value="적용" style="width:35px; text-align:center; " 
+										onClick="shiftChangeBatch(); " class="button1_1" onmouseover="this.className='button1_2'" 
+										onmouseout="this.className='button1_1'">
+								</td>
+								<td width="$td3_1" align="right">교대조 변경 :</td>
+								<td colspan="3">
+									<select name="selected_from_day" style="width:35px; ">
+										<option value="0">일</option> 
+										<option value="1">월</option>
+										<option value="2">화</option>
+										<option value="3">수</option>
+										<option value="4">목</option>    
+										<option value="5">금</option> 
+										<option value="6">토</option>  
+									</select>~<select name="selected_to_day" style="width:35px; "> 
+										<option value="0">일</option>
+										<option value="1">월</option>
+										<option value="2">화</option>
+										<option value="3">수</option>
+										<option value="4">목</option>
+										<option value="5">금</option>
+										<option value="6">토</option>
+									</select><select name="selected_job_type" style="width:55px">
+										<option value="1">1교대</option> 
+										<option value="2">2교대</option> 
+										<option value="3">3교대</option>
+									</select><select name="selected_break" style="width:75px">
+										<option value="N">휴식없음</option>
+										<option value="B">휴식있음</option> 
+									</select><select name="selected_etc" style="width:75px"> 
+										<option value="A">일반</option>
+										<option value="B">음료</option> 
+										<option value="C">(조/야)</option>
+										<option value="D">(조/주)</option>
+										<option value="E">주간상주</option>
+										<option value="F">야간</option>
+									</select><input  
+										name="btn_batch_prod_date" type="button" value="변경" style="width:35px; text-align:center; font-weight:bold; " 
+										onClick="GoSearch('sc_01050_shiftOperationCalendar_list_change_comp') " class="button1_1" 
+										onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'">
+								</td>
+            				</tr> 
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="46"> ## search 조건 부분 높이 
+	<tr><td height="5"></td></tr> 
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>#page_info2()</td>
+						</tr>
+					</table>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table id="tbMain" border="0" width="715" cellpadding="0" cellspacing="0" >
+						<tr>							
+							<td>
+								#set($headHeight = "50px")## 헤더 높이  
+								#set($topLeftWidth = "595px")## 
+								#set($number 	= "30px")## 번호 
+								#set($checkBox	= "30px")## 체크 박스
+								#set($teamCode 	= "40px")## 원가부분코드
+								#set($teamName 	= "75px")## 원가부문
+								#set($line 		= "100px")## 라인
+								#set($procCode 	= "50px")## 작업장코드
+								#set($procName 	= "120px")## 작업장
+								#set($wrokType 	= "150px")## work type
+								<div id="topLeft" style="height:${headHeight}; width:${topLeftWidth}; overflow:hidden; ">
+        							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+        								<thead>   
+        									<tr height="25px">
+        										<td width="${number}" rowspan="2">번호</td>
+												<td width="${checkBox}" rowspan="2">전체<br><input type="checkbox" name="checked_all" value="N" onClick="checkAll(this);"/></td>
+												<td width="${teamCode}" rowspan="2">원가<br>부문<br>코드</td>
+												<td width="${teamName}" rowspan="2">원가부문</td>
+												<td width="${line}" rowspan="2">라인</td>
+												<td width="${procCode}" rowspan="2">작업장<br>코드</td> 
+												<td width="${procName}" rowspan="2">작업장</td>
+												<td width="${wrokType}" colspan="3">WORK TYPE</td>
+        									</tr>  
+											<tr height="25px">   
+												<td width="50" class="mid">교대조</td> 
+												<td width="50" class="mid">휴식</td> 
+												<td width="50" class="mid">기타</td> 
+											</tr>
+        			   					 </thead>
+        			   				</table>
+			   					</div>
+							</td>
+							<td>  
+								#set($topLineWidth = "1225px")   
+								<div id="topLine" style="height:${headHeight}; width:${topLineWidth}; overflow:hidden;">
+									<table width="${topLineWidth}" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>	
+											<tr height="25px">      
+												<td width="180px" colspan="3">$shift_oper_cal_header_dates.get(0).get(0)</td> 
+												<td width="180px" colspan="3">$shift_oper_cal_header_dates.get(0).get(1)</td> 
+												<td width="180px" colspan="3">$shift_oper_cal_header_dates.get(0).get(2)</td>
+												<td width="180px" colspan="3">$shift_oper_cal_header_dates.get(0).get(3)</td>  
+												<td width="180px" colspan="3">$shift_oper_cal_header_dates.get(0).get(4)</td>
+												<td width="180px" colspan="3">$shift_oper_cal_header_dates.get(0).get(5)</td>  
+												<td width="180px" colspan="3" class="right">$shift_oper_cal_header_dates.get(0).get(6)</td> 
+											</tr>
+											<tr height="25px">		 										
+												<td width="60px" class="mid">조</td>
+												<td width="60px" class="mid">주</td>
+												<td width="60px" class="mid">야</td> 
+												##<td width="50px" class="mid">상태</td> 
+												<td width="60px" class="mid">조</td>
+												<td width="60px" class="mid">주</td>
+												<td width="60px" class="mid">야</td>
+												##<td width="60px" class="mid">상태</td>
+												<td width="60px" class="mid">조</td>
+												<td width="60px" class="mid">주</td>
+												<td width="60px" class="mid">야</td>
+												##<td width="60px" class="mid">상태</td>
+												<td width="60px" class="mid">조</td>
+												<td width="60px" class="mid">주</td>
+												<td width="60px" class="mid">야</td>
+												##<td width="60px" class="mid">상태</td>
+												<td width="60px" class="mid">조</td>
+												<td width="60px" class="mid">주</td>
+												<td width="60px" class="mid">야</td>
+												##<td width="60px" class="mid">상태</td>
+												<td width="60px" class="mid">조</td> 
+												<td width="60px" class="mid">주</td>
+												<td width="60px" class="mid">야</td> 
+												##<td width="60px" class="mid">상태</td>
+												<td width="60px" class="mid">조</td>
+												<td width="60px" class="mid">주</td>
+												<td width="60px" class="midright">야</td>
+												##<td width="30px" class="midright">상태</td>
+											</tr> 
+										</thead>
+									</table>
+								</div>
+							</td> 
+						</tr>	
+						 
+						<tr>
+							<td valign="top">
+								#set($displayHeight = "22px")## 그리드 높이
+        						<div id="leftDisplay" style="width:${topLeftWidth}; overflow:hidden; ">
+        							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+        								<tbody id="left_tbody">
+        								#foreach( $tr in $sc_01050_shiftOperationCalendar_list )
+        									<tr id="left_tr" height="${displayHeight}" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+        										## 번호
+                								<td width="${number}" align="center" style="background-color:${search_bgcolor}; ">
+                									<a id="divRowNo">$velocityCount</a>
+                								</td>
+												## 체크박스 
+        										<td width="30px" align="center">
+        											<input name="check_modify" type="checkbox" value="N" class="normal" style="" onClick="checkEvent(this)">
+        											<input name="checkModify" type="hidden" value="N">
+        										</td>
+												## 원가부문 코드
+        										<td width="${teamCode}" align="center" >
+        											<a id="divTeamId">$tr.get(0)</a><input
+        												type="text" name="team_id" class="normal" value="$tr.get(0)"												
+        												style="width:100%; display:none; "> 											
+        										</td>
+    											## 원가부문
+        										<td width="${teamName}" align="left" >
+        											<a id="divTeamName">&nbsp;$tr.get(1)</a><input
+        												type="text" name="team_name" class="normal" value="$tr.get(1)"												
+        												style="width:100%; display:none; "> 											
+        										</td> 
+    											## 라인
+        										<td width="${line}" align="left" >
+        											<a id="divLineName">&nbsp;$tr.get(3)</a><input
+        												type="text" name="line_id" class="normal" value="$tr.get(2)"												
+        												style="width:100%; display:none; "> ##라인코드						
+        										</td>
+    											## 작업장 코드
+        										<td width="${procCode}" align="center" >
+        											<a id="divProcCd">$tr.get(4)</a><input
+        												type="text" name="proc_cd" class="normal" value="$tr.get(4)"												
+        												style="width:100%; display:none; "> 											
+        										</td>
+    											## 작업장 
+        										<td width="${procName}" align="left" >
+        											<a id="divProcName">&nbsp;$tr.get(5)</a><input
+        												type="text" name="proc_name" class="normal" value="$tr.get(5)"												
+        												style="width:100%; display:none; "> 											
+        										</td>
+												## work type
+												<td width="50px" align="center">  
+													<a id="divProcName">$tr.get(6)</a>
+													<input type="hidden" name="proc_name" class="normal" value="$tr.get(6)"> 
+												</td>
+												<td width="50px" align="center">
+													<a id="divProcName">$tr.get(7)</a>
+													<input type="hidden" name="proc_name" class="normal" value="$tr.get(7)">
+												</td>
+												<td width="50px" align="center">
+													<a id="divProcName">$tr.get(8)</a>
+													<input type="hidden" name="proc_name" class="normal" value="$tr.get(8)">
+												</td>
+        										#*<td width="${wrokType}" align="center" onClick="setEditMode(this); " >
+        											<a id="divWorkType">$tr.get(6)</a><select 
+        												name="work_type" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this);"
+        												style="width:100%; padding-left:5px; display:none;" tabindex="1">
+														<option value="">선택</option>
+                									#foreach( $condition in $shif_oper_cal_workty_list )  
+                										<option value="$condition.get(0)" #if("$condition.get(0)" == "$tr.get(5)") selected #end>$condition.get(1)</option>											
+													#end
+													</select>
+        										</td>*#
+        									</tr>
+        								#end
+        								</tbody> 
+        							</table> 
+        						</div> 
+        					</td> 
+							<td valign="top"> 
+								<div id="mainDisplay" class="ns_scroll" style="border:0; width:${topLineWidth}; overflow-y:scroll; overflow-x:scroll; " onscroll="scrollX(); scrollY(); ">
+									<table width="${topLineWidth}" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="main_tbody">	
+										#foreach( $tr in $sc_01050_shiftOperationCalendar_list )
+											<tr id="main_tr" height="${displayHeight}" onMouseOver="bgOver2(this); " onMouseOut="bgOut2(this); ">    											
+												## 조1       
+        										<td width="30px" align="center" onClick="setEditMode(this); " 
+													#if("$tr.get(10)" == "O") style="background-color:#d0d0d0; " #end > 
+        											<a id="divShift1Sun" style="font-weight:bold; ">$tr.get(11)</a><select 
+        												name="shift_1_sun" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														onChange="changeShiftSelect(this); "
+        												style="width:100%; display:none; " tabindex="1">  
+														<option value="" >선택</option>
+                										<option value="A" #if("A" == "$tr.get(11)") selected #end>A</option> 
+														<option value="B" #if("B" == "$tr.get(11)") selected #end>B</option>
+														<option value="C" #if("C" == "$tr.get(11)") selected #end >C</option>
+													</select><input 
+														type="hidden" name="sun_shift1_workty_id" value="$tr.get(9)"> 
+													<input type="hidden" name="sun_shift1_shift_id" value="$tr.get(12)">													
+        										</td>
+												<td width="30px" align="center">   
+													##$tr.get(10) 
+													<input name="change_sun_shift1" type="button" 
+														#if("$tr.get(10)" == "O") value="연장" style="color:#ff0000; " #else value="정상" #end class="button1_1"
+														#if("$!tr.get(12)" == "") disabled #end
+        												style="width:100%; text-align:center; " onClick="changeStatus(this); "
+        												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"><input 
+															type="hidden" name="sun_shift1_check_flag" value="0">													
+												</td> 
+												## 주1
+        										<td width="30px" align="center" onClick="setEditMode(this); "  
+													#if("$tr.get(14)" == "O") style="background-color:#d0d0d0; " #end >
+        											<a id="divShift3Sun" style="font-weight:bold; ">$tr.get(15)</a><select 
+        												name="shift_3_sun" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this);"
+														onChange="changeShiftSelect(this); "
+        												style="width:100%; padding-left:5px; display:none;" tabindex="2">
+														<option value="" >선택</option>
+                										<option value="A" #if("A" == "$tr.get(15)") selected #end>A</option>
+														<option value="B" #if("B" == "$tr.get(15)") selected #end>B</option>
+														<option value="C" #if("C" == "$tr.get(15)") selected #end>C</option>
+													</select><input 
+														type="hidden" name="sun_shift3_workty_id" value="$tr.get(13)"> 
+													<input type="hidden" name="sun_shift3_shift_id" value="$tr.get(16)">													
+        										</td>
+												<td width="30px" align="center"> 
+													<input name="change_sun_shift3" type="button"
+														#if("$tr.get(14)" == "O") value="연장" style="color:#ff0000; " #else value="정상" #end  class="button1_1"
+														#if("$!tr.get(16)" == "") disabled #end
+        												style="width:100%; text-align:center;  " onClick="changeStatus(this); "
+        												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"><input 
+															type="hidden" name="sun_shift3_check_flag" value="0">
+												</td>
+												## 야1
+        										<td width="30px" align="center" onClick="setEditMode(this); "  
+													#if("$tr.get(18)" == "O") style="background-color:#d0d0d0; " #end >
+        											<a id="divShift5Sun" style="font-weight:bold; ">$tr.get(19)</a><select  
+        												name="shift_5_sun" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this);"
+														onChange="changeShiftSelect(this); "
+        												style="width:100%; padding-left:5px; display:none;" tabindex="3">
+														<option value="" >선택</option> 
+                										<option value="A" #if("A" == "$tr.get(19)") selected #end>A</option>
+														<option value="B" #if("B" == "$tr.get(19)") selected #end>B</option>
+														<option value="C" #if("C" == "$tr.get(19)") selected #end>C</option>
+													</select><input 
+														type="hidden" name="sun_shift5_workty_id" value="$tr.get(17)"> 
+													<input type="hidden" name="sun_shift5_shift_id" value="$tr.get(20)">
+													</td>
+												## 버튼1
+												<td width="30px" align="center"> 
+													<input name="change_sun_shift5" type="button" 
+														#if("$tr.get(18)" == "O") value="연장" style="color:#ff0000; " #else value="정상" #end class="button1_1"
+														#if("$!tr.get(20)" == "") disabled #end
+        												style="width:100%; text-align:center;  " onClick="changeStatus(this); "
+        												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"><input 
+															type="hidden" name="sun_shift5_check_flag" value="0">        										
+													#*<select name="select_change_sun" onKeyDown="moveNextBox(this);" tabIndex=""
+														style="width:100%; ">
+														<option value="">정상</option>
+														<option value="">조</option>
+														<option value="">주</option>
+														<option value="">야</option>
+														<option value="">ALL</option>
+													</select>*#
+												</td>
+												## 조2
+        										<td width="30px" align="center" onClick="setEditMode(this); "  
+													#if("$tr.get(22)" == "O") style="background-color:#d0d0d0; " #end >
+        											<a id="divShift1Mon" style="font-weight:bold; ">$tr.get(23)</a><select 
+        												name="shift_1_mon" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														onChange="changeShiftSelect(this); "
+        												style="width:100%; padding-left:5px; display:none;" tabindex="4">
+														<option value="" >선택</option>
+                										<option value="A" #if("A" == "$tr.get(23)") selected #end>A</option>
+														<option value="B" #if("B" == "$tr.get(23)") selected #end>B</option>
+														<option value="C" #if("C" == "$tr.get(23)") selected #end>C</option>
+													</select><input 
+														type="hidden" name="mon_shift1_workty_id" value="$tr.get(21)"> 
+													<input type="hidden" name="mon_shift1_shift_id" value="$tr.get(24)"> 
+													
+        										</td>
+												<td width="30px" align="center"> 
+													<input name="change_mon_shift1" type="button" 
+														#if("$tr.get(22)" == "O") value="연장" style="color:#ff0000; " #else value="정상" #end class="button1_1"
+														#if("$!tr.get(24)" == "") disabled #end	
+        												style="width:28px; text-align:center;  " onClick="changeStatus(this); "
+        												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"><input 
+															type="hidden" name="mon_shift1_check_flag" value="0">
+												</td>
+												## 주2
+        										<td width="30px" align="center" onClick="setEditMode(this); "  
+													#if("$tr.get(26)" == "O") style="background-color:#d0d0d0; " #end >
+        											<a id="divShift3Mon" style="font-weight:bold; ">$tr.get(27)</a><select 
+        												name="shift_3_mon" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this);"
+														onChange="changeShiftSelect(this); "
+        												style="width:100%; padding-left:5px; display:none;" tabindex="5">
+														<option value="" >선택</option>
+                										<option value="A" #if("A" == "$tr.get(27)") selected #end>A</option>
+														<option value="B" #if("B" == "$tr.get(27)") selected #end>B</option>
+														<option value="C" #if("C" == "$tr.get(27)") selected #end>C</option>
+													</select><input 
+														type="hidden" name="mon_shift3_workty_id" value="$tr.get(25)"> 
+													<input type="hidden" name="mon_shift3_shift_id" value="$tr.get(28)"> 
+													
+        										</td>
+												<td width="30px" align="center"> 
+													<input name="change_mon_shift3" type="button" 
+														#if("$tr.get(26)" == "O") value="연장" style="color:#ff0000; " #else value="정상" #end class="button1_1"
+        												#if("$!tr.get(28)" == "") disabled #end
+														style="width:28px; text-align:center;  " onClick="changeStatus(this); "
+        												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"><input 
+															type="hidden" name="mon_shift3_check_flag" value="0">
+												</td>
+												## 야2
+        										<td width="30px" align="center" onClick="setEditMode(this); "  
+													#if("$tr.get(30)" == "O") style="background-color:#d0d0d0; " #end >
+        											<a id="divShift5Mon" style="font-weight:bold; ">$tr.get(31)</a><select  
+        												name="shift_5_mon" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this);"
+														onChange="changeShiftSelect(this); "
+        												style="width:100%; padding-left:5px; display:none;" tabindex="6">
+														<option value="" >선택</option> 
+                										<option value="A" #if("A" == "$tr.get(31)") selected #end>A</option>
+														<option value="B" #if("B" == "$tr.get(31)") selected #end>B</option>
+														<option value="C" #if("C" == "$tr.get(31)") selected #end>C</option>
+													</select><input 
+														type="hidden" name="mon_shift5_workty_id" value="$tr.get(29)"> 
+													<input type="hidden" name="mon_shift5_shift_id" value="$tr.get(32)"> 
+													##<input type="hidden" name="mon_shift5_check_flag" value="0">
+        										</td>
+												## 버튼2
+												<td width="30px" align="center"> 
+													<input name="change_mon_shift5" type="button" 
+														#if("$tr.get(30)" == "O") value="연장" style="color:#ff0000; " #else value="정상" #end class="button1_1"
+        												#if("$!tr.get(32)" == "") disabled #end
+														style="width:28px; text-align:center;  " onClick="changeStatus(this); "
+        												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"><input 
+															type="hidden" name="mon_shift5_check_flag" value="0">
+												</td>
+												## 조3
+        										<td width="30px" align="center" onClick="setEditMode(this); "  
+													#if("$tr.get(34)" == "O") style="background-color:#d0d0d0; " #end >
+        											<a id="divShift1Tue" style="font-weight:bold; ">$tr.get(35)</a><select 
+        												name="shift_1_tue" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														onChange="changeShiftSelect(this); "
+        												style="width:100%; padding-left:5px; display:none;" tabindex="7">
+														<option value="" >선택</option>
+                										<option value="A" #if("A" == "$tr.get(35)") selected #end>A</option>
+														<option value="B" #if("B" == "$tr.get(35)") selected #end>B</option>
+														<option value="C" #if("C" == "$tr.get(35)") selected #end>C</option>
+													</select><input 
+														type="hidden" name="tue_shift1_workty_id" value="$tr.get(33)"> 
+													<input type="hidden" name="tue_shift1_shift_id" value="$tr.get(36)">
+													
+        										</td>
+												<td width="30px" align="center"> 
+													<input name="change_tue_shift1" type="button" 
+														#if("$tr.get(34)" == "O") value="연장" style="color:#ff0000; " #else value="정상" #end class="button1_1"
+        												#if("$!tr.get(36)" == "") disabled #end
+														style="width:28px; text-align:center;  " onClick="changeStatus(this); "
+        												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"><input 
+															type="hidden" name="tue_shift1_check_flag" value="0">
+												</td>
+												## 주3
+        										<td width="30px" align="center" onClick="setEditMode(this); "  
+													#if("$tr.get(38)" == "O") style="background-color:#d0d0d0; " #end >
+        											<a id="divShift3Tue" style="font-weight:bold; ">$tr.get(39)</a><select 
+        												name="shift_3_tue" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this);"
+														onChange="changeShiftSelect(this); "
+        												style="width:100%; padding-left:5px; display:none;" tabindex="8">
+														<option value="" >선택</option>
+                										<option value="A" #if("A" == "$tr.get(39)") selected #end>A</option>
+														<option value="B" #if("B" == "$tr.get(39)") selected #end>B</option>
+														<option value="C" #if("C" == "$tr.get(39)") selected #end>C</option>
+													</select><input 
+														type="hidden" name="tue_shift3_workty_id" value="$tr.get(37)"> 
+													<input type="hidden" name="tue_shift3_shift_id" value="$tr.get(40)"> 
+													
+        										</td>
+												<td width="30px" align="center"> 
+													<input name="change_tue_shift3" type="button" 
+														#if("$tr.get(38)" == "O") value="연장" style="color:#ff0000; " #else value="정상" #end class="button1_1"
+        												#if("$!tr.get(40)" == "") disabled #end
+														style="width:28px; text-align:center;  " onClick="changeStatus(this); "
+        												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"><input 
+															type="hidden" name="tue_shift3_check_flag" value="0">
+												</td>
+												## 야3
+        										<td width="30px" align="center" onClick="setEditMode(this); "  
+													#if("$tr.get(42)" == "O") style="background-color:#d0d0d0; " #end >
+        											<a id="divShift5Tue" style="font-weight:bold; ">$tr.get(43)</a><select  
+        												name="shift_5_tue" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this);"
+														onChange="changeShiftSelect(this); "
+        												style="width:100%; padding-left:5px; display:none;" tabindex="9">
+														<option value="" >선택</option> 
+                										<option value="A" #if("A" == "$tr.get(43)") selected #end>A</option>
+														<option value="B" #if("B" == "$tr.get(43)") selected #end>B</option>
+														<option value="C" #if("C" == "$tr.get(43)") selected #end>C</option>
+													</select><input 
+														type="hidden" name="tue_shift5_workty_id" value="$tr.get(41)"> 
+													<input type="hidden" name="tue_shift5_shift_id" value="$tr.get(44)"> 
+													
+        										</td>
+												## 버튼3
+												<td width="30px" align="center"> 
+													<input name="change_tue_shift5" type="button" 
+														#if("$tr.get(42)" == "O") value="연장" style="color:#ff0000; " #else value="정상" #end class="button1_1"
+        												#if("$!tr.get(44)" == "") disabled #end
+														style="width:28px; text-align:center;  " onClick="changeStatus(this); "
+        												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"><input 
+															type="hidden" name="tue_shift5_check_flag" value="0">
+												</td>
+												## 조4
+        										<td width="30px" align="center" onClick="setEditMode(this); "  
+													#if("$tr.get(46)" == "O") style="background-color:#d0d0d0; " #end >
+        											<a id="divShift1Wed" style="font-weight:bold; ">$tr.get(47)</a><select 
+        												name="shift_1_wed" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														onChange="changeShiftSelect(this); "
+        												style="width:100%; padding-left:5px; display:none;" tabindex="10">
+														<option value="" >선택</option>
+                										<option value="A" #if("A" == "$tr.get(47)") selected #end>A</option>
+														<option value="B" #if("B" == "$tr.get(47)") selected #end>B</option>
+														<option value="C" #if("C" == "$tr.get(47)") selected #end>C</option>
+													</select><input 
+														type="hidden" name="wed_shift1_workty_id" value="$tr.get(45)"> 
+													<input type="hidden" name="wed_shift1_shift_id" value="$tr.get(48)"> 
+													
+        										</td>
+												<td width="30px" align="center"> 
+													<input name="change_wed_shift1" type="button" 
+														#if("$tr.get(46)" == "O") value="연장" style="color:#ff0000; " #else value="정상" #end class="button1_1"
+        												#if("$!tr.get(48)" == "") disabled #end
+														style="width:28px; text-align:center;  " onClick="changeStatus(this); "
+        												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"><input 
+															type="hidden" name="wed_shift1_check_flag" value="0">
+												</td>
+												## 주4
+        										<td width="30px" align="center" onClick="setEditMode(this); "  
+													#if("$tr.get(50)" == "O") style="background-color:#d0d0d0; " #end >
+        											<a id="divShift3Wed" style="font-weight:bold; ">$tr.get(51)</a><select 
+        												name="shift_3_wed" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this);"
+														onChange="changeShiftSelect(this); "
+        												style="width:100%; padding-left:5px; display:none;" tabindex="11">
+														<option value="" >선택</option>
+                										<option value="A" #if("A" == "$tr.get(51)") selected #end>A</option>
+														<option value="B" #if("B" == "$tr.get(51)") selected #end>B</option>
+														<option value="C" #if("C" == "$tr.get(51)") selected #end>C</option>
+													</select><input 
+														type="hidden" name="wed_shift3_workty_id" value="$tr.get(49)"> 
+													<input type="hidden" name="wed_shift3_shift_id" value="$tr.get(52)">
+													##<input type="hidden" name="wed_shift3_check_flag" value="N">
+        										</td>
+												<td width="30px" align="center"> 
+													<input name="change_wed_shift3" type="button" 
+														#if("$tr.get(50)" == "O") value="연장" style="color:#ff0000; " #else value="정상" #end class="button1_1"
+        												#if("$!tr.get(52)" == "") disabled #end
+														style="width:28px; text-align:center;  " onClick="changeStatus(this); "
+        												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"><input 
+															type="hidden" name="wed_shift3_check_flag" value="0">
+												</td>
+												## 야4
+        										<td width="30px" align="center" onClick="setEditMode(this); "  
+													#if("$tr.get(54)" == "O") style="background-color:#d0d0d0; " #end >
+        											<a id="divShift5Wed" style="font-weight:bold; ">$tr.get(55)</a><select  
+        												name="shift_5_wed" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this);"
+														onChange="changeShiftSelect(this); "
+        												style="width:100%; padding-left:5px; display:none;" tabindex="12">
+														<option value="" >선택</option> 
+                										<option value="A" #if("A" == "$tr.get(55)") selected #end>A</option>
+														<option value="B" #if("B" == "$tr.get(55)") selected #end>B</option>
+														<option value="C" #if("C" == "$tr.get(55)") selected #end>C</option>
+													</select><input 
+														type="hidden" name="wed_shift5_workty_id" value="$tr.get(53)"> 
+													<input type="hidden" name="wed_shift5_shift_id" value="$tr.get(56)">
+													##<input type="hidden" name="wed_shift5_check_flag" value="N">
+        										</td>
+												## 버튼4
+												<td width="30px" align="center"> 
+													<input name="change_wed_shift5" type="button" 
+														#if("$tr.get(54)" == "O") value="연장" style="color:#ff0000; " #else value="정상" #end class="button1_1"
+        												#if("$!tr.get(56)" == "") disabled #end
+														style="width:28px; text-align:center;  " onClick="changeStatus(this); "
+        												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"><input 
+															type="hidden" name="wed_shift5_check_flag" value="0">
+												</td>
+												## 조5
+        										<td width="30px" align="center" onClick="setEditMode(this); "  
+													#if("$tr.get(58)" == "O") style="background-color:#d0d0d0; " #end >
+        											<a id="divShift1Thu" style="font-weight:bold; ">$tr.get(59)</a><select 
+        												name="shift_1_thu" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														onChange="changeShiftSelect(this); "
+        												style="width:100%; padding-left:5px; display:none;" tabindex="13">
+														<option value="" >선택</option>
+                										<option value="A" #if("A" == "$tr.get(59)") selected #end>A</option>
+														<option value="B" #if("B" == "$tr.get(59)") selected #end>B</option>
+														<option value="C" #if("C" == "$tr.get(59)") selected #end>C</option>
+													</select><input 
+														type="hidden" name="thu_shift1_workty_id" value="$tr.get(57)"> 
+													<input type="hidden" name="thu_shift1_shift_id" value="$tr.get(60)"> 
+													
+        										</td>
+												<td width="30px" align="center"> 
+													<input name="change_thu_shift1" type="button" 
+														#if("$tr.get(58)" == "O") value="연장" style="color:#ff0000; " #else value="정상" #end class="button1_1"
+        												#if("$!tr.get(60)" == "") disabled #end
+														style="width:28px; text-align:center;  " onClick="changeStatus(this); "
+        												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"><input 
+															type="hidden" name="thu_shift1_check_flag" value="0">
+												</td>
+												## 주5
+        										<td width="30px" align="center" onClick="setEditMode(this); "  
+													#if("$tr.get(62)" == "O") style="background-color:#d0d0d0; " #end >
+        											<a id="divShift3Thu" style="font-weight:bold; ">$tr.get(63)</a><select 
+        												name="shift_3_thu" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this);"
+														onChange="changeShiftSelect(this); "
+        												style="width:100%; padding-left:5px; display:none;" tabindex="14">
+														<option value="" >선택</option>
+                										<option value="A" #if("A" == "$tr.get(63)") selected #end>A</option>
+														<option value="B" #if("B" == "$tr.get(63)") selected #end>B</option>
+														<option value="C" #if("C" == "$tr.get(63)") selected #end>C</option>
+													</select><input 
+														type="hidden" name="thu_shift3_workty_id" value="$tr.get(61)"> 
+													<input type="hidden" name="thu_shift3_shift_id" value="$tr.get(64)"> 
+													##<input type="hidden" name="thu_shift3_check_flag" value="N">
+        										</td>
+												<td width="30px" align="center"> 
+													<input name="change_thu_shift3" type="button" 
+														#if("$tr.get(62)" == "O") value="연장" style="color:#ff0000; " #else value="정상" #end class="button1_1"
+        												#if("$!tr.get(64)" == "") disabled #end
+														style="width:28px; text-align:center;  " onClick="changeStatus(this); "
+        												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"><input 
+															type="hidden" name="thu_shift3_check_flag" value="0">
+												</td>
+												## 야5
+        										<td width="30px" align="center" onClick="setEditMode(this); "  
+													#if("$tr.get(66)" == "O") style="background-color:#d0d0d0; " #end >
+        											<a id="divShift5Thu" style="font-weight:bold; ">$tr.get(67)</a><select  
+        												name="shift_5_thu" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this);"
+														onChange="changeShiftSelect(this); "
+        												style="width:100%; padding-left:5px; display:none;" tabindex="15">
+														<option value="" >선택</option> 
+                										<option value="A" #if("A" == "$tr.get(67)") selected #end>A</option>
+														<option value="B" #if("B" == "$tr.get(67)") selected #end>B</option>
+														<option value="C" #if("C" == "$tr.get(67)") selected #end>C</option>
+													</select><input 
+														type="hidden" name="thu_shift5_workty_id" value="$tr.get(65)"> 
+													<input type="hidden" name="thu_shift5_shift_id" value="$tr.get(68)"> 
+													
+        										</td>
+												## 버튼5
+												<td width="30px" align="center"> 
+													<input name="change_thu_shift5" type="button" 
+														#if("$tr.get(66)" == "O") value="연장" style="color:#ff0000; " #else value="정상" #end class="button1_1"
+        												#if("$!tr.get(68)" == "") disabled #end
+														style="width:28px; text-align:center;  " onClick="changeStatus(this); "
+        												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"><input 
+															type="hidden" name="thu_shift5_check_flag" value="0">
+												</td>
+												## 조6
+        										<td width="30px" align="center" onClick="setEditMode(this); "  
+													#if("$tr.get(70)" == "O") style="background-color:#d0d0d0; " #end >
+        											<a id="divShift1Fri" style="font-weight:bold; ">$tr.get(71)</a><select 
+        												name="shift_1_fri" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														onChange="changeShiftSelect(this); "
+        												style="width:100%; padding-left:5px; display:none;" tabindex="16">
+														<option value="" >선택</option>
+                										<option value="A" #if("A" == "$tr.get(71)") selected #end>A</option>
+														<option value="B" #if("B" == "$tr.get(71)") selected #end>B</option>
+														<option value="C" #if("C" == "$tr.get(71)") selected #end>C</option>
+													</select><input 
+														type="hidden" name="fri_shift1_workty_id" value="$tr.get(69)"> 
+													<input type="hidden" name="fri_shift1_shift_id" value="$tr.get(72)">
+													
+        										</td> 
+												<td width="30px" align="center"> 
+													<input name="change_fri_shift1" type="button" 
+														#if("$tr.get(70)" == "O") value="연장" style="color:#ff0000; " #else value="정상" #end class="button1_1"
+        												#if("$!tr.get(72)" == "") disabled #end
+														style="width:28px; text-align:center;  " onClick="changeStatus(this); "
+        												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"><input 
+															type="hidden" name="fri_shift1_check_flag" value="0">
+												</td>
+												## 주6
+        										<td width="30px" align="center" onClick="setEditMode(this); "  
+													#if("$tr.get(74)" == "O") style="background-color:#d0d0d0; " #end >
+        											<a id="divShift3Fri" style="font-weight:bold; ">$tr.get(75)</a><select 
+        												name="shift_3_fri" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this);"
+														onChange="changeShiftSelect(this); "
+        												style="width:100%; padding-left:5px; display:none;" tabindex="17">
+														<option value="" >선택</option>
+                										<option value="A" #if("A" == "$tr.get(75)") selected #end>A</option>
+														<option value="B" #if("B" == "$tr.get(75)") selected #end>B</option>
+														<option value="C" #if("C" == "$tr.get(75)") selected #end>C</option>
+													</select><input 
+														type="hidden" name="fri_shift3_workty_id" value="$tr.get(73)"> 
+													<input type="hidden" name="fri_shift3_shift_id" value="$tr.get(76)"> 
+													##<input type="hidden" name="fri_shift3_check_flag" value="N">
+        										</td>
+												<td width="30px" align="center"> 
+													<input name="change_fri_shift3" type="button" 
+														#if("$tr.get(74)" == "O") value="연장" style="color:#ff0000; " #else value="정상" #end class="button1_1"
+        												#if("$!tr.get(76)" == "") disabled #end
+														style="width:28px; text-align:center;  " onClick="changeStatus(this); "
+        												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"><input 
+															type="hidden" name="fri_shift3_check_flag" value="0">
+												</td>
+												## 야6
+        										<td width="30px" align="center" onClick="setEditMode(this); "  
+													#if("$tr.get(78)" == "O") style="background-color:#d0d0d0; " #end >
+        											<a id="divShift5Fri" style="font-weight:bold; ">$tr.get(79)</a><select  
+        												name="shift_5_fri" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this);"
+														onChange="changeShiftSelect(this); "
+        												style="width:100%; padding-left:5px; display:none;" tabindex="18">
+														<option value="" >선택</option> 
+                										<option value="A" #if("A" == "$tr.get(79)") selected #end>A</option>
+														<option value="B" #if("B" == "$tr.get(79)") selected #end>B</option>
+														<option value="C" #if("C" == "$tr.get(79)") selected #end>C</option>
+													</select><input 
+														type="hidden" name="fri_shift5_workty_id" value="$tr.get(77)"> 
+													<input type="hidden" name="fri_shift5_shift_id" value="$tr.get(80)"> 
+													
+        										</td>
+												## 버튼6
+												<td width="30px" align="center"> 
+													<input name="change_fri_shift5" type="button" 
+														#if("$tr.get(78)" == "O") value="연장" style="color:#ff0000; " #else value="정상" #end class="button1_1"
+        												#if("$!tr.get(80)" == "") disabled #end
+														style="width:28px; text-align:center;  " onClick="changeStatus(this); "
+        												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"><input 
+															type="hidden" name="fri_shift5_check_flag" value="0">
+												</td>
+												## 조7
+        										<td width="30px" align="center" onClick="setEditMode(this); "  
+													#if("$tr.get(82)" == "O") style="background-color:#d0d0d0; " #end >
+        											<a id="divShift1Sat" style="font-weight:bold; ">$tr.get(83)</a><select 
+        												name="shift_1_sat" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														onChange="changeShiftSelect(this); "
+        												style="width:100%; padding-left:5px; display:none;" tabindex="19">
+														<option value="" >선택</option>
+                										<option value="A" #if("A" == "$tr.get(83)") selected #end>A</option>
+														<option value="B" #if("B" == "$tr.get(83)") selected #end>B</option>
+														<option value="C" #if("C" == "$tr.get(83)") selected #end>C</option>
+													</select><input 
+														type="hidden" name="sat_shift1_workty_id" value="$tr.get(81)"> 
+													<input type="hidden" name="sat_shift1_shift_id" value="$tr.get(84)"> 
+													
+        										</td>
+												<td width="30px" align="center"> 
+													<input name="change_sat_shift1" type="button" 
+														#if("$tr.get(82)" == "O") value="연장" style="color:#ff0000; " #else value="정상" #end class="button1_1"
+        												#if("$!tr.get(84)" == "") disabled #end
+														style="width:28px; text-align:center;  " onClick="changeStatus(this); "
+        												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"><input 
+															type="hidden" name="sat_shift1_check_flag" value="0">
+												</td>
+												## 주7
+        										<td width="30px" align="center" onClick="setEditMode(this); "  
+													#if("$tr.get(86)" == "O") style="background-color:#d0d0d0; " #end >
+        											<a id="divShift3Sat" style="font-weight:bold; ">$tr.get(87)</a><select 
+        												name="shift_3_sat" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this);"
+														onChange="changeShiftSelect(this); "
+        												style="width:100%; padding-left:5px; display:none;" tabindex="20">
+														<option value="" >선택</option>
+                										<option value="A" #if("A" == "$tr.get(87)") selected #end>A</option>
+														<option value="B" #if("B" == "$tr.get(87)") selected #end>B</option>
+														<option value="C" #if("C" == "$tr.get(87)") selected #end>C</option>
+													</select><input 
+														type="hidden" name="sat_shift3_workty_id" value="$tr.get(85)"> 
+													<input type="hidden" name="sat_shift3_shift_id" value="$tr.get(88)">
+													
+        										</td> 
+												<td width="30px" align="center"> 
+													<input name="change_sat_shift3" type="button" 
+														#if("$tr.get(86)" == "O") value="연장" style="color:#ff0000; " #else value="정상" #end class="button1_1"
+        												#if("$!tr.get(88)" == "") disabled #end
+														style="width:28px; text-align:center;  " onClick="changeStatus(this); "
+        												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"><input 
+															type="hidden" name="sat_shift3_check_flag" value="0">
+												</td>
+												## 야7 
+        										<td width="30px" align="center" onClick="setEditMode(this); " class="right" 
+													#if("$tr.get(90)" == "O") style="background-color:#d0d0d0; " #end >
+        											<a id="divShift5Sat" style="font-weight:bold; ">$tr.get(91)</a><select  
+        												name="shift_5_sat" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this);"
+														onChange="changeShiftSelect(this); "
+        												style="width:100%; padding-left:5px; display:none;" tabindex="21">
+														<option value="" >선택</option> 
+                										<option value="A" #if("A" == "$tr.get(91)") selected #end>A</option>
+														<option value="B" #if("B" == "$tr.get(91)") selected #end>B</option>
+														<option value="C" #if("C" == "$tr.get(91)") selected #end>C</option>
+													</select><input 
+														type="hidden" name="sat_shift5_workty_id" value="$tr.get(89)"> 
+													<input type="hidden" name="sat_shift5_shift_id" value="$tr.get(92)"> 
+													
+        										</td> 
+												## 버튼7
+												<td width="30px" align="center"> 
+													<input name="change_sat_shift5" type="button" 
+														#if("$tr.get(90)" == "O") value="연장" style="color:#ff0000; " #else value="정상" #end class="button1_1"
+        												#if("$!tr.get(92)" == "") disabled #end
+														style="width:28px; text-align:center;  " onClick="changeStatus(this); "
+        												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"><input 
+															type="hidden" name="sat_shift5_check_flag" value="0">
+												</td>
+											</tr> 
+										#end
+										</tbody>
+									</table>
+								</div>
+							</td>
+						</tr>
+					</table>
+					
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+					
+					<input type="hidden" name="_moon_service">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+										
+				</div>
+			</div> 
+		</td>
+	</tr>
+</table>
+
+<script> 
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 공장을 반드시 선택하고 조회해야 합니다.";
+	helpStr += "<br>◈ 상단의 공장, 원가부문, 라인, 근무일자  항목들을 선택 후 상단의 조회 버튼을 클릭하여 조 운영 캘린더를 조회합니다.";
+	helpStr += "<br>◈ 선택한 근무일자의 주차(일요일~토요일까지)의 조 운영 캘린더가 작업장별로 조회됩니다.";
+	helpStr += "<br>◈ 그리드의 일자별 각 shift(조/주/야)의 근무조를 변경할 수 있습니다.";
+	helpStr += "<br>◈ 그리드의 일자별 각 shift(조/주/야)의 버튼을 클릭하여 정상->연장, 연장->정상으로 상태를 변경할 수 있습니다.";
+	helpStr += "<br>◈ 그리드의 연장/정상을 일괄 적용하기 위해서는 .";
+	helpStr += "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1) 일괄적용을 적용할 라인의 체크박스(화면 좌측)를 선택합니다.";
+	helpStr += "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2) 화면 상단의 일괄적용 항목의 조건을 선택 후 적용 버튼을 클릭합니다.";
+	helpStr += "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ex) 월 ~ 수, 조, 연장 을 선택하면 월요일 부터 수요일까지의 조간을 모두 연장으로 변경.";
+	helpStr += "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3) 적용버튼을 클릭하면 화면만 반영된 상태이므로 상단의 저장 버튼을 클릭하여 저장합니다.";
+	helpStr += "<br>◈ 변경된 내용을 저장하기위해서 상단 우측의 저장 버튼을 클릭합니다.";
+	helpStr += "<br>◈ 조회시 데이터가 없을 경우 상단의 생성 버튼을 클릭하여 기본 패턴의 조 운영 캘린더를 생성합니다.";
+	helpStr += "<br>◈ 조 운영 캘린더 생성시(생성 버튼을 클릭할 경우) 상단의 근무일자 기준 해당주차의 조 운영 캘린더가 생성됩니다.";
+	helpStr += "<br>◈ 상단의 근무일자 기준으로 조 운영 캘린더가 존재 할 때는 조 운영 캘린더를 생성 할 수 없습니다.";
+	helpStr += "<br>◈ 교대조를 변경할 수 있습니다(ex 음료공장 2교대 => 1교대).";
+	helpStr += "<br>◈ 교대조를 변경하기 위해서는 우측 상단의 교대조 변경 항목을 이용합니다.";
+	helpStr += "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1) 교대조를  변경할 라인의 체크박스(화면 좌측)를 선택합니다.";
+	helpStr += "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2) 교대조 변경 항목의 조건을 선택합니다.";
+	helpStr += "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ex) 월 ~ 수, 1교대, 휴식있음, 음료를 선택하면 월요일 부터 수요일까지의 근무조를 변경합니다.";
+	helpStr += "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3) 조건을 선택한 후 변경 버튼을 클릭하여 교대조를 변경합니다.";
+	helpStr += "<br>◈ 상단의 시간조정 버튼을 클릭하면 현재 조회된 조 운영 캘린더에 대한 착수/완료 시간을 조정할 수 있는 팝업창이 실행 됩니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;	
+	
+	// combo box:공장 선택시원가부문 리스트 채움
+	function doChangePlant(obj){
+		var div_won = "<select name=\"selected_won\" style=\"width:90px; \" onChange=\"doChangeWon(this); \">";
+		div_won += "<option value=\"\">전체</option>";		
+	#foreach( $condition in $combo_won_list )
+		if( obj.value == "$condition.get(0)"){
+			div_won += "<option value=\"$condition.get(1)\" ";
+				if("$condition.get(1)" == "$!{selected_won}")
+					div_won += " selected ";
+			div_won += ">$condition.get(2)</option>";
+		}
+	#end
+		div_won += "</select>";
+		divSelectedWon.innerHTML = div_won;			
+	}
+	doChangePlant(document.frm.selected_plant);
+	
+		// combo box:원가부문 선택시 라인 리스트 채움 
+	function doChangeWon(obj){
+		var plant_id = document.frm.selected_plant.value;
+		var div_line = "<select name=\"selected_line\" style=\"width:130px; \" >";
+		div_line += "<option value=\"\">전체</option>";		
+	#foreach( $condition in $shift_oper_cal_combo_line_list )
+		if( plant_id == "$condition.get(0)" && obj.value == "$condition.get(1)" ){
+			div_line += "<option value=\"$condition.get(2)\" ";
+				if("$condition.get(2)" == "$!{selected_line}")
+					div_line += " selected ";
+			div_line += ">$condition.get(3)</option>";
+		}
+	#end
+		div_line += "</select>";
+		divSelectedLine.innerHTML = div_line;			
+	}
+	doChangeWon(document.frm.selected_won);
+	
+</script>

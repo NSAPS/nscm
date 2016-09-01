@@ -1,0 +1,200 @@
+############################################################
+## 프로그램ID : md_04110_transUnit_item_list.vm
+## 프로그램명 : 품목별 수송단위관리
+## 개발자  : 권용찬
+## 개발일자 : 2008-10-06 월요일
+##
+##관련 job file : job_sinc_70_masterData_03.xml
+##
+##관련 query file : query_sinc_70_masterData_03.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2008-10-06  권용찬    md_04110_transUnit_item_list.vm 개발
+##
+##
+############################################################
+
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('125', '175')" )
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						#button("search")
+						#toolbar_nscm($_moon_toolbar "" "" "md_04110_transUnit_item_list_save_comp" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; ">
+            				<tr id="search_menu" style="display:block; ">
+		           				<td width="70px" align="right">
+            						품 목 :
+            					</td>
+								<td>
+									<input name="item_id" class="normal" style="width:70px; " onChange="getItemName(this); "
+										onkeypress="enterCheck('${_moon_service}'); " value="$!{item_id}">
+									<input name="item_name" class="normal" readOnly style="width:230px; " value="$!{item_name}"><img
+										name="imgItem" src="sinc/template/basic/skin/nongshim/images/common/icon_search.gif"
+										align="absmiddle" border="0" style="cursor:pointer;"  
+										onClick="openCodeSearchPop('item_id', 'item_name', '400', '300'); ">
+								</td>
+								<td></td>
+            				</tr> 
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="23"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>#page_info()</td>
+							<td align="right">
+								#table_display()
+							</td>
+						</tr>
+					</table>
+					
+					<table id="tbMain" border="0" width="100%" cellpadding="0" cellspacing="0" >
+						<tr>
+							<td> 
+								<div id="topLeft" style="height:40px; width:440px; overflow:hidden; padding-right:16px;"> 
+									<table width="440px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>
+											<tr align="center" height="40px"> 
+												<td width="30px">번호</td>
+												<td width="90px">입고장 번호</td>
+												<td width="120px">입고장명</td>
+												<td width="100px">PLT</td>
+												<td width="100px" class="right">BOX</td>
+											</tr> 
+					   					 </thead>
+					   				</table>
+					   			</div>
+							</td> 
+						</tr>	
+						
+						<tr>
+							<td valign="top"> 
+								<div id="leftDisplay" class="ns_scroll" style="width:100%; overflow:hidden; overflow-y:scroll;" onscroll="scrollX(); scrollY(); ">
+									<table width="440px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="left_tbody">
+										
+										## 입고장 영역에 data를 셋팅하는  부분.
+										#foreach( $tr in $md_04110_transUnit_item_list )  									
+											<tr id="left_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+												## 번호, BOX_PER_PALET
+        										<td width="30px" align="center" style="background-color:${search_bgcolor}; " id="tdRowNo">
+        											<a id="divRowNo">$velocityCount</a>
+        											<input type="hidden" name="box_per_palet" value="$tr.get(4)">
+        										</td>
+												<td width="90px" align="center"> ## 제품코드
+													<a id="divDcId">&nbsp;$tr.get(1)</a><input 
+														type="text" name="dc_id" class="normal" size="20" value="$tr.get(1)"
+														onFocusOut="setViewMode(this); "
+														style="width:100%; padding-left:5px; display:none; ">
+												</td>
+												<td width="120px" align="left"> ## 제품
+													<a id="divDcName">&nbsp;&nbsp;&nbsp;&nbsp;$tr.get(2)</a><input 
+														type="text" name="dc_name" class="normal" size="20" value="$tr.get(2)"
+														onFocusOut="setViewMode(this); "
+														style="width:100%; padding-left:5px; display:none; ">
+												</td>
+												<td width="100px" align="center">
+    												<a id="divPltFlag">&nbsp;</a><input type="checkbox" name="plt_flag" class="normal"
+														style="text-align:center; border-width:0; " onClick="setBoxQty(this);"
+														#if ("$tr.get(5)" == "Y") checked #end></input>
+    											</td>
+										
+    											<td width="100px" onClick="setEditMode(this); " align="right" class="right">
+    												<a id="divBoxQty">$tr.get(3)&nbsp;&nbsp;&nbsp;</a><input
+        												type="text" name="box_qty" class="normal" size="20" value="$tr.get(3)"
+        												onKeyDown="moveNextBox(this); " onFocusOut="setViewMode(this); " 
+        												style="width:100%; padding-right:10px; display:none; text-align:right; ">
+													<input type="hidden" name="old_box_qty" value="$tr.get(3)">
+    											</td>
+											</tr>
+										#end
+										</tbody> 
+									</table> 
+								</div> 	
+							</td>
+						</tr>
+					</table>
+					
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+    					$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+    					<input type="hidden" name="_moon_service" value="${_moon_service}">
+    					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+    					##<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+    					## 번호 배경색
+    					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+						<input type="hidden" name="_user_id" value="$!{_user_id}">
+					</td></tr></table>
+					</td></tr></table>
+					
+						
+				    ## waiting 표시영역
+					#waitingArea()
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; fix(); }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 입고장을 선택한후 조회 버튼을 누르시면 데이타가 조회됩니다.";
+	helpStr += "<br>◈ PLT를 CHECK되어 있다면, BOX 수량은 1 pallet에 대한 수량을 나타냅니다.";
+	helpStr += "<br>◈ PLT를 CHECK하시면  1 pallet에 대한 box 수량이 BOX에 자동 셋팅됩니다.";
+	helpStr += "<br>◈ PLT를 CHEKC를 해제 하시면 기존의 값으로 BOX값이 원상복구됩니다.";
+	helpStr += "<br>◈ BOX 수량을 수정하고 저장 버튼을 누르시면 해당 데이타가 저장됩니다.";
+	helpCont.innerHTML = helpStr;
+	// 도움말 zoomOut 높이 조절 변수
+	hDynamicHeight = 0;
+	
+</script>

@@ -1,0 +1,270 @@
+## 비정상적 접근 방지 
+#loginCheck()## 화면 resizing 을 위한 size 변수 
+##set( $resizeFuncCallCode = "setHtmlGridAutoResize3('142', '280', '180','$!{sel_date_term}')" )
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('50', '300')" )##('142', '450')" ) 
+##set( $resizeFuncCallCode = "setGridAutoResize('142', '287')" ) 
+##set( $resizeFuncCallCode = "setHtmlGridAutoResize('142', '260')" )   
+##set( $resizeFuncCallCode = "setHtmlGridAutoResize('140', '155')" ) 
+<input type="hidden" name="sel_dc_name" value="$!{sel_dc_name}" resdonly >
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역	<tr>
+		<td height="25" align="right">   
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						##button("search")
+						#toolbar_nscm($_moon_toolbar "" "" "" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr> 
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" 
+							id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr>
+##            					<td width="70px" align="right">
+##            						작업일자 :
+##            					</td>
+##            					<td width="100px" align="left">
+##									#date_sole_no_title("in_cnfm_date" "10" "normal" "btnC" "$date.get('yyyy-MM-dd')")
+##            					</td>
+            					<td width="70px" align="right">
+            						CDC/RDC :
+            					</td>
+            					<td width="80px" align="left">
+									<select name="search_type" onChange="GoSearch();">
+                              			<option value=""#if( "$!{search_type}" == "" ) selected #end>전체</option>
+                              			<option value="CDC"#if( "$!{search_type}" == "CDC" ) selected #end>CDC</option>
+                              			<option value="RDC"#if( "$!{search_type}" == "RDC" ) selected #end>RDC</option>
+									</select>
+									<input type="hidden" name="cdc_flag" value="" >
+									<input type="hidden" name="rdc_flag" value="" >
+            					</td>
+								<td width="100px" align="right">
+									품목번호/품목명 :
+								</td> 
+								<td width="100px" align="left">
+									<input type="text" name="search_item" size="20" class="normal" 
+										##onKeyPress="enterCheck('$_moon_service'); " 
+										style="width:100px; padding-left:5px; " onBlur="strCheck(); " ondblClick="select(); " 
+										onChange="strCheck(this); " value="$commonUtil.replaceQuot($!{search_item})">
+									<input type="hidden" name="serch_item_pre" value ="$!{search_item}" >
+								</td>
+								<td>
+								</td>
+            				</tr>            				 
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="47"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+##					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+##						<tr>
+##							<td>#page_info()</td>
+##							<td align="right">#table_display()</td>
+##						</tr>
+##					</table>
+					  
+##					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table id="tbMain" border="0" width="715" cellpadding="0" cellspacing="0" >
+						<tr>
+							<td> 
+								<div id="topLeft" style="height:35px; width:260px; overflow:hidden; "> 
+									<table width="260px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>
+											<tr align="center" height="35px"> 
+												<td align="center" width="30px">번호</td>
+												<td align="center" width="80px">출고장 코드</td>
+												<td align="center" width="150px">출고장명</td>
+											</tr>
+					   					 </thead>
+					   				</table>
+					   			</div>
+							</td>
+							<td> 
+								<div id="topLine" style="height:35px; width:500px;overflow:hidden;"> 
+									<table width="500px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>
+											<tr height="35px">
+												<td align="center" width="100px">적정보관 CAPA</td>
+												<td align="center" width="100px">최대보관 CAPA</td>
+												<td align="center" width="100px">최적재고수준</td>
+												<td align="center" width="100px">비축재고</td>
+												<td align="center" width="100px">보관율</td>
+											</tr>
+					   					 </thead>
+					   				</table>
+					   			</div>
+							</td>
+						</tr>	
+						
+						<tr>
+							<td valign="top"> 
+								<div id="leftDisplay" style="width:260px; overflow:hidden; ">
+									<table width="260px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="left_tbody">
+										#foreach( $tr in $ip_01030_inventoryPlan_DC_mod )
+											<tr id="left_tr" height="20px" onMouseOver="bgOver(this);" onMouseOut="bgOut(this);" 
+												ondblclick="onclickfunc(this, $math.sub($velocityCount, 1))">
+												 ## 번호
+												<td width="30px" align="center" >
+													<a id="divRowNo">$velocityCount</a>
+												</td>
+        										## 품목 코드
+        										<td width="80px" align="center" >  
+        											<a id="divDcId">$tr.get(0)</a><input
+        												type="text" name="dc_id" class="normal" size="20" value="$tr.get(0)"
+        												style="width:60PX; padding-right:5px; text-align:cneter; display:none;">
+        										</td>
+        										## 품목 명
+        										<td width="150px" align="left" >
+        											<a id="divDcName">&nbsp;$tr.get(1)</a><input
+        												type="text" name="dc_name" class="normal" size="20" value="$tr.get(1)"
+        												style="width:100%; padding-right:5px; display:none; text-align:left; ">
+        										</td>												
+											</tr>
+										#end
+										</tbody> 
+									</table> 
+								</div> 	
+							</td> 
+							<td valign="top"> 
+								<div id="mainDisplay" class="ns_scroll" style="border:0; width:500px; overflow-y:scroll; overflow-x:scroll; " onscroll="scrollX(); scrollY(); ">
+									<table width="500px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="main_tbody">
+										#foreach( $tr in $ip_01030_inventoryPlan_DC_mod )
+											<tr id="main_tr" height="20px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); "
+												ondblclick="onclickfunc(this, $math.sub($velocityCount, 1))">
+        										## 생산LT
+												<td width="100px" ondblClick="setEditMode(this);" align="center"> 
+													<a id="div01">$tr.get(2)</a><input
+														type="text" name="prdt_lt" class="normal" size="20" value=""
+														onKeyDown="moveNextBox(this); " onFocusOut="setViewMode1(this); "
+														style="width:100%; padding-left:5px; display:none;">
+												</td>
+        										## 입고LT
+												<td width="100px" ondblClick="setEditMode(this);"align="center"> 
+													<a id="div02">$tr.get(3)</a><input
+														type="text" name="receipt_lt" class="normal" size="20" value=""
+														onKeyDown="moveNextBox(this); " onFocusOut="setViewMode1(this); "
+														style="width:100%; padding-left:5px; display:none;">
+												</td>												
+        										## 안전계수
+												<td width="100px" onClick="setEditMode1(this); " align="center"> 
+													<a id="div03">$tr.get(4)</a><input
+														type="text" name="INS_DAYS" class="normal" size="20" value=""
+														onKeyDown="moveNextBox(this); " onFocusOut="setViewMode1(this); "
+														style="width:100%; padding-left:5px; display:none;">
+												</td>
+        										## 표준편차
+												<td width="100px" ondblClick="setEditMode1(this);"align="center"> 
+													<a id="div04">$tr.get(5)</a><input
+														type="text" name="INS_DAYS" class="normal" size="20" value=""
+														onKeyDown="moveNextBox(this); " onFocusOut="setViewMode1(this); "
+														style="width:100%; padding-left:5px; display:none;">
+												</td>													
+        										## 편차비율
+												<td width="100px" onClick="setEditMode(this); " align="center"> ## 비고
+													<a id="div05">$tr.get(6)%</a><input
+														type="text" name="INS_DAYS" class="normal" size="20" value=""
+														onKeyDown="moveNextBox(this); " onFocusOut="setViewMode1(this); "
+														style="width:100%; padding-left:5px; display:none;">
+												</td>
+											</tr>
+										#end
+										</tbody>
+									</table>
+								</div>
+							</td>
+						</tr>
+					</table>
+						
+					<table border="0" width="100%" cellpadding="0" cellspacing="0" height="5px"><tr><td></td></tr></table>
+##					</td></tr></table>
+					
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr><td>
+						##$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+						<input type="hidden" name="_moon_service" value="${_moon_service}">
+						<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">						
+						<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}"> 
+						<input type="hidden" name="_user_id" value="$!{_user_id}"> 
+						</td></tr>
+					</table>
+					
+					
+					##상세조회 iframe+-
+					<table id="tbBottom" border="0" width="100%" cellpadding="0" cellspacing="0" height="100%"> 
+						<tr>
+							<td >								
+								<iframe name="gridDetailInfo" height="100%" width="100%" height="100%" border="0" frameSpacing="0" frameBorder="0" 
+									src="service.do?_moon_service=ip_01030_inventoryPlan_DC_sub_mod&amp;_moon_perpage=100&amp;_moon_pagenumber=1&amp;" 
+									scrolling="no" class="iframe">
+								</iframe>
+							</td>							 
+						</tr>
+					</table>					
+					
+					
+
+										
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">					
+					</td></tr></table>
+							
+					## waiting 표시영역
+					#waitingArea()
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+
+
+	// 도움말 내용 입력
+	var helpStr = "◈ 출고사업장별 품목의 안전재고를 설정 할수있습니다.";
+	helpStr += "<br>◈ CDC  RDC 셀랙트 박스로 조건에 맞게 검색 가능합니다.";
+	helpStr += "<br>◈ 배송지점을 더블 클릭하면 해당 배송지점의 제품에대한 안전재고 정보를 확인할수있습니다.";
+	helpStr += "<br>◈ 품목번호, 명 정보를 이용하여 조회할수있습니다.";
+	helpStr += "<br>◈ 검색조건을 입력후 배송지점을 더블클릭하면 해당정보를 확인할수있습니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+	// 최초 화면 로드 시, 5 LINE DISPLAY
+	//addRows(5);
+	
+</script>

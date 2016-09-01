@@ -1,0 +1,91 @@
+<script type='text/javascript' src='$!{project}/dwr/interface/nongshim.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/engine.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/util.js'></script>
+
+ <input type="hidden" name="std_yyyymm" value="$!{std_yyyymm}">
+ <table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">	 
+	 <tr>		
+		<td valign="top">
+			<div class="tab-pane" id="calendarTbp">				
+				<div class="tab-page" id="tabPage1">
+					<h2 class="tab">${_moon_title}</h2>					
+					<table><tr><td height="5"></td></tr></table>
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>						
+							<td>						
+								<table width="100%" cellspacing="0" cellpadding="0" border="1" class="ns-table" style="table-layout:fixed; border-collapse:collapse;">
+									<thead> 
+    									<tr height="30px"> 
+    										<td align="center" width="10%" style="font-size:11pt;">$!{std_yyyymm}</td>
+    										<td align="center" width="10%" style="font-size:11pt;">월</td>
+    										<td align="center" width="10%" style="font-size:11pt;">화</td>
+    										<td align="center" width="10%" style="font-size:11pt;">수</td>
+    										<td align="center" width="10%" style="font-size:11pt;">목</td>
+    										<td align="center" width="10%" style="font-size:11pt;">금</td>
+    										<td align="center" width="10%" style="font-size:11pt;">토</td>
+    										<td align="center" width="10%" style="font-size:11pt;">일</td>
+    										<td align="center" width="15%" style="font-size:11pt;">주별지수 합</td>							
+    									</tr>
+									</thead> 
+									##set( $arr = [0..6] )
+									##foreach( $i in $arr )												
+									##end
+									<tbody>
+									#set($colCnt = 1)		
+									#set($rowCnt = 1)
+									#set($nWeek = 1) 
+									
+									#foreach( $cols in $nongshim.getCalendarRow($fc_01030_calendarMgmt_tailer)) 
+										<tr>
+    										#if(($rowCnt % 2) == 1)
+    											<td align="center" width="10%" style="background:#F9FFFF;font-weight:bold;font-size:11pt;" rowspan=2>$nWeek 주</td>  											
+    										#end
+									
+											#set($totalFactor = 0) 
+    										#set($nHoliday = 0) 
+    										#foreach( $col in $cols )											 
+    											#if($colCnt != 8)
+        											#if($colCnt >= 1 && ($rowCnt % 2) == 1)     ##일자 
+														#if($col.get(2) == "Y")
+															#set($nHoliday = $nHoliday + 1)
+															<td id="$rowCnt$colCnt" value="$col.get(0)" align="center" width="10%" style="background:#FFF0F5;color:red;font-weight:bold;font-size:11pt;height:40px;cursor:hand;" onDblClick="setCalendarFactor(this);">$col.get(1)</td>
+														#else
+															<td id="$rowCnt$colCnt" value="$col.get(0)" align="center" width="10%" style="background:#FFFFCC;color:black;font-weight:bold;font-size:11pt;height:40px;cursor:hand;" onDblClick="setCalendarFactor(this);">$col.get(1)</td>
+    													#end
+        											#elseif($colCnt >= 1 && ($rowCnt % 2) == 0) ##지수     													 
+    													#set($totalFactor = $math.add($totalFactor, $math.toDouble($col.get(1))))
+														#set($color = $nongshim.getFactorColorType($col.get(1), "1"))									
+														#set($style = "border-width:0px;background:#e6cdff;color:$color;width:70%;font-weight:bold;font-size:10pt;text-align:right;")    													
+														#set($nRow = $rowCnt - 1) 
+        												<td align="left" style="background:#e6cdff;">														 	
+															<a href="javascript:setFactor('f$nRow$colCnt', '$col.get(0)');"><img name="disk" src="$!{project}/sinc/template/basic/images/common/disk.png" align="absmiddle" border="0"\></a>
+															<input id="f$nRow$colCnt" type="text" value="$!{col.get(1)}" style=$style onKeyPress="onlynumber();" onBlur="setColor(this);">															
+														</td> 
+    												#end 
+    											#end
+    											#set($colCnt = $colCnt + 1) 
+    										#end 
+											#if(($rowCnt % 2) == 1) 
+												<td align="center" width="10%" style="background:#E6FFE6;font-weight:bold;font-size:10pt;height:20px;">휴일 : $nHoliday 일</td>
+												#set($nWeek = $nWeek + 1)
+											#else
+												<td align="center" width="10%" style="background:#D2D2FF;font-weight:bold;font-size:10pt;height:20px;">$totalFactor</td>
+											#end
+										</tr>  
+										#set($colCnt = 1)	
+										#set($rowCnt = $rowCnt + 1) 
+									#end
+									</tbody>
+								</table>
+							</td>							
+        				</tr>
+        			</table>
+					<table height="5"><tr><td></td></tr></table>		
+
+					<input type="hidden" name="_moon_service" value="${_moon_service}">
+					<input type="hidden" name="_moon_pagenumber" value="${_moon_pagenumber}">
+				</div>				
+			</div>
+		</td>		
+	</tr>
+</table>

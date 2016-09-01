@@ -1,0 +1,175 @@
+#*-----------------------------------------------------------------------
+ @path    /sinc/50.Forecast/script/fc_05120_salesPlan_Rate_tailer.vm
+ @Creator    김규철 
+ @version    1.0
+ @date        2008-11-26 
+ @description : 판매현황 변동률 분석  조회 화면 (iframe) - 월,주별 조회    
+ -------------------------------------------------------------------------
+*#
+ 
+<input type="hidden" name="project" value="$!{project}">
+
+##부모의 변수를 set  
+<input type="hidden" name="periodGB"        value="$!{periodGB}">           ##기간 구분
+<input type="hidden" name="periodGB1"       value="$!{periodGB1}">          ##기간 구분
+<input type="hidden" name="create_month"    value="$!{create_month}">       ##월
+
+<input type="hidden" name="item_id"     value="$!{item_id}"> 	  ##거래처
+<input type="hidden" name="item_name"   value="$!{item_name}"> 	  ##거래처
+
+<input type="hidden" name="mon_sp"      value="$!{mon_sp}"> 	  ##월간판매계획
+<input type="hidden" name="week_sp"     value="$!{week_sp}"> 	  ##주간판매계획
+<input type="hidden" name="day_sp"      value="$!{day_sp}"> 	  ##일간판매계획
+
+<input type="hidden" name="sales_org"   value="$!{sales_org}"> 	  ##영업분류
+
+<input type="hidden" name="org_GB1"     value="$!{org_GB1}"> 	  ##영업본부
+<input type="hidden" name="org_GB2"     value="$!{org_GB2}"> 	  ##영업부
+<input type="hidden" name="org_GB3"     value="$!{org_GB3}"> 	  ##영업지점
+
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+	<tr>
+		<td>	
+         <table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">	 
+        	 <tr>
+        		<td valign="top"> 
+        			<div class="tab-pane" id="salesCtlTailTbp"> 
+        				<div class="tab-page" id="tabPage1"> 
+        					<h2 class="tab">판매계획 변동률 분석(월/주)</h2>		
+        					<table  id="gridArea" width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">						
+        					<tr>
+        						<td>
+        						###### page 구현 , KIM KC
+        						<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+            						<tr>
+            							<td>#page_info()</td>
+            							<td align="right">#table_display()</td>
+            						</tr>
+            					</table>	
+        						<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">						
+        						###### page 구현시 500 row 이상 안됨.       							
+								<tr> 
+        							<td>   
+            							##조회기간  setting  
+            							#set( $getMon = $month12_list.get(0))	 						
+        								#set($total = $nongshim.getTotal(${fc_05120_salesPlan_Rate_tailer}))
+                                        
+										#if($week_sp == "Y")
+											#set($headerName = "(주)")
+										#else   
+											#set($headerName = "(월)")											
+										#end  
+											
+        								#if($total == "0")
+        									#set( $headertype = "TEXT" )
+                                    		#set( $header = "데이터 없음" ) 
+                                    		#set( $colwidth = "100" )
+                                    		#set( $data = "데이터 없음" )
+                                    		#set( $columaligns = "" )
+        									#set( $groupingCol = "-1" )
+        									#set( $lockedCol = "-1" )
+        									#set( $hasnestedsubheader = "false")
+        								#else			 					 								 
+            								#set( $header = "조직\n코드!%!영업조직!%!계획VERSION!%!$!getMon.get(0)$!headerName!%!$!getMon.get(1)$!headerName!%!$!getMon.get(2)$!headerName!%!$!getMon.get(3)$!headerName!%!$!getMon.get(4)$!headerName!%!$!getMon.get(5)$!headerName!%!$!getMon.get(6)$!headerName!%!$!getMon.get(7)$!headerName!%!$!getMon.get(8)$!headerName!%!$!getMon.get(9)$!headerName!%!$!getMon.get(10)$!headerName!%!$!getMon.get(11)$!headerName" )			 					
+            									 		 					 
+            								## 이중헤더						 		
+            								##set( $topheader = "$!{m01}/%/$!{m02}/%/$!{m03}" )
+            								##set( $topheaderPosition = "X!%!X!%!X!%!X!%!X!%!X!%!O!%!O!%!O!%!O/%/O!%!O!%!O!%!O/%/O!%!O!%!O!%!O" )
+            								##set( $topheader = "$!{m01}/%/$!{m02}/%/$!{m03}" )
+            								#set( $topheaderPosition = "" )
+                         
+            								#set( $headerType = "TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT" ) 
+            								#set( $colwidth   = "0!%!100!%!100!%!100!%!100!%!100!%!100!%!100!%!100!%!100!%!100!%!100!%!100!%!100!%!100" ) 
+            								#set( $colalign   = "CENTER!%!LEFT!%!LEFT!%!LEFT!%!LEFT!%!LEFT!%!LEFT!%!LEFT!%!LEFT!%!LEFT!%!LEFT!%!LEFT!%!LEFT!%!LEFT!%!LEFT" )
+                                            #set( $data = $zlattice.getBody($!{fc_05120_salesPlan_Rate_tailer},"!%!", "/%/") )
+        								#end
+        							   <textarea id="txt1" style="display:none;" rows="0" cols="0">  
+        									<object name='grid'
+        										classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93" width="100%" height="375"
+        										##codebase="http://java.sun.com/update/1.5.0/jinstall-1_5_0_03-windows-i586.cab#Version=1,5,3,0">
+        										codebase="http://javadl.sun.com/webapps/download/AutoDL?BundleId=19588#Version=6,0,050,13">
+        										<!--Necessary--> 
+        										<param name="code" value="com.zionex.t3sinc.ui.ZLattice">
+        										<param name="archive" value="zLattice.jar">
+        										<param name="headertypes" value= "$headerType">
+        										<param name="headers"  value= "$header">
+        										<param name="data" value= "$data">
+        										<!--Necessary for Modification Grid -->
+        										<param name="names" value= "" >
+        										<param name="combo9" value="DATA1!%!DATA2!%!DATA3">-->
+        										<!--optional - Default Value 있음--> 
+        										<param name="columndelimeter" value="!%!"> <!-- defalut : !%! -->
+        										<param name="rowdelimeter" value="/%/"> <!-- defalut : /%/ -->
+        										<param name="showgroupingfunction" value="false">  <!-- defalut : true -->
+        										<param name="showprintingfunction" value="false">   <!-- defalut : true -->
+        										<param name="showlockingfunction" value="false"> <!-- defalut : true -->
+        										<param name="showpagingfunction" value="false"> <!-- defalut : true -->
+        										<param name="enablesorting" value="true">      <!-- defalut : true -->
+        										<param name="groupingcolumn" value="4"> <!-- defalut : 그루핑 없음 --> 
+        										<param name="groupsumcolumn" value="0"> <!-- defalut : 그루핑 없음 -->
+        										<param name="lockedcolumn" value="6"> <!-- defalut : 락킹 없음 --> 
+        										<param name="presentpage" value="$_moon_pagenumber">   <!-- defalut : 1 -->
+        										<param name="listinpage" value="$_moon_perpage">   <!-- defalut : 40 -->
+        										<param name="bordertype" value="PLANE"> <!-- default - PLANE -->
+        										<param name="indateformat" value="yyyy-MM-dd"> <!-- default - yyyyMMdd -->
+        										<param name="outdateformat" value="yyyy-MM-dd">  <!-- default - yyyyMMdd -->									
+        										<param name="outnumberformat" value="&#035;,&#035;&#035;0">  									 
+        										<param name="columnwidth" value="$colwidth"> <!-- default -80 -->
+        										<param name="hasverticaltotal" value="false"> <!-- default -true -->
+        										<param name="hashorizontaltotal" value="false"> <!-- default -true -->
+        										<param name="totalrowcolor" value="909090"> <!-- default ? E6E6FA -->
+        										<param name="totalverticalrowcolor" value="909090"> <!-- default ? E6E6FF -->
+        										<param name="totalhorizontalrowcolor" value="a1a1a1"> <!-- default ? E6E6FF -->
+        										<param name="hascookie" value="false">       <!-- default -false -->
+        										<param name="enableinserting" value="false"> <!-- default -false -->
+        										<param name="enabledeleting" value="false">  <!-- default -false -->
+        										<param name="enableediting" value="false"> <!-- default -false -->
+         										<!--optional - Default Value 없음-->
+        										<param name="columncolor" value="$!{colCor}">     
+        										#set( $rowCor = "3,변동률(%)=CCCCCC" )            										
+        										<param name="rowcolor" value="$!{rowCor}">  
+												<param name="onclickrowfunc" value="onclickfunc">
+        										<param name="callingfunction" value="DOUBLECLICKED_CALLING">
+        										<param name="disablecolumns" value="">
+        										<param name="columnalign" value="$colalign">
+        										<param name="font" value="굴림">
+        										<param name="fontsize" value="12">
+        										<param name="columnheight" value="40"> 
+        										<param name="headertype" value="HORIZONTAL_HEADER">
+        										
+        										## 이중 헤더 
+        										<param name="hasnestedsubheader" value="true">  
+        										<param name="topheaders" value="$!{topheader}">
+        										<param name="topheaderposition" value="$!{topheaderPosition}">
+        										<param name="enabledragging" value="true">
+        									</object>
+        								</textarea> 
+        								<script language="javascript" src="${project}/object_activity.jsp?txtID=txt1"></script>
+        							</td>
+        						</tr> 
+        					</table>	 	 			
+                			 	  </td>  
+        					    </tr> 
+        					</table>    
+ 
+							## waiting 표시 영역
+            				#waitingArea()
+                            ## waiting 표시영역 
+  
+							<!-- page start -->
+        					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+                    			$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+                    			<input type="hidden" name="_moon_service"     value="${_moon_service}">				
+                    			<input type="hidden" name="_moon_pagenumber"  value="${_moon_pagenumber}"> 
+                    			##<input type="hidden" name="_moon_perpage"     value="$!{_moon_perpage}"> 
+        					</td></tr></table>
+        					<!-- page end -->  
+         
+        				</div>			 
+        			</div> 
+        		</td>   
+        	</tr>
+        </table>
+		</td> 
+	</tr>
+</table>	 

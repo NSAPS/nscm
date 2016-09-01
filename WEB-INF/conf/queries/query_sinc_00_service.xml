@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>
+
+<!--
+=====================================================================================================
+	LOGIN & MENU
+=====================================================================================================
+--> 
+	
+	<!-- 
+	=======================
+		LOGIN 
+	=======================
+	-->
+	
+	<!-- Log in-->
+	<query id="login">	
+		
+		<!-- Session 이 살아있는 상태 체크 : PASSWORD 는 체크하지 않음 -->
+		#if( "$!{_user_group_id}" != "" )
+			-- SESSION
+			SELECT 	RU.USER_ID, RU.USER_NAME, GU.GROUP_ID, RU.USER_EMAIL
+					, TO_CHAR(CN.CONNECTION_DATE, 'YYYY-MM-DD AM HH12:MI:SS') CONNECTION_DATE, CN.CONNECTION_IP
+			  FROM 	REG_USER RU, MAP_GRP_USER GU, 
+					( 
+							SELECT 	CG.USER_ID, CG.CONNECTION_DATE, CG.CONNECTION_IP 
+							  FROM 	CONNECTION_LOGS CG, 
+									(
+											SELECT 	CL.USER_ID, MAX(CL.CONNECTION_DATE) CONNECTION_DATE 
+											  FROM 	CONNECTION_LOGS CL 
+											 WHERE 	CL.USER_ID = '${_user_id}' 
+											 GROUP BY CL.USER_ID 
+									) CO 
+							 WHERE 	CO.USER_ID = CG.USER_ID 
+							   AND 	CO.CONNECTION_DATE = CG.CONNECTION_DATE 
+					) CN
+			 WHERE 	RU.USER_ID = GU.USER_ID(+) 
+			   AND 	RU.USER_ID = CN.USER_ID(+) 
+			   AND 	RU.USER_ID = '${_user_id}' 
+		
+		<!-- 초기 login -->
+		#else
+			
+			SELECT 	RU.USER_ID, RU.USER_NAME, GU.GROUP_ID, RU.USER_EMAIL
+					, TO_CHAR(CN.CONNECTION_DATE, 'YYYY-MM-DD AM HH12:MI:SS') CONNECTION_DATE, CN.CONNECTION_IP
+			  FROM 	REG_USER RU, MAP_GRP_USER GU, 
+					( 
+							SELECT 	CG.USER_ID, CG.CONNECTION_DATE, CG.CONNECTION_IP 
+							  FROM 	CONNECTION_LOGS CG, 
+									(
+											SELECT 	CL.USER_ID, MAX(CL.CONNECTION_DATE) CONNECTION_DATE 
+											FROM 	CONNECTION_LOGS CL 
+											WHERE 	CL.USER_ID = '${_user_id}' 
+											GROUP BY CL.USER_ID 
+									) CO 
+							 WHERE 	CO.USER_ID = CG.USER_ID 
+							   AND 	CO.CONNECTION_DATE = CG.CONNECTION_DATE 
+					) CN
+			 WHERE 	RU.USER_ID 	= GU.USER_ID(+) 
+			   AND 	RU.USER_ID 	= CN.USER_ID(+) 
+			   AND 	RU.USER_ID 	= '${_user_id}'
+			#if( "$!{_user_pwd}" == "" )
+			   AND  RU.USER_ID 	= RU.LOGIN_CHECK
+			#else
+			   AND 	RU.USER_PWD = '$!{_user_pwd}'
+			#end 
+			
+		#end 
+		
+	</query>
+	<query id="login2">	
+		
+		<!-- Session 이 살아있는 상태 체크 : PASSWORD 는 체크하지 않음 -->
+		#if( "$!{_user_group_id}" != "" )
+			-- SESSION
+			SELECT 	RU.USER_ID, RU.USER_NAME, GU.GROUP_ID, RU.USER_EMAIL
+					, TO_CHAR(CN.CONNECTION_DATE, 'YYYY-MM-DD AM HH12:MI:SS') CONNECTION_DATE, CN.CONNECTION_IP
+			  FROM 	REG_USER RU, MAP_GRP_USER GU, 
+					( 
+							SELECT 	CG.USER_ID, CG.CONNECTION_DATE, CG.CONNECTION_IP 
+							  FROM 	CONNECTION_LOGS CG, 
+									(
+											SELECT 	CL.USER_ID, MAX(CL.CONNECTION_DATE) CONNECTION_DATE 
+											  FROM 	CONNECTION_LOGS CL 
+											 WHERE 	CL.USER_ID = '${_user_id}' 
+											 GROUP BY CL.USER_ID 
+									) CO 
+							 WHERE 	CO.USER_ID = CG.USER_ID 
+							   AND 	CO.CONNECTION_DATE = CG.CONNECTION_DATE 
+					) CN
+			 WHERE 	RU.USER_ID = GU.USER_ID(+) 
+			   AND 	RU.USER_ID = CN.USER_ID(+) 
+			   AND 	RU.USER_ID = '${_user_id}' 
+		
+		<!-- 초기 login -->
+		#else
+			
+			SELECT 	RU.USER_ID, RU.USER_NAME, GU.GROUP_ID, RU.USER_EMAIL
+					, TO_CHAR(CN.CONNECTION_DATE, 'YYYY-MM-DD AM HH12:MI:SS') CONNECTION_DATE, CN.CONNECTION_IP
+			  FROM 	REG_USER RU, MAP_GRP_USER GU, 
+					( 
+							SELECT 	CG.USER_ID, CG.CONNECTION_DATE, CG.CONNECTION_IP 
+							  FROM 	CONNECTION_LOGS CG, 
+									(
+											SELECT 	CL.USER_ID, MAX(CL.CONNECTION_DATE) CONNECTION_DATE 
+											FROM 	CONNECTION_LOGS CL 
+											WHERE 	CL.USER_ID = '${_user_id}' 
+											GROUP BY CL.USER_ID 
+									) CO 
+							 WHERE 	CO.USER_ID = CG.USER_ID 
+							   AND 	CO.CONNECTION_DATE = CG.CONNECTION_DATE 
+					) CN
+			 WHERE 	RU.USER_ID 	= GU.USER_ID(+) 
+			   AND 	RU.USER_ID 	= CN.USER_ID(+) 
+			   AND 	RU.USER_ID 	= '${_user_id}' 
+			   AND 	RU.USER_PWD = '${_user_pwd}' 
+			
+		#end 
+		
+	</query>
+	
+	<!-- 
+	=======================
+		MENU 
+	=======================
+	--> 
+	
+	<query id="menus">		
+			
+			SELECT	t1.service_id
+			  FROM	MAP_USER_MENU t1, REG_USER t2
+			 WHERE	t1.USER_ID = t2.USER_ID
+			   AND	t2.USER_ID = '${_user_id}'
+			
+	</query>
+	
+	<query id="super_menus">
+			
+			SELECT	distinct t1.service_id
+			  FROM	MAP_USER_MENU t1, REG_USER t2
+			 WHERE	t1.USER_ID = t2.USER_ID
+				
+	</query>	
+	
+	<query id="menus_user">
+			
+			SELECT 	SERVICE_ID, FLAG_FAVORITE
+			  FROM	MAP_USER_MENU, DUAL B
+			 WHERE	USER_ID = '${user_id}'
+			
+	</query>
+	
+	<query id="super_menus_user">
+			
+			SELECT 	DISTINCT SERVICE_ID, FLAG_FAVORITE
+			  FROM 	MAP_USER_MENU, DUAL B
+					
+	</query>	
+	
+	<query id="menus_group">
+			
+			SELECT 	SERVICE_ID
+			  FROM	MAP_GROUP_MENU, DUAL B
+			[WHERE	GROUP_ID = '${group_id}']
+	</query>
+	
+	
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+	
+</queries>

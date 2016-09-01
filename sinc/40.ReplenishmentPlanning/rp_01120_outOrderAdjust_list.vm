@@ -1,0 +1,797 @@
+## 프로그램명 : 출고물량조회 및 조정
+## 개발자 : 허준성
+## 개발일자 : 2008-10-17 금요일
+
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('150', '273')" )
+
+#set( $adjustList = $rp_01120_outOrderAdjust_list)
+#set( $listSize = ${rp_01120_outOrderAdjust_list.size()})
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/replenishPlan.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<input type="hidden" name="sales_yyyy" value="${nfos_sales_plan_weekly_version_list.get(0).get(0)}"> ##판매계획 YYYY
+<input type="hidden" name="sales_version" value="${nfos_sales_plan_weekly_version_list.get(0).get(1)}"> ##판매계획 version
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+					<td align="left" >
+						<input type="button" name="btnCreate" value="차기버전 계획반영" onClick="GoCreate('rp_01120_outOrderAdjust_list_create_comp')" class="btn4_on">
+					</td>
+                	<td align="right">
+						#button("search")
+						#toolbar_nscm($_moon_toolbar "" "" "rp_01120_outOrderAdjust_list_save_comp" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2">
+					<td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" 
+							id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr>
+            					<td width="12%" align="right">
+            						계획주기 :
+            					</td>
+            					<td width="38%" align="left">
+									<select name="period_type" style="width:130px; " onChange="doChange(this); ">
+									#foreach( $tr in $dailyTransportPlan_period_type_list )
+										<option value="${tr.get(0)}" #if( "$!{period_type}" == "${tr.get(0)}" ) selected #end)>
+											${tr.get(1)}
+										</option>
+									#end
+									</select>
+            					</td>
+								<td width="12%" align="right">
+            						수송일자 :
+            					</td>
+            					<td width="38%" align="left">
+									#date_sole_no_title("trans_start" "10" "normal" "btnS" "$date.get('yyyy-MM-dd')")
+            					</td>
+            				</tr>
+            				<tr>
+            					<td width="12%" align="right">
+            						계획버전 :
+            					</td>
+            					<td width="38%" align="left">
+            						<a id="divVersion"> 
+                						<select name="plan_version" style="width:130px; " >
+                							<option value="">선택</option>									
+                						</select>		
+            						</a>
+									<script>
+                                    	function doChange(obj){ 
+                                    		var divStr = "<select name=\"plan_version\" style=\"width:130px; \" onChange=\"setVersions(this.value);\"> ";
+                                    	#foreach( $condition in $outOrderAdjDailyTransportPlan_version_list )
+                                    		if ( obj.value == "$condition.get(2)" ) { 
+                                    			divStr += "<option value=\"${condition.get(0)}!%!${condition.get(1)}\" ";
+												if("$condition.get(4)" == "27") // confrim 된 버전인 경우.
+													if("$!{plan_version}" == "${condition.get(0)}!%!${condition.get(1)}")
+														divStr += "style=\"background-color:#ffffaa; \" selected>";
+													else
+														divStr += "style=\"background-color:#ffffaa; \">";
+												else if("$condition.get(4)" == "99") // 차기버전 계획적용인 버전인 경우.
+													if("$!{plan_version}" == "${condition.get(0)}!%!${condition.get(1)}")
+														divStr += "style=\"background-color:#ffcecd; \" selected>";
+													else
+														divStr += "style=\"background-color:#ffcecd; \">";
+												else
+													if("$!{plan_version}" == "${condition.get(0)}!%!${condition.get(1)}")
+														divStr += " selected>";
+													else
+														divStr += ">";
+                                    			divStr += "$condition.get(0) - $condition.get(1)</option>"; 
+                                    		}
+                                    	#end 
+                                    		divStr += "</select>"; 
+                                    		divVersion.innerHTML = divStr;	
+											setVersions(document.frm.plan_version.value);
+                                    	}        
+									</script>
+									<input type="hidden" name="version" value="$!{version}">
+									<input type="hidden" name="seq" value="$!{seq}">
+            					</td>	
+								<td width="12%" align="right">
+									제품 :
+            					</td>
+								<td width="38%" align="left">
+									<input name="item_id" class="normal" style="width:70px; " onChange="getItemName(this); "
+										onkeypress="enterCheck('${_moon_service}'); " value="$!{item_id}">
+									<input name="item_name" class="normal" readOnly style="width:180px; " value="$!{item_name}"><img
+										name="imgItem" src="sinc/template/basic/skin/nongshim/images/common/icon_search.gif"
+										align="absmiddle" border="0" style="cursor:pointer;"  
+										onClick="openItemSearchPop('item_id', '450', '300'); ">
+								</td>
+            				</tr>
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2">
+					<td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="50"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+								#set($row_count = ${rp_01120_outOrderAdjust_list.size()})
+								#if($row_count > 0)
+									#set($row_count = $row_count - 3)
+								#end
+								<img src="/nscm/sinc/template/basic/skin/nongshim/images/common/dot_sub6.gif" width="16" height="13">Total :
+								<span id="areaTot" class="f_color_o b">$!{row_count}</span>
+							</td>
+						</tr>
+					</table>
+					
+					<table id="tbMain" border="0" width="100%" cellpadding="0" cellspacing="0"><tr><td>
+						<div id="topLeft" style="height:50px; width:200px; overflow:hidden; ">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead>
+									<tr height="50px"> 
+										##<td width="30px">번호</td>
+										<td width="80px">입고<br>사업장</td>
+										<td width="60px">전월<br>실적</td>
+										<td width="60px">전일<br>판매</td>	
+									</tr> 
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td>
+					<td> 
+						<div id="topLine" style="height:50px; width:626px;overflow:hidden;">
+							<table id="topTable" width="1210px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead>
+									<tr>
+										<td id="tdSaleCum" onDblClick="changeDisplay(this);" width="60px">판매<br>누계</td>
+										<td id="tdTodaySalesPlan" onDblClick="changeDisplay(this);" width="60px">당일<br>판매<br>계획</td>
+										<td id="tdTodaySale" onDblClick="changeDisplay(this);" width="60px">당일<br>주문</td>
+										<td id="tdWeek1Sale" onDblClick="changeDisplay(this);" width="60px">1주<br>평균<br>판매</td>
+										<td id="tdWeek3Sale" onDblClick="changeDisplay(this);" width="60px">3주<br>평균<br>판매</td>
+										<td id="tdTodayStock" onDblClick="changeDisplay(this);" width="60px">당일<br>기초<br>재고</td>
+										<td id="tdTransInQty" onDblClick="changeDisplay(this);" width="60px">입고<br>예정</td>
+										<td id="tdTransOutQty" onDblClick="changeDisplay(this);" width="60px">출고<br>예정</td>
+										<td id="tdStockDay" onDblClick="changeDisplay(this);" width="60px">재고<br>일수</td>
+										<td id="tdStockTerm" onDblClick="changeDisplay(this);" width="60px">재고<br>기간</td>
+										<td width="60px">안전<br>재고</td>
+										<td id="tdTomorrowSale" onDblClick="changeDisplay(this);" width="60px">익일<br>판매<br>계획</td>
+										<td id="tdTomorrowOrder" onDblClick="changeDisplay(this);" width="60px">익일<br>주문</td>
+										<td id="tdExpectStock" onDblClick="changeDisplay(this);" width="60px">익일<br>기초<br>재고</td>
+										<td id="tdRepQty" onDblClick="changeDisplay(this);" width="60px">보충<br>요구량</td>
+										<td width="100px"height="50px">
+											<table width="100px" style="table-layout:fixed; border:0px; ">
+												<tr height="23px"><td colspan="2" style="color:#7259b1; font-weight:bold; border-bottom:1px solid #9e83d0;">공급량</td></tr>
+												<tr height="27px">
+													<td width="50%" style="color:#7259b1; font-weight:bold; border-right:1px solid #9e83d0;">PLT</td>
+													<td width="50%" style="color:#7259b1; font-weight:bold; ">BOX</td>
+												</tr>
+											</table>
+										</td>
+										<td width="90px">출고<br>사업장</td>
+										<td width="60px">익일<br>기말<br>재고</td>
+										<td width="60px">최소<br>수송<br>단위</td>
+									</tr>
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td></tr>	
+					<tr><td valign="top">
+						<div id="leftDisplay" style="width:200px; overflow:hidden; ">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="left_tbody">
+								## 전월실적(0)      입고사업장ID(1)  입고사업장(2)    당일재고(3) 
+								## 판매누계(4)     당일판매(5)       1주평균판매(6)    3주평균판매(7)  
+								## 입고예정(8)     출고예정(9)       예상재고(10)    재고일수(11)
+								## 익일판매계획(12) 안전재고(13)      보충요구량(14)  공급량PLT(15)  
+								## 공급량BOX(16)   출고사업장ID(17)  출고사업장(18)   예상재고2(19)  
+								## 최소수송단위(20) 전일판매(21)    CRDC_FLAG(22)
+								#set( $preTgtLoc = "" )
+								#if($listSize == 0)
+									<tr id="left_tr" height="1px" >
+										<td colspan="3"></td>
+									</tr>
+								#end
+								#foreach( $tr in $adjustList )
+    								#if( "$tr.get(2)" == "CDC 합계" || "$tr.get(2)" == "RDC 합계" || "$tr.get(2)" == "전체 합계")
+    									<tr id="left_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+    										## 번호, BOX_PER_PALET(15)
+    										##<td width="30px" align="center" style="background-color:#E0E0E0; ">
+    										##	<a id="divRowNo"></a>
+    										##</td>
+    										## 입고사업장(2), 입고장코드(1)
+    										<td width="80px" align="left" style="background-color:#E0E0E0; font:bold;">
+    											<a>&nbsp;$tr.get(2)</a>
+    											<input type="hidden" name="tgt_loc" value="$tr.get(1)">
+    											<input type="hidden" name="box_per_palet" value="">
+    										</td>
+    										## 전월실적(0)
+    										<td width="60px" align="right" style="background-color:#E0E0E0; ">
+    											<a>$tr.get(0)&nbsp;</a>
+    											<input type="hidden" name="mon_qty" value="$tr.get(0)">
+    										</td>
+    										## 전일판매
+    										<td width="60px" align="right" style="background-color:#E0E0E0; ">
+    											<a>$tr.get(21)&nbsp;</a>	
+    											<input type="hidden" name="before_sale_qty" value="$tr.get(21)">
+    										</td>
+    									</tr>
+    								#else
+    									<tr id="left_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+    										## 번호, BOX_PER_PALET(15)
+    										##<td width="30px" align="center" style="background-color:${search_bgcolor}; ">
+    										##	<a id="divRowNo">$velocityCount</a>
+    										##	<input type="hidden" name="box_per_palet" value="">
+    										##</td>
+    										## 입고사업장(2), 입고장코드(1)
+    										<td width="80px" align="left">
+												#if( "$!{preTgtLoc}" == "$tr.get(1)" )
+													<a id="divSrcLoc"></a>
+												#else
+													<a id="divSrcLoc">&nbsp;$tr.get(2)</a>
+												#end
+    											<input type="hidden" name="tgt_loc" value="$tr.get(1)">
+    											<input type="hidden" name="box_per_palet" value="">
+    										</td>
+    										## 전월실적(0)
+    										<td width="60px" align="right">
+												#if( "$!{preTgtLoc}" == "$tr.get(1)" )
+													<a id="divMonQty"></a>
+												#else
+													<a id="divMonQty">$tr.get(0)&nbsp;</a>
+												#end    											
+    											<input type="hidden" name="mon_qty" value="$tr.get(0)">
+    										</td>
+    										## 전일판매
+    										<td width="60px" align="right">
+												#if( "$!{preTgtLoc}" == "$tr.get(1)" )
+													<a id="divBeSale"></a>
+												#else
+													<a id="divBeSale">$tr.get(21)&nbsp;</a>
+												#end
+    											<input type="hidden" name="before_sale_qty" value="$tr.get(21)">
+    										</td>
+    									</tr>
+    								#end ## end if
+									#set( $preTgtLoc = "$tr.get(1)" )
+								#end ## end foreach
+								</tbody> 
+							</table> 
+						</div>
+					</td> 
+					<td valign="top"> 
+						<div id="mainDisplay" class="ns_scroll" 
+							style="border:0; width:845px; overflow-y:scroll; overflow-x:scroll; " onscroll="scrollX(); scrollY(); ">
+							<table id="mainTable" width="1210px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="main_tbody">
+								## 전월실적(0)      입고사업장ID(1)  입고사업장(2)    당일재고(3) 
+								## 판매누계(4)     판매오더(5)       1주평균판매(6)    3주평균판매(7)  
+								## 입고예정(8)     출고예정(9)       예상재고(10)    ,  재고기간(25)
+								## 익일판매계획(12) 안전재고(13)      보충요구량(14)  공급량PLT(15)  
+								## 공급량BOX(16)   출고사업장ID(17)  출고사업장(18)   예상재고2(19)
+								## 최소수송단위(20) 전일판매(21)    CRDC_FLAG(22)	당일판매계획(23)	익일판매오더 (24)		
+								#set( $preTgtLoc = "" )
+								#if($listSize == 0)
+									<tr id="main_tr" height="1px" >
+										<td colspan="19"></td>
+									</tr>
+								#end
+								#foreach( $tr in $adjustList )
+									#if( "$tr.get(2)" == "CDC 합계" || "$tr.get(2)" == "RDC 합계" || "$tr.get(2)" == "전체 합계")
+									<tr id="main_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+										## 판매누계(4)
+										<td id="tdSaleCum" width="60px" align="right" style="background-color:#E0E0E0; ">											
+											<a>$tr.get(4)&nbsp;</a>										
+											<input type="hidden" name="sale_cum" value="$tr.get(4)">
+											<input type="hidden" name="crdc_flag" value="$tr.get(22)">
+										</td>
+										## 당일판매계획(5)
+										<td id="tdTodaySalesPlan" width="60px" align="right" style="background-color:#E0E0E0; ">
+											<a>$tr.get(23)&nbsp;</a>
+											<input type="hidden" name="today_sale_plan" value="$tr.get(23)">
+										</td>
+										## 판매오더(5)
+										<td id="tdTodaySale" width="60px" align="right" style="background-color:#E0E0E0; ">
+											<a>$tr.get(5)&nbsp;</a>
+											<input type="hidden" name="today_sale" value="$tr.get(5)">
+										</td>
+										## 1주평균판매(6)
+										<td id="tdWeek1Sale" width="60px" align="right" style="background-color:#E0E0E0; ">
+											<a>$tr.get(6)&nbsp;</a>
+											<input type="hidden" name="week1_sale" value="$tr.get(6)">
+										</td>
+										## 3주평균판매(7)
+										<td id="tdWeek3Sale" width="60px" align="right" style="background-color:#E0E0E0; ">
+											<a>$tr.get(7)&nbsp;</a>
+											<input type="hidden" name="week3_sale" value="$tr.get(7)">
+										</td>
+										## 당일재고(3)
+										<td id="tdTodayStock" width="60px" align="right" style="background-color:#E0E0E0; ">
+											<a>$tr.get(3)&nbsp;</a>
+											<input type="hidden" name="today_stock" value="$tr.get(3)">
+										</td>
+										## 입고예정(8)
+										<td id="tdTransInQty" width="60px" align="right" style="background-color:#E0E0E0; ">
+											<a>$tr.get(8)&nbsp;</a>
+											<input type="hidden" name="trans_in_qty" value="$tr.get(8)">
+										</td>
+										## 출고예정(9)
+										<td id="tdTransOutQty" width="60px" align="right" style="background-color:#E0E0E0; ">
+											<a>$tr.get(9)&nbsp;</a>
+											<input type="hidden" name="trans_out_qty" value="$tr.get(9)">
+										</td>
+										## 재고일수(11)
+										<td id="tdStockDay" width="60px" align="right" style="background-color:#E0E0E0; ">
+											<a>$tr.get(11)&nbsp;</a>
+											<input type="hidden" name="stock_day" value="$tr.get(11)">
+										</td>
+										## 재고기간(25)
+										<td id="tdStockTerm" width="60px" align="right" style="background-color:#E0E0E0; ">
+											<a>$tr.get(25)&nbsp;</a>
+											<input type="hidden" name="stock_term" value="$tr.get(25)">
+										</td>
+										## 안전재고(13)
+										<td width="60px" align="right" style="background-color:#E0E0E0; ">	
+											#if("$tr.get(13)" == "")
+												#set( $safeQty = 0 )
+											#else
+												#set( $safeQty = "$number.format('#,##0', $tr.get(13))" )
+											#end
+											<input type="text" name="safe_qty" value="$safeQty" class="normal" 
+												style="border-width:0px; text-align:right; width:100%; padding-right:5px; background-color:#E0E0E0; " readonly>
+											<input type="hidden" name="old_safe_qty" value="$tr.get(13)">
+											<input type="hidden" name="safe_update_flag" >
+										</td>
+										## 익일판매계획(12)
+										<td id="tdTomorrowSale" width="60px" align="right" style="background-color:#E0E0E0; ">
+											<a>$tr.get(12)&nbsp;</a>
+											<input type="hidden" name="tomorrow_sale" value="$tr.get(12)">
+										</td>
+										## 익일판매오더(24)
+										<td id="tdTomorrowOrder" width="60px" align="right" style="background-color:#E0E0E0; ">
+											<a>$tr.get(24)&nbsp;</a>
+											<input type="hidden" name="tomorrow_order" value="$tr.get(24)">
+										</td>
+										## 예상재고(10)
+										<td id="tdExpectStock" width="60px" align="right" style="background-color:#E0E0E0; ">
+											<a>$tr.get(10)&nbsp;</a>
+											<input type="hidden" name="expect_stock" value="$tr.get(10)">
+										</td>
+										## 보충요구량(14)
+										<td id="tdRepQty" width="60px" align="right" style="background-color:#E0E0E0; ">
+											<a>$tr.get(14)&nbsp;</a>
+											<input type="hidden" name="rep_qty" value="$tr.get(14)">
+										</td>
+										## 공급량PLT(15)
+										<td width="50px" align="right" style="background-color:#E0E0E0; ">
+											#if("$tr.get(15)" == "")
+												#set( $pltQty = 0 )
+											#else
+												#set( $pltQty = "$number.format('##0.00', $tr.get(15))" )
+											#end
+											<input type="text" name="plt_qty" value="$pltQty" class="normal" 
+												style="border-width:0px; text-align:right; width:100%; padding-right:5px; background-color:#E0E0E0; " readonly>
+											<input type="hidden" name="old_plt_qty" value="$tr.get(15)">
+											<input type="hidden" name="plan_update_flag" >		
+										</td>
+										## 공급량BOX(16)
+										<td width="50px" align="right" style="background-color:#E0E0E0; ">		
+											#if("$tr.get(16)" == "")
+												#set( $boxQty = 0 )
+											#else
+												#set( $boxQty = "$number.format('#,##0',$tr.get(16))" )
+											#end
+											<input type="text" name="box_qty" value="$boxQty" class="normal" 
+												style="border-width:0px; text-align:right; width:100%; padding-right:5px; background-color:#E0E0E0; " readonly>
+											<input type="hidden" name="old_box_qty" value="$tr.get(16)">
+										</td>
+										## 출고사업장(18) 출고사업장ID(17)
+										<td width="90px" align="left" style="background-color:#E0E0E0; ">
+											<a id="divSrcLoc">&nbsp;$tr.get(18)</a><select name="src_loc" style="width:90px; display:none; ">
+        										<option value=""></option>
+        									</select>
+											<input type="hidden" name="old_src_loc" value="$tr.get(17)">
+										</td>
+										## 익일예상재고(19)
+										<td width="60px" align="right" style="background-color:#E0E0E0; ">
+											<a>$tr.get(19)&nbsp;</a>
+											<input type="hidden" name="tomorrow_expect_stock" value="$tr.get(19)">
+										</td>
+										## 최소수송단위(20)
+										<td width="60px" align="right" style="background-color:#E0E0E0; ">
+											<input type="text" name="min_trans_qty" value="" class="normal" 
+												style="border-width:0px; text-align:right; width:100%; padding-right:5px; background-color:#E0E0E0; " readonly>
+											<input type="hidden" name="unit_update_flag" >
+										</td>
+									</tr>
+									#else
+									<tr id="main_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+										## 판매누계(4)
+										<td id="tdSaleCum" width="60px" align="right">
+											#if( "$!{preTgtLoc}" == "$tr.get(1)" )
+												<a id="divSaleCum"></a>
+											#else
+												<a id="divSaleCum">$tr.get(4)&nbsp;</a>
+											#end
+											<input type="hidden" name="sale_cum" value="$tr.get(4)">
+											<input type="hidden" name="crdc_flag" value="$tr.get(22)">
+										</td>
+										## 당일판매계획(5)
+										<td id="tdTodaySalesPlan" width="60px" align="right">
+											#if( "$!{preTgtLoc}" == "$tr.get(1)" )
+												<a id="divToSale"></a>
+											#else
+												<a id="divToSale">$tr.get(23)&nbsp;</a>
+											#end											
+											<input type="hidden" name="today_sale_plan" value="$tr.get(23)">
+										</td>
+										## 판매오더(5)
+										<td id="tdTodaySale" width="60px" align="right">
+											#if( "$!{preTgtLoc}" == "$tr.get(1)" )
+												<a id="divToSale"></a>
+											#else
+												<a id="divToSale">$tr.get(5)&nbsp;</a>
+											#end											
+											<input type="hidden" name="today_sale" value="$tr.get(5)">
+										</td>
+										## 1주평균판매(6)
+										<td id="tdWeek1Sale" width="60px" align="right">
+											#if( "$!{preTgtLoc}" == "$tr.get(1)" )
+												<a id="divWeek1Sale"></a>
+											#else
+												<a id="divWeek1Sale">$tr.get(6)&nbsp;</a>
+											#end
+											<input type="hidden" name="week1_sale" value="$tr.get(6)">
+										</td>
+										## 3주평균판매(7)
+										<td id="tdWeek3Sale" width="60px" align="right">
+											#if( "$!{preTgtLoc}" == "$tr.get(1)" )
+												<a id="divWeek3Sale"></a>
+											#else
+												<a id="divWeek3Sale">$tr.get(7)&nbsp;</a>
+											#end
+											<input type="hidden" name="week3_sale" value="$tr.get(7)">
+										</td>
+										## 당일재고(3)
+										<td id="tdTodayStock" width="60px" align="right">
+											#if( "$!{preTgtLoc}" == "$tr.get(1)" )
+												<a id="divToStock"></a>
+											#else
+												<a id="divToStock">$tr.get(3)&nbsp;</a>
+											#end
+											<input type="hidden" name="today_stock" value="$tr.get(3)">
+										</td>
+										## 입고예정(8)
+										<td id="tdTransInQty" width="60px" align="right">
+											#if( "$!{preTgtLoc}" == "$tr.get(1)")
+												<a id="divTrIn"></a>
+											#else
+												<a id="divTrIn">$tr.get(8)&nbsp;</a>
+											#end
+											<input type="hidden" name="trans_in_qty" value="$tr.get(8)">
+										</td>
+										## 출고예정(9)
+										<td id="tdTransOutQty" width="60px" align="right">
+											#if( "$!{preTgtLoc}" == "$tr.get(1)" )
+												<a id="divTrOut"></a>
+											#else
+												<a id="divTrOut">$tr.get(9)&nbsp;</a>
+											#end
+											<input type="hidden" name="trans_out_qty" value="$tr.get(9)">
+										</td>
+										## 재고일수(11)
+										<td id="tdStockDay" width="60px" align="right">
+											#if( "$!{preTgtLoc}" == "$tr.get(1)" )
+												<a id="divStockDay"></a>
+											#else
+												<a id="divStockDay">$tr.get(11)&nbsp;</a>
+											#end
+											<input type="hidden" name="stock_day" value="$tr.get(11)">
+										</td>
+										## 재고기간(25)
+										<td id="tdStockDay" width="60px" align="right">
+											#if( "$!{preTgtLoc}" == "$tr.get(1)" )
+												<a id="divStockTerm"></a>
+											#else
+												<a id="divStockTerm">$tr.get(25)&nbsp;</a>
+											#end
+											<input type="hidden" name="stock_term" value="$tr.get(25)">
+										</td>
+										## 안전재고(13)
+										<td width="60px" align="right">										
+											#if("$tr.get(13)" == "")
+												#set( $safeQty = 0 )
+											#else
+												#set( $safeQty = "$number.format('#,##0', $tr.get(13))" )
+											#end
+											#if( "$!{preTgtLoc}" == "$tr.get(1)" )
+												<input type="text" name="safe_qty" value="$!{safeQty}" class="normal" 
+												style="border-width:0px; text-align:right; width:100%; padding-right:5px; display:none;" readonly>
+											#else
+												<input type="text" name="safe_qty" class="normal" size="20" value="$!{safeQty}"
+													onDblClick="this.select(); " onChange="onChangeCheck(this,1);"
+													style="width:100%; padding-right:5px; text-align:right; ">
+											#end
+											<input type="hidden" name="old_safe_qty" value="$tr.get(13)">
+											<input type="hidden" name="safe_update_flag" >
+										</td>
+										## 익일판매계획(12)
+										<td id="tdTomorrowSale" width="60px" align="right">
+											#if( "$!{preTgtLoc}" == "$tr.get(1)" )
+												<a id="divTmSale"></a>
+											#else
+												<a id="divTmSale">$tr.get(12)&nbsp;</a>
+											#end
+											<input type="hidden" name="tomorrow_sale" value="$tr.get(12)">
+										</td>
+										## 익일판매오더(24)
+										<td id="tdTomorrowOrder" width="60px" align="right">
+											#if( "$!{preTgtLoc}" == "$tr.get(1)" )
+												<a id="divTmOrder"></a>
+											#else
+												<a id="divTmOrder">$tr.get(24)&nbsp;</a>
+											#end
+											<input type="hidden" name="tomorrow_order" value="$tr.get(24)">
+										</td>
+										## 예상재고(10)
+										<td id="tdExpectStock" width="60px" align="right">
+											#if( "$!{preTgtLoc}" == "$tr.get(1)" )
+												<a id="divExpStock"></a>
+											#else
+												<a id="divExpStock">$tr.get(10)&nbsp;</a>
+											#end
+											<input type="hidden" name="expect_stock" value="$tr.get(10)">
+										</td>
+										## 보충요구량(14)
+										<td id="tdRepQty" width="60px" align="right">
+											#if( "$!{preTgtLoc}" == "$tr.get(1)" )
+												<a id="divRepQty"></a>
+											#else
+												<a id="divRepQty">$tr.get(14)&nbsp;</a>
+											#end
+											<input type="hidden" name="rep_qty" value="$tr.get(14)">
+										</td>
+										## 공급량PLT(15)
+										<td width="50px" align="right">
+											#if("$tr.get(15)" == "")
+												#set( $pltQty = 0 )
+											#else
+												#set( $pltQty = "$number.format('##0.00', $tr.get(15))" )
+											#end
+											<input type="text" name="plt_qty" class="normal" size="20" value="$!{pltQty}"
+												onDblClick="this.select(); " 
+												onfocusin="getBoxPerPalet(this); " onChange="onChangeCheck(this,1);"
+												style="width:100%; padding-right:5px; text-align:right; ">
+											<input type="hidden" name="old_plt_qty" value="$tr.get(15)">
+											<input type="hidden" name="plan_update_flag" >		## PLT, BOX, 출고사업장이 변경되었는지 체크하는 flag
+										</td>
+										## 공급량BOX(16)
+										<td width="50px" align="right">
+											#if("$tr.get(16)" == "")
+												#set( $boxQty = 0 )
+											#else
+												#set( $boxQty = "$number.format('#,##0',$tr.get(16))" )
+											#end
+											<input type="text" name="box_qty" class="normal" size="20" value="$!{boxQty}"
+												onDblClick="this.select(); " 
+												onfocusin="getBoxPerPalet(this); " onChange="onChangeCheck(this,2);"
+												style="width:100%; padding-right:5px; text-align:right; ">
+											<input type="hidden" name="old_box_qty" value="$tr.get(16)">
+										</td>
+										## 출고사업장(18) 출고사업장ID(17)
+										<td width="90px" align="left" onClick="setEditMode(this); ">
+											<a id="divSrcLoc">&nbsp;$tr.get(18)</a><select 
+												name="src_loc" style="width:90px; display:none; " onChange="getBoxPerPalet(this); onChangeCheck(this);"
+												onFocusOut="setViewMode(this); ">
+        										<option value="">선택</option>
+        									#foreach( $sel in $src_loc_and_short_name_list )
+        										<option value="${sel.get(0)}" 
+        											#if( "${tr.get(17)}" == "${sel.get(0)}" ) selected #end)>${sel.get(1)}</option>
+        									#end
+        									</select>
+											<input type="hidden" name="old_src_loc" value="$tr.get(17)">
+										</td>
+										## 익일예상재고(19)
+										<td width="60px" align="right">
+											<a id="divTmExpStock">$tr.get(19)&nbsp;</a>
+											<input type="hidden" name="tomorrow_expect_stock" value="$tr.get(19)">
+										</td>
+										## 최소수송단위(20)
+										<td width="60px" align="right">
+											<input type="text" name="min_trans_qty" class="normal" size="20" value="$tr.get(20)"
+												onDblClick="this.select(); " onChange="onChangeCheck(this);"
+												style="width:100%; padding-right:5px; text-align:right; ">
+											<input type="hidden" name="unit_update_flag" >		## PLT, BOX, 출고사업장이 변경되었는지 체크하는 flag
+										</td>
+									</tr>
+									#end
+									#set( $preTgtLoc = "$tr.get(1)" )
+								#end
+								</tbody>
+							</table>
+						</div>
+					</td></tr></table>
+					
+					<table border="0" width="100%" cellpadding="0" cellspacing="0" height="5px"><tr><td></td></tr></table>
+					
+					<table id="tbBottom" border="0" width="100%" cellpadding="0" cellspacing="0" width="100%" height="100px">
+						<tr height="100%">
+							<td align="left" width="100%" id="tdBLeft"> ## 판매정보영역
+								<table width="100%" heigth="120px" border="0" cellpadding="0" cellspacing="0">
+                            	<tr>
+                            		<td>	
+                            			
+                            			#if( ${dailyTransportPlanSchPlan_dateList.size()} > 0 )
+                            				#set( $d01 = "${dailyTransportPlanSchPlan_dateList.get(0).get(0)}" )
+                            				#set( $d02 = "${dailyTransportPlanSchPlan_dateList.get(0).get(1)}" )
+                            				#set( $d03 = "${dailyTransportPlanSchPlan_dateList.get(0).get(2)}" )
+                            				#set( $d04 = "${dailyTransportPlanSchPlan_dateList.get(0).get(3)}" )
+                            				#set( $d05 = "${dailyTransportPlanSchPlan_dateList.get(0).get(4)}" )
+                            				#set( $d06 = "${dailyTransportPlanSchPlan_dateList.get(0).get(5)}" )
+                            				#set( $d07 = "${dailyTransportPlanSchPlan_dateList.get(0).get(6)}" )
+                            			#end
+                            			
+                            			#set( $header = "공장!%!공장ID!%!출고가능!%!출고확정!%!출고후잔량" )
+                            			#set( $header = "$!{header}!%!야간!%!조간!%!주간!%!야간!%!조간!%!주간!%!야간!%!조간!%!주간!%!야간!%!조간!%!주간!%!야간!%!조간!%!주간!%!야간!%!조간!%!주간!%!야간" )
+                            			#set( $header = "$!{header}!%!제품 코드!%!제품 명" )
+                            			
+                            			## 이중헤더
+                            			#set( $topheader = "$!{d01}/%/$!{d02}/%/$!{d03}/%/$!{d04}/%/$!{d05}/%/$!{d06}/%/$!{d07}" )
+                            			#set( $topheaderPosition = "X!%!X!%!X!%!X!%!X!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O!%!X!%!X" )
+                            			
+                            			#set( $headerType = "TEXT!%!TEXT!%!NUMBER!%!NUMBER!%!NUMBER" )
+                            			#set( $headerType = "$!{headerType}!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER" )
+                            			#set( $headerType = "$!{headerType}!%!TEXT!%!TEXT" )
+                            			#set( $colwidth = "100!%!0!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!0!%!0" )
+                            			#set( $colalign = "CENTER!%!LEFT!%!RIGHT!%!RIGHT!%!RIGHT" )
+                            			#set( $colalign = "$!{colalign}!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT" )
+                            			#set( $colalign = "$!{colalign}!%!LEFT!%!LEFT" )
+                            			#set( $data = $zlattice.getBody($!{rp_01010_dailyTransportPlanSchPlan_pop},"!%!", "/%/") ) 
+                            			
+                            			<textarea id="txt2" style="display:none;" rows="0" cols="0">
+                            				<object name='grid'
+                            					classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93" width="100%" height="85px"
+                            					##codebase="http://java.sun.com/update/1.5.0/jinstall-1_5_0_03-windows-i586.cab#Version=1,5,3,0">
+                            					codebase="http://javadl.sun.com/webapps/download/AutoDL?BundleId=19588#Version=6,0,050,13">
+                            					<!--Necessary--> 
+                            					<param name="code" value="com.zionex.t3sinc.ui.ZLattice">
+                            					<param name="archive" value="zLattice.jar">
+                            					<param name="headertypes" value= "$headerType">
+                            					<param name="headers"  value= "$header">
+                            					<param name="data" value= "$data">
+                            					<!--Necessary for Modification Grid -->
+                            					<param name="names" value= "" >
+                            					<!--Necessary for Cookie -->
+                            					<param name="identity" value="rp_01010_dailyTransportPlanSchPlan_pop">
+                            					<!--Necessary in TYPE COMBO 
+                            					<param name="combo9" value="DATA1!%!DATA2!%!DATA3">-->
+                            					<!--optional - Default Value 있음-->
+                            					<param name="columndelimeter" value="!%!"> <!-- defalut : !%! -->
+                            					<param name="rowdelimeter" value="/%/"> <!-- defalut : /%/ -->
+                            					<param name="showgroupingfunction" value="false">  <!-- defalut : true -->
+                            					<param name="showprintingfunction" value="false">   <!-- defalut : true -->
+                            					<param name="showlockingfunction" value="false"> <!-- defalut : true -->
+                            					<param name="showpagingfunction" value="false"> <!-- defalut : true -->
+                            					<param name="enablesorting" value="true">   <!-- defalut : true -->
+                            					<param name="groupingcolumn" value="-1"> <!-- defalut : 그루핑 없음 -->
+                            					<param name="groupsumcolumn" value="0"> <!-- defalut : 그루핑 없음 -->
+                            					<param name="lockedcolumn" value="2"> <!-- defalut : 락킹 없음 -->
+                            					<param name="presentpage" value="$_moon_pagenumber">   <!-- defalut : 1 -->
+                            					<param name="listinpage" value="$_moon_perpage">   <!-- defalut : 40 -->
+                            					<param name="bordertype" value="PLANE"> <!-- default - PLANE -->
+                            					<param name="indateformat" value="yyyy-MM-dd"> <!-- default - yyyyMMdd -->
+                            					<param name="outdateformat" value="yyyy-MM-dd">  <!-- default - yyyyMMdd -->									
+                            					<param name="outnumberformat" value="&#035;,&#035;&#035;0"> 									 
+                            					<param name="columnwidth" value="$colwidth"> <!-- default -80 -->
+                            					<param name="hasverticaltotal" value="false"> <!-- default -true -->
+                            					<param name="hashorizontaltotal" value="true"> <!-- default -true -->
+                            					<param name="totalrowcolor" value="909090"> <!-- default ? E6E6FA -->
+                            					<param name="totalverticalrowcolor" value="909090"> <!-- default ? E6E6FF -->
+                            					<param name="totalhorizontalrowcolor" value="cccccc"> <!-- default ? E6E6FF -->
+                            					<param name="hascookie" value="false"> <!-- default -false -->
+                            					<param name="enableinserting" value="false"> <!-- default -false -->
+                            					<param name="enabledeleting" value="false"> <!-- default -false -->
+                            					<param name="enableediting" value="false"> <!-- default -false -->
+                            					<!--optional - Default Value 없음-->
+                            					##set( $colCor = "12=dfdfdf&13=dfdfdf&14=dfdfdf&18=dfdfdf&19=dfdfdf&20=dfdfdf" ) 
+                            					<param name="columncolor" value="$!{colCor}">
+                            					<param name="rowcolor" value="$!{rowCol}">
+                            					<param name="onclickrowfunc" value="fillOpenWindow">
+                            					<param name="callingfunction" value="DOUBLECLICKED_CALLING">
+                            					<param name="disablecolumns" value="">
+                            					<param name="columnalign" value="$colalign">
+                            					<param name="font" value="굴림">
+                            					<param name="fontsize" value="12">
+                            					<param name="columnheight" value="35">
+                            					<param name="headertype" value="HORIZONTAL_HEADER">
+                            					
+                            					## 이중 헤더
+                            					<param name="hasnestedsubheader" value="true"> 
+                            					<param name="topheaders" value="$!{topheader}">
+                            					<param name="topheaderposition" value="$!{topheaderPosition}">
+                            					<param name="enabledragging" value="true">
+                            				</object>
+                            			</textarea> 
+                            			<script language="javascript" src="${project}/object_activity.jsp?txtID=txt2"></script>
+                            		</td>
+                            	</tr>
+                            </table>
+							</td>
+						</tr>
+					</table>
+					
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+						
+					<input type="hidden" name="_moon_service" value="$!{_moon_service}">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+						
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 계획버전, 수송일자, 품목코드를 반드시 입력하고 조회해야 합니다.";
+	helpStr += "<br>◈ 각 항목을 입력한 후 상단의 저장 버튼을 클릭하여 수정 내용을 저장합니다.";
+	helpStr += "<br>◈ PLT, BOX를 수정하기 전에 출고장을 먼저 선택하셔야 합니다.";
+	helpStr += "<br>◈ 수정가능한 컬럼은 PLT, BOX, 출고사업장, 최소수송단위 입니다.";
+	helpStr += "<br>◈ PLT나 BOX를 0으로 변경하면 해당 수송계획은 삭제됩니다.";
+	helpStr += "<br>◈ PLT값을 수정하면 BOX 수량이 자동 셋팅되고, BOX값을 수정하면 PLT값이 자동 셋팅됩니다.";
+	helpCont.innerHTML = helpStr;
+	// 도움말 zoomOut 높이 조절 변수
+	hDynamicHeight = 0;
+	
+	// 버전 초기값 세팅
+	//setVersions(document.frm.plan_version.value);
+	doChange(document.frm.period_type);
+	if( "$!{plan_version}" != "" ) {
+		document.frm.plan_version.value = "$!{plan_version}";
+	}
+	
+</script>

@@ -1,0 +1,330 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('127', '135')" )
+
+## 컨트롤 보드 제어 관련 dwr 선언
+<script type='text/javascript' src='${project}/dwr/interface/controlBoard.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+## 화면으로 이동할 때 조회조건을 기억하기 위한 parameter
+<input type="hidden" name="service_id_pre" value="$!{_moon_service}">
+<input type="hidden" name="creation_date_pre" value="$!{creation_date}">
+<input type="hidden" name="start_date_pre" value="$!{start_date}">
+<input type="hidden" name="end_date_pre" value="$!{end_date}">
+
+## PERIOD_TYPE
+<input type="hidden" name="PERIOD_TYPE" value="$!{PERIOD_TYPE}">
+
+<!-- 상태 강제 설정 창 -->
+<div id="divStatus" style="width:230px; height:100px; display:none; position:absolute; ##left:2px; top:25px; 
+	z-index:100; border:1px solid gray; " onFocusOut="hideStatDiv(this, event); ">
+	<table width="100%" height="100%" bgcolor="white" cellspacing="0" cellpadding="6">
+		<tr>
+			<td align="left" width="70%">
+				<input type="radio" name="radioStat" style="border:0px; " onClick="setSelStatus(this); " value="0">인터페이스 준비
+			</td>
+			<td align="center" width="30%" rowspan="4">
+				<input type="button" name="btnSetStat" value=" 적용" onClick="setStat(); " class="btn1_on"><br><br><br><br><br><br>
+			</td>
+		</tr>
+		<tr><td><input type="radio" name="radioStat" style="border:0px; " onClick="setSelStatus(this); " value="4">인터페이스 완료</td></tr>
+		<tr><td><input type="radio" name="radioStat" style="border:0px; " onClick="setSelStatus(this); " value="22">계획수립 완료</td></tr>
+		<tr><td><input type="radio" name="radioStat" style="border:0px; " onClick="setSelStatus(this); " value="23">계확확정</td></tr>
+		<input type="hidden" name="sel_status">
+		<input type="hidden" name="period_type_c">
+		<input type="hidden" name="run_date_c">
+		<input type="hidden" name="run_seq_c">
+		<input type="hidden" name="plan_step_c">
+	</table>
+</div>
+	
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td width="100%" height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td width="100%" align="right">
+						## 계회구간차수 증가(RUN_SEQ)
+						<input type="button" name="btnCrtNewPlan" value=" 계획차수 증가" onClick="increaseRunSeq(); " class="btn3_on">
+						## 조회
+						#button("search")
+						## 등록/수정/저장/삭제
+						#toolbar_nscm($_moon_toolbar "" "" "" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2">
+					<td width="100%" colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; ">
+					</td>
+				</tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; "
+							id="search_menu" style="display:block; ">
+            				<tr >
+            					<td width="15%" align="right">
+            						계획구간버전 :
+            					</td>
+            					<td width="85%" align="left">
+									<select name="periodVersion" onChange="setPeriodVer(this.value); GoSearch('$!{_moon_service}'); ">
+										#foreach( $condition in $md_00010_periodVersion_list )
+											<option value="$condition.get(0) - $condition.get(1)"
+												#if( "$!{run_date_sel} - $!{run_seq_sel}" == "$condition.get(0) - $condition.get(1)" )
+													selected
+												#elseif( "$velocityCount" == "2" && "$!{periodVersion}" == "" )
+													#if( "$md_00010_periodVersion_list.get(0).get(2)" == "0" )
+														selected
+													#end
+												#end
+												>$condition.get(0) - $condition.get(1)</option>
+										#end
+									</select>
+									<input type="hidden" name="run_date_sel">
+									<input type="hidden" name="run_seq_sel">
+            					</td>
+            				</tr>
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2">
+					<td width="100%" colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; ">
+					</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="24"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="tbMain" border="0" width="715" cellpadding="0" cellspacing="0" >
+						<tr>
+							<td> 
+								<div id="topLeft" style="height:35px; width:250px; overflow:hidden; "> 
+									<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>
+											<tr align="center" height="35px">
+												<td width="30px">선택</td>
+												<td width="140px">계획부문</td>
+												<td width="80px">공장</td>
+											</tr> 
+					   					 </thead>
+					   				</table>
+					   			</div>
+							</td>
+							<td>
+								<div id="topLine" style="height:35px; overflow:hidden; "> 
+									<table width="760px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>
+											<tr height="35px">
+												<td width="120px">버전</td>
+												<td width="150px">상태</td>
+												<td width="50px">기준<br>정보</td>
+												<td width="90px">I/F</td>
+												<td width="90px">계획수립</td>
+												<td width="120px">확정</td>
+												<td width="90px">ERP<br>전송</td>
+												<td width="50px" class="right">일괄</td>
+											</tr>
+					   					 </thead>
+					   				</table>
+					   			</div>
+							</td>
+						</tr>	
+						
+						<tr>
+							<td valign="top"> 
+								<div id="leftDisplay" style="width:250px; overflow:hidden; ">
+									<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="left_tbody">
+											## 이전 라인에서의 계획부문을 저장하여 현재라인의 계획부문이 같으면
+											## 계획부문을 DISPLAY 하지 않음
+											#set( $prePlan = "" )
+											#set( $prePlant = "" )
+											
+											## (0)CHECKED (1)(2)계획부문 (3)(4)공장 (5)(6)버전 (7)(8)상태
+											## (9)기준정보확인 (10)IF진행 (11)IF보기 (12)계획수립진행 (13)계획수립보기
+											## (14)확정 (15)취소 (16)추가 (17)ERP전송진행 (18)ERP전송보기
+											## (19)PERIOD_TYPE (20)RUN_DATE (21)RUN_SEQ (22)PLAN_STEP (23)CAT_SEQ (24)SUB_CAT
+										#foreach( $tr in $md_00030_controlBoardYearly_list )
+											<tr id="left_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+												<td width="30px" align="center"> ## (0)RADIO
+													<input type="radio" name="selPlan" onClick="checkPlan(this); " $tr.get(0)
+														style="border:0px; ">
+													<input type="hidden" name="radioVal" #if( "$tr.get(0)" == "checked" ) value="1" #end>
+													
+													<input type="hidden" name="period_type" value="$tr.get(19)">
+													<input type="hidden" name="run_date" value="$tr.get(20)">
+													<input type="hidden" name="run_seq" value="$tr.get(21)">
+													<input type="hidden" name="plan_step" value="$tr.get(22)">
+													<input type="hidden" name="cat_seq" value="$tr.get(23)">
+													<input type="hidden" name="sub_cat" value="$tr.get(24)">
+												</td>
+												<td width="140px" align="center"
+													#if( "$tr.get(0)" != "checked" ) style="color:darkgray; " #end> ## (1)(2)계획부문
+													#if( "$!{prePlan}" != "$tr.get(1)" )
+														$tr.get(2)
+													#end
+													<input type="hidden" name="cat_id" value="$tr.get(1)">
+												</td>
+												<td width="80px" align="center"
+													#if( "$tr.get(0)" != "checked" ) style="color:darkgray; " #end> ## (3)(4)공장
+													#if( "$!{prePlant}" != "$tr.get(3)" )
+														$tr.get(4)
+													#end
+													<input type="hidden" name="plant_id" value="$tr.get(3)">
+												</td>
+											</tr>
+											#set( $prePlan = "$tr.get(1)" )
+											#set( $prePlant = "$tr.get(3)" )
+										#end
+										</tbody> 
+									</table> 
+								</div> 	
+							</td>
+							<td valign="top">
+								<div id="mainDisplay" class="ns_scroll" style="border:0; overflow-x:scroll; overflow-y:scroll; " 
+									onscroll="scrollX(); scrollY(); ">
+									<table width="710px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="main_tbody">
+											## (0)CHECKED (1)(2)계획부문 (3)(4)공장 (5)(6)버전 (7)(8)상태
+											## (9)기준정보확인 (10)IF진행 (11)IF보기 (12)계획수립진행 (13)계획수립보기
+											## (14)확정 (15)취소 (16)추가 (17)ERP전송진행 (18)ERP전송보기
+											## (19)PERIOD_TYPE (20)RUN_DATE (21)RUN_SEQ (22)PLAN_STEP (23)CAT_SEQ (24)SUB_CAT
+										#foreach( $tr in $md_00030_controlBoardYearly_list )
+											<tr id="main_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+												<td width="120px" align="center" title="$tr.get(25)"
+													#if( "$tr.get(0)" != "checked" ) style="color:darkgray; " #end> ## (5)(6)버전
+													<a id="areaVer">$tr.get(5) - $tr.get(6)</a>
+													<input type="hidden" name="versions" value="$tr.get(5) - $tr.get(6)">
+													<input type="hidden" name="version" value="$tr.get(5)">
+													<input type="hidden" name="seq" value="$tr.get(6)">
+												</td>
+												<td width="150px" align="center" onDblClick="displayStatus(this, event); "
+													#if( "$tr.get(0)" != "checked" ) style="color:darkgray; " #end>
+													## (7)공장단위상태 (8)공장단위상태표시
+													<a id="areaStat">$tr.get(8)</a>
+													<input type="hidden" name="status" value="$tr.get(7)">
+												</td>
+												<td width="50px" align="center"> ## (9)기준정보
+													<input name="btnBasic" type="button" value="확인" class="button1_1"
+														style="width:30px; text-align:center; font-weight:bold; " onClick="viewBasic(this); "
+														onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"
+														$tr.get(9)>
+												</td>
+												<td width="90px" align="center"> ## I/F : (10)IF진행 (11)IF보기
+													<input name="btnIF" type="button" value="진행" class="button1_1"
+														style="width:30px; text-align:center; font-weight:bold; " 
+														onClick="initBatOpt(); execIF(this); "
+														onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"
+														$tr.get(10)>
+													<input name="btnViewIF" type="button" value="보기" class="button1_1"
+														style="width:30px; text-align:center; font-weight:bold; " onClick="viewIF(this); "
+														onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"
+														$tr.get(11)>
+												</td>
+												<td width="90px" align="center"> ## 계획수립 : (12)계획수립진행 (13)계획수립보기
+													<input name="btnPlan" type="button" value="진행" class="button1_1"
+														style="width:30px; text-align:center; font-weight:bold; " 
+														onClick="initBatOpt(); execPlan(this); "
+														onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"
+														$tr.get(12)>
+													<input name="btnViewPlan" type="button" value="보기" class="button1_1"
+														style="width:30px; text-align:center; font-weight:bold; " onClick="viewPlan(this); "
+														onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"
+														$tr.get(13)>
+												</td>
+												<td width="120px" align="center"> ## 확정 : (14)확정 (15)취소 (16)추가
+													<input name="btnConfirm" type="button" value="확정" class="button1_1"
+														style="width:30px; text-align:center; font-weight:bold; " 
+														onClick="initBatOpt(); confirmPlan(this); "
+														onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"
+														$tr.get(14)>
+													<input name="btnCancel" type="button" value="취소" class="button1_1"
+														style="width:30px; text-align:center; font-weight:bold; " onClick="cancelPlan(this); "
+														onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"
+														$tr.get(15)>
+													<input name="btnAdd" type="button" value="추가" class="button1_1"
+														style="width:30px; text-align:center; font-weight:bold; " onClick="addPlan(this); "
+														onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"
+														$tr.get(16)>
+												</td>
+												<td width="90px" align="center"> ## (17)ERP전송 진행 (18)ERP전송 보기
+													<input name="btnToErp" type="button" value="진행" class="button1_1"
+														style="width:30px; text-align:center; font-weight:bold; " 
+														onClick="initBatOpt(); execIFErp(this); "
+														onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"
+														$tr.get(17)>
+													<input name="btnViewToErp" type="button" value="보기" class="button1_1"
+														style="width:30px; text-align:center; font-weight:bold; " onClick="viewIFErp(this); "
+														onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"
+														$tr.get(18)>
+												</td>
+												<td width="50px" align="center" class="right">
+													<input name="btnBatch" type="button" value="진행" class="button1_1"
+														style="width:30px; text-align:center; font-weight:bold; " onClick="execBatch(this); "
+														onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'">
+												</td>
+											</tr>
+										#end
+										</tbody>
+									</table>
+								</div>
+							</td>
+						</tr>
+					</table>
+						
+					<input type="hidden" name="_moon_service" value="$!{_moon_service}">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					<input type="hidden" name="_user_id" value="$!{_user_id}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 계회구간버전을 선택한 후, 조회 버튼을 클릭하여 해당 버전의 계획을 조회합니다.";
+	helpStr += "<br>◈ 진행하기를 원하는 계획부문의 라디오 버튼을 클릭하여 해당 계획을 진행합니다.";
+	helpStr += "<br>◈ 보이는 순서대로 앞 단계의 진행이 완료되지 않으면 다음 단계를 진행할 수 없습니다.";
+	helpStr += "<br>◈ 현재 조회한 계획구간버전에 대해 계획구간 사이클을 한 번 더 진행하려면, 계획차수 증가 버튼을 클릭하여 계획구간 차수를 증가시킬 수 있습니다.";
+	helpStr += "<br>  (여기서 말하는 차수는 해당일 계획구간에 속한 모든 계획 전체 한 사이클에 대한 차수를 의미합니다.)";
+	helpStr += "<br>◈ 모든 단계는 별도의 POPUP 창에서 실행하며, 현재 페이지의 상태 필드를 통하여 현재 진행 상태를 실시간으로 확인할 수 있습니다.";
+	helpStr += "<br>◈ 일괄 버튼은 해당 계획을 I/F ~ 확정까지 한번에 진행하기 원할 때 클릭합니다.";
+	helpStr += "<br>◈ 생성된 계획에 대해서는 버전에 마우스를 올려놓으면, 계획 수립 당시 입력한 메모를 확인할 수 있습니다.";
+	helpStr += "<br>◈ 권한있는 사용자에 한해서 상태 부분을 더블 클릭하면 계획 진행 상태를 임의로 수정할 수 있습니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+	setPeriodVer(document.frm.periodVersion.value);
+	
+</script>

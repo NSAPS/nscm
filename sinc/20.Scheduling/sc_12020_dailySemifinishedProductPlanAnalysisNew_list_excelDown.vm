@@ -1,0 +1,171 @@
+############################################################
+## 프로그램ID : sc_12020_dailySemifinishedProductPlanAnalysisNew_list_excelDown.vm
+## 프로그램명 : 일간생산계획 분석(재구성) 엑셀 다운로드
+## 개발자  : 정재교
+## 개발일자 : 2008-11-27 목요일
+##
+##관련 job file : job_sinc_20_scheduling_00.xml
+##
+##관련 query file : query_sinc_20_scheduling_00.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2008-11-27  정재교           sc_12020_dailySemifinishedProductPlanAnalysisNew_list_excelDown.vm 개발
+##
+##
+############################################################
+## 비정상적 접근 방지 
+<style type="text/css">
+	table {font-size:12px;}
+</style>
+
+#set( $body = $sc_12020_dailySemifinishedProductPlanAnalysisNew_list_excelDown ) 
+#set( $week = $weekly_3_start_end_date.get(0) )
+
+$response.setContentType("application/vnd.ms-excel; charset=EUC-kr")
+$response.setHeader("Content-Disposition", "attachment; filename=excel_semi_prod_plan_${date.get('yyyyMMdd')}.xls") 
+$response.setHeader("Content-Description", "JSP Generated Data") 
+
+##<input type="hidden" name="checked_weekly" value="$!{checked_weekly}">
+##<input type="hidden" name="plant_version" value="$!{plant_version}">
+##<input type="hidden" name="line_grp" value="$!{line_grp}">
+##<input type="hidden" name="line_grp_all" value="N">
+##<input type="hidden" name="domain" value="$!{domain}">
+##<input type="hidden" name="cat_id" value="PS">
+
+<table id="table" border="1" width="100%" cellspacing="0" cellpadding="0" style="font-family:돋움체; font-size:12px;">
+	<tr>
+		<td rowspan="2">공장</td>
+		<td rowspan="2">원가부문</td>			
+		<td rowspan="2">작업장</td>			
+		<td rowspan="2">제품코드</td> 		
+		<td rowspan="2">제품명</td>			
+		<td rowspan="2">규격</td>			
+		<td rowspan="2">TO여</td>			
+		<td rowspan="2">구분</td>			
+		<td rowspan="2">오더번호</td>			
+		#if("$!{checked_weekly}" == "w0" )
+			#set( $cnt = 0 )
+		#elseif("$!{checked_weekly}" == "w2" )
+			#set( $cnt = 14 )
+		#else
+			#set( $cnt = 7 )
+		#end
+		#set( $cnt = $cnt + 0 )
+		<td colspan="3">$week.get($cnt)</td>
+		#set( $cnt = $cnt + 1 )
+		<td colspan="3">$week.get($cnt)</td>		 
+		#set( $cnt = $cnt + 1 )
+		<td colspan="3">$week.get($cnt)</td>	
+		#set( $cnt = $cnt + 1 )
+		<td colspan="3">$week.get($cnt)</td>	
+		#set( $cnt = $cnt + 1 )
+		<td colspan="3">$week.get($cnt)</td>	
+		#set( $cnt = $cnt + 1 )
+		<td colspan="3">$week.get($cnt)</td>	
+		#set( $cnt = $cnt + 1 )
+		<td colspan="3" >$week.get($cnt)</td> 	
+		<td rowspan="2">합계</td>
+		<td rowspan="2">공장코드</td> 
+		<td rowspan="2">버전</td> 
+		<td rowspan="2">SEQ</td> 
+		<td rowspan="2">원가부분코드</td> 
+		<td rowspan="2">라인코드</td>
+		<td rowspan="2">작업장코드</td> 
+		<td rowspan="2">시작일</td>
+		<td rowspan="2">오더구분번호</td> 
+		<td rowspan="2">CAT_ID</td> 
+	</tr>
+	<tr>	
+		#foreach( $loop in [0..6] )
+		<td>조</td>
+		<td>주</td>
+		<td>야</td> 
+		#end
+	</tr> 
+	#foreach( $tr in $body )
+	<tr>
+		## 공장
+		<td>$tr.get(0)</td>
+		## 원가부문
+		<td>$tr.get(1)</td>
+		## 작업장
+		<td>$tr.get(2)</td>
+		## 제품코드
+		<td>$tr.get(3)</td>
+		## 제품명
+		<td>$tr.get(4)</td>
+		## 규격
+		<td>$tr.get(5)</td>
+		## TO여
+		<td>$tr.get(6)</td>
+		## 구분
+		<td>$tr.get(7)</td>
+		## 오더번호
+		<td style='mso-number-format:"\@";'>$tr.get(8)</td>
+		## 조/월 
+		<td>$tr.get(9)</td>
+		## 주/월
+		<td>$tr.get(10)</td>
+		## 야/월
+		<td>$tr.get(11)</td>
+		## 조/화
+		<td>$tr.get(12)</td>
+		## 주/화
+		<td>$tr.get(13)</td>
+		## 야/화
+		<td>$tr.get(14)</td>
+		## 조/수
+		<td>$tr.get(15)</td>
+		## 주/수
+		<td>$tr.get(16)</td>
+		## 야/수
+		<td>$tr.get(17)</td>
+		## 조/목
+		<td>$tr.get(18)</td>
+		## 주/목
+		<td>$tr.get(19)</td>
+		## 야/목
+		<td>$tr.get(20)</td>
+		## 조/금
+		<td>$tr.get(21)</td>
+		## 주/금
+		<td>$tr.get(22)</td>
+		## 야/금
+		<td>$tr.get(23)</td>
+		## 조/토
+		<td>$tr.get(24)</td>
+		## 주/토
+		<td>$tr.get(25)</td>
+		## 야/토
+		<td>$tr.get(26)</td>
+		## 조/일
+		<td>$tr.get(27)</td>
+		## 주/일
+		<td>$tr.get(28)</td>
+		## 야/일
+		<td>$tr.get(29)</td>
+		## 합계
+		<td>$tr.get(30)</td>
+		## 공장코드
+		<td>$tr.get(31)</td>
+		## 버전
+		<td>$tr.get(32)</td>
+		## SEQ
+		<td>$tr.get(33)</td>
+		## 원가부분코드
+		<td>$tr.get(34)</td>
+		## 라인코드
+		<td>$tr.get(35)</td>
+		## 작업장코드
+		<td>$tr.get(36)</td>
+		## 시작일
+		<td>$tr.get(37)</td>
+		## ORD_ITEM_NO
+		<td style='mso-number-format:"\@";'>$tr.get(38)</td>
+		## CAT_ID
+		<td>$tr.get(39)</td>
+	</tr>
+	#end 
+</table> 

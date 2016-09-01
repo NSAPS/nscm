@@ -1,0 +1,843 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>
+
+<!--
+=====================================================================================================
+	재고정책 >> 운영정보 
+=====================================================================================================
+-->
+
+<!-- 
+	=======================
+	  유통본부 미납 추적 분석
+	=======================
+	-->	
+	<!-- 유통본부 미납 추적 분석 MAIN 그리드 --> 
+	<query id="ip_02070_Edi_Default_code_combo" paging="false"> 
+		/* MAIN 그리드 Default_code_combo */
+        SELECT  CD, CD_NAME CD_NAME
+        FROM    CODE_MST
+        WHERE   CD_GRP = 'DEFAULT_CODE'
+	</query> 	
+	
+	<!-- 
+	=======================
+	  유통본부 미납 추적 분석
+	=======================
+	-->	
+	<!-- 유통본부 미납 추적 분석 MAIN 그리드 --> 
+	<query id="ip_02070_Edi_Default_List" paging="false"> 
+		/* 유통본부 미납 추적 분석 MAIN 그리드 */
+		SELECT  ED.CNFM_DATE,
+		        NVL(ED.ITEM_ID, CUST_ITEM_ID) ITEM_ID,
+		        NVL(F_GET_ITEM_NAME(ED.ITEM_ID),CUST_ITEM_NAME) ITEM_NAME,
+		        NVL(ED.CUST_CODE, CUST_STORE_CODE) CUST_CODE,
+		        REPLACE(REPLACE(NVL(CU.CUST_NAME,CUST_STORE_NAME),'(주)신세계마트'),'(주)신세계') CUST_NAME,
+                ----------------------------------------------------------------------------------------
+                CASE
+                    WHEN IM.MULTI_FLAG = 'V' -- 비쥬얼 제품이면 EDI 발주 수량을 그대로 유지한다
+                    THEN ED.EDI_QTY
+                    WHEN NVL(F_GET_ITEM_NAME(ED.ITEM_ID),CUST_ITEM_NAME) LIKE '%(S)%'  -- 신라면(S) 등의 20개 박스들이 상품은 EDI 발주 수량을 그대로 유지한다
+                    THEN ED.EDI_QTY
+                    WHEN ED.ITEM_ID = '101000103' OR ED.ITEM_ID = '101000165' OR ED.ITEM_ID = '101000048' -- 30봉 단위인 '정품'류는 EDI 발주 수량을 그대로 유지한다(신라면, 짜파, 안성탕면 정품..)
+                    THEN ED.EDI_QTY
+                    WHEN ED.ITEM_ID = '101002115' -- 신라면 블랙 정품은 EDI 발주 수량을 그대로 유지한다
+                    THEN ED.EDI_QTY
+                    WHEN ED.ITEM_ID = '103000005' -- 카프리선 일부제품은 '카프리썬딸기와키위','카프리선아이스?'  EDI_QTY / 10
+                    THEN ED.EDI_QTY/10
+                    WHEN ED.ITEM_ID = '903000564' OR ED.ITEM_ID = '903000565'-- 카프리선 대용량 "카프리선 카시스"  EDI_QTY / 15
+                    THEN ED.DEFAULT_QTY/15                    
+                    WHEN IM.SALES_CAT03 = '134' -- 그외 카프리선은 박스단위 판매 !!
+                    THEN ED.EDI_QTY
+                    WHEN (F_GET_ITEM_NAME(ED.ITEM_ID) LIKE '%VONO%' AND F_GET_ITEM_NAME(ED.ITEM_ID) LIKE '%(30입)%') -- VONO 종류중 (30입)은   EDI_QTY / 30
+                    THEN ED.EDI_QTY/30
+                    WHEN ED.ITEM_ID IS NULL -- 본부 조정으로 오더 전환을 막은 품목은 EDI 발주량을 변환없이 보여준다
+                    THEN ED.EDI_QTY
+                    ELSE ROUND(ED.EDI_QTY/DECODE(CV.VIEW_PROD_BOX, 1 ,CV.VIEW_PROD_PICE, CV.VIEW_PROD_BOX))  
+                END "발주량",
+                CASE
+                    WHEN IM.MULTI_FLAG = 'V' -- 비쥬얼 제품이면 EDI 발주 수량을 그대로 유지한다
+                    THEN ED.DEFAULT_QTY
+                    WHEN NVL(F_GET_ITEM_NAME(ED.ITEM_ID),CUST_ITEM_NAME) LIKE '%(S)%'  -- 신라면(S) 등의 20개 박스들이 상품은 EDI 발주 수량을 그대로 유지한다
+                    THEN ED.DEFAULT_QTY
+                    WHEN ED.ITEM_ID = '101000103' OR ED.ITEM_ID = '101000165' OR ED.ITEM_ID = '101000048' -- 30봉 단위인 '정품'류는 EDI 발주 수량을 그대로 유지한다(신라면, 짜파, 안성탕면 정품..)
+                    THEN ED.DEFAULT_QTY
+                    WHEN ED.ITEM_ID = '101002115' -- 신라면 블랙 정품은 EDI 발주 수량을 그대로 유지한다
+                    THEN ED.DEFAULT_QTY
+                    WHEN ED.ITEM_ID = '103000005' -- 카프리선 일부제품은 '카프리썬딸기와키위','카프리선아이스?'  EDI_QTY / 10
+                    THEN ED.DEFAULT_QTY/10
+                    WHEN ED.ITEM_ID = '903000564' OR ED.ITEM_ID = '903000565'-- 카프리선 대용량 "카프리선 카시스"  EDI_QTY / 15
+                    THEN ED.DEFAULT_QTY/15
+                    WHEN IM.SALES_CAT03 = '134' -- 그외 카프리선은 박스단위 판매 !!
+                    THEN ED.DEFAULT_QTY
+                    WHEN (F_GET_ITEM_NAME(ED.ITEM_ID) LIKE '%VONO%' AND F_GET_ITEM_NAME(ED.ITEM_ID) LIKE '%(30입)%') -- VONO 종류중 (30입)은   EDI_QTY / 30
+                    THEN ED.DEFAULT_QTY/30
+                    WHEN ED.ITEM_ID IS NULL -- 본부 조정으로 오더 전환을 막은 품목은 EDI 발주량을 변환없이 보여준다
+                    THEN ED.DEFAULT_QTY
+                    ELSE ROUND(ED.DEFAULT_QTY/DECODE(CV.VIEW_PROD_BOX, 1 ,CV.VIEW_PROD_PICE, CV.VIEW_PROD_BOX))  
+                END  "미납량",
+                CASE
+                    WHEN IM.MULTI_FLAG = 'V' -- 비쥬얼 제품이면 EDI 발주 수량을 그대로 유지한다
+                    THEN ED.EDI_AMOUNT/ED.EDI_QTY
+                    WHEN NVL(F_GET_ITEM_NAME(ED.ITEM_ID),CUST_ITEM_NAME) LIKE '%(S)%'  -- 신라면(S) 등의 20개 박스들이 상품은 EDI 발주 수량을 그대로 유지한다
+                    THEN ED.EDI_AMOUNT/ED.EDI_QTY
+                    WHEN ED.ITEM_ID = '101000103' OR ED.ITEM_ID = '101000165' OR ED.ITEM_ID = '101000048' -- 30봉 단위인 '정품'류는 EDI 발주 수량을 그대로 유지한다(신라면, 짜파, 안성탕면 정품..)
+                    THEN ED.EDI_AMOUNT/ED.EDI_QTY
+                    WHEN ED.ITEM_ID = '101002115' -- 신라면 블랙 정품은 EDI 발주 수량을 그대로 유지한다
+                    THEN ED.EDI_AMOUNT/ED.EDI_QTY
+                    WHEN ED.ITEM_ID = '103000005' -- 카프리선 일부제품은 '카프리썬딸기와키위','카프리선아이스?'  EDI_QTY / 10
+                    THEN (ED.EDI_AMOUNT*10)/ED.EDI_QTY
+                    WHEN ED.ITEM_ID = '903000564' OR ED.ITEM_ID = '903000565'-- 카프리선 대용량 "카프리선 카시스"  EDI_QTY / 15
+                    THEN (ED.EDI_AMOUNT*15)/ED.EDI_QTY
+                    WHEN IM.SALES_CAT03 = '134' -- 그외 카프리선은 박스단위 판매 !!
+                    THEN ED.EDI_AMOUNT/ED.EDI_QTY
+                    WHEN (F_GET_ITEM_NAME(ED.ITEM_ID) LIKE '%VONO%' AND F_GET_ITEM_NAME(ED.ITEM_ID) LIKE '%(30입)%') -- VONO 종류중 (30입)은   EDI_QTY / 30
+                    THEN ED.EDI_AMOUNT/ED.EDI_QTY
+                    WHEN ED.ITEM_ID IS NULL -- 본부 조정으로 오더 전환을 막은 품목은 EDI 발주량을 변환없이 보여준다
+                    THEN ED.EDI_AMOUNT/ED.EDI_QTY
+                    ELSE ROUND(ED.EDI_AMOUNT/(ED.EDI_QTY/DECODE(CV.VIEW_PROD_BOX, 1 ,CV.VIEW_PROD_PICE, CV.VIEW_PROD_BOX)))  
+                END  "단가",     
+		        ----------------------------------------------------------------------------------------
+                ED.DEFAULT_AMOUNT "미납금액",
+		        ED.DEFAULT_CODE "사유코드",   --ED.DEFAULT_CODE
+		        DECODE(ED.ITEM_ID, NULL, '102', ED.DEFAULT_CODE) "사유명",   -- ITEM_ID MAPPING 실패인상품은 본부에서 오더 전환을 막아놓은 사례임
+		        ED.DC_ID,
+		        REPLACE(REPLACE(ED.DC_NAME,'배송'),'제품') DC_NAME,
+		        ED.DEPT_CODE,
+		        REPLACE(ED.DEPT_NAME, '지점') DEPT_NAME,
+		        ED.HAN_NAME,
+		        ED.TEL_NO,
+		        ED.COMMT "비고", -- COMMT
+		        AL.ALLOC_FLAG,
+		        CASE
+		            WHEN (IM.SELL_STOP_DATE > TO_CHAR(SYSDATE,'YYYYMMDD') OR IM.SELL_STOP_DATE = '00000000')
+		            THEN ''
+		            ELSE DECODE(ED.ITEM_ID, NULL, NULL, '중지')
+		        END SELL_STOP_DATE,
+		        IM.SPEC,
+		        EDI_GUBN,
+                CUST_ITEM_ID,
+                CUST_STORE_CODE,
+                CASE
+                    WHEN SUBSTR(DECODE(ED.ITEM_ID, NULL, '102', ED.DEFAULT_CODE),1,1) = 1 THEN '농심'
+                    WHEN SUBSTR(DECODE(ED.ITEM_ID, NULL, '102', ED.DEFAULT_CODE),1,1) = 2 THEN '거래처'
+                    WHEN SUBSTR(DECODE(ED.ITEM_ID, NULL, '102', ED.DEFAULT_CODE),1,1) = 3 THEN '캘로그'
+                    ELSE '기타'
+                END DEFAULT_GUBN                
+		FROM    EDI_DEFAULT ED, SDSTT101 CU,
+		        (
+		        /*발주량 환산 - VIEW_PROD_BOX : 박스내 판매단위 수량 */
+		        SELECT  *
+		        FROM    SDSTT301
+		        WHERE   SALE_ORG = '1000' -- 국내판매           
+		        ) CV,
+		        (
+				SELECT  CNFM_DATE, 
+				        PROD_CODE	ITEM_ID,   
+				        MAX(ALLOC_GUBN) ALLOC_GUBN,
+				        'Y' ALLOC_FLAG
+				FROM    SDORT203
+		        WHERE   CNFM_DATE	= REPLACE('$!{cnfm_date}', '-','')
+		        AND     ALLOC_GUBN	= '2'   -- 2 -> '관리'             
+				GROUP BY CNFM_DATE, 
+				        PROD_CODE  		        
+		        )AL	, ITEM_MST IM	        
+		WHERE   ED.CUST_CODE = CU.CUST_CODE(+)
+		AND     ED.ITEM_ID = CV.PROD_CODE(+)
+		AND     ED.ITEM_ID  = AL.ITEM_ID(+)
+		AND     ED.ITEM_ID  = IM.ITEM_ID(+)
+		AND     ED.CNFM_DATE = REPLACE('$!{cnfm_date}', '-','')		
+    #if("$!{sort_flag}" == "sort_item")
+		/* 정렬기준 코드번호 '$!{sort_flag}' */
+		ORDER   BY    ED.CNFM_DATE, ED.ITEM_ID, ED.DC_ID
+    #elseif("$!{sort_flag}" == "sort_dc")
+		/* 정렬기준 출고장 '$!{sort_flag}' */
+		ORDER   BY    ED.CNFM_DATE, ED.DC_NAME, ED.ITEM_ID, ED.CUST_CODE
+    #end
+	</query> 	
+
+
+	<!-- 유통본부 미납 추적 분석 DW2 '주문정보' --> 
+	<query id="ip_02070_Edi_Default_List_DW2" paging="false"> 
+		/* 유통본부 미납 추적 분석 DW2 '주문정보' */		
+        SELECT  --TO_CHAR(TO_DATE(CNFM_DATE,'YYYY-MM-DD'),'YYYY-MM-DD') CNFM_DATE,
+                --F_GETDCNAME(T1.DC_ID)    DC_NAME,
+                SLIP_GUBN,
+                --T2.DEPT_NAME,
+                --HAN_NAME,
+                T3.CUST_CODE,
+                T3.CUST_NAME,
+                SLIP_NO,
+                SEQ_NO,
+                REQT_BOX "요청수량",
+                SELL_BOX "판매수량",
+                SHORTAGE_GUBN "결품사유",
+                NVL(F_GET_NFOS_IN_DTTM( CNFM_DATE, SLIP_NO, SEQ_NO , '$!{item_id}'),IPUT_DTTM)    "입력시간",
+                CLOS_DTTM "마감시간",
+                CASE
+                    WHEN F_GET_NFOS_UPDT_GUBN( CNFM_DATE, SLIP_NO, SEQ_NO , '$!{item_id}') = '00' THEN 
+                        'NFOS삭제'
+                    ELSE
+                        CHGO_GUBN
+                END    "출고구분"
+		FROM    (
+		        SELECT  A.CNFM_DATE,
+		                A.STOR_CODE                        DC_ID,
+		                CASE
+		                    WHEN    A.SLIP_GUBN_CODE = 'D15' OR A.SLIP_GUBN_CODE = 'D16' THEN   
+		                            '수출'        
+		                    ELSE     '일반'
+		                END        DOMAIN,
+		                CASE
+		                    WHEN A.SLIP_GUBN_CODE = 'D1E'    THEN
+		                        '부서타계정'
+		                    WHEN A.SLIP_GUBN_CODE = 'PRE_D1E'    THEN
+		                        '결재상신'
+		                    WHEN SUBSTR(A.SLIP_GUBN_CODE,1,2) = 'E3' THEN -- 회송
+		                        '회송'
+		                    WHEN B.ITEM_CATG IS NOT NULL    THEN 
+		                        '일반'
+		                    ELSE
+		                         '타계정'
+		                END                                SLIP_GUBN,
+		                A.DEPT_CODE,
+		                IPUT_EMP_NAME                    HAN_NAME,
+		                A.CUST_ID                        CUST_CODE,
+		                A.BRAND_NO                        SLIP_NO,
+		                A.BRAND_LINE_NO                    SEQ_NO,
+		                ROUND(A.REQT_BOX,1)                REQT_BOX,
+		                ROUND(NVL(A.SELL_BOX,0),1)        SELL_BOX,
+		                TO_CHAR(A.REG_DATETIME,'YYYY-MM-DD HH24:MI:SS')                            IPUT_DTTM,
+		                DECODE(A.OUTBOUND_STATE,'20','마감','마감전')                             CHGO_GUBN,
+		                F_GET_WMSCODE_NAME('LDIV11',A.SHORTAGE_DIV)                                SHORTAGE_GUBN,
+		                TO_CHAR(A.ENTRY_DATETIME,'YYYY-MM-DD HH24:MI:SS')                        CLOS_DTTM,
+		                A.REG_DATETIME, A.ENTRY_DATETIME
+		        FROM    (
+		                SELECT  TO_CHAR(DEH.ORDER_DATE,'YYYYMMDD')    CNFM_DATE,
+		                        SUBSTR(DEH.CENTER_CD,5,4)            STOR_CODE,
+		                        DEH.INOUT_CD                        SLIP_GUBN_CODE,
+		                        DEH.DEPT_CD                            DEPT_CODE,
+		                        DEH.DELIVERY_CD                CUST_ID,
+		                        DEH.SALESMAN_NM                        IPUT_EMP_NAME,
+		                        DED.BRAND_NO,
+		                        DED.BRAND_LINE_NO,
+		                        DED.ITEM_CD,
+		                        SUM(DED.ORDER_QTY    /    
+		                            (DECODE(ITM.MIN_UNIT_UOM,'EA',ITM.BOX_UNIT_QTY,1)))        REQT_BOX,
+		                        MAX(NVL(T2.CONFIRM_QTY,0)    /    
+		                            (DECODE(ITM.MIN_UNIT_UOM,'EA',ITM.BOX_UNIT_QTY,1)))        SELL_BOX,
+		                        MIN(DEH.REG_DATETIME)    REG_DATETIME,
+		                        MAX(DED.OUTBOUND_STATE)    OUTBOUND_STATE,
+		                        MAX(DED.SHORTAGE_DIV)    SHORTAGE_DIV,
+		                        MAX(DED.ENTRY_DATETIME)    ENTRY_DATETIME,
+		                        DED.OTHER_ACCOUNT_CD
+		                FROM    LO010NM        DEH,
+		                        LO010ND        DED,
+		                        CMITEM        ITM,
+		                        (
+		                        SELECT    CENTER_CD, BRAND_DATE, BRAND_NO, BRAND_LINE_NO, ITEM_CD, SUM(CONFIRM_QTY)    CONFIRM_QTY 
+		                        FROM    LO020ND
+		                        WHERE    BRAND_CD    = '100001'
+		                        -- 배송지점    
+		                        AND CENTER_CD = '1300'||'$!{dc_id}'
+						    #if("$!{edi_gubn}" == "1")
+								/* 이마트 '$!{edi_gubn}' */
+								AND        OUTBOUND_DATE =  TO_DATE('$!{cnfm_date}','YYYY-MM-DD')
+						    #elseif("$!{edi_gubn}" == "2")
+								/* 이마트 에브리데이 '$!{edi_gubn}' */
+								AND        OUTBOUND_DATE =  TO_DATE('$!{cnfm_date}','YYYY-MM-DD')-1
+						    #end			                        
+		                        AND        ITEM_CD        = '$!{item_id}'
+		                        GROUP
+		                        BY        CENTER_CD, BRAND_DATE, BRAND_NO, BRAND_LINE_NO, ITEM_CD
+		                        )            T2    
+		                WHERE   DEH.CENTER_CD            =    DED.CENTER_CD
+		                AND     DEH.BRAND_CD            =    DED.BRAND_CD
+		                AND     DEH.ORDER_DATE            =    DED.ORDER_DATE
+		                AND     DEH.ORDER_NO            =    DED.ORDER_NO
+		                AND     DEH.BRAND_CD            =    '100001'
+		                -- 배송지점    
+		                AND		DEH.CENTER_CD = '1300'||'$!{dc_id}'
+		                AND     DEH.OUTBOUND_STATE        >=    '10'
+		                AND     DED.ITEM_STATE            =    'A'
+		                AND     DED.ITEM_CD                =    ITM.ITEM_CD
+		                AND     ITM.ITEM_DIV            IN    ('FERT','HAWA')
+				    #if("$!{edi_gubn}" == "1")
+						/* 이마트 '$!{edi_gubn}' */
+						AND        DEH.ORDER_DATE          =  TO_DATE('$!{cnfm_date}','YYYY-MM-DD')
+				    #elseif("$!{edi_gubn}" == "2")
+						/* 이마트 에브리데이 '$!{edi_gubn}' */
+						AND     DEH.ORDER_DATE          =  TO_DATE('$!{cnfm_date}','YYYY-MM-DD')-1
+				    #end		
+		                AND     DED.ITEM_CD             = '$!{item_id}'
+		                AND     DED.BRAND_NO            = T2.BRAND_NO(+)
+		                AND     DED.BRAND_LINE_NO        = T2.BRAND_LINE_NO(+)
+		                AND     DED.BRAND_DATE            = T2.BRAND_DATE(+)
+		                AND     DED.ITEM_CD                = T2.ITEM_CD(+)
+		                AND     DED.CENTER_CD            = T2.CENTER_CD(+)
+		                GROUP
+		                BY      TO_CHAR(DEH.ORDER_DATE,'YYYYMMDD'),
+		                        SUBSTR(DEH.CENTER_CD,5,4),
+		                        DEH.INOUT_CD,
+		                        DEH.DEPT_CD,
+		                        DEH.DELIVERY_CD,
+		                        DEH.SALESMAN_NM,
+		                        DED.BRAND_NO,
+		                        DED.BRAND_LINE_NO,
+		                        DED.ITEM_CD,
+		                        DED.OTHER_ACCOUNT_CD
+		                UNION    ALL    
+		                SELECT  TO_CHAR(DEH.ORDER_DATE,'YYYYMMDD')    CNFM_DATE,
+		                        SUBSTR(DEH.CENTER_CD,5,4)            STOR_CODE,
+		                        DEH.INOUT_CD                        SLIP_GUBN_CODE,
+		                        DEH.DEPT_CD                            DEPT_CODE,
+		                        DEH.DELIVERY_CD                CUST_ID,
+		                        DEH.SALESMAN_NM                        IPUT_EMP_NAME,
+		                        DED.BRAND_NO,
+		                        DED.BRAND_LINE_NO,
+		                        DED.ITEM_CD,
+		                        SUM(DED.ORDER_QTY    /    
+		                            (DECODE(ITM.MIN_UNIT_UOM,'EA',ITM.BOX_UNIT_QTY,1)))        REQT_BOX,
+		                        MAX(NVL(T2.CONFIRM_QTY,0)    /    
+		                            (DECODE(ITM.MIN_UNIT_UOM,'EA',ITM.BOX_UNIT_QTY,1)))        SELL_BOX,
+		                        MIN(DEH.REG_DATETIME)    REG_DATETIME,
+		                        MAX(DED.OUTBOUND_STATE)    OUTBOUND_STATE,
+		                        MAX(DED.SHORTAGE_DIV)    SHORTAGE_DIV,
+		                        MAX(DED.ENTRY_DATETIME)    ENTRY_DATETIME,
+		                        DED.OTHER_ACCOUNT_CD
+		                FROM    LO010NM_G    DEH,
+		                        LO010ND_G    DED,
+		                        CMITEM        ITM,
+		                        (
+		                        SELECT    CENTER_CD, BRAND_DATE, BRAND_NO, BRAND_LINE_NO, ITEM_CD, SUM(CONFIRM_QTY)    CONFIRM_QTY  
+		                        FROM    LO020ND_G
+		                        WHERE    BRAND_CD    = '100001'
+		                        -- 배송지점    
+		                        AND CENTER_CD = '1300'||'$!{dc_id}'
+						    #if("$!{edi_gubn}" == "1")
+								/* 이마트 '$!{edi_gubn}' */
+								AND        OUTBOUND_DATE =  TO_DATE('$!{cnfm_date}','YYYY-MM-DD')
+						    #elseif("$!{edi_gubn}" == "2")
+								/* 이마트 에브리데이 '$!{edi_gubn}' */
+								AND        OUTBOUND_DATE =  TO_DATE('$!{cnfm_date}','YYYY-MM-DD')-1
+						    #end				                        
+		                        AND        ITEM_CD       = '$!{item_id}'
+		                        GROUP
+		                        BY        CENTER_CD, BRAND_DATE, BRAND_NO, BRAND_LINE_NO, ITEM_CD
+		                        )            T2    
+		                WHERE    DEH.CENTER_CD            =    DED.CENTER_CD
+		                AND        DEH.BRAND_CD            =    DED.BRAND_CD
+		                AND        DEH.ORDER_DATE            =    DED.ORDER_DATE
+		                AND        DEH.ORDER_NO            =    DED.ORDER_NO
+		                AND        DEH.BRAND_CD            =    '100001'
+		                -- 배송지점    
+		                AND DEH.CENTER_CD = '1300'||'$!{dc_id}'
+		                AND        DEH.OUTBOUND_STATE        >=    '10'
+		                AND        DED.ITEM_STATE            =    'A'
+		                AND        DED.ITEM_CD                =    ITM.ITEM_CD
+		                AND        ITM.ITEM_DIV            IN    ('FERT','HAWA')
+				    #if("$!{edi_gubn}" == "1")
+						/* 이마트 '$!{edi_gubn}' */
+						AND        DEH.ORDER_DATE          =  TO_DATE('$!{cnfm_date}','YYYY-MM-DD')
+				    #elseif("$!{edi_gubn}" == "2")
+						/* 이마트 에브리데이 '$!{edi_gubn}' */
+						AND        DEH.ORDER_DATE          =  TO_DATE('$!{cnfm_date}','YYYY-MM-DD')-1
+				    #end			                
+		                AND        DED.ITEM_CD             = '$!{item_id}'
+		                AND        DED.BRAND_NO            = T2.BRAND_NO(+)
+		                AND        DED.BRAND_LINE_NO        = T2.BRAND_LINE_NO(+)
+		                AND        DED.BRAND_DATE            = T2.BRAND_DATE(+)
+		                AND        DED.ITEM_CD                = T2.ITEM_CD(+)
+		                AND        DED.CENTER_CD            = T2.CENTER_CD(+)
+		                GROUP
+		                BY      TO_CHAR(DEH.ORDER_DATE,'YYYYMMDD'),
+		                        SUBSTR(DEH.CENTER_CD,5,4),
+		                        DEH.INOUT_CD,
+		                        DEH.DEPT_CD,
+		                        DEH.DELIVERY_CD,
+		                        DEH.SALESMAN_NM,
+		                        DED.BRAND_NO,
+		                        DED.BRAND_LINE_NO,
+		                        DED.ITEM_CD,
+		                        DED.OTHER_ACCOUNT_CD
+		                UNION    ALL
+		                SELECT    TO_CHAR(DEH.ORDER_DATE,'YYYYMMDD')    CNFM_DATE,
+		                        SUBSTR(DEH.CENTER_CD,5,4)            STOR_CODE,
+		                        DEH.INOUT_CD                        SLIP_GUBN_CODE,
+		                        DEH.DEPT_CD                            DEPT_CODE,
+		                        DEH.DELIVERY_CD                CUST_ID,
+		                        DEH.SALESMAN_NM                        IPUT_EMP_NAME,
+		                        DED.BRAND_NO,
+		                        DED.BRAND_LINE_NO,
+		                        DED.ITEM_CD,
+		                        SUM(DED.ORDER_QTY    /    
+		                            (DECODE(ITM.MIN_UNIT_UOM,'EA',ITM.BOX_UNIT_QTY,1)))        REQT_BOX,
+		                        MAX(NVL(T2.CONFIRM_QTY,0)    /    
+		                            (DECODE(ITM.MIN_UNIT_UOM,'EA',ITM.BOX_UNIT_QTY,1)))        SELL_BOX,
+		                        MIN(DEH.REG_DATETIME)    REG_DATETIME,
+		                        MAX(DED.OUTBOUND_STATE)    OUTBOUND_STATE,
+		                        MAX(DED.SHORTAGE_DIV)    SHORTAGE_DIV,
+		                        MAX(DED.ENTRY_DATETIME)    ENTRY_DATETIME,
+		                        DED.OTHER_ACCOUNT_CD
+		                FROM    LO010NM_P    DEH,
+		                        LO010ND_P    DED,
+		                        CMITEM        ITM,
+		                        (
+		                        SELECT    CENTER_CD, BRAND_DATE, BRAND_NO, BRAND_LINE_NO, ITEM_CD, SUM(CONFIRM_QTY)    CONFIRM_QTY  
+		                        FROM    LO020ND_P
+		                        WHERE    BRAND_CD    = '100001'
+		                        -- 배송지점    
+		                        AND CENTER_CD = '1300'||'$!{dc_id}'
+						    #if("$!{edi_gubn}" == "1")
+								/* 이마트 '$!{edi_gubn}' */
+								AND        OUTBOUND_DATE =  TO_DATE('$!{cnfm_date}','YYYY-MM-DD')
+						    #elseif("$!{edi_gubn}" == "2")
+								/* 이마트 에브리데이 '$!{edi_gubn}' */
+								AND        OUTBOUND_DATE =  TO_DATE('$!{cnfm_date}','YYYY-MM-DD')-1
+						    #end			                        
+		                        AND        ITEM_CD        = '$!{item_id}'
+		                        GROUP
+		                        BY        CENTER_CD, BRAND_DATE, BRAND_NO, BRAND_LINE_NO, ITEM_CD
+		                        )            T2
+		                WHERE   DEH.CENTER_CD            =    DED.CENTER_CD
+		                AND     DEH.BRAND_CD            =    DED.BRAND_CD
+		                AND     DEH.ORDER_DATE            =    DED.ORDER_DATE
+		                AND     DEH.ORDER_NO            =    DED.ORDER_NO
+		                AND     DEH.BRAND_CD            =    '100001'
+		                -- 배송지점    
+		                AND		DEH.CENTER_CD = '1300'||'$!{dc_id}'
+		                AND     DEH.OUTBOUND_STATE        >=    '10'
+		                AND     DED.ITEM_STATE            =    'A'
+		                AND     DED.ITEM_CD                =    ITM.ITEM_CD
+		                AND     ITM.ITEM_DIV            IN    ('FERT','HAWA')
+				    #if("$!{edi_gubn}" == "1")
+						/* 이마트 '$!{edi_gubn}' */
+						AND     DEH.ORDER_DATE         =  TO_DATE('$!{cnfm_date}','YYYY-MM-DD')
+				    #elseif("$!{edi_gubn}" == "2")
+						/* 이마트 에브리데이 '$!{edi_gubn}' */
+						AND     DEH.ORDER_DATE         =  TO_DATE('$!{cnfm_date}','YYYY-MM-DD')-1
+				    #end			                
+		                AND     DED.ITEM_CD             = '$!{item_id}'
+		                AND     DED.BRAND_NO            = T2.BRAND_NO(+)
+		                AND     DED.BRAND_LINE_NO        = T2.BRAND_LINE_NO(+)
+		                AND     DED.BRAND_DATE            = T2.BRAND_DATE(+)
+		                AND     DED.ITEM_CD                = T2.ITEM_CD(+)
+		                AND     DED.CENTER_CD            = T2.CENTER_CD(+)
+		                GROUP
+		                BY      TO_CHAR(DEH.ORDER_DATE,'YYYYMMDD'),
+		                        SUBSTR(DEH.CENTER_CD,5,4),
+		                        DEH.INOUT_CD,
+		                        DEH.DEPT_CD,
+		                        DEH.DELIVERY_CD,
+		                        DEH.SALESMAN_NM,
+		                        DED.BRAND_NO,
+		                        DED.BRAND_LINE_NO,
+		                        DED.ITEM_CD,
+		                        DED.OTHER_ACCOUNT_CD
+		                )            A,
+		                (
+		                SELECT    CODE        ITEM_CATG
+		                FROM    SDSTT500
+		                WHERE    CODE_GUBN    = 'OR103'
+		                AND        CODE_NAME2    = 'Y'
+		                AND        CODE_NAME3    = '01'
+		                )            B
+		        WHERE   A.SLIP_GUBN_CODE	NOT LIKE 'D2%' -- 수송제외
+		    #if("$!{edi_gubn}" == "1")
+				/* 이마트 '$!{edi_gubn}' */
+				AND     A.CNFM_DATE			=  TO_DATE('$!{cnfm_date}','YYYY-MM-DD')
+		    #elseif("$!{edi_gubn}" == "2")
+				/* 이마트 에브리데이 '$!{edi_gubn}' */
+				AND     A.CNFM_DATE			=  TO_DATE('$!{cnfm_date}','YYYY-MM-DD')-1
+		    #end				        
+		        AND     A.OTHER_ACCOUNT_CD	= B.ITEM_CATG(+)
+		        )        T1,
+		        (
+		        SELECT  DEPT_CODE, DEPT_NAME
+		        FROM    SDSTT401
+		        WHERE   APPL_END_YYMM = '999912'
+		        AND     DEPT_GRAD_CODE    = '40'
+		        UNION   ALL
+		        SELECT  DEPT_CODE,    DEPT_NAME_ABBR    DEPT_NAME
+		        FROM    NCOMT001        
+		        )        T2,
+		        SDSTT101    T3
+		WHERE   T1.DEPT_CODE    = T2.DEPT_CODE(+)
+		AND     T1.CUST_CODE    = T3.CUST_CODE(+)
+		/* 거래처 코드 */
+		AND     T3.CUST_CODE = '$!{cust_id}'
+		ORDER BY 6, 1
+	</query> 	
+
+	<!-- 유통본부 미납 추적 분석 DW3 '수송정보' --> 
+	<query id="ip_02070_Edi_Default_List_DW3" paging="false"> 
+		/* 유통본부 미납 추적 분석 DW3 '수송정보' */
+        SELECT  F_GETDCNAME(S1.DC_ID)    DC_NAME,
+                NVL(S1.RECEIPT_PRE,0)  "전일입고",
+                NVL(S1.BASE_STOCK,0)   "기초재고",
+                NVL(S1.RECEIPT,0)      "입고",
+                NVL(S1.ISSUE,0)        "출고",
+                S2.ORDER_QTY            "주문수량",
+                S2.CONFIRM_QTY          "마감수량",
+                S2.TERM                 "결품수량",
+                S2.ORDER_CNT            "오더건수",
+                TO_CHAR(S2.MIN_CLOS_DTTM,'YYYY-MM-DD HH24:MI:SS') "배송마감(FROM)",
+                TO_CHAR(S2.MAX_CLOS_DTTM,'YYYY-MM-DD HH24:MI:SS') "배송마감(TO)",
+                --S3.SRC_LOC              "출고장",
+                F_GETDCNAME(S3.SRC_LOC) "출고장명",
+                S3.BRAND_NO             "전표번호",
+                F_GET_CODE_NAME('TRANS_STATE',S3.TRANS_STATE) "전표상태",
+                SHORTAGE_DIV            "결품사유",
+                S3.QTY                  "계획수량",
+                S3.CHGO_QTY             "출고수량",
+                TO_CHAR(S3.CHGO_DTTM,'YYYY-MM-DD HH24:MI:SS')   "출고일시",
+                S3.IPGO_QTY             "입고수량",
+                TO_CHAR(S3.IPGO_DTTM,'YYYY-MM-DD HH24:MI:SS')   "입고일시"
+		FROM    (
+		        /* 재고,입출고정보 */
+		        SELECT    DC_ID,
+		                ITEM_ID,
+		                RECEIPT_PRE,
+		                BASE_STOCK,
+		                RECEIPT+RECEIPT_EXPT    RECEIPT,
+		                ISSUE+ISSUE_EXPT        ISSUE
+		        FROM    DC_DATAWAREHOUSE
+		        WHERE    CNFM_DATE    = REPLACE('$!{cnfm_date}','-','')
+		        AND		ITEM_ID    = '$!{item_id}'
+		        AND		DC_ID      = '$!{dc_id}'		
+		        )    S1,		
+				(
+		        /* 결품정보 */
+		        SELECT  K1.DC_ID,
+		                K1.ITEM_ID,
+		                SUM(ORDER_QTY)                    ORDER_QTY,
+		                SUM(CONFIRM_QTY)                CONFIRM_QTY,
+		                SUM(ORDER_QTY)-SUM(CONFIRM_QTY)    TERM,
+		                MIN(MIN_CLOS_DTTM)                MIN_CLOS_DTTM,
+		                MAX(MAX_CLOS_DTTM)                MAX_CLOS_DTTM,
+		                SUM(ORDER_CNT)                    ORDER_CNT,
+		                MAX(REG_DTTM)                    REG_DTTM
+		        FROM    (
+		                SELECT  SUBSTR(T1.CENTER_CD,5,8)    DC_ID,
+		                        T2.ITEM_CD                    ITEM_ID,
+		                        SUM(T2.ORDER_QTY/
+		                            DECODE(ITM.MIN_UNIT_UOM,'EA',ITM.BOX_UNIT_QTY,1))            ORDER_QTY,
+		                        SUM(T2.CONFIRM_QTY/
+		                            DECODE(ITM.MIN_UNIT_UOM,'EA',ITM.BOX_UNIT_QTY,1))            CONFIRM_QTY,
+		                        MIN(T2.ENTRY_DATETIME)                                            MIN_CLOS_DTTM,
+		                        MAX(T2.ENTRY_DATETIME)                                            MAX_CLOS_DTTM,
+		                        COUNT(T2.ITEM_CD)                                                ORDER_CNT,
+		                        MAX(T1.REG_DATETIME)                                            REG_DTTM
+		                FROM    LO020NM    T1,
+		                        LO020ND    T2,
+		                        CMITEM    ITM
+		                WHERE   T1.CENTER_CD        = T2.CENTER_CD
+		                AND     T1.BRAND_CD            = T2.BRAND_CD
+		                AND     T1.OUTBOUND_DATE    = T2.OUTBOUND_DATE
+		                AND     T1.OUTBOUND_NO        = T2.OUTBOUND_NO
+		                AND     T1.BRAND_CD            = '100001'    
+		                AND     T1.INOUT_CD            LIKE 'D1%'
+		                AND     T1.OUTBOUND_DATE    = TO_DATE('$!{cnfm_date}')
+		                AND     T2.ITEM_CD            = ITM.ITEM_CD
+		                AND     TRIM(T2.BRAND_NO)    IS NOT NULL
+		                AND     T2.SHORTAGE_DIV        = '11' /* 재고부족 */
+		                GROUP
+		                BY      SUBSTR(T1.CENTER_CD,5,8),
+		                        T2.ITEM_CD
+		                UNION   ALL
+		                SELECT  SUBSTR(T1.CENTER_CD,5,8)    DC_ID,
+		                        T2.ITEM_CD                    ITEM_ID,
+		                        SUM(T2.ORDER_QTY/
+		                            DECODE(ITM.MIN_UNIT_UOM,'EA',ITM.BOX_UNIT_QTY,1))            ORDER_QTY,
+		                        SUM(T2.CONFIRM_QTY/
+		                            DECODE(ITM.MIN_UNIT_UOM,'EA',ITM.BOX_UNIT_QTY,1))            CONFIRM_QTY,
+		                        MIN(T2.ENTRY_DATETIME)                                            MIN_CLOS_DTTM,
+		                        MAX(T2.ENTRY_DATETIME)                                            MAX_CLOS_DTTM,
+		                        COUNT(T2.ITEM_CD)                                                ORDER_CNT,
+		                        MAX(T1.REG_DATETIME)                                            REG_DTTM
+		                FROM    LO020NM_G    T1,
+		                        LO020ND_G    T2,
+		                        CMITEM    ITM
+		                WHERE   T1.CENTER_CD        = T2.CENTER_CD
+		                AND     T1.BRAND_CD            = T2.BRAND_CD
+		                AND     T1.OUTBOUND_DATE    = T2.OUTBOUND_DATE
+		                AND     T1.OUTBOUND_NO        = T2.OUTBOUND_NO
+		                AND     T1.BRAND_CD            = '100001'    
+		                AND     T1.INOUT_CD            LIKE 'D1%'
+		                AND     T1.OUTBOUND_DATE    = TO_DATE('$!{cnfm_date}')
+		                AND     T2.ITEM_CD            = ITM.ITEM_CD
+		                AND     TRIM(T2.BRAND_NO)    IS NOT NULL
+		                AND     T2.SHORTAGE_DIV        = '11' /* 재고부족 */
+		                GROUP
+		                BY      SUBSTR(T1.CENTER_CD,5,8),
+		                        T2.ITEM_CD
+		                UNION   ALL
+		                SELECT    SUBSTR(T1.CENTER_CD,5,8)    DC_ID,
+		                        T2.ITEM_CD                    ITEM_ID,
+		                        SUM(T2.ORDER_QTY/
+		                            DECODE(ITM.MIN_UNIT_UOM,'EA',ITM.BOX_UNIT_QTY,1))            ORDER_QTY,
+		                        SUM(T2.CONFIRM_QTY/
+		                            DECODE(ITM.MIN_UNIT_UOM,'EA',ITM.BOX_UNIT_QTY,1))            CONFIRM_QTY,
+		                        MIN(T2.ENTRY_DATETIME)                                            MIN_CLOS_DTTM,
+		                        MAX(T2.ENTRY_DATETIME)                                            MAX_CLOS_DTTM,
+		                        COUNT(T2.ITEM_CD)                                                ORDER_CNT,
+		                        MAX(T1.REG_DATETIME)                                            REG_DTTM    
+		                FROM    LO020NM_P    T1,
+		                        LO020ND_P    T2,
+		                        CMITEM    ITM
+		                WHERE   T1.CENTER_CD        = T2.CENTER_CD
+		                AND     T1.BRAND_CD            = T2.BRAND_CD
+		                AND     T1.OUTBOUND_DATE    = T2.OUTBOUND_DATE
+		                AND     T1.OUTBOUND_NO        = T2.OUTBOUND_NO
+		                AND     T1.BRAND_CD            = '100001'    
+		                AND     T1.INOUT_CD            LIKE 'D1%'
+		                AND     T1.OUTBOUND_DATE    = TO_DATE('$!{cnfm_date}')
+		                AND     T2.ITEM_CD            = ITM.ITEM_CD
+		                AND     TRIM(T2.BRAND_NO)    IS NOT NULL
+		                AND     T2.SHORTAGE_DIV        = '11' /* 재고부족 */
+		                GROUP
+		                BY      SUBSTR(T1.CENTER_CD,5,8),
+		                        T2.ITEM_CD
+		                )            K1
+		        GROUP
+		        BY      K1.DC_ID,
+		                K1.ITEM_ID
+		        )    S2,
+		        (
+		        /* 수송계획 정보 */
+		        SELECT    TGT_LOC    DC_ID,
+		                SRC_LOC,
+		                ITEM_ID,
+		                BRAND_NO,
+		                TRANS_STATE,
+		                QTY,
+		                CHGO_QTY,
+		                CHGO_DTTM,
+		                IPGO_QTY,
+		                IPGO_DTTM,
+		                F_GET_WMSCODE_NAME('LDIV11',SHORTAGE_DIV) SHORTAGE_DIV
+		        FROM    IF_TRANS_PLAN
+		        WHERE   TRANS_DATE =   (
+		                                SELECT    MAX(CAL_DATE)
+		                                FROM    CAL_MST
+		                                WHERE    CAL_DATE        &lt; TO_DATE('$!{cnfm_date}')
+		                                AND        HOLIDAY_FLAG    IS NULL
+		                                )
+				AND		ITEM_ID    = '$!{item_id}'
+		        )    S3,
+		        ITEM_MST    S4    
+		WHERE   S1.DC_ID    = S2.DC_ID(+)
+		AND     S1.DC_ID    = S3.DC_ID(+)
+		AND     S1.ITEM_ID    = S2.ITEM_ID(+)
+		AND     S1.ITEM_ID    = S3.ITEM_ID(+)    
+		AND     S1.ITEM_ID    = S4.ITEM_ID
+		AND     S1.ITEM_ID    = '$!{item_id}'
+		AND     S1.DC_ID      = '$!{dc_id}'
+		ORDER
+		BY      S1.DC_ID,
+		        S1.ITEM_ID,
+		        S3.SRC_LOC,
+		        S3.BRAND_NO
+	</query> 	
+
+	<!-- 유통본부 미납 추적 분석 DW4 'EDI정보' --> 
+	<query id="ip_02070_Edi_Default_List_DW4" paging="false"> 
+		/* 유통본부 미납 추적 분석 DW4 'EDI정보' */
+		SELECT  DECODE(ERR_GUBN, 09, '정상', '에러') "구분",
+		        OD.CNFM_DATE    "납품일자",
+		        CUST_CODE,
+		        ODER_SLIP_NO    "주문전표번호(EDI)",
+		        ODER_BOX							"(EDI)발주수량",
+                F_GET_NFOS_QTY(PROD_CODE, SLIP_NO)	"주문전환수량",
+                SUBSTR(ODER_DATE,1,4)||'-'||SUBSTR(ODER_DATE,5,2)||'-'||SUBSTR(ODER_DATE,7,2)   "주문일자",
+                SUBSTR(IPUT_DATE,1,4)||'-'||SUBSTR(IPUT_DATE,5,2)||'-'||SUBSTR(IPUT_DATE,7,2)||'  '||
+                SUBSTR(IPUT_TIME,1,2)||':'||SUBSTR(IPUT_TIME,3,2)||':'||SUBSTR(IPUT_TIME,5,2)   "입력시각",
+                DECODE(F_GET_EMP_NAME(IPUT_EMP_NO), 'osal00', '시스템', F_GET_EMP_NAME(IPUT_EMP_NO))"입력자",
+                --TO_CHAR(TO_DATE(CONV_DATE), 'YYYY-MM-DD')||'  '||
+                SUBSTR(CONV_DATE,1,4)||'-'||SUBSTR(CONV_DATE,5,2)||'-'||SUBSTR(CONV_DATE,7,2)||'  '||
+                SUBSTR(CONV_TIME,1,2)||':'||SUBSTR(CONV_TIME,3,2)||':'||SUBSTR(CONV_TIME,5,2)   "전환시각",
+                DECODE(F_GET_EMP_NAME(CONV_EMP_NO), '9999999', '오더미전환', F_GET_EMP_NAME(CONV_EMP_NO)) "전환자",
+                SLIP_NO "영업전표번호"
+		FROM    SDORT120 OD
+		WHERE   GRUP_CODE   = 	(
+								CASE
+									WHEN TO_DATE('$!{cnfm_date}') >=  TO_DATE(20110501)  --  2011 04 월 이전은 22 이후에는 32
+									THEN '32' -- E마트
+									ELSE '22' -- E마트
+								END		       		
+								)
+    #if("$!{edi_gubn}" == "1")
+		/* 이마트 '$!{edi_gubn}' */
+		AND     CNFM_DATE   = TO_CHAR(TO_DATE('$!{cnfm_date}'), 'YYYYMMDD')
+    #elseif("$!{edi_gubn}" == "2")
+		/* 이마트 에브리데이 '$!{edi_gubn}' */
+		AND     CNFM_DATE   = TO_CHAR(TO_DATE('$!{cnfm_date}')-1, 'YYYYMMDD')
+    #end		
+		AND     PROD_CODE   = '$!{item_id}'
+		--AND     ERR_GUBN    = '09' -- 에러구분('09' 만 정상)
+		AND     CUST_CODE   = '$!{cust_id}'
+	</query> 	
+
+
+	<!-- 유통본부 미납 추적 분석 DW4 'EDI정보' --> 
+	<query id="ip_02070_Edi_Default_List_Monthly_popup" paging="false"> 
+		/* 월간 EDI 미납 현황 */
+		SELECT  DAY,
+		        OD.ODER_AMT         "발주금액",
+		        ED.DEFAULT_AMOUNT   "미납금액",
+		        CUST_DEFAULT        "거래처오류",
+		        NS_DEFAULT          "농심미납",
+		        DECODE(NS_DEFAULT, 0, 0, ROUND((NS_DEFAULT/OD.ODER_AMT)*100,1)) "미납율", 
+		        KAL_DEFAULT			"켈로그귀책",
+		        MJ_DEFAULT			"귀책미확정"
+		FROM    (
+		        /* 달력 정보 */
+		        SELECT  CAL_DATE, YYYYMMDD,
+		                TO_CHAR(CAL_DATE,'YYYY-MM-DD')||' ('||WEEK_DAY||')' DAY
+		        FROM    CAL_MST
+		        WHERE   CAL_DATE BETWEEN LAST_DAY(ADD_MONTHS(TRUNC(TO_DATE('$!{cnfm_date}'),'MONTH'),-1))+1 AND LAST_DAY(TRUNC(TO_DATE('$!{cnfm_date}')))
+		        AND     WEEK_DAY != '일' -- 일요일 제외
+		        ) CAL,
+		        (
+		        /* 총발주 금액 */
+		        SELECT  OD.CNFM_DATE,
+		                SUM(OD.ODER_AMT) ODER_AMT
+		        FROM    SDORT120 OD,
+		                (
+		                SELECT  CAL_DATE, YYYYMMDD,
+		                        TO_CHAR(CAL_DATE,'YYYY-MM-DD')||' ('||WEEK_DAY||')' DAY
+		                FROM    CAL_MST
+		                WHERE   CAL_DATE BETWEEN LAST_DAY(ADD_MONTHS(TRUNC(TO_DATE('$!{cnfm_date}'),'MONTH'),-1))+1 AND LAST_DAY(TRUNC(TO_DATE('$!{cnfm_date}')))        
+		                ) CAL
+		        WHERE   OD.CNFM_DATE   = CAL.YYYYMMDD
+				AND		GRUP_CODE   IN ('22','32')
+										/* 
+										CASE
+											WHEN TO_DATE('$!{cnfm_date}') >=  TO_DATE(20110501)  --  2011 04 월 이전은 22 이후에는 32
+											THEN '32' -- E마트
+											ELSE '22' -- E마트
+										END
+										*/		       		
+		        AND     CNFM_DATE &lt; TRUNC(SYSDATE)
+		        --AND     ERR_GUBN = '09'
+		        GROUP BY CNFM_DATE
+		        ) OD,
+		        (
+		        /* 미납 금액 */
+		        SELECT  CNFM_DATE,
+		                SUM(DEFAULT_AMOUNT) DEFAULT_AMOUNT,
+		                SUM(DECODE(SUBSTR(DEFAULT_CODE,1,1), '1' , DEFAULT_AMOUNT, 0)) NS_DEFAULT,
+		                SUM(DECODE(SUBSTR(DEFAULT_CODE,1,1), '2' , DEFAULT_AMOUNT, 0)) CUST_DEFAULT,
+		                SUM(DECODE(SUBSTR(DEFAULT_CODE,1,1), '3' , DEFAULT_AMOUNT, 0)) KAL_DEFAULT,
+		                SUM(DECODE(SUBSTR(DEFAULT_CODE,1,1), NULL , DEFAULT_AMOUNT, 0)) MJ_DEFAULT
+		        FROM    EDI_DEFAULT ED,
+		                (
+		                SELECT  CAL_DATE, YYYYMMDD,
+		                        TO_CHAR(CAL_DATE,'YYYY-MM-DD')||' ('||WEEK_DAY||')' DAY
+		                FROM    CAL_MST
+		                WHERE   CAL_DATE BETWEEN LAST_DAY(ADD_MONTHS(TRUNC(TO_DATE('$!{cnfm_date}'),'MONTH'),-1))+1 AND LAST_DAY(TRUNC(TO_DATE('$!{cnfm_date}')))        
+		                ) CAL
+		        WHERE   ED.CNFM_DATE   = CAL.YYYYMMDD
+				AND		GROUP_CODE   IN ('22','32')
+										/* 
+										CASE
+											WHEN TO_DATE('$!{cnfm_date}') >=  TO_DATE(20110501)  --  2011 04 월 이전은 22 이후에는 32
+											THEN '32' -- E마트
+											ELSE '22' -- E마트
+										END
+										*/   
+		        --AND     ERR_GUBN = '09'
+		        GROUP BY CNFM_DATE
+		        ) ED
+		WHERE   CAL.YYYYMMDD = OD.CNFM_DATE(+)
+		AND     CAL.YYYYMMDD = ED.CNFM_DATE(+)
+		ORDER BY 1
+	</query> 	
+
+
+	<!-- 유통본부 미납 추적 분석 DW4 'EDI정보' --> 
+	<query id="ip_02070_Edi_Default_List_Monthly_popup_item_detail" paging="false"> 
+		SELECT  ITEM_ID,
+		        ITEM_NAME,
+		        SUM(DECODE(DECODE(ED.ITEM_ID, NULL, '101', ED.DEFAULT_CODE), '101', 미납금액)) "공급부족",
+		        SUM(DECODE(DECODE(ED.ITEM_ID, NULL, '102', ED.DEFAULT_CODE), '102', 미납금액)) "본부조정",
+		        SUM(DECODE(DECODE(ED.ITEM_ID, NULL, '103', ED.DEFAULT_CODE), '103', 미납금액)) "본부조정",
+		        SUM(DECODE(DECODE(ED.ITEM_ID, NULL, '104', ED.DEFAULT_CODE), '104', 미납금액)) "본부조정",
+		        SUM(DECODE(DECODE(ED.ITEM_ID, NULL, '105', ED.DEFAULT_CODE), '105', 미납금액)) "본부조정",
+		        SUM(DECODE(DECODE(ED.ITEM_ID, NULL, '106', ED.DEFAULT_CODE), '106', 미납금액)) "본부조정",
+		        SUM(DECODE(DECODE(ED.ITEM_ID, NULL, '107', ED.DEFAULT_CODE), '107', 미납금액)) "본부조정"
+		FROM    (
+		        SELECT  NVL(ED.ITEM_ID, CUST_ITEM_ID) ITEM_ID,
+		                NVL(F_GET_ITEM_NAME(ED.ITEM_ID),CUST_ITEM_NAME) ITEM_NAME,
+		                DECODE(ED.ITEM_ID, NULL, '102', ED.DEFAULT_CODE) DEFAULT_CODE,
+		                ----------------------------------------------------------------------------------------
+		                CASE
+		                    WHEN IM.MULTI_FLAG = 'V' -- 비쥬얼 제품이면 EDI 발주 수량을 그대로 유지한다
+		                    THEN ED.EDI_QTY
+		                    WHEN NVL(F_GET_ITEM_NAME(ED.ITEM_ID),CUST_ITEM_NAME) LIKE '%(S)%'  -- 신라면(S) 등의 20개 박스들이 상품은 EDI 발주 수량을 그대로 유지한다
+		                    THEN ED.EDI_QTY
+		                    WHEN ED.ITEM_ID = '103000008' OR ED.ITEM_ID = '103000005' -- 카프리선 일부제품은 '카프리썬딸기와키위','카프리선아이스?'  EDI_QTY / 10
+		                    THEN ED.EDI_QTY/10
+		                    WHEN IM.SALES_CAT03 = '134' -- 그외 카프리선은 박스단위 판매 !!
+		                    THEN ED.EDI_QTY
+		                    WHEN (F_GET_ITEM_NAME(ED.ITEM_ID) LIKE '%VONO%' AND F_GET_ITEM_NAME(ED.ITEM_ID) LIKE '%(30입)%') -- VONO 종류중 (30입)은   EDI_QTY / 30
+		                    THEN ED.EDI_QTY/30
+		                    WHEN ED.ITEM_ID IS NULL -- 본부 조정으로 오더 전환을 막은 품목은 EDI 발주량을 변환없이 보여준다
+		                    THEN ED.EDI_QTY
+		                    ELSE ROUND(ED.EDI_QTY/DECODE(CV.VIEW_PROD_BOX, 1 ,CV.VIEW_PROD_PICE, CV.VIEW_PROD_BOX))  
+		                END "발주량",
+		                CASE
+		                    WHEN IM.MULTI_FLAG = 'V' -- 비쥬얼 제품이면 EDI 발주 수량을 그대로 유지한다
+		                    THEN ED.DEFAULT_QTY
+		                    WHEN NVL(F_GET_ITEM_NAME(ED.ITEM_ID),CUST_ITEM_NAME) LIKE '%(S)%'  -- 신라면(S) 등의 20개 박스들이 상품은 EDI 발주 수량을 그대로 유지한다
+		                    THEN ED.DEFAULT_QTY
+		                    WHEN ED.ITEM_ID = '103000008' OR ED.ITEM_ID = '103000005' -- 카프리선 일부제품은 '카프리썬딸기와키위','카프리선아이스?'  EDI_QTY / 10
+		                    THEN ED.DEFAULT_QTY/10
+		                    WHEN IM.SALES_CAT03 = '134' -- 그외 카프리선은 박스단위 판매 !!
+		                    THEN ED.DEFAULT_QTY
+		                    WHEN (F_GET_ITEM_NAME(ED.ITEM_ID) LIKE '%VONO%' AND F_GET_ITEM_NAME(ED.ITEM_ID) LIKE '%(30입)%') -- VONO 종류중 (30입)은   EDI_QTY / 30
+		                    THEN ED.DEFAULT_QTY/30
+		                    WHEN ED.ITEM_ID IS NULL -- 본부 조정으로 오더 전환을 막은 품목은 EDI 발주량을 변환없이 보여준다
+		                    THEN ED.DEFAULT_QTY
+		                    ELSE ROUND(ED.DEFAULT_QTY/DECODE(CV.VIEW_PROD_BOX, 1 ,CV.VIEW_PROD_PICE, CV.VIEW_PROD_BOX))  
+		                END  "미납량",
+		                CASE
+		                    WHEN IM.MULTI_FLAG = 'V' -- 비쥬얼 제품이면 EDI 발주 수량을 그대로 유지한다
+		                    THEN ED.EDI_AMOUNT/ED.EDI_QTY
+		                    WHEN NVL(F_GET_ITEM_NAME(ED.ITEM_ID),CUST_ITEM_NAME) LIKE '%(S)%'  -- 신라면(S) 등의 20개 박스들이 상품은 EDI 발주 수량을 그대로 유지한다
+		                    THEN ED.EDI_AMOUNT/ED.EDI_QTY
+		                    WHEN ED.ITEM_ID = '103000008' OR ED.ITEM_ID = '103000005' -- 카프리선 일부제품은 '카프리썬딸기와키위','카프리선아이스?'  EDI_QTY / 10
+		                    THEN (ED.EDI_AMOUNT*10)/ED.EDI_QTY
+		                    WHEN IM.SALES_CAT03 = '134' -- 그외 카프리선은 박스단위 판매 !!
+		                    THEN ED.EDI_AMOUNT/ED.EDI_QTY
+		                    WHEN (F_GET_ITEM_NAME(ED.ITEM_ID) LIKE '%VONO%' AND F_GET_ITEM_NAME(ED.ITEM_ID) LIKE '%(30입)%') -- VONO 종류중 (30입)은   EDI_QTY / 30
+		                    THEN ED.EDI_AMOUNT/ED.EDI_QTY
+		                    WHEN ED.ITEM_ID IS NULL -- 본부 조정으로 오더 전환을 막은 품목은 EDI 발주량을 변환없이 보여준다
+		                    THEN ED.EDI_AMOUNT/ED.EDI_QTY
+		                    ELSE ROUND(ED.EDI_AMOUNT/(ED.EDI_QTY/DECODE(CV.VIEW_PROD_BOX, 1 ,CV.VIEW_PROD_PICE, CV.VIEW_PROD_BOX)))  
+		                END  "단가",     
+		                ----------------------------------------------------------------------------------------
+		                ED.DEFAULT_AMOUNT "미납금액"
+		        FROM    EDI_DEFAULT ED, ITEM_MST IM,
+		                (
+		                /*발주량 환산 - VIEW_PROD_BOX : 박스내 판매단위 수량 */
+		                SELECT  *
+		                FROM    SDSTT301
+		                WHERE   SALE_ORG = '1000' -- 국내판매           
+		                ) CV
+		        WHERE   CNFM_DATE = '20110310'
+		        AND     ED.ITEM_ID = CV.PROD_CODE(+)
+		        AND     ED.ITEM_ID  = IM.ITEM_ID(+)
+		        )ED
+		GROUP BY ITEM_ID, ITEM_NAME
+		ORDER BY 1
+	</query> 	
+
+
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</queries>

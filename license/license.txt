@@ -1,0 +1,4 @@
+Product: T3SiNC
+Expire: 2016-09-22
+Version: 4.0
+HWAddr: 50-B7-C3-AA-16-D7

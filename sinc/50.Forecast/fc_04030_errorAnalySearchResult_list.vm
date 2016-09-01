@@ -1,0 +1,138 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수
+#set( $resizeFuncCallCode = "setGridAutoResizeIframe('10')" )
+
+<script language="JavaScript" type="text/javascript">
+	window.onload = function() { setSize(); }
+	window.onresize = function() { setSize(); }
+	window.oncontextmenu="return $!{_moon_refresh_detect}"
+
+	function setSize() {		
+		if (document.body.clientHeight > 100) {
+			document.grid.height = document.body.clientHeight - 100;
+		}
+	}
+</script>
+
+<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+	<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+		<tr>
+			<td >Total : <b>$_moon_service_count</b></td>			 
+			##<td>#page_info()</td>
+			##<td align="right">#table_display()</td>
+		</tr>
+	</table>
+    <table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+		<tr>
+    		<td>	 
+    			
+    			#set( $header = "품목분류\n기준코드!%!품목분류 명!%!영업조직 코드!%!영업조직 명!%!배송조직\n코드!%!배송조직 명!%!수요예측\n기법!%!MSE!%!MAPE!%!MAD!%!T/S!%!HIST_START!%!HIST_END!%!ITME_LV!%!SITE_LV!%!DC_LV!%!CUST_LV")                          
+    			
+    			## 이중헤더 
+    			##set( $topheader = "코드/%/속성1/%/속성2" )    
+    			##set( $topheaderPosition = "X!%!O!%!O/%/X!%!O!%!O!%!O/%/O!%!O" )   
+    			      
+    			#set( $headerType = "TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT" )
+    			#set( $colwidth = "60!%!100!%!60!%!100!%!60!%!90!%!160!%!90!%!80!%!90!%!80!%!0!%!0!%!0!%!0!%!0!%!0" )
+    			#set( $colalign = "CENTER!%!LEFT!%!CENTER!%!LEFT!%!CENTER!%!LEFT!%!LEFT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!LEFT!%!LEFT!%!LEFT!%!LEFT!%!LEFT!%!LEFT" )
+    			#set( $data = $grid.getBody($!{fc_04030_errorAnalySearchResult_list},"!%!", "/%/") ) 
+    			
+				<textarea id="txt1" style="display:none;" rows="0" cols="0">   
+    				<object name='grid'        
+    					classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93" width="100%" height="387px"    
+    					##codebase="http://java.sun.com/update/1.5.0/jinstall-1_5_0_03-windows-i586.cab#Version=1,5,3,0">
+    					codebase="http://javadl.sun.com/webapps/download/AutoDL?BundleId=19588#Version=6,0,050,13">
+    					<!--Necessary--> 
+    					<param name="code" value="com.zionex.t3sinc.ui.ZLattice"> 
+    					<param name="archive" value="zLattice.jar">
+    					<param name="headertypes" value= "$headerType">
+    					<param name="headers"  value= "$header">
+    					<param name="data" value= "$data">
+    					<!--Necessary for Modification Grid -->
+    					<param name="names" value= "" >
+    					<!--Necessary for Cookie -->
+    					<param name="identity" value="fc_04030_errorAnalySearchResult_list">
+    					<!--Necessary in TYPE COMBO 
+    					<param name="combo9" value="DATA1!%!DATA2!%!DATA3">-->
+    					<!--optional - Default Value 있음-->
+    					<param name="columndelimeter" value="!%!"> <!-- defalut : !%! -->
+    					<param name="rowdelimeter" value="/%/"> <!-- defalut : /%/ -->
+    					<param name="showgroupingfunction" value="false">  <!-- defalut : true -->
+    					<param name="showprintingfunction" value="false">   <!-- defalut : true -->
+    					<param name="showlockingfunction" value="false"> <!-- defalut : true -->
+    					<param name="showpagingfunction" value="false"> <!-- defalut : true -->
+    					<param name="enablesorting" value="true">   <!-- defalut : true -->
+    					<param name="groupingcolumn" value="2"> <!-- defalut : 그루핑 없음 -->
+    					<param name="groupsumcolumn" value="0"> <!-- defalut : 그루핑 없음 --> 
+    					<param name="lockedcolumn" value="2"> <!-- defalut : 락킹 없음 -->
+    					<param name="presentpage" value="$_moon_pagenumber">   <!-- defalut : 1 --> 
+    					<param name="listinpage" value="$_moon_perpage">   <!-- defalut : 40 -->
+    					<param name="bordertype" value="PLANE"> <!-- default - PLANE -->
+    					<param name="indateformat" value="yyyy-MM-dd"> <!-- default - yyyyMMdd -->
+    					<param name="outdateformat" value="yyyy-MM-dd">  <!-- default - yyyyMMdd -->									
+    					<param name="outnumberformat" value="&#035;,&#035;&#035;0.0">			 
+    					<param name="columnwidth" value="$colwidth"> <!-- default -80 -->
+    					<param name="hasverticaltotal" value="false"> <!-- default -true -->
+    					<param name="hashorizontaltotal" value="false"> <!-- default -true -->
+    					<param name="totalrowcolor" value="909090"> <!-- default ? E6E6FA -->
+    					<param name="totalverticalrowcolor" value="909090"> <!-- default ? E6E6FF -->
+    					<param name="totalhorizontalrowcolor" value="a1a1a1"> <!-- default ? E6E6FF -->
+    					<param name="hascookie" value="false"> <!-- default -false -->
+    					<param name="enableinserting" value="false"> <!-- default -false -->
+    					<param name="enabledeleting" value="false"> <!-- default -false -->
+    					<param name="enableediting" value="false"> <!-- default -false -->
+    					<!--optional - Default Value 없음-->
+    					##set( $colCor = "12=dfdfdf&13=dfdfdf&14=dfdfdf&18=dfdfdf&19=dfdfdf&20=dfdfdf" ) 
+    					<param name="columncolor" value="$!{colCor}">
+    					<param name="rowcolor" value="$!{rowCol}">
+    					<param name="onclickrowfunc" value="moveDetail">
+    					<param name="callingfunction" value="DOUBLECLICKED_CALLING">
+    					<param name="disablecolumns" value="">
+    					<param name="columnalign" value="$colalign">
+    					<param name="font" value="굴림">
+    					<param name="fontsize" value="12">
+    					<param name="columnheight" value="40">
+    					<param name="headertype" value="HORIZONTAL_HEADER">
+    					
+    					## 이중 헤더
+    					<param name="hasnestedsubheader" value="false"> 
+    					<param name="topheaders" value="$!{topheader}">
+    					<param name="topheaderposition" value="$!{topheaderPosition}"> 
+    					<param name="enabledragging" value="true">
+    				</object>
+    			</textarea> 
+    			<script language="javascript" src="${project}/object_activity.jsp?txtID=txt1"></script>
+    		</td>
+    	</tr> 
+    </table>
+	<table height="5"><tr><td></td></tr></table>
+	<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+		##$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+		<input type="hidden" name="_moon_service" value="${_moon_service}">
+		<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+		<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}"> 
+	</td></tr></table>
+						  
+</td></tr></table>
+
+## waiting 표시 영역
+<table width="100%" height="100%" id="waitArea" style="display:none; ">
+	<tr>
+		<td valign="middle" align="center">
+			<img src="sinc/template/basic/skin/nongshim/images/common/progress_waiting.gif" 
+				align="absmiddle" border="0" width="200px" height="60px">
+			<img src="sinc/template/basic/skin/nongshim/images/common/loading_icon.gif" 
+				align="absmiddle" border="0" width="60px" height="60px">
+			<br><h1>&nbsp;</h1><br><h1>&nbsp;</h1><br>
+		</td>
+	</tr>
+</table>
+
+<script>
+	   
+	// 화면 resize
+	//$!{resizeFuncCallCode};
+	//function window.onresize() { $!{resizeFuncCallCode}; }
+	
+</script>

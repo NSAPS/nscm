@@ -1,0 +1,352 @@
+############################################################
+## 프로그램ID : sc_11020_dailyProductionPlanAnalysisNew_list_excelUp.vm
+## 프로그램명 : 일간생산계획 분석(재구성) 엑셀 다운로드
+## 개발자  : 정재교
+## 개발일자 : 2008-11-27 목요일
+##
+##관련 job file : job_sinc_20_scheduling_00.xml
+##
+##관련 query file : query_sinc_20_scheduling_00.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2008-11-27  정재교           sc_11020_dailyProductionPlanAnalysisNew_list_excelUp.vm 개발
+##
+##
+############################################################
+## 비정상적 접근 방지  
+
+<SCRIPT LANGUAGE = "JavaScript">
+
+function doUpload() 
+{
+		// 조회시 WAITING 이미지 보여주기
+		viewWait();
+		
+		var service = "sc_11020_dailyProductionPlanAnalysisNew_list_excelUp";
+		frameSetService.location = "service.do?_moon_service=set_service_id&amp;user_service=" + service;
+		//document.frm._moon_service.value = "sc_11020_dailyProductionPlanAnalysisNew_list_excelUp"; 
+		document.frm.action = "service.do";
+		document.frm.target = "_self";
+		document.frm.encoding = "multipart/form-data";
+		document.frm.submit();
+		
+} 
+
+function goBack() {
+
+    	document.frm._moon_service.value = "productionPlanAnalysis_test"; 
+    	//document.form1._moon_perpage.value = perpage; 
+    	document.frm._moon_pagenumber.value = "1"; 
+    	document.frm.action = "service.do";
+    	document.frm.target = "_self";
+    	document.frm.submit();
+		
+}; 
+
+// 저장 버튼 클릭
+function GoSave(service) {
+	
+	if(!confirm("저장하시겠습니까?"))
+		return;
+
+	if(document.frm.row_count.length != 1) {
+
+    	var temp_version, this_version;
+		var temp_plant, this_plant;
+    	temp_version = document.frm.version[0].value;
+    	temp_plant = document.frm.plant_name[0].value;
+		for(var i = 0 ; i < document.frm.row_count.length ; i++){
+    		this_version = document.frm.version[i].value;
+    		this_plant = document.frm.plant_name[i].value;
+    	
+			
+    		temp_version = this_version;
+    		temp_plant = this_plant;
+    	}
+	}
+	
+	// 조회시 WAITING 이미지 보여주기
+	viewWait();
+	// service_id 저장
+	frameSetService.location = "service.do?_moon_service=set_service_id&amp;user_service=" + service;
+	document.frm._moon_service.value = service;
+	document.frm.action = "service.do";
+	document.frm.target = "_self";
+	document.frm.submit();
+}
+
+function checkExcept() {
+	var service_url = "service.do?_moon_service=sc_11020_dailyProductionPlanAnalysisNewExcelExcept_popup&_moon_perpage=200&_moon_pagenumber=1";
+	
+	var pop_win_style = "titlebar=no, menubar=no, toolbar=no, status=yes, scrollbars=no, resizable=yes, width=1065, height=610, top=0, left=0";
+	var newWin = window.open(service_url, "SC_DAILY_PROD_ANALYSIS_NEW_EXCEL_EXCEPT_POPUP", pop_win_style); 
+	newWin.focus();
+}
+
+</SCRIPT>	
+				
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	<tr>
+		<td height="25" align="right" bgcolor="${toolbar_bgcolor}" class="line">
+			<table width="100%" height="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+				<tr>
+					<td align="right">
+						<input type="button" name="btnCheckExcept" value=" EXCEPT"  onClick="checkExcept(); " class="btn1_on"/>
+						#toolbar($_moon_toolbar "" "sc_11020_dailyProductionPlanAnalysisNew_list_excel_save_comp" "" "") 
+					</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+	<tr id="search_menu"  style="DISPLAY:block">
+		<td height="20" valign="top" bgcolor="${search_bgcolor}" class="line">
+			<table border="0" width="100%" cellpading="0" cellspacing="0" class="normal-table">
+				<tr>
+					<td width="90%" align="left"> 
+						<input name="go_back" type="button" onClick="goBack();" value="이전화면"  class="button1_1" 
+							onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'" style="width:55;"> 
+					</td>	
+					<td width="10%" align="right">
+						##button("search")	
+					</td>	
+				</tr>
+			</table>
+		</td>
+	</tr>
+	<tr><td height="5" bgcolor="${open_close}" onClick="OpenClose(seach_menu)"></td></tr>
+	<tr><td height="10"></td></tr>
+	<tr>						
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				<div class="tab-page" id="tabPage1">
+					<h2 class="tab">${_moon_title}</h2>									
+					
+					<table width="100%" border="0" cellspacing=0 cellpadding=0 align="center">
+                    	<tr>
+                    		<td bgcolor=#CCCCCC>
+                    			<table width="100%" border="0" cellspacing=2 cellpadding=2 align="center">
+                    				<tr bgcolor=white>
+                    					<td align=left>
+                    						<table>
+                    							<tr>
+                    								##<td align=left valign=top><img src="sinc/template/basic/images/boe/icn_guide.gif"></td>
+                    					            <td width="50%" align="left">  
+														<font color="red">
+    													* 선택하신 Excel 파일로부터 읽어 들인 데이터로 '저장' 버튼으로 저장할 수 있습니다.<br> 
+													</td>
+													<td width="50%" align="right">구분 : &nbsp;&nbsp;
+													<input type="radio" name="checked_gubn" value="default" checked="on" style="border:0px; "
+													onClick="this.checked" #if($!{checked_gubn} == "default") checked #else #end>전체</input>&nbsp;
+													<input type="radio" name="checked_gubn" value="d10"  style="border:0px; "
+													onClick="this.checked" #if($!{checked_gubn} == "d10") checked #else #end>면</input>&nbsp;
+													<input type="radio" name="checked_gubn" value="d20" style="border:0px; "
+													onClick="this.checked" #if($!{checked_gubn} == "d20") checked #else #end>스낵</input>&nbsp;
+													<input type="radio" name="checked_gubn" value="d30" style="border:0px; "
+													onClick="this.checked" #if($!{checked_gubn} == "d30") checked #else #end>기타</input>
+												</td> 
+                    							</tr>
+                    						</table>
+                    					</td>
+                    				</tr>
+                    			</table>
+                    		</td>
+                    	</tr>					
+                    </table>
+					<br>
+					<input name="search_h" type="hidden" value="0"> ## search 조건 부분 높이      	
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+								Total : <b>$_moon_service_count</b> #*,
+								current page is <b>$_moon_pagenumber</b> / 
+							
+							## 리스트 항목수를 all 로 했을 경우 이상한 값이 나온다.
+							## 리스트 항목수가 all 인 경우 _moon_perpage = -1 이기 때문에
+							## _moon_perpage = -1 인 경우를 체크해서 page 수를 1로 한다.
+							#if( $math.toInteger($_moon_perpage) < 0 )
+								<b>1 </b>page
+							#else
+								## 원래 template 에는 이부분만 있음
+								<b>#allPageNumber($_moon_service_count $_moon_perpage)</b>pages
+							#end	
+								
+							</td>
+							<td align="right">
+								#table_display()*# 
+							</td>
+						</tr>
+					</table>
+					
+					
+					<table id="gridArea" width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>	
+					<!--	<div class="table_scroll">  --> 
+						
+						#set( $body = $sc_11020_dailyProductionPlanAnalysisNew_list_excelUp ) 
+
+						#set( $data = "" )
+						
+						#set( $headertype = "TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!NUMBER!%!TEXT!%!TEXT!%!TEXT" )
+						#set( $headertype = "$headertype!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER" )
+						#set( $headertype = "$headertype!%!NUMBER!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT" )
+						#set( $header = "공장!%!원가부문!%!작업장!%!제품코드!%!제품명!%!규격!%!TO여!%!구분!%!오더번호!%!ORD_ITEM_NO" )
+						#set( $header = "$header!%!조!%!주!%!야!%!조!%!주!%!야!%!조!%!주!%!야!%!조!%!주!%!야!%!조!%!주!%!야!%!조!%!주!%!야!%!조!%!주!%!야" )
+						#set( $header = "$header!%!합계!%!공장코드!%!버전!%!SEQ!%!원가부분코드!%!라인코드!%!작업장코드!%!시작일!%!CAT_ID" )
+						#set( $colwidth = "60!%!80!%!180!%!80!%!250!%!100!%!50!%!50!%!90!%!100" ) 
+						#set( $colwidth = "$colwidth!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50" )
+						#set( $colwidth = "$colwidth!%!60!%!60!%!100!%!50!%!60!%!60!%!60!%!80!%!50" )
+						#set( $colalign = "CENTER!%!LEFT!%!LEFT!%!LEFT!%!LEFT!%!LEFT!%!RIGHT!%!LEFT!%!LEFT!%!LEFT" ) 
+						#set( $colalign = "$colalign!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT" )
+						#set( $colalign = "$colalign!%!RIGHT!%!LEFT!%!LEFT!%!LEFT!%!LEFT!%!LEFT!%!LEFT!%!LEFT!%!LEFT" )
+						#set( $name = "plant_name!%!team_name!%!proc_name!%!item_id!%!item_name!%!spec!%!labor_woman!%!mto_mts_type!%!ord_no!%!ord_item_no" ) 
+						#set( $name = "$name!%!mon_qty_1!%!mon_qty_3!%!mon_qty_5!%!tue_qty_1!%!tue_qty_3!%!tue_qty_5!%!wed_qty_1!%!wed_qty_3!%!wed_qty_5!%!thu_qty_1!%!thu_qty_3!%!thu_qty_5!%!fri_qty_1!%!fri_qty_3!%!fri_qty_5!%!sat_qty_1!%!sat_qty_3!%!sat_qty_5!%!sun_qty_1!%!sun_qty_3!%!sun_qty_5" )
+						#set( $name = "$name!%!tot!%!plant_id!%!version!%!seq!%!team_id!%!line_id!%!proc_id!%!start_date!%!cat_id" )
+						#foreach($tr in $body)
+							
+							#if( $velocityCount == 1 ) 
+								#set( $data = "${tr.get(0)}!%!${tr.get(1)}!%!${tr.get(2)}!%!${tr.get(3)}!%!${tr.get(4)}!%!${tr.get(5)}!%!${tr.get(6)}!%!${tr.get(7)}!%!${tr.get(8)}!%!${tr.get(9)}" )
+								#set( $data = "$data!%!${tr.get(10)}!%!${tr.get(11)}!%!${tr.get(12)}!%!${tr.get(13)}!%!${tr.get(14)}!%!${tr.get(15)}!%!${tr.get(16)}!%!${tr.get(17)}!%!${tr.get(18)}!%!${tr.get(19)}" )
+								#set( $data = "$data!%!${tr.get(20)}!%!${tr.get(21)}!%!${tr.get(22)}!%!${tr.get(23)}!%!${tr.get(24)}!%!${tr.get(25)}!%!${tr.get(26)}!%!${tr.get(27)}!%!${tr.get(28)}!%!${tr.get(29)}" )
+								#set( $data = "$data!%!${tr.get(30)}!%!${tr.get(31)}!%!${tr.get(32)}!%!${tr.get(33)}!%!${tr.get(34)}!%!${tr.get(35)}!%!${tr.get(36)}!%!${tr.get(37)}!%!${tr.get(38)}!%!${tr.get(39)}" )
+							#else
+								#set( $data  = "$data/%/${tr.get(0)}!%!${tr.get(1)}!%!${tr.get(2)}!%!${tr.get(3)}!%!${tr.get(4)}!%!${tr.get(5)}!%!${tr.get(6)}!%!${tr.get(7)}!%!${tr.get(8)}!%!${tr.get(9)}" ) 
+								#set( $data = "$data!%!${tr.get(10)}!%!${tr.get(11)}!%!${tr.get(12)}!%!${tr.get(13)}!%!${tr.get(14)}!%!${tr.get(15)}!%!${tr.get(16)}!%!${tr.get(17)}!%!${tr.get(18)}!%!${tr.get(19)}" )
+								#set( $data = "$data!%!${tr.get(20)}!%!${tr.get(21)}!%!${tr.get(22)}!%!${tr.get(23)}!%!${tr.get(24)}!%!${tr.get(25)}!%!${tr.get(26)}!%!${tr.get(27)}!%!${tr.get(28)}!%!${tr.get(29)}" )
+								#set( $data = "$data!%!${tr.get(30)}!%!${tr.get(31)}!%!${tr.get(32)}!%!${tr.get(33)}!%!${tr.get(34)}!%!${tr.get(35)}!%!${tr.get(36)}!%!${tr.get(37)}!%!${tr.get(38)}!%!${tr.get(39)}" )
+							#end 
+							
+							<input name="plant_name" 		type="hidden" value="${tr.get(0)}"> 
+							##<input name="team_name" 		type="hidden" value="${tr.get(1)}"> 
+							<input name="proc_name" 		type="hidden" value="${tr.get(2)}"> 
+							<input name="item_id" 			type="hidden" value="${tr.get(3)}"> 
+							<input name="item_name" 		type="hidden" value="${tr.get(4)}"> 
+							##<input name="spec" 				type="hidden" value="${tr.get(5)}"> 
+							##<input name="labor_woman" 		type="hidden" value="${tr.get(6)}"> 
+							##<input name="mto_mts_type" 		type="hidden" value="${tr.get(7)}"> 
+							<input name="ord_no" 			type="hidden" value="${tr.get(8)}"> 
+							<input name="ord_item_no" 		type="hidden" value="${tr.get(9)}">
+							<input name="mon_qty_1" 		type="hidden" value="${tr.get(10)}">
+							<input name="mon_qty_3" 		type="hidden" value="${tr.get(11)}">
+							<input name="mon_qty_5" 		type="hidden" value="${tr.get(12)}">
+							<input name="tue_qty_1" 		type="hidden" value="${tr.get(13)}">
+							<input name="tue_qty_3" 		type="hidden" value="${tr.get(14)}">
+							<input name="tue_qty_5" 		type="hidden" value="${tr.get(15)}">
+							<input name="wed_qty_1" 		type="hidden" value="${tr.get(16)}">
+							<input name="wed_qty_3" 		type="hidden" value="${tr.get(17)}">
+							<input name="wed_qty_5" 		type="hidden" value="${tr.get(18)}">
+							<input name="thu_qty_1" 		type="hidden" value="${tr.get(19)}">
+							<input name="thu_qty_3" 		type="hidden" value="${tr.get(20)}">
+							<input name="thu_qty_5" 		type="hidden" value="${tr.get(21)}">
+							<input name="fri_qty_1" 		type="hidden" value="${tr.get(22)}">
+							<input name="fri_qty_3" 		type="hidden" value="${tr.get(23)}">
+							<input name="fri_qty_5" 		type="hidden" value="${tr.get(24)}">
+							<input name="sat_qty_1" 		type="hidden" value="${tr.get(25)}">
+							<input name="sat_qty_3" 		type="hidden" value="${tr.get(26)}">
+							<input name="sat_qty_5" 		type="hidden" value="${tr.get(27)}">
+							<input name="sun_qty_1" 		type="hidden" value="${tr.get(28)}">
+							<input name="sun_qty_3" 		type="hidden" value="${tr.get(29)}">
+							<input name="sun_qty_5" 		type="hidden" value="${tr.get(30)}">
+							##<input name="tot" 				type="hidden" value="${tr.get(30)}">
+							<input name="plant_id" 			type="hidden" value="${tr.get(32)}">
+							<input name="version" 			type="hidden" value="${tr.get(33)}">
+							<input name="seq" 				type="hidden" value="${tr.get(34)}">
+							<input name="team_id" 			type="hidden" value="${tr.get(35)}">
+							<input name="line_id" 			type="hidden" value="${tr.get(36)}">
+							<input name="proc_id" 			type="hidden" value="${tr.get(37)}">
+							<input name="start_date" 		type="hidden" value="${tr.get(38)}">
+							<input name="cat_id"	 		type="hidden" value="${tr.get(39)}">
+							<input name="row_count"	 		type="hidden" value="$velocityCount">
+						#end 
+						 
+						
+						<object name='grid'
+							classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93" width="100%" height="390" 
+							codebase="http://java.sun.com/update/1.5.0/jinstall-1_5_0_03-windows-i586.cab#Version=1,5,3,0"> 
+							
+							<!--Necessary-->     
+							<param name="code" value="com.zionex.t3sinc.ui.ZLattice.class">
+							<param name="archive" value="zLattice.jar">
+							<param name="headertypes" value="$headertype">
+							<param name="headers" value="$header">
+							<param name="data" value="$data">           
+
+							<!--optional - Default Value 있음-->
+							<param name="columndelimeter" value="!%!"> <!-- defalut : !%! -->
+							<param name="rowdelimeter" value="/%/"> <!-- defalut : /%/ -->
+							<param name="showgroupingfunction" value="false">  <!-- defalut : true -->
+							<param name="showprintingfunction" value="false">   <!-- defalut : true -->
+							<param name="showlockingfunction" value="false"> <!-- defalut : true -->
+							<param name="showpagingfunction" value="false"> <!-- defalut : true -->
+							<param name="enablesorting" value="false">   <!-- defalut : true -->
+							<param name="groupingcolumn" value="-1"> <!-- defalut : 그루핑 없음 -->
+							<param name="groupsumcolumn" value="0"> <!-- defalut : 그루핑 없음 -->
+							<param name="lockedcolumn" value="0"> <!-- defalut : 락킹 없음 -->
+							<param name="presentpage" value="$_moon_pagenumber">   <!-- defalut : 1 -->
+							<param name="listinpage" value="$_moon_perpage">   <!-- defalut : 40 -->
+							<param name="bordertype" value="PLANE"> <!-- default - PLANE --> 
+							<param name="indateformat" value="yyyyMMdd"> <!-- default - yyyyMMdd --> 
+							<param name="outdateformat" value="yyyy-MM-dd HH:mm:ss">  <!-- default - yyyyMMdd --> 
+							<param name="columnwidth" value="$colwidth"> <!-- default -80 --> 
+							
+							<!--Necessary for Modifiability --> 
+							<param name="names" value="$name">
+							<param name="enableinserting" value="false"> <!-- default -false -->
+							<param name="enabledeleting" value="false"> <!-- default -false -->
+							<param name="enableediting" value="false"> <!-- default -false --> 
+							
+							<param name="disablecolumns" value="">
+							
+							<param name="hasverticaltotal" value="false"> <!-- default -true -->
+							<param name="hashorizontaltotal" value="false"> <!-- default -true -->
+							
+							<param name="columnalign" value="$colalign"> 
+							<param name="font" value="굴림체">
+							<param name="fontsize" value="12">
+				
+							<!--optional - Default Value 없음
+							<param name="columncolor" value="5=FFE4E1&6=FFE4E1&7=FFE4E1">
+							<param name="rowcolor" value="1,일별합계=33FFFF&1,LOT 합계=FF9966">
+							<param name="onclickrowfunc" value="onclickfunc">
+							-->
+						</object>
+				<!--		</div>  -->
+					</td></tr></table> 
+					<script>                    					
+    					setGridAutoResize('140', '265');
+    					function window.onresize() { setGridAutoResize('140', '265'); } 
+        			</script> 
+					
+					## waiting 표시영역
+					#waitingArea()
+					
+					<table height="5"><tr><td></td></tr></table>
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+						##$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+						<input type="hidden" name="_moon_service" value="${_moon_service}"> 
+						<input type="hidden" name="_moon_pagenumber"  value="${_moon_pagenumber}"> 
+						<input type="hidden" name="_moon_perpage"  value="${_moon_perpage}"> 
+						<input type="hidden" name="_user_id"  value="${_user_id}">
+					</td></tr>			
+					</table>				
+					
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr> 
+							<td width="1%"> 
+								&nbsp;&nbsp;&nbsp; 
+							</td> 
+							<td width="99%" align="right">
+								<input name="excel_upload" value="Excel Upload" style="width:'100';text-align:'center';border:'0';background-color:'#9999FF';" readOnly> 
+								<input type="file" name="excel" size="30" > 
+								<input type="button" name="do_excel" onClick="doUpload();" value="Upload" class="button1_1" 
+									onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"> 
+							</td> 
+						</tr> 
+					</table>
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+ 

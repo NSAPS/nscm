@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>	
+
+<!--
+=====================================================================================================
+	재고정책>>분석정보>>
+=====================================================================================================
+--> 
+	
+	<!-- 
+	=============================
+	  품목별 일자별 배정현황 조회
+	=============================
+	-->
+	
+	<!-- 날짜헤더조회 --> 
+	<query id="ip_02100_HEADER_DATE" paging="false"> 
+		
+		SELECT	TO_CHAR(T1.CAL_DATE,'MM/DD')	CAL_DATE,
+				NVL2(T2.CAL_DATE,50,0) 			SHOW_FLAG
+		FROM	CAL_MST	T1,
+				CAL_MST	T2
+		WHERE	T1.CAL_DATE	= T2.CAL_DATE(+)
+		AND		T2.CAL_DATE(+)	BETWEEN '$!{in_fr_date}' AND '$!{in_to_date}'
+		AND		T1.CAL_DATE		BETWEEN TO_DATE(NVL(REPLACE('$!{in_fr_date}','-',''),TO_CHAR(SYSDATE,'YYYYMMDD')))
+								AND 	TO_DATE(NVL(REPLACE('$!{in_fr_date}','-',''),TO_CHAR(SYSDATE,'YYYYMMDD')))+30
+		ORDER
+		BY		T1.CAL_DATE
+		
+	</query> 
+		
+	<!-- 품종 combo  -->  
+	<query id="ip_02100_combo_search_type" paging="false"> 
+
+		SELECT  CD,    CD_NAME
+		FROM    CODE_MST, DUAL B
+		WHERE   CD_GRP = 'DIVISION'
+		AND     MADE_TYPE !='DE'
+		AND     CD NOT IN ('00')
+		ORDER
+		BY		1
+
+	</query> 
+
+		
+	<!-- 품목별 일자별 배정현황 조회 --> 
+	<query id="ip_02100_Daily_DC_Alloc_Plan_Analysis"  paging="false"> 
+
+		SELECT	K1.ITEM_ID,
+				K1.ITEM_NAME,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') + 0,'YYYYMMDD'), ALLOC_RATE))	D01,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') + 1,'YYYYMMDD'), ALLOC_RATE))	D02,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') + 2,'YYYYMMDD'), ALLOC_RATE))	D03,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') + 3,'YYYYMMDD'), ALLOC_RATE))	D04,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') + 4,'YYYYMMDD'), ALLOC_RATE))	D05,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') + 5,'YYYYMMDD'), ALLOC_RATE))	D06,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') + 6,'YYYYMMDD'), ALLOC_RATE))	D07,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') + 7,'YYYYMMDD'), ALLOC_RATE))	D08,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') + 8,'YYYYMMDD'), ALLOC_RATE))	D09,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') + 9,'YYYYMMDD'), ALLOC_RATE))	D10,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +10,'YYYYMMDD'), ALLOC_RATE))	D11,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +11,'YYYYMMDD'), ALLOC_RATE))	D12,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +12,'YYYYMMDD'), ALLOC_RATE))	D13,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +13,'YYYYMMDD'), ALLOC_RATE))	D14,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +14,'YYYYMMDD'), ALLOC_RATE))	D15,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +15,'YYYYMMDD'), ALLOC_RATE))	D16,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +16,'YYYYMMDD'), ALLOC_RATE))	D17,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +17,'YYYYMMDD'), ALLOC_RATE))	D18,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +18,'YYYYMMDD'), ALLOC_RATE))	D19,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +19,'YYYYMMDD'), ALLOC_RATE))	D20,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +20,'YYYYMMDD'), ALLOC_RATE))	D21,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +21,'YYYYMMDD'), ALLOC_RATE))	D22,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +22,'YYYYMMDD'), ALLOC_RATE))	D23,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +23,'YYYYMMDD'), ALLOC_RATE))	D24,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +24,'YYYYMMDD'), ALLOC_RATE))	D25,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +25,'YYYYMMDD'), ALLOC_RATE))	D26,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +26,'YYYYMMDD'), ALLOC_RATE))	D27,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +27,'YYYYMMDD'), ALLOC_RATE))	D28,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +28,'YYYYMMDD'), ALLOC_RATE))	D29,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +29,'YYYYMMDD'), ALLOC_RATE))	D30,
+				MAX(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +30,'YYYYMMDD'), ALLOC_RATE))	D31,
+				MOD(DENSE_RANK() OVER (ORDER BY K1.ITEM_ID),2) 		ROW_TYPE 
+		FROM	(		
+				SELECT	ITEM_ID,
+						ITEM_NAME
+				FROM	ITEM_MST
+				WHERE	DIVISION	LIKE '$!{search_type}'
+				AND		ITYPE		LIKE '$!{in_itype}'
+				--AND		SELL_STOP_DATE	= '99991231'
+				AND		NVL(CAT03,'XX') NOT LIKE 'O%'
+				AND		MATERIAL_GROUP	NOT LIKE '62%'		/* 수출상품 제외 */
+				AND		HR_TY1 NOT LIKE '606006%' 			/* 수산물 제외 */	
+				AND   	HR_TY1 NOT LIKE '9090029%'			/* 임가공 제외 */
+				)		K1,
+				(
+				SELECT	T1.CNFM_DATE,
+						T1.ITEM_ID,
+						DECODE(T2.GOAL_BOX,0,0,
+							ROUND(T3.ALLOC_BOX/GOAL_BOX*100,1))	ALLOC_RATE
+				FROM	(
+						SELECT	CNFM_DATE,
+								PROD_CODE	ITEM_ID,
+								USE_QUOTA_TYPE
+						FROM	SDORT203
+						WHERE	CNFM_DATE	BETWEEN REPLACE('$!{in_fr_date}','-','') AND REPLACE('$!{in_to_date}','-','')
+						AND		ALLOC_GUBN	= '2'
+						AND		ALLOC_REASON	!= '00'
+						AND		ALLOC_ZONE IN ('01','05')		--전국 시판만 포함 이승용 요청 2015-11-19
+						AND		USE_QUOTA_TYPE	!= '21' -- 재고소진은 제외
+						)		T1,
+						(
+						SELECT	VERSION,
+								USE_QUOTA_TYPE,
+								ITEM_ID,
+								SUM(GOAL_BOX)	GOAL_BOX
+						FROM	DC_ALLOC_GOAL
+						WHERE	VERSION	BETWEEN SUBSTR(REPLACE('$!{in_fr_date}','-',''),1,6) AND SUBSTR(REPLACE('$!{in_to_date}','-',''),1,6)
+						GROUP
+						BY		VERSION,
+								USE_QUOTA_TYPE,
+								ITEM_ID
+						)		T2,
+						(
+						SELECT	CNFM_DATE,
+								PROD_CODE		ITEM_ID,
+								SUM(MODI_BOX)	ALLOC_BOX
+						FROM	SDORT204
+						WHERE	CNFM_DATE	BETWEEN REPLACE('$!{in_fr_date}','-','') AND REPLACE('$!{in_to_date}','-','')
+						GROUP
+						BY		CNFM_DATE,
+								PROD_CODE
+						)		T3
+				WHERE	T1.ITEM_ID			= T2.ITEM_ID
+				AND		T1.USE_QUOTA_TYPE	= T2.USE_QUOTA_TYPE
+				AND		SUBSTR(T1.CNFM_DATE,1,6) = T2.VERSION
+				AND		T1.CNFM_DATE		= T3.CNFM_DATE
+				AND		T1.ITEM_ID			= T3.ITEM_ID
+				AND		DECODE(T2.GOAL_BOX,0,0,
+							ROUND(T3.ALLOC_BOX/GOAL_BOX*100,1)) &gt; 0
+				)		K2
+		WHERE	K1.ITEM_ID	= K2.ITEM_ID		
+		GROUP
+		BY		K1.ITEM_ID, K1.ITEM_NAME
+		UNION	ALL
+		SELECT	''					ITEM_ID,
+				'품목배정율' 		ITEM_NAME,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') + 0,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D01,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') + 1,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D02,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') + 2,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D03,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') + 3,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D04,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') + 4,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D05,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') + 5,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D06,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') + 6,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D07,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') + 7,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D08,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') + 8,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D09,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') + 9,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D10,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +10,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D11,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +11,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D12,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +12,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D13,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +13,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D14,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +14,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D15,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +15,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D16,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +16,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D17,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +17,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D18,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +18,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D19,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +19,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D20,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +20,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D21,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +21,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D22,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +22,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D23,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +23,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D24,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +24,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D25,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +25,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D26,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +26,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D27,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +27,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D28,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +28,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D29,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +29,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D30,
+				ROUND(
+					SUM(DECODE(CNFM_DATE,TO_CHAR(TO_DATE(REPLACE('$!{in_fr_date}','-',''),'YYYYMMDD') +30,'YYYYMMDD'),
+						CASE WHEN ALLOC_RATE &gt; 0 THEN 1 ELSE 0 END, 0)) / COUNT(K1.ITEM_ID) * 100 , 1)	D31,
+				2		ROW_TYPE
+		FROM	(		
+				SELECT	ITEM_ID,
+						ITEM_NAME
+				FROM	ITEM_MST
+				WHERE	DIVISION	LIKE '$!{search_type}'
+				AND		ITYPE		LIKE '$!{in_itype}'
+				AND		SELL_STOP_DATE	= '99991231'
+				AND		NVL(CAT03,'XX') NOT LIKE 'O%'
+				AND		MATERIAL_GROUP	NOT LIKE '62%'		/* 수출상품 제외 */
+				AND		HR_TY1 NOT LIKE '606006%' 			/* 수산물 제외 */	
+				AND   	HR_TY1 NOT LIKE '9090029%'			/* 임가공 제외 */
+				AND		ITYPE	IN ('FERT','HAWA')
+				)		K1,
+				(
+				SELECT	T1.CNFM_DATE,
+						T1.ITEM_ID,
+						DECODE(T2.GOAL_BOX,0,0,
+							ROUND(T3.ALLOC_BOX/GOAL_BOX*100,1))	ALLOC_RATE
+				FROM	(
+						SELECT	CNFM_DATE,
+								PROD_CODE	ITEM_ID,
+								USE_QUOTA_TYPE
+						FROM	SDORT203
+						WHERE	CNFM_DATE	BETWEEN REPLACE('$!{in_fr_date}','-','') AND REPLACE('$!{in_to_date}','-','')
+						AND		ALLOC_GUBN	= '2'
+						AND		ALLOC_REASON	!= '00'
+						AND		ALLOC_ZONE IN ('01','05')		--전국 시판만 포함 이승용 요청 2015-11-19
+						AND		USE_QUOTA_TYPE	!= '21' -- 재고소진은 제외
+						)		T1,
+						(
+						SELECT	VERSION,
+								USE_QUOTA_TYPE,
+								ITEM_ID,
+								SUM(GOAL_BOX)	GOAL_BOX
+						FROM	DC_ALLOC_GOAL
+						WHERE	VERSION	BETWEEN SUBSTR(REPLACE('$!{in_fr_date}','-',''),1,6) AND SUBSTR(REPLACE('$!{in_to_date}','-',''),1,6)
+						GROUP
+						BY		VERSION,
+								USE_QUOTA_TYPE,
+								ITEM_ID
+						)		T2,
+						(
+						SELECT	CNFM_DATE,
+								PROD_CODE	ITEM_ID,
+								SUM(MODI_BOX)	ALLOC_BOX
+						FROM	SDORT204
+						WHERE	CNFM_DATE	BETWEEN REPLACE('$!{in_fr_date}','-','') AND REPLACE('$!{in_to_date}','-','')
+						GROUP
+						BY		CNFM_DATE,
+								PROD_CODE
+						)		T3
+				WHERE	T1.ITEM_ID			= T2.ITEM_ID
+				AND		T1.USE_QUOTA_TYPE	= T2.USE_QUOTA_TYPE
+				AND		SUBSTR(T1.CNFM_DATE,1,6) = T2.VERSION
+				AND		T1.CNFM_DATE		= T3.CNFM_DATE
+				AND		T1.ITEM_ID			= T3.ITEM_ID
+				AND		DECODE(T2.GOAL_BOX,0,0,
+							ROUND(T3.ALLOC_BOX/GOAL_BOX*100,1)) &gt; 0
+				)		K2
+		WHERE	K1.ITEM_ID	= K2.ITEM_ID(+)		
+		ORDER
+		BY		1		
+
+	</query> 
+
+	<!-- 배정정보 상세조회 --> 
+	<query id="ip_02100_Daily_DC_Alloc_Plan_Analysis_detail" paging="false"> 
+		
+		SELECT	DISTINCT 
+				F_GET_CODE_NAME('ALLOC_REASON',T1.ALLOC_REASON)			"할당사유",
+				F_GET_CODE_NAME('ALLOC_QUOTA_TYPE',T1.USE_QUOTA_TYPE)	"할당기준",
+				T1.ALLOC_COMMENT										"할당메세지",
+				NVL(T2.ALLOC_BOX,0)	ALLOC_BOX,
+				NVL(T3.SELL_BOX,0)	SELL_BOX,
+				ROUND(DECODE(NVL(T2.ALLOC_BOX,0),0,0,
+					NVL(T3.SELL_BOX,0)/NVL(T2.ALLOC_BOX,0)*100) ,1)		"소화율"
+		FROM	SDORT203	T1,
+				(
+				SELECT	SUM(MODI_BOX)	ALLOC_BOX
+				FROM	SDORT204
+				WHERE	CNFM_DATE	= REPLACE('$!{in_cnfm_date}','-','')
+				AND		PROD_CODE	= '$!{in_item_id}'
+				)				T2,
+				(
+				/* 공급할당일 주문의뢰 */
+				SELECT	SUM(DECODE(T2.UPDT_GUBN,'10',T2.SELL_BOX,T2.REQT_BOX))	SELL_BOX
+				FROM	SDORT101	T1,
+						SDORT102	T2
+				WHERE	T1.SLIP_NO		= T2.SLIP_NO
+				AND		T1.CNFM_DATE	= REPLACE('$!{in_cnfm_date}','-','')
+				AND		T2.PROD_CODE	= '$!{in_item_id}'
+				AND		SUBSTR(T1.SLIP_GUBN_CODE,1,2)	= 'YO'
+				AND		T1.UPDT_GUBN	!= '00'
+				AND		T2.UPDT_GUBN	!= '00'	
+				)				T3
+		WHERE	T1.CNFM_DATE	= REPLACE('$!{in_cnfm_date}','-','')
+		AND		T1.PROD_CODE	= '$!{in_item_id}'
+		
+	</query> 
+
+<!--
+=====================================================================================================
+ 끝  
+=====================================================================================================
+--> 
+
+</queries>
+	

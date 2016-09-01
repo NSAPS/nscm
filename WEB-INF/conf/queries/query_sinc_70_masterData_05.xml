@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>
+
+<!--
+=====================================================================================================
+	기준정보 >> 생산계획
+=====================================================================================================
+-->
+	<!--
+	======================================================================
+		시생산 칼린더정
+	======================================================================
+	-->
+	
+	<!-- 시생산 칼린더정 : 조회 -->
+	<query id="md_05130_testProdCalendar">
+			
+			SELECT  RC.REQ_NO, 					-- 0
+			        RC.PLANT_ID, 				-- 1
+			        VH.PLANT_NAME,				-- 2 
+			        NVL(RC.LINE_ID,VH.LINE_ID) LINE_ID,	-- 3 
+			        VH.LINE_NAME, 				-- 4
+			        VH.PROC_ID, 				-- 5
+			        VH.PROC_NAME,				-- 6
+			        TO_CHAR(TO_DATE(RC.START_TERM,'YYYY-MM-DD'),'YYYY-MM-DD') START_TERM,	-- 7 
+			        TO_CHAR(TO_DATE(RC.END_TERM,'YYYY-MM-DD'), 'YYYY-MM-DD') END_TERM,		-- 8	
+			        RC.TEST_TIME, 				-- 9
+			        RC.DESCRIPTION,				-- 10
+			        TO_CHAR(TO_DATE(NVL(RC.START_DATE, RC.START_TERM),'YYYY-MM-DD'),'YYYY-MM-DD') START_DATE, -- 11
+                    TRIM(NVL(RC.START_TIME, RC.REQ_START_TIME)) START_TIME,	-- 12
+                    TO_CHAR(TO_DATE(NVL(RC.END_DATE,RC.END_TERM),'YYYY-MM-DD'),'YYYY-MM-DD') END_DATE,	-- 13
+                    TRIM(NVL(RC.END_TIME, RC.REQ_END_TIME)) END_TIME,			-- 14
+			        RC.CONFIRM_FLAG,			-- 15
+			        RC.WBS_CODE,				-- 16
+			        RC.WBS_NAME,				-- 17
+			        RC.REQ_EMP_NO,				-- 18
+			        RC.REQ_EMP_NAME,			-- 19
+			        RC.PROD_ORDER_NO,			-- 20
+			        TRIM(RC.REQ_START_TIME) REQ_START_TIME,			-- 21
+                    TRIM(RC.REQ_END_TIME) REQ_END_TIME,			-- 22
+                    RC.REQ_CANCEL_FLAG, 			-- 23
+					NVL(REPLACE(EMP.CELA_TEL,'-',''),'0000000000')	REQ_HP_NO,  --24 요청자 HP번호
+					NVL((
+						SELECT	DISTINCT	REPLACE(CELA_TEL,'-','')
+						FROM	NCOMT005
+						WHERE	EMP_NO	= '${_user_id}'
+					),'0000000000')									CON_HP_NO   --25 확인자 HP번호
+			  FROM  RND_CAL RC, V_HRCHY_PROC VH,
+			  		NCOMT005	EMP	
+			 WHERE  RC.PLANT_ID = VH.PLANT_ID
+			   AND  RC.PLANT_ID = VH.PLANT_ID
+			   AND  RC.PROC_ID  = VH.PROC_ID
+			   AND	RC.REQ_EMP_NO	= EMP.EMP_NO(+)
+			   AND  RC.PLANT_ID = '$!{selected_plant}'
+			 -- [AND  VH.LINE_ID  = '${selected_line_id}']
+			 -- [AND  VH.PROC_ID  = '${selected_proc}']
+			 ORDER  BY RC.REQ_NO DESC, VH.PLANT_NAME, VH.LINE_NAME, VH.PROC_NAME
+			
+	</query>
+	
+	<!-- 시생산 칼린더정 : 저장 (UPDATE) -->
+	<query id="md_05130_testProdCalendar_save" fix="_user_id"
+		   iterator="line_id start_date start_time end_date end_time check_value req_no plant_id proc_id">
+	
+		UPDATE  RND_CAL RC
+		   SET  RC.LINE_ID      = '$!{line_id}',
+		        RC.START_DATE   = TO_CHAR(TO_DATE('$!{start_date}','YYYY-MM-DD'),'YYYYMMDD'),
+		        RC.START_TIME   = '$!{start_time}',
+		        RC.END_DATE     = TO_CHAR(TO_DATE('$!{end_date}','YYYY-MM-DD'),'YYYYMMDD'),
+		        RC.END_TIME     = '$!{end_time}',
+		        RC.CONFIRM_FLAG = '$!{check_value}',
+		        RC.MADE_TYPE    = 'UP',
+		        RC.MADE_DTTM    = SYSDATE,
+		        RC.MADE_BY      = '$!{_user_id}'
+		 WHERE  RC.REQ_NO       = '$!{req_no}'
+		   AND  RC.PLANT_ID     = '$!{plant_id}'
+		   AND  RC.PROC_ID      = '$!{proc_id}'
+		   AND  EXISTS (
+		               SELECT  RC.REQ_NO
+		                 FROM  RND_CAL RC
+		                WHERE  RC.REQ_NO     = '$!{req_no}'
+		                  AND  RC.PLANT_ID   = '$!{plant_id}'
+		                  AND  RC.PROC_ID    = '$!{proc_id}'  
+		               )
+			
+	</query>
+	
+	
+<!--
+=====================================================================================================
+ 끝
+=====================================================================================================
+-->
+
+</queries>

@@ -1,0 +1,333 @@
+############################################################
+## 프로그램ID		: md_00010_controlBoardDaily_execIf_pop.vm
+## 프로그램명		: 일간계획 : IF 진행 POPUP
+## 개발자		: 
+## 개발일자		:  
+##
+##관련 job file 		: job_sinc_70_materData.xml
+##
+##관련 query file	: query_sinc_70_materData.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2009-02-17  남웅용     SP실행후 SCM_IF_LOG의 STATUS가 'E'인 경우
+##									I/F실패로 간주하도록 js수정
+##									- function callSp()에 md_00010_sp_err_status_check 호출추가
+##
+############################################################
+
+## 비정상적 접근 방지
+#loginCheck()
+## 화면 resizing 을 위한 function 호출 코드
+#if( "$!{cat_id}" == "RP" && "$!{period_type}" == "DAILY" )
+	#set( $resizeFuncCallCode = "setHtmlGridAutoResize2('137', '145')" )
+#else
+	#set( $resizeFuncCallCode = "setHtmlGridAutoResize2('120', '128')" )
+#end
+
+## 컨트롤 보드 제어 관련 dwr 선언
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/controlBoard.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<input type="hidden" name="rowIdx" 		value="$!{rowIdx}"> 		## 클릭한 버튼의 라인 인덱스
+<input type="hidden" name="cat_id" 		value="$!{cat_id}"> 		## 클릭한 버튼의 라인의 계획부문
+<input type="hidden" name="sub_cat" 	value="$!{sub_cat}"> 		## 클릭한 버튼의 라인의 하위계획부문
+<input type="hidden" name="period_type" value="$!{period_type}"> 	## 클릭한 버튼의 라인의 계획주기
+<input type="hidden" name="run_date" 	value="$!{run_date}"> 		## 클릭한 버튼의 라인의 계획수행일
+<input type="hidden" name="run_seq" 	value="$!{run_seq}"> 		## 클릭한 버튼의 라인의 계획수행일기준 차수
+<input type="hidden" name="plan_step" 	value="$!{plan_step}"> 		## 클릭한 버튼의 라인의 CAT_ID - PLANT_ID - VERSION - SEQ 에 대한 KEY FIELD
+<input type="hidden" name="plant_id" 	value="$!{plant_id}"> 		## 클릭한 버튼의 라인의 PLANT_ID
+<input type="hidden" name="_user_id" 	value="$!{_user_id}">
+<input type="hidden" name="batOption" 	value="$!{batOption}"> 		## 일괄진행 OPTION(1:normal, 2:batch)
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<script>
+		areaBtn.innerHTML = " &nbsp; <input type=\"button\" name=\"btnExecIF\" id=\"btnExecIF\" value=\" I/F 실행\" onClick=\"execIF(); \" class=\"btn1_on\">";
+	</script>
+	## 일간 공장할당인 경우, 1차 공장할당 실행 버튼 활성
+#if( "$!{cat_id}" == "FA" && "$!{period_type}" == "DAILY" )
+#*	
+	<script>
+		var areaBtnStr = " <input type=\"button\" name=\"btnExecSch\" id=\"btnExecSch\" value=\" 1차 공장 할당\" onClick=\"execSch(); \" class=\"btn3_on\">";
+		areaBtnStr += " &nbsp; <input type=\"button\" name=\"btnExecIF\" id=\"btnExecIF\" value=\" I/F 실행\" onClick=\"execIF(); \" class=\"btn1_on\">";
+		if( "$!{faSecondFlag}" == "Y" ) {
+			areaBtnStr += " &nbsp; <input type=\"checkbox\" name=\"checkFa\" onClick=\"clickSecondFa(); \" style=\"border:0px; \" checked>";
+		}
+		else {
+			areaBtnStr += " &nbsp; <input type=\"checkbox\" name=\"checkFa\" onClick=\"clickSecondFa(); \" style=\"border:0px; \" >";
+		}
+		areaBtnStr += "<font style=\"font-size:10pt; \">2차 공장할당</font> ";
+		areaBtn.innerHTML = areaBtnStr;
+	</script>
+*#	
+	<script>
+		var areaBtnStr = " <input type=\"button\" name=\"btnExecSch\" id=\"btnExecSch\" value=\" 1차 공장 할당\" onClick=\"execSch(); \" class=\"btn3_on\">";
+		
+		if( "$!{faSecondFlag}" == "RATE" ) {
+			areaBtnStr += " &nbsp; <input type=\"checkbox\" name=\"checkFaRate\" onClick=\"clickSecondFa(this); \" style=\"border:0px; \" checked>";
+			areaBtnStr += "<font style=\"font-size:10pt; \">비율</font> ";
+			areaBtnStr += " &nbsp; <input type=\"checkbox\" name=\"checkFaCost\" onClick=\"clickSecondFa(this); \" style=\"border:0px; \" >";
+			areaBtnStr += "<font style=\"font-size:10pt; \">비용</font> ";
+		}else if( "$!{faSecondFlag}" == "COST" ){
+			areaBtnStr += " &nbsp; <input type=\"checkbox\" name=\"checkFaRate\" onClick=\"clickSecondFa(this); \" style=\"border:0px; \" >";
+			areaBtnStr += "<font style=\"font-size:10pt; \">비율</font> ";
+			areaBtnStr += " &nbsp; <input type=\"checkbox\" name=\"checkFaCost\" onClick=\"clickSecondFa(this); \" style=\"border:0px; \" checked>";
+			areaBtnStr += "<font style=\"font-size:10pt; \">비용</font> ";
+		}
+		else {
+			areaBtnStr += " &nbsp; <input type=\"checkbox\" name=\"checkFaRate\" onClick=\"clickSecondFa(this); \" style=\"border:0px; \" >";
+			areaBtnStr += "<font style=\"font-size:10pt; \">비율</font> ";
+			areaBtnStr += " &nbsp; <input type=\"checkbox\" name=\"checkFaCost\" onClick=\"clickSecondFa(this); \" style=\"border:0px; \" >";
+			areaBtnStr += "<font style=\"font-size:10pt; \">비용</font> ";
+		}
+		areaBtnStr += " &nbsp; <input type=\"button\" name=\"btnExecIF\" id=\"btnExecIF\" value=\" 2차 공장 할당 I/F\" onClick=\"execIF(); \" class=\"btn4_on\">";
+		areaBtn.innerHTML = areaBtnStr;
+	</script>
+#end
+	<tr height="3px"><td></td></tr>
+	## 조회 영역
+	<tr style="display:block; ">
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2">
+					<td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" 
+							id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr>
+								#if( $md_00010_controlBoardDaily_execIf_pop_hrzn.size() > 0 )
+									#set( $horznStart = "$md_00010_controlBoardDaily_execIf_pop_hrzn.get(0).get(0)" )
+									#set( $horznEnd   = "$md_00010_controlBoardDaily_execIf_pop_hrzn.get(0).get(1)" )
+									#set( $planStart  = "$md_00010_controlBoardDaily_execIf_pop_hrzn.get(0).get(2)" )
+                                	#set( $ipPort 	  = "$md_00010_controlBoardDaily_execIf_pop_hrzn.get(0).get(3)" )
+                                	#set( $pdbUser 	  = "$md_00010_controlBoardDaily_execIf_pop_hrzn.get(0).get(4)" )
+								#else
+									#set( $horznStart = "$date.get('yyyy-MM-dd')" )
+									#set( $horznEnd   = "$date.get('yyyy-MM-dd')" )
+									#set( $planStart  = "$date.get('yyyy-MM-dd')" )
+								#end
+								<td width="25%" align="right">
+									계획구간 : $!{checkFa}
+								</td>
+								<td width="75%" colspan="2" align="left">
+									#date_sole_no_title("horzn_start" "10" "normal" "btnHorznStart" "$!{horznStart}")
+									~ #date_sole_no_title("horzn_end" "10" "normal" "btnHorznEnd" "$!{horznEnd}")
+                                    <input type="hidden" name="engn_ip" value="$!{ipPort}">
+                                    <input type="hidden" name="pdb_user" value="$!{pdbUser}">
+                                    <input type="hidden" name="faSecondFlag" value="$!{faSecondFlag}">
+            						<input type="hidden" name="_moon_service" value="${_moon_service}">
+            						<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+            						<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+								</td>
+            				</tr>
+            				<tr>
+								<td width="25%" align="right">
+									#if( "$!{cat_id}" == "RP" || "$!{cat_id}" == "FA" )
+										재고 기준일 :
+									#else
+										스케줄시작시간 :
+									#end
+								</td>
+								<td width="40%" align="left">
+									#date_sole_no_title("plan_start" "10" "normal" "btnPlanStart" "$!{planStart}")
+								</td>
+								<td width="35%" align="left">
+									#if( "$!{cat_id}" == "RP" && "$!{period_type}" == "DAILY" )
+									수출 BOOKING오더 반영 
+									<input name="sel_chk_appl" type="checkbox" class="normal" onClick="doCheckApplYN(this);"
+										style="background-color:#f2f2f2; border:0;"
+										#if("$!{pre_plan_add_flag}" == "Y") checked #end>
+									<input type="hidden" name="pre_plan_add_flag" 
+										#if("$!{pre_plan_add_flag}" == "Y") value="Y"
+										#else value="N" 
+										#end
+										>
+									#end
+								</td>
+            				</tr>
+						#if( "$!{cat_id}" == "RP" && "$!{period_type}" == "DAILY" )
+            				<tr>
+								<td width="25%" align="right">
+									차일 옵션 :
+								</td>
+								<td width="75%" colspan="2" align="left">
+									#if( $math.max("18", "$date.get('HH')") == 18 ) ## 18 시 이전
+    									<input type="hidden" name="order_flag" value="N">
+										#if( "$!{order_flag}" == "" )
+											#set( $order_flag = "N" )
+										#end
+    									<input type="hidden" name="safety_flag" value="Y">
+										#if( "$!{safety_flag}" == "" )
+											#set( $safety_flag = "Y" )
+										#end
+									#else ## 18시 이후
+    									<input type="hidden" name="order_flag" value="Y">
+										#if( "$!{order_flag}" == "" )
+											#set( $order_flag = "Y" )
+										#end
+    									<input type="hidden" name="safety_flag" value="N">
+										#if( "$!{safety_flag}" == "" )
+											#set( $safety_flag = "N" )
+										#end
+									#end
+									&nbsp;
+									<input type="radio" name="radio_order_flag" onClick="document.frm.order_flag.value='Y'; "
+										style="border:0px; " #if( "$!{order_flag}" == "Y") checked #end>
+									주문 &nbsp;
+									<input type="radio" name="radio_order_flag" onClick="document.frm.order_flag.value='N'; "
+										style="border:0px; " #if( "$!{order_flag}" == "N") checked #end>
+									판매계획
+									&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+									<input type="radio" name="radio_safety_flag" onClick="document.frm.safety_flag.value='Y'; "
+										style="border:0px; " #if( "$!{safety_flag}" == "Y") checked #end>
+									안전재고 &nbsp;
+									<input type="radio" name="radio_safety_flag" onClick="document.frm.safety_flag.value='N'; "
+										style="border:0px; " #if( "$!{safety_flag}" == "N") checked #end>
+									미반영
+								</td>
+            				</tr>
+            			#end
+						</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+#if( "$!{cat_id}" == "RP" && "$!{period_type}" == "DAILY" )
+	<input name="search_h" type="hidden" value="64"> ## search 조건 부분 높이
+#else
+	<input name="search_h" type="hidden" value="47"> ## search 조건 부분 높이
+#end
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1"
+						style="scrollbar-face-color:#FFFFFF; scrollbar-shadow-color:#666666; scrollbar-highlight-color:#666666;
+						scrollbar-3dlight-color:#FFFFFF; scrollbar-darkshadow-color:#FFFFFF; scrollbar-track-color:#FFFFFF; 
+						scrollbar-arrow-color:#666666; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="tbMain" border="0" width="715" cellpadding="0" cellspacing="0" >
+						<tr>
+							<td> 
+								<div id="topLine" style="height:30px; overflow:hidden;"> 
+									<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>
+											<tr height="30px">
+												<td width="10%">순서</td>
+												<td width="70%">SP 명</td>
+												<td width="20%" class="right">상태</td>
+											</tr>
+					   					 </thead>
+					   				</table>
+					   			</div>
+							</td>
+						</tr>	
+						
+						<tr>
+							<td valign="top"> 
+								<div id="mainDisplay" class="ns_scroll" style="border:0; overflow-y:scroll; ">
+									<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="main_tbody">
+										#foreach( $tr in $md_00010_controlBoardDaily_execIf_pop )
+											<tr id="main_tr" height="22px" onMouseOver="bgOver2(this); " onMouseOut="bgOut2(this); ">
+												<td width="10%" align="center"> ## 순서
+													$tr.get(0)
+												</td>
+												<td width="70%" align="left"> ## SP 명
+													#set( $posTop = $math.mul($math.sub($velocityCount, 1), 22) )
+													#if( "$velocityCount" != "1" )
+														#set( $posTop = $math.add($posTop, 1) )
+													#end
+													<div id="divSP"
+														style="width:100%; height:100%; display:block; 
+															position:absolute; left:10%; top:$math.add($!{posTop}, 5)px; 
+															border:0px solid; 
+															font-color:black;
+															">
+														&nbsp;$tr.get(1)
+													</div>
+													<div id="divPro"
+														style="width:100%; height:100%; display:none; 
+															position:absolute; left:10%; top:$!{posTop}px; 
+															z-index:100; border:0px solid; 
+															Filter:Alpha(opacity=60); ">
+														<table width="100%" height="100%" border="0" cellpadding="0" cellspacing="0">
+															<tr>
+																<td width="100%"></td>
+															</tr>
+														</table>
+													</div>
+													<input type="hidden" name="sp_id" value="$tr.get(1)">
+												</td>
+												<td width="20%" align="center" class="right"> ## 상태
+													<a id="areaStatus"></a>
+												</td>
+											</tr>
+										#end
+										</tbody>
+									</table>
+								</div>
+							</td>
+						</tr>
+					</table>
+					
+					## 1차 공장할당 실행 시 DISPLAY
+					<table width="100%" height="120px" id="waitArea" style="display:none; ">
+						<tr hight="50px">
+							<td width="1%">&nbsp;</td>
+							<td width="99%" valign="middle" align="center">
+								<b><font color="BLUE"><a id="areaStat">1차 공장 할당 계획 수립중</a></font></b>
+                    		</td>
+                    	</tr>
+                    	<tr>
+                    		<td valign="middle" align="center" colspan="2">
+                    			<img src="sinc/template/basic/skin/nongshim/images/common/progress_planning.gif" 
+                    				align="absmiddle" border="0" width="200px" height="60px">
+                    			<img src="sinc/template/basic/skin/nongshim/images/common/loading_icon.gif" 
+                    				align="absmiddle" border="0" width="60px" height="60px">
+                    		</td>
+                    	</tr>
+                    </table>
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 컨트롤보드 인터페이스 실행 화면입니다.";
+	helpStr += "<br>◈ 해당 계획의 계획구간, 스케줄시작시간을 설정한 후 I/F 를 진행합니다.";
+	helpStr += "<br>◈ I/F 실행 버튼을 클릭하여 인터페이스를 실행합니다.";
+	helpStr += "<br>◈ 인터페이스가 실행되는 동안 현재 실행되는 SP 에 진행 상태가 표시됩니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+	// batOption - 1 : normal
+    //             2 : batch 수행
+	if( "$!{batOption}" == "2" ) {
+		//execIF();
+	}
+	
+</script> 

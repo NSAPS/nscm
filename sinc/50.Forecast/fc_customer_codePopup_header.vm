@@ -1,0 +1,64 @@
+<script type='text/javascript' src='$!{project}/dwr/interface/nongshim.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/engine.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/util.js'></script>
+
+<input type="hidden" name="popup_type"     value="$!{popup_type}">
+<input type="hidden" name="customer_id"    value="$!{customer_id}">
+	
+#if("$!{popup_type}" == "customer")
+	#set($title = "거래처")
+#end
+
+<table id="dataArea" border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	<tr>
+		<td height="25" align="right" bgcolor="${toolbar_bgcolor}" class="line">
+			<table align="right" width="100%" height="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+				<tr>					
+					<td align="right">
+						<input type="button" name="btnSearch" value=" 조회" onClick="searchIFrameData('fc_customer_codePopup_tailer');" class="btn_search_on">
+						#toolbar_nscm($_moon_toolbar "" "" "" "")
+					</td>
+				</tr>
+			</table>
+		</td>                                                                                                                                                                                                                  
+	</tr>
+	<tr id="search_menu" style="DISPLAY:block">
+		<td height="20" valign="top" bgcolor="${search_bgcolor}" class="line">			
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr>
+					<td height="10"></td>
+				</tr>
+				<tr>
+					<td align="center">
+						<table height="21" border="0" cellpadding="0" cellspacing="0">					
+							<tr>
+								<td width="100" align="center" class="td1">
+									<span>$!{title}코드</span>
+								</td>
+								<td width="100" align="left">
+									<input type="text" name="random_code" value="$!{random_code}" class="normal" style="width:100;">								
+								</td>
+								<td width="100" align="center" class="td1">
+									<span>$!{title} 명</span> 
+								</td>
+								<td width="100" align="left">
+									<input type="text" name="random_name" value="$!{random_name}" class="normal" style="width:100;">													
+								</td>
+							</tr>																						 					
+						</table>
+					</td>					
+				 </tr>				 
+		  		 <tr height="10"><td></td></tr>
+		     </table>
+		 </td>
+	 </tr> 
+	 <tr class="line" height="10"><td></td></tr>
+	 <tr>
+	 	 <td valign="top">
+			<iframe id="child" name="iframe" src="service.do?_moon_service=fc_customer_codePopup_tailer&amp;_moon_perpage=100&amp;_moon_pagenumber=1" width="100%" height="100%" scrolling="no" topmargin="0" leftmargin="0" frameborder="NO" border="0" framespacing="0">
+			</iframe> 
+		 </td>
+	 </tr> 
+	 <input type="hidden" name="_moon_service" value="${_moon_service}">
+	 <input type="hidden" name="_moon_pagenumber" value="${_moon_pagenumber}">
+</table>

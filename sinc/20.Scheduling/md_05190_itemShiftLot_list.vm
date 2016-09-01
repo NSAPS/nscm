@@ -1,0 +1,242 @@
+############################################################
+## 프로그램ID : md_05190_itemShiftLot_list.vm
+## 프로그램명 : 최소생산량 정보관리 (조회)
+## 개발자  : 허준성
+## 개발일자 : 2008-11-26 수요일
+##
+##관련 job file : job_sinc_20_scheduling_04.xml
+##
+##관련 query file : query_sinc_20_scheduling_04.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2008-11-26  허준성           md_05190_itemShiftLot_list.vm 개발
+##
+##
+############################################################
+
+## 비정상적 접근 방지  
+#loginCheck()
+## 화면 resizing 을 위한 size 변수  
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('130', '155')" ) 
+
+## 코드 중복 체크를 위해 dwr 선언
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+ 
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						#button("search")
+						#toolbar_nscm($_moon_toolbar "md_05190_itemShiftLot_reg" "" "md_05190_itemShiftLot_list_save_comp" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table id="search_menu" style="background-color:#f2f2f2; display:block; " border="0" width="100%" cellpading="0" cellspacing="0" >
+            				<tr>
+								<td width="10%" align="right">공장 :</td> 
+            					<td width="40%" align="left"> 
+									<select name="selected_plant" style="width:100px; ">
+										<option value="">선택</option>
+									#foreach( $condition in $combo_plant_list )  
+										<option value="$condition.get(0)" #if($!{selected_plant} == "$condition.get(0)") selected #else #end >$condition.get(1)</option>											
+									#end
+   									</select>  
+            					</td> 
+								<td width="10%" align="right">제품 :</td> 
+            					<td width="40%" align="left">  
+									<input name="item_id" class="normal" style="width:65px; " onChange="getItemName(this); "
+										onkeypress="enterCheck('${_moon_service}'); " value="$!{item_id}"> 
+									<input name="item_name" class="normal" style="width:180px; " 
+										onkeypress="enterCheck('${_moon_service}'); " value="$!{item_name}"><img
+										name="imgItem" src="sinc/template/basic/skin/nongshim/images/common/icon_search.gif"
+										align="absmiddle" border="0" style="cursor:pointer;" value="$!{item_name}"
+										onClick="openItemSearchPop('item_id', '450', '300');">
+								</td>
+							</tr>	
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="23"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+								<img src="/nscm/sinc/template/basic/skin/nongshim/images/common/dot_sub6.gif" width="16" height="13">Total :
+								<span id="areaTot" class="f_color_o b">$!{_moon_service_count}</span>
+							</td> 
+						</tr>
+					</table>
+					#set( $leftLine1 = 30)   ## 번호
+					#set( $leftLine2 = 30)   ## 삭제
+					#set( $leftLine3 = 80)  ## 제품코드
+					#set( $leftLine4 = 250)  ## 제품명
+					#set( $leftWidth = $leftLine1 + $leftLine2 + $leftLine3 + $leftLine4 ) 
+					<table id="tbMain" border="0" width="100%" cellpadding="0" cellspacing="0" ><tr><td>
+						<div id="topLeft" style="height:40px; width:$!{leftWidth}px; overflow:hidden; ">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead>
+									<tr height="40px"> 
+										<td width="$!{leftLine1}px">번호</td>
+										<td width="$!{leftLine2}px" 
+											onMouseOver="this.style.cursor='pointer'; " onMouseOut="this.style.cursor=''; ">삭제</td>
+										<td width="$!{leftLine3}px">제품코드</td>
+										<td width="$!{leftLine4}px">제품명</td>
+									</tr> 
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td>  
+					<td> 
+						#set( $rightLine1 = 60)   ## 물량기준
+						#set( $rightLine2 = 50)   ## UOM
+						#set( $rightLine3 = 60)   ## 패턴
+						#set( $rightLine4 = 60)   ## 주초분할물량
+						#set( $rightWidth = $rightLine1 + $rightLine2 + $rightLine3 + $rightLine4) 
+						<div id="topLine" style="height:40px; width:626px;overflow:hidden;"> 
+							<table width="$!{rightWidth}px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead> 
+									<tr height="40px">	
+										<td width="$!{rightLine1}px">물량기준</td>
+										<td width="$!{rightLine2}px">UOM</td>
+										<td width="$!{rightLine3}px">패턴</td>						
+										<td width="$!{rightLine4}px" class="right">주초<br>분할물량</td>
+									</tr>									
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td></tr>
+					<tr><td valign="top">
+						<div id="leftDisplay" style="width:$!{leftWidth}px; overflow:hidden; ">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="left_tbody">
+								#foreach( $tr in $md_05190_itemShiftLot_list )
+									<tr id="left_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+										## 번호
+										<td width="$!{leftLine1}px" align="center" style="background-color:${search_bgcolor}; ">
+											<a id="divRowNo">$velocityCount</a>											
+            								<input type="hidden" name="plant_id" value="$tr.get(0)"> ## 공장코드            								
+            								<input type="hidden" name="plant_name" value="$tr.get(1)"> ## 공장명	
+										</td>
+										## 삭제
+										<td width="$!{leftLine2}px" align="center">
+											<input name="btnDelRow" type="button" value="X" class="button1_1"
+												style="width:17px; text-align:center; font-weight:bold; " onClick="delRow(this); "
+												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'">
+										</td>										
+										## 품목 코드  
+										<td width="$!{leftLine3}px">  
+											<input type="text" name="v_item_id" class="normal" value="$tr.get(2)" 
+												style="height:100%; width:100%; border:0px; text-align:center;" readonly >
+										</td>
+										## 품목 명 
+										<td width="$!{leftLine4}px">
+											<input type="text" name="v_item_name" class="normal" value="$tr.get(3)" 
+												style="height:100%; width:100%; border:0px; padding-left:5px; text-align:left;" readonly >
+										</td>								
+									</tr>
+								#end
+								</tbody> 
+							</table> 
+						</div> 
+					</td>  
+					<td valign="top"> 
+						<div id="mainDisplay" class="ns_scroll" style="border:0; width:645px; overflow-y:scroll; overflow-x:scroll; " onscroll="scrollX(); scrollY(); ">
+							<table width="$!{rightWidth}px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="main_tbody"> 
+								#foreach( $tr in $md_05190_itemShiftLot_list )
+									<tr id="main_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+										## 물량기준 
+										<td width="$!{rightLine1}px">
+											<input type="text" name="base_val" class="normal" value="$tr.get(4)" onChange="setUom(this);"
+												style="height:100%; width:100%; padding-right:5px; text-align:right;" >							
+										</td>
+										## UOM
+										<td width="$!{rightLine2}px">
+											<input type="text" name="uom" class="normal" value="$tr.get(5)" 
+												style="height:100%; width:100%; border:0px; text-align:center;" readonly  >	
+										</td>
+										## 패턴
+										<td width="$!{rightLine3}px">
+											<input type="text" name="cd_name" class="normal" value="$tr.get(7)" 
+												style="height:100%; width:100%; border:0px; text-align:center;" readonly  >							 					
+										</td>
+										## 주초분할물량
+										<td width="$!{rightLine4}px" class="right">
+											<input type="text" name="first_qty" class="normal" value="$tr.get(8)"
+												style="height:100%; width:100%; padding-right:5px; text-align:right;" >	
+										</td>										
+									</tr>
+								#end
+								</tbody>
+							</table>
+						</div>
+					</td></tr></table>
+					
+					<table border="0" width="100%" cellpadding="0" cellspacing="0" height="5px"><tr><td></td></tr></table>
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+						
+					<input type="hidden" name="_moon_service">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+																				
+				</div>
+			</div> 
+		</td>
+	</tr>
+</table> 
+ 
+<script>
+	 
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력 
+	var helpStr = "◈ 상단의 조회 조건을 선택하고 상단 우측의 조회 버튼을 클릭하면 최소생산량 정보관리에 대한 리스트가  조회됩니다.";		
+	helpStr += "<br>◈ 삭제 항목의 X 버튼을 클릭하면, 클릭한 버튼의 라인이 삭제됩니다.";
+	helpStr += "<br>◈ 물량기준을 입력하면 UOM은 자동으로 입력됩니다.";
+	helpStr += "<br>◈ 물량기준과 주초 분할물량만 수정가능합니다";
+	helpStr += "<br>◈ 상단의 등록버튼을 클릭하면, 등록 페이지로 이동합니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+
+</script>

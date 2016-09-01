@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<t3sinc_configuration>
+	<used_path>
+		<license_location>C:/T3Series/projects/nscm/license</license_location>
+		<report_location>C:/T3Series/t3sinc/tsr/UbiReport</report_location>
+		<log_properties>C:/T3Series/projects/t3sinc/WEB-INF/conf/sinc/logs/logging.properties</log_properties>
+	</used_path>
+	<fileupload>
+		<upload_path>C:/T3Series/projects/nscm/upload_files/</upload_path>
+		<max_size>1000</max_size> <!-- unit : KiloBytes : Default : 100-->
+		<threshold_size>1</threshold_size> <!-- unit : KiloBytes-->
+		<naming_rule>{yearmonth}/ZIO_{name_body}_{time}.{name_ext}</naming_rule> 
+		<!--
+			 year : Year
+			 month : Month
+			 day : Day
+			 yearmonth : Year + Month
+			 date : Month+Day
+			 time :  Year+Month+Day+Hor+Min+Sec+MilSec
+			 name_body : body of filename
+			 name_ext : extension of filename
+		-->
+	</fileupload>
+	<button_functions>
+	</button_functions>
+	<logger>
+		<default_level>debug</default_level>
+		<log type="console" used="false">
+			<level>info</level>	
+			<format>%C %M %m</format>
+		</log>
+		<log type="file" used="true">
+			<level>debug</level>
+			<format>%C %M %d{yyyy-MM-dd HH:mm:ss} %m %n</format>
+			<logfile_path>C:/t3series/log_files</logfile_path>
+			<max_filesize>1024KB</max_filesize>
+			<max_backupindex>2</max_backupindex>
+		</log>
+		
+		<!--
+			default_level : fatal, error, warn, info, debug
+			default_level우선순위 : fatal >  error > warn > info > debug
+			
+			level : fatal, error, warn, info, debug
+			layout : 
+				%C{클래스이름길이} : 로그메시지를 기록하려는 클래스 이름
+				%d{yyyy-MM-dd HH:mm:ss} : 로그메세지 기록 시간 
+				%p : 로그메세지 우선순위
+				%m : 로그메세지 자체
+				%M : 로그메세지 기록하려는 메소드 이름
+				%n : 라인구분자 
+				
+			max_filesize: default:10MB
+		-->
+	</logger>
+</t3sinc_configuration>

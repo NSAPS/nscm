@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+<chart_configuration>
+<!--
+	Chart Configuration used in T3SiNC Chart Component
+	Supported Chart formats are BAR/LINE/PIE. Complex chart is not supported yet.
+	category contains CATEGORY - X Axis value. it formed in [["a", "b", "c", "d"]]
+	legend contains LEGEND - dataset name. it formed in [["a", "b", "c", "d"]]
+	data contains DATA. it formed in [["1", "1", "1", "1"], ["2", "2", "2", "2"]] 
+		(must match the entry number - DATA[legend_size][category_size]) in LINE/BAR.
+		in PIE, only FIRST data is used for making chart. 
+			for example, in case of [["1", "1", "1", "1"], ["2", "2", "2", "2"]], 
+			only  ["1", "1", "1", "1"] is used and ["2", "2", "2", "2"] is dropped. 
+	
+	<chart service = "sample_list_excel"> 			// service id (equals to job id called)
+		<type></type>								// 1 => bar chart, 2=>line chart, 3=>pie chart
+		<category_query>sample_list</category_query>	// query name whose result contains category names
+		<data_query>sample_list</data_query>		// query name whose result contains actual data
+		<legend_query>sample_list</legend_query>	// query name whose result contains legend names
+		<x_axis_text></x_axis_text>					// Text value represents X axis text (default : X)
+		<y_axis_text></y_axis_text>					// Text value represents Y axis text (default : Y)
+		<orientation></orientation>					// 1=> VERTICAL 2=> HORIZENTAL (default : VERTICAL) in Bar/Line
+													// 1=>data with Category / 2=> data with Legend in Pie chart
+		<width></width>								// Image Width. used in <img src="" width="" height="">
+		<height></height>							// Image Height. used in <img src="" width="" height="">		
+	</chart>
+		
+-->
+	<chart service = "chart_bar">
+		<type>1</type>
+		<category_query>chart_category</category_query>
+		<data_query>chart_data</data_query>
+		<legend_query>chart_legend</legend_query>
+		<x_axis_text>지역</x_axis_text>
+		<y_axis_text>수량</y_axis_text>
+		<orientation>1</orientation>
+		<width>500</width>
+		<height>300</height>
+	</chart>
+	<chart service = "chart_line">
+		<type>2</type>
+		<category_query>chart_category</category_query>
+		<data_query>chart_data</data_query>
+		<legend_query>chart_legend</legend_query>
+		<x_axis_text>지역</x_axis_text>
+		<y_axis_text>수량</y_axis_text>
+		<orientation>1</orientation>
+		<width>500</width>
+		<height>300</height>
+	</chart>
+	<chart service = "chart_pie1">
+		<type>3</type>
+		<category_query>chart_category</category_query>
+		<data_query>chart_data</data_query>
+		<legend_query>chart_legend</legend_query>
+		<x_axis_text>지역</x_axis_text>
+		<y_axis_text>수량</y_axis_text>
+		<orientation>1</orientation>
+		<width>500</width>
+		<height>300</height>
+	</chart>
+	<chart service = "chart_pie2">
+		<type>3</type>
+		<category_query>chart_category</category_query>
+		<data_query>chart_data</data_query>
+		<legend_query>chart_legend</legend_query>
+		<x_axis_text>지역</x_axis_text>
+		<y_axis_text>수량</y_axis_text>
+		<orientation>2</orientation>
+		<width>500</width>
+		<height>300</height>
+	</chart>			
+</chart_configuration>
+

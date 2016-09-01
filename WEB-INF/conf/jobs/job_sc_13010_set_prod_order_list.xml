@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+	<!-- 
+	=======================
+	 유통가공품 생산계획조정
+	=======================
+	-->
+	
+	<!--  유통가공 생산오더 조회  조회 -->
+	<job id="sc_13040_set_prod_productionPlan" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>유통가공품운영계획 >> 운영정보 >>  유통가공품 생산계획조정</navigation>
+		<toolbars>0010</toolbars><!--(등록/수정/저장/삭제)-->
+		<title> 유통가공품 생산계획조정</title>
+		<authority>1</authority>		
+		<description> 유통가공품 생산계획조정</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="sc_13010_get_proc_combo" datasource="t3sinc"/>
+			<query idref="weekly_3_start_end_date" datasource="t3sinc"/>
+		</queries>
+	</job> 
+
+
+	<!-- 
+	=======================
+	 유통가공 생산오더 조회
+	=======================
+	-->
+	
+	<!--  유통가공 생산오더 조회  조회 -->
+	<job id="sc_13010_set_prod_order_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>유통가공품운영계획 >> 운영정보 >> 유통가공 생산오더 조회</navigation>
+		<toolbars>0000</toolbars><!--(등록/수정/저장/삭제)-->
+		<title>유통가공 생산오더 조회</title>
+		<authority>1</authority>		
+		<description>유통가공 생산오더 조회</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="check_plant_list" datasource="t3sinc"/>
+			<query idref="rp_01160_SCM_CHARGE_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 유통가공 생산오더 등록  pop_up -->
+	<job id="sc_13010_set_prod_order_reg_pop" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>유통가공품운영계획 >> 운영정보 >> 유통가공 생산오더 등록</navigation>
+		<toolbars>0010</toolbars>
+		<title>유통가공 생산오더 등록</title>
+		<authority>1</authority>		
+		<description>유통가공 생산오더 등록</description>
+		<request_type>list</request_type>
+		<queries> 
+		</queries>
+	</job>
+
+	<!-- 품목 조회   pop_up -->
+	<job id="sc_13010_item_search_popup" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>유통가공 생산오더 등록 >> 품목 조회</navigation>
+		<toolbars>0010</toolbars>
+		<title>유통가공 생산오더 등록 >> 품목 조회</title>
+		<authority>1</authority>		
+		<description>유통가공 생산오더 등록 >> 품목 조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="item_type_list" datasource="t3sinc"/> <!-- 품목 타입 구분 -->
+			<query idref="get_set_prod_item_code_popup" datasource="t3sinc"/>		
+		</queries>
+	</job>
+
+
+
+	<!-- 
+	=======================
+	 유통가공품 마스터 관리
+	=======================
+	-->
+	
+	<!--   유통가공품 마스터 관리 -->
+	<job id="sc_13020_set_prod_mst" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>유통가공품운영계획 >> 기준정보 >>  유통가공품 마스터 관리</navigation>
+		<toolbars>0000</toolbars><!--(등록/수정/저장/삭제)-->
+		<title> 유통가공품 마스터 관리</title>
+		<authority>1</authority>		
+		<description> 유통가공품 마스터 관리</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="check_plant_list" datasource="t3sinc"/>
+			<query idref="md_01060_combo_cm_gubn" datasource="t3sinc"/>
+			<query idref="rp_01160_SCM_CHARGE_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 유통가공품 마스터 등록  pop_up -->
+	<job id="sc_13020_set_prod_mst_reg_pop" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>유통가공품운영계획 >> 기준정보 >> 유통가공품 마스터 등록  pop_up</navigation>
+		<toolbars>0010</toolbars>
+		<title>유통가공품 마스터 등록  pop_up</title>
+		<authority>1</authority>		
+		<description>유통가공품 마스터 등록  pop_up</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="sc_13020_combo_oper_type" datasource="t3sinc"/>
+			<query idref="sc_13020_combo_proc_type" datasource="t3sinc"/>
+			<query idref="sc_13020_combo_cost_gubn" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+
+	<!-- 유통가공품 마스터 BOM pop_up -->
+	<job id="sc_13020_set_prod_mst_bom_pop_up" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>유통가공품 BOM pop_up</navigation>
+		<toolbars>0010</toolbars>
+		<title>유통가공품 BOM pop_up</title>
+		<authority>1</authority>		
+		<description>유통가공품 BOM pop_up</description>
+		<request_type>list</request_type>
+		<queries> 
+		</queries>
+	</job>
+
+	<!-- 
+	======================= 
+	 유통가공품 부자재 마스터 관리
+	=======================
+	-->
+	
+	<!--   유통가공품 부자재  마스터 관리 -->
+	<job id="sc_13060_set_bom_mst" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>유통가공품운영계획 >> 기준정보 >>  유통가공품 부자재  마스터 관리 </navigation>
+		<toolbars>0000</toolbars><!--(등록/수정/저장/삭제)-->
+		<title> 유통가공품 부자재 마스터 관리</title>
+		<authority>1</authority>		
+		<description> 유통가공품 부자재 마스터 관리</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="check_plant_list" datasource="t3sinc"/>
+			<query idref="md_01060_combo_cm_gubn" datasource="t3sinc"/>
+			<query idref="rp_01160_SCM_CHARGE_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 유통가공품 부자재 마스터 등록  pop_up -->
+	<job id="sc_13060_set_bom_mst_reg_pop" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>유통가공품운영계획 >> 기준정보 >> 유통가공품 BOM 마스터 등록  pop_up</navigation>
+		<toolbars>0010</toolbars>
+		<title>유통가공품 BOM 마스터 등록  pop_up</title>
+		<authority>1</authority>		
+		<description>유통가공품 BOM 마스터 등록  pop_up</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="sc_13020_combo_oper_type" datasource="t3sinc"/>
+			<query idref="sc_13020_combo_proc_type" datasource="t3sinc"/>
+			<query idref="sc_13020_combo_cost_gubn" datasource="t3sinc"/>
+		</queries>
+	</job>	
+	
+
+	<!-- 
+	=======================
+	 유통가공품 입출고일보
+	=======================
+	-->
+	
+	<!--    유통가공품 입출고일보  -->
+	<job id="sc_13030_set_prod_inout_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>유통가공품운영계획 >> 운영정보 >>  유통가공품 입출고일보</navigation>
+		<toolbars>0000</toolbars><!--(등록/수정/저장/삭제)-->
+		<title> 유통가공품 입출고일보</title>
+		<authority>1</authority>		
+		<description> 유통가공품 입출고일보</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="check_plant_list" datasource="t3sinc"/>
+			<query idref="md_01060_combo_cm_gubn" datasource="t3sinc"/>
+			<query idref="rp_01160_SCM_CHARGE_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+	<!-- 
+	=======================
+	 유통가공품 입출고일보
+	=======================
+	-->
+	
+	<!--    유통가공품 입출고일보  -->
+	<job id="sc_13050_set_roh_pr_plan" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>유통가공품운영계획 >> 운영정보 >>  유통가공 부자재 발주계획</navigation>
+		<toolbars>0000</toolbars><!--(등록/수정/저장/삭제)-->
+		<title> 유통가공 부자재 발주계획</title>
+		<authority>1</authority>		
+		<description> 유통가공 부자재 발주계획</description>
+		<request_type>list</request_type>
+		<queries>		
+			<query idref="sc_13050_set_roh_pr_plan_cust_list" datasource="t3sinc"/>
+			<query idref="sc_13050_set_roh_pr_plan_dc_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+
+
+
+
+</jobs>	

@@ -1,0 +1,107 @@
+#*-----------------------------------------------------------------------
+ @path    /sinc/50.Forecast/script/fc_05110_chanelSalesMonitoring_header.vm
+ @Creator    김규철 
+ @version    1.0
+ @date        2008-11-26 
+ @description : 유통채널별 판매현황 조회 화면    
+ -------------------------------------------------------------------------
+*# 
+ 
+## 비정상적 접근 방지 
+#loginCheck()    
+  
+<script type='text/javascript' src='$!{project}/dwr/interface/nongshim.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/engine.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/util.js'></script>
+  
+<!-- 기간구분  Flag, KIMKC start -->
+<input type="hidden" name="periodGB" value="">
+	
+<table id="dataArea" border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	<tr>
+		<td height="25" align="right" bgcolor="${toolbar_bgcolor}" class="line">
+			<table align="right" width="100%" height="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+				<tr>
+					<td align="right"> 
+						<input type="button" name="btnSearch" value=" 조회" onClick="searchIFrameData(document.frm.periodGB.value);" class="btn_search_on">
+						#toolbar_nscm($_moon_toolbar "" "" "" "")
+					</td>
+				</tr>
+			</table>
+		</td>                                                                                                                                                                                                                  
+	</tr>
+	##조회 영역 start  
+	<tr id="search_menu">
+		<td height="20" valign="top" bgcolor="${search_bgcolor}" class="line">			
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr id="mainTrArea">
+					<td width="100%" align="">
+						<table height="21" border="0" cellpadding="0" cellspacing="0">					
+            				<tr>     
+								<td width="5%" align="right"></td> 
+								<td width="34%" align="center">조회일자 :  
+            						#date_sole_no_title( "sdate" "10" "normal" "startBtn" $date.get('yyyy-MM-dd'))
+            						<input type="hidden" name="edate" size="10" class="normal" value="" disabled>            							  
+            						<script>  
+										sumDate(document.frm.sdate);
+            							document.frm.sdate.onchange = function(){ sumDate(this); };            							
+            						</script>  
+									<input type="hidden" name="stored_sdate" value="$!{sdate}">		
+           						</td> 	   
+								<td width="20%" align="">  
+									품종구분(대):  
+									<select name="custGB" style="width:155px; " OnChange="getCustNm(this);">								
+									<option value="">전체</option>									
+									#foreach( $tr in $custGB_B_list )									
+										<option value="${tr.get(0)}" 
+											#if( "$!{custGB}" == "${tr.get(0)}" ) selected
+											#end)>${tr.get(1)}
+										</option>										  
+									#end 
+									</select>  
+								</td> 	   
+																
+ 								<td width="24%" align="" colspan="2">제품 :            											
+									<input name="item_id" class="normal" style="width:70px; " onChange="getItemName(this); "
+										onkeypress="enterCheck('${_moon_service}'); " value="$!{item_id}"> 	
+									<input name="item_name" class="normal" readOnly style="width:120px; "><img
+										name="imgItem" src="sinc/template/basic/skin/nongshim/images/common/icon_search.gif"
+										align="absmiddle" border="0" style="cursor:pointer;" value="$!{item_name}"
+										onClick="openCodeSearchPop('item_id', 'item_name', '400', '300'); ">
+									
+								   ##품종명 조회   
+								   <input type="hidden" name="custName" value="$!{custName}">		
+								</td> 	
+								<td width="5%" align="right"></td> 
+							</tr>
+					</table>
+				</td>							
+			 </tr>
+		  </table>    			
+		</td>   
+	 </tr>	    
+	 <tr> 
+	 	 <td valign="top">   
+				<iframe name="iframe01" src="service.do?_moon_service=fc_05110_chanelSalesMonitoring_tailer&amp;_moon_perpage=20&amp;_moon_pagenumber=1" width="100%" height="100%" scrolling="no" topmargin="0" leftmargin="0" frameborder="NO" border="0" framespacing="0"></iframe>			
+		 </td>   
+	 </tr>	 
+	 <input type="hidden" name="_moon_service" value="${_moon_service}">
+	 <input type="hidden" name="_moon_pagenumber" value="${_moon_pagenumber}">
+</table>
+					 
+<script>		   
+	// window start시 초기화
+	function window.onload(){    
+	}
+	 
+	// 도움말 내용 입력
+	var helpStr = "◈  유통채널별  판매현황을 조회하는 화면입니다.";
+	helpStr += "<br>◈  조회일자에 해당하는 달(월)의 유통채널별 판매현황을 데이터를 조회합니다. ";
+	helpStr += "<br>◈  품 종(대)(ex, 라면, 스낵, 냉동, ...)에 해당하는 데이터를  조회할 수 있습니다.";	
+	helpStr += "<br>◈  구성비 : 유통채널계(일계/누적계*100), 거래처(유통채널누적계/거래처누적계*100)";		
+	helpStr += "<br>◈ 각 항목을 조회 후 상단의 조회 버튼을 클릭하여 조회합니다."; 
+	helpCont.innerHTML = helpStr;  
+	// 도움말 zoomOut 높이 조절 변수   
+	hDynamicHeight = 0;
+</script>
+     

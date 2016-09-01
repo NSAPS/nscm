@@ -1,0 +1,490 @@
+//## ÇÁ·Î±×·¥ID		:	sc_13020_set_prod_mst_reg_pop.js
+//## ÇÁ·Î±×·¥¸í		:	°ø±ÞÀûÇÕ¼º »çÀüºÐ¼® pop_up
+//## °³¹ßÀÚ          :	±Ç¿ëÂù 
+//## °³¹ßÀÏÀÚ       	:	2009-07-16
+//##
+//## °ü·Ã job file   : job_sinc_10_inventoryPlanning_03.xml.xml
+//## °ü·Ã query file : query_sinc_10_inventoryPlanning_03.xml.xml
+//##
+//## REVISIONS
+//## VER        DATE        AUTHOR    DESCRIPTION
+//## ---------  ----------  --------  ------------------------------------
+//## 1.0        2009-07-16  ³²¿õ¿ë      create
+//##
+//############################################################
+/************************************************************************************************************************************/
+/**********************************************  WiseGrid Java Script   *************************************************************/
+/************************************************************************************************************************************/
+
+//-----------------------------------------             Àü¿ª º¯¼ö            ----------------------------------------------//
+//var mode;														// WiseGrid Åë½Å ½Ã Àü¼Û ¸ðµå(search, save, ... etc)
+var class_path = "com.wisegrid.admin.";							// ¼­ºí¸´ ÆÐÅ°Áö(class ÆÄÀÏ °æ·Î)
+var job_id = 'sc_13020_set_prod_mst_reg_pop';
+var GridObj ; 													// WiseGrid °´Ã¼
+var GridObj2 ; 													// WiseGrid °´Ã¼
+
+var color_tot = '234|234|234';			//ÇÕ°è ¶óÀÎ ¹è°æ»ö
+var color_edit_col = '255|253|208';
+var color_sp = '230|222|230'; 			//ÄÃ·³ ±¸ºÐ¼± ¹è°æ»ö
+var color_select_row = '141|232|141';	//¶óÀÎ ¼±ÅÃ ¹è°æ»ö
+var colBg01 = '224|255|224';			//255|255|153
+var colBg02 = '255|255|255';
+
+
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢±×¸®µåÀÇ »çÀÌÁî Á¶Àý Fnc
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+    function setGridAutoResize( tab_h, table_h ){
+        
+        var maxWidthValue;
+        var maxHeightValue;
+        
+        if (document.layers) {
+            //Nescape
+            maxWidthValue = window.innerWidth;
+            maxHeightValue = window.innerHeight;
+        }
+        if (document.all) {
+            //explore
+            maxWidthValue = document.body.clientWidth;
+            maxHeightValue = document.body.clientHeight;
+        } 
+        
+        var tabHeightValue = Number(maxHeightValue) - Number(tab_h) ; 
+        var tableHeightValue = Number(maxHeightValue) - Number(table_h) ; 
+        
+        var search_h = document.frm.search_h.value; 
+        //if( search_menu.style.display == "none" ) 
+        //{ 
+            //tabHeightValue += Number(search_h); 
+            //tableHeightValue += Number(search_h); 
+        //} 
+        
+        // È­¸é size Ãà¼Ò ½Ã È­¸éÀÌ ³Ê¹« ÀÛ¾Æ ±×¸®µå Å©±â°¡ À½¼ö°¡ µÇ¸é ¿¡·¯°¡ ³ª¹Ç·Î ±× °æ¿ì ¹«Á¶°Ç 1·Î ¼¼ÆÃ 
+        // ==> È­¸éÀÌ ´õÀÌ»ó Ãà¼ÒµÇÁö ¾ÊÀ½ 
+        if( tabHeightValue < 1 ) 
+            tabHeightValue = 1; 
+        if( tableHeightValue < 1 ) 
+            tableHeightValue = 1; 
+        
+        //tabPage1.style.height = tabHeightValue + "px"; 
+        //tbMain.style.height = tableHeightValue + "px"; 
+        document.WiseGrid.height = tableHeightValue + "px"; 
+        
+        
+        
+    }  
+
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢WiseGrid ¿ÀºêÁ§Æ®°¡ »ý¼ºµÇ°í ÃÊ±âÈ­µÈ ÈÄ ¹ß»ýÇÏ´Â 							¦¢
+  ¦¢JavaScript EventÀÎ Initialize()¸¦ ¹Þ¾Æ ±×¸®µåÀÇ Çì´õ¸¦ ¼ÂÆÃÇÑ´Ù.			¦¢
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+function init() { 
+	GridObj = document.WiseGrid;
+	setProperty(GridObj);	//WiseGrid Default¼³Á¤ ºÎºÐ (WiseGrid_Property.jsÆÄÀÏ ³»¿¡ ¼±¾ðµÇ¾î ÀÖ´Ù.)
+	setHeader(GridObj);  	//ÇØ´õ»ý¼º 
+	setDefault();        	//È­¸é ±âº» ¼³Á¤
+
+}
+    
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢WiseGrid ¿ÀºêÁ§Æ®°¡ »ý¼ºµÇ°í ÃÊ±âÈ­µÈ ÈÄ ¹ß»ýÇÏ´Â 							¦¢
+  ¦¢JavaScript EventÀÎ Initialize()¸¦ ¹Þ¾Æ ±×¸®µåÀÇ Çì´õ¸¦ ¼ÂÆÃÇÑ´Ù.			¦¢
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+function init2() {
+	GridObj2 = document.WiseGrid2;
+	setProperty(GridObj2);	//WiseGrid Default¼³Á¤ ºÎºÐ (WiseGrid_Property.jsÆÄÀÏ ³»¿¡ ¼±¾ðµÇ¾î ÀÖ´Ù.)
+	setHeader2(GridObj2);  	//ÇØ´õ»ý¼º
+	setDefault2();        	//È­¸é ±âº» ¼³Á¤
+	
+}
+
+
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢È­¸é ±âº» ¼³Á¤ ºÎºÐ.
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+function setDefault() {
+
+    GridObj.nHDLineSize         = 26; //Header Size
+    //GridObj.strHDClickAction    = "sortsingle";
+ 	GridObj.strActiveRowBgColor = "232|245|213";    //¼±ÅÃµÈ ÇàÀÇ ¹è°æ»ö»óÀ» ¼³Á¤ÇÑ´Ù.
+	GridObj.strSelectedCellBgColor = '232|232|255'; //Drag·Î ¼±ÅÃµÈ ¼¿ÀÇ ¹è°æ»ö»óÀ» º¯°æÇÒ ¼ö ÀÖ´Ù 	
+	GridObj.strSelectedCellFgColor = '0|0|0';
+	GridObj.strMouseWheelAction='page'; // page ´ÜÀ§ scroll ->±âº»Àº 'default'   
+
+	// Header Font Setting
+	GridObj.strHDFontName = '¸¼Àº °íµñ';
+	GridObj.nHDFontSize = 10;				  	// Font Size 9
+	GridObj.bHDFontBold = true; 
+
+    //Çì´õÀÇ ¶óÀÎ¼ö¸¦ ¼³Á¤ÇÑ´Ù. 
+    GridObj.nHDLines = 1; 
+    GridObj.bStatusbarVisible = false;				// status bar visible »óÅÂ¹Ù ¼³Á¤ 
+    
+ 
+}
+  
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢È­¸é ±âº» ¼³Á¤ ºÎºÐ.
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+function setDefault2() { 
+
+    GridObj2.nHDLineSize         = 26; //Header Size
+    //GridObj.strHDClickAction    = "sortsingle";
+ 	GridObj2.strActiveRowBgColor = "232|245|213";    //¼±ÅÃµÈ ÇàÀÇ ¹è°æ»ö»óÀ» ¼³Á¤ÇÑ´Ù.
+	GridObj2.strSelectedCellBgColor = '232|232|255'; //Drag·Î ¼±ÅÃµÈ ¼¿ÀÇ ¹è°æ»ö»óÀ» º¯°æÇÒ ¼ö ÀÖ´Ù 	
+	GridObj2.strSelectedCellFgColor = '0|0|0'; 
+	GridObj2.strMouseWheelAction='page'; // page ´ÜÀ§ scroll ->±âº»Àº 'default'   
+
+	// Header Font Setting
+	GridObj2.strHDFontName = '¸¼Àº °íµñ';
+	GridObj2.nHDFontSize = 10;				  	// Font Size 9
+	GridObj2.bHDFontBold = true; 
+
+    //Çì´õÀÇ ¶óÀÎ¼ö¸¦ ¼³Á¤ÇÑ´Ù. 
+    GridObj2.nHDLines = 1; 
+    GridObj2.bStatusbarVisible = false;				// status bar visible »óÅÂ¹Ù ¼³Á¤ 
+    
+ 
+}
+     
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢ÇØ´õ»ý¼º
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+function setHeader(GridObj) {        
+       
+	var header_length = 0, j;
+	
+	var item_id		= document.frm.item_id.value;
+	
+	GridObj.AddHeader("CRUD"		,"CRUD"       		,"t_text" 	,100    ,0  ,false);
+ 	GridObj.AddHeader("ITEM_ID"		,"ITEM_ID"       	,"t_text" 	,400	,0  ,false); //0   
+ 	GridObj.AddHeader("ITEM_NAME"	,"ITEM_NAME"       	,"t_text" 	,400	,0  ,false); //0   
+ 	GridObj.AddHeader("PROD_VER"	,"»ý»ê¹öÀü"       	,"t_text" 	,400	,60  ,false); //0   
+ 	GridObj.AddHeader("PROC_ID"		,"PROC_ID"       	,"t_text" 	,400	,0  ,false); //0   
+ 	GridObj.AddHeader("PROC_NAME"	,"ÀÛ¾÷Àå"       		,"t_text" 	,400	,90 ,false); //0   
+ 	GridObj.AddHeader("BOX_COST"	,"BOX´ç ÀÛ¾÷ºñ"		,"t_number" ,20.3	,120  ,true); //0   
+ 	GridObj.AddHeader("WORK_CAPA"	,"ÀÏ CAPA"			,"t_number" ,20.3	,70  ,true); //0   
+ 	GridObj.AddHeader("BOX_COST_START"	,"´Ü°¡Àû¿ë ½ÃÀÛÀÏ" 	,"t_text" 	,20		,110  ,true); //0   
+ 	GridObj.AddHeader("BOX_COST_END"	,"´Ü°¡Àû¿ë Á¾·áÀÏ" 	,"t_text" 	,20		,110  ,true); //0   
+
+
+	GridObj.BoundHeader();	
+
+
+	GridObj.SetColFix('PROC_NAME');
+
+	GridObj.SetCRUDMode("CRUD");  // AD¿Í DE°¡ ¼ÂÆÃ µÉ °æ¿ì´Â ¾ø´Ù.
+	GridObj.SetNumberFormat("BOX_COST"  , "#,##0.###");  
+	GridObj.SetNumberFormat("WORK_CAPA"  , "#,##0.###");  
+	
+
+	//Hidden ÄÃ·³  
+	GridObj.SetColHide("CRUD",true);  
+	
+
+}
+
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢ÇØ´õ»ý¼º
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+function setHeader2(GridObj) {        
+       
+	var header_length = 0, j;
+	
+	var item_id		= document.frm.item_id.value;
+	
+	GridObj2.AddHeader("CRUD"		,"CRUD"       		,"t_text" 	,100    ,0  ,false);
+ 	GridObj2.AddHeader("ITEM_ID"	,"ITEM_ID"       	,"t_text" 	,400	,0  ,false); //0   
+ 	GridObj2.AddHeader("ITEM_NAME"	,"ITEM_NAME"       	,"t_text" 	,400	,0  ,false); //0   
+ 	GridObj2.AddHeader("PROD_VER"	,"»ý»ê¹öÀü"       	,"t_text" 	,400	,60  ,false); //0   
+ 	GridObj2.AddHeader("PROC_ID"	,"PROC_ID"       	,"t_text" 	,400	,0  ,false); //0   
+ 	GridObj2.AddHeader("PROC_NAME"	,"ÀÛ¾÷Àå"       		,"t_text" 	,400	,90 ,false); //0   
+ 	
+ 	GridObj2.AddHeader("MEN_TO"		,"(³²)"     			,"t_number" ,20.3	,70  ,true); //0   
+ 	GridObj2.AddHeader("WOMEN_TO"	,"(¿©)"     			,"t_number" ,20.3	,70  ,true); //0   
+ 	GridObj2.AddHeader("MEN_COST"	,"(³²)"     			,"t_number" ,20.3	,70  ,true); //0   
+ 	GridObj2.AddHeader("WOMEN_COST"	,"(¿©)"     			,"t_number" ,20.3	,70  ,true); //0   
+ 	GridObj2.AddHeader("MAN_COST_START"	,"ÀÎ°ÇºñÀû¿ë ½ÃÀÛÀÏ"   ,"t_text" 	,400	,115  ,true); //0   
+ 	GridObj2.AddHeader("MAN_COST_END"	,"ÀÎ°ÇºñÀû¿ë Á¾·áÀÏ"   ,"t_text" 	,400	,115 ,false); //0  
+
+	GridObj2.AddGroup("HD1"	,"ÅõÀÔÀÎ¿ø");			//±×¸®µå¿¡ ±×·ìÀ» µî·ÏÇÑ´Ù. 
+	GridObj2.AppendHeader("HD1", "MEN_TO");
+	GridObj2.AppendHeader("HD1", "WOMEN_TO");
+
+	GridObj2.AddGroup("HD2"	,"ÀÎ´ç ÀÛ¾÷ºñ");			//±×¸®µå¿¡ ±×·ìÀ» µî·ÏÇÑ´Ù. 
+	GridObj2.AppendHeader("HD2", "MEN_COST");
+	GridObj2.AppendHeader("HD2", "WOMEN_COST");
+
+
+
+	GridObj2.BoundHeader();	
+
+
+	GridObj2.SetColFix('PROC_NAME');
+
+	GridObj2.SetCRUDMode("CRUD");  // AD¿Í DE°¡ ¼ÂÆÃ µÉ °æ¿ì´Â ¾ø´Ù.
+	GridObj2.SetNumberFormat("MEN_TO"  	 , "#,##0.###");  
+	GridObj2.SetNumberFormat("WOMEN_TO"  , "#,##0.###");  
+	GridObj2.SetNumberFormat("MEN_COST"  , "#,##0.###");  
+	GridObj2.SetNumberFormat("WOMEN_COST", "#,##0.###");  
+	
+
+	//Hidden ÄÃ·³  
+	GridObj2.SetColHide("CRUD",true);
+	
+
+}
+
+   
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢È­¸é¿¡ 'Á¶È¸'¸¦ ´©¸£¸é È£Ãâ Fnc
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+   function GoSearch(service) 
+   {
+   	//alert("GoSearch");
+   	//alert(service);
+       doQuery2();
+       doQuery();
+   }
+
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢Ã¹¹øÂ° ±×¸®µåÀÇ Á¶È¸ Äõ¸®¸¦ È£Ãâ Fnc
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+function doQuery() 
+{
+	var servlet_url = Project_name+"/servlet/com.wisegrid.admin."+job_id;
+	
+	var item_id		= document.frm.item_id.value;
+
+
+	//alert(item_id);
+
+	   
+	//³Ñ°ÜÁÙ °ªµéÀ»¸¸µç´Ù.( ÆÄ¶ó¹ÌÅÍ Á¤ÀÇ ºÎºÐ )
+	GridObj.SetParam("mode", "search");
+	GridObj.SetParam("item_id", item_id);
+	   
+	GridObj.DoQuery(servlet_url);
+}
+
+function doQuery2() 
+{
+	var servlet_url = Project_name+"/servlet/com.wisegrid.admin."+job_id;
+	
+	var item_id		= document.frm.item_id.value;
+
+
+	//alert(item_id);
+
+	   
+	//³Ñ°ÜÁÙ °ªµéÀ»¸¸µç´Ù.( ÆÄ¶ó¹ÌÅÍ Á¤ÀÇ ºÎºÐ )
+	GridObj2.SetParam("mode", "search2");
+	GridObj2.SetParam("item_id", item_id);
+	   
+	GridObj2.DoQuery(servlet_url);
+}
+
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢È­¸é¿¡ 'ÀúÀå'¸¦ ´©¸£¸é È£Ãâ Fnc
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+function GoReg  (service) {
+
+	var servlet_url = Project_name+"/servlet/com.wisegrid.admin."+job_id;
+    
+	//³Ñ°ÜÁÙ °ªµéÀ»¸¸µç´Ù.( ÆÄ¶ó¹ÌÅÍ Á¤ÀÇ ºÎºÐ )
+	GridObj.SetParam("mode", "doReg");
+	var wo_id;
+	
+	GridObj.SetParam("item_id",		document.frm.item_id.value);
+	GridObj.SetParam("bm", 			document.frm.bm.value);
+	GridObj.SetParam("oper_type",	document.frm.oper_type.value);
+	GridObj.SetParam("oper_qty", 	document.frm.oper_qty.value);
+	GridObj.SetParam("cust_type", 	document.frm.cust_type.value);
+	GridObj.SetParam("qty_uom", 	document.frm.qty_uom.value);
+	GridObj.SetParam("start_date", 	document.frm.start_date.value);
+	GridObj.SetParam("end_date", 	document.frm.end_date.value);
+	GridObj.SetParam("user_id", 	document.frm._user_id.value);
+	
+	
+	GridObj.DoQuery(servlet_url, "WISEGRIDDATA_ALL");
+	
+	
+	var in_paramKey = "plant_id!%!proc_id!%!start_date";
+	var in_paramCode = plant_id+"!%!"+proc_id+"!%!"+start_date;
+
+	/* µ¿ÀÏµ¥ÀÌÅÍ°¡ ÀÖ´ÂÁö È®ÀÎÇØ º¸¾Æ¾ßÇÔ 
+	commonUtil.getCodeInfo(in_paramKey,in_paramCode,"sc_13010_set_prod_order_get_max_wo_id", { 
+		callback:function(arrList){
+			if( arrList.length == 1 ) {
+
+			wo_id = arrList[0][0];		
+			GridObj.SetParam("wo_id", 		wo_id);
+			//WiseGridÀÌ ¼­¹ö¿Í Åë½Å½Ã¿¡ µ¥ÀÌÅÍ¸¦ Àü´ÞÇÏ´Â ¸Þ¼­µåÀÔ´Ï´Ù. Åë½ÅÀÌ ¼º°øÇÏ¸é true¸¦ ¹ÝÈ¯ÇÕ´Ï´Ù.
+			GridObj.DoQuery(servlet_url, "WISEGRIDDATA_ALL");
+					
+			}
+			else {
+				return;
+			}
+		}
+	});	
+	*/
+}
+      
+
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢µ¥ÀÌÅÍ Á¶È¸°¡ Á¤»óÀûÀ¸·Î ¿Ï·áµÇ¸é ¹ß»ýµÇ´Â Event¿¡ ´ëÇÑ Fnc
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+function GridEndQuery() 
+{
+    var endMode = GridObj.GetParam("mode");	
+    var error_msg = '';
+      
+    if(endMode == "search"||endMode == "search2") //Á¶È¸°¡ ¿Ï·áµÈ °æ¿ì
+    {
+        if(GridObj.GetStatus() == "true") 
+        {                           
+        	var row_cnt = GridObj.GetRowCount();
+			var colBGColor='232|245|213';
+			
+			for( var i=0 ;i<row_cnt ;i++) //ÀüÃ¼ Row¸¸Å­ ¹Ýº¹ ÇÑ´Ù.
+	        {
+		    	GridObj.SetCellBgColor('BOX_COST', i, '255|255|0'); 
+		    	GridObj.SetCellBgColor('WORK_CAPA', i, '255|255|0'); 
+	        }
+                 
+        } else
+        { 
+            error_msg = GridObj.GetMessage(); 
+            alert(error_msg);            
+		}
+    }else if(endMode == "doReg"){
+    	//alert("service_url="+service_url);
+    	var	idu_mode	='REG';
+    	var service_url = "service.do?_moon_service=sc_13020_set_prod_mst_reg_pop";
+    	service_url += "&idu_mode=" + idu_mode;
+		var pop_win_style = "titlebar=no, menubar=no, toolbar=no, status=yes, scrollbars=no, resizable=yes, width=700, height=330, top=200, left=200";
+		//var newWin = window.open(service_url, "sc_13010_set_prod_order_reg_pop", pop_win_style);
+		alert("ÀúÀåÀÌ ¿Ï·áµÇ¾ú½À´Ï´Ù");
+		window.close();  
+		var newWin = window.open(service_url, "sc_13020_set_prod_mst_reg_pop", pop_win_style);
+		//var newWin = window.open(service_url, "sc_13010_set_prod_order_reg_pop", pop_win_style);
+		newWin.focus();
+		//window.opener.document.location.reload();
+		window.opener.GoSearch();
+    }else{
+    	window.opener.GoSearch();
+    }
+	//GridObj.SetCellBgColor('QTY', 2, color_edit_col);
+	
+	 doQuery2();
+}
+
+
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢µ¥ÀÌÅÍ Á¶È¸°¡ Á¤»óÀûÀ¸·Î ¿Ï·áµÇ¸é ¹ß»ýµÇ´Â Event¿¡ ´ëÇÑ Fnc
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+function GridEndQuery2() 
+{
+    var endMode = GridObj2.GetParam("mode");	
+    var error_msg = '';
+      
+    if(endMode == "search"||endMode == "search2") //Á¶È¸°¡ ¿Ï·áµÈ °æ¿ì
+    {
+        if(GridObj2.GetStatus() == "true") 
+        {                           
+        	var row_cnt = GridObj2.GetRowCount();
+			var colBGColor='232|245|213';
+			
+			for( var i=0 ;i<row_cnt ;i++) //ÀüÃ¼ Row¸¸Å­ ¹Ýº¹ ÇÑ´Ù.
+	        {
+		    	GridObj2.SetCellBgColor('MEN_TO', i, '255|255|0'); 
+		    	GridObj2.SetCellBgColor('WOMEN_TO', i, '255|255|0'); 
+		    	GridObj2.SetCellBgColor('MEN_COST', i, '255|255|0'); 
+		    	GridObj2.SetCellBgColor('WOMEN_COST', i, '255|255|0'); 	        }
+                 
+        } else
+        { 
+            error_msg = GridObj2.GetMessage(); 
+            alert(error_msg);            
+		}
+    }
+}
+
+
+function GridCellClick(strColumnKey, nRow){
+
+	
+}
+
+function GridChangeCell(strColumnKey, nRow, nOldValue, nNewValue) {
+
+	
+}
+
+
+
+function getList(){
+	var key = event.keyCode;
+	// TAB(9) or ENTER(13)
+	if(event.keyCode == "13" ) {
+		doQuery();		
+	}else{
+		doQuery();
+	}
+}
+
+// Á¦Ç° ÀÔ·ÂÃ¢¿¡ ÀÔ·ÂÇÑ °ª°ú ÀÏÄ¡ÇÏ´Â Á¦Ç° °Ë»ç ÈÄ, ÀÏÄ¡ÇÏ´Â Á¦Ç°ÀÌ ÀÖÀ¸¸é Á¦Ç° ÄÚµå, Á¦Ç° ¸í Ç¥½Ã
+function getItemName(objBox) {
+	
+	if( objBox.value == "" || objBox.value == null ) {
+		document.frm.item_name.value = "";
+		return;
+	}
+	commonUtil.getSelQeury("input_value", objBox.value, "get_set_prod_item_code", {    //getCodeList  getCodeInfo getSelQeury
+		callback:function(arrList){
+			
+			// ÀÏÄ¡ÇÏ´Â Á¦Ç° ¾øÀ½
+			if( arrList.length == 1 ) {
+				objBox.value = arrList[0][0];
+				document.frm.item_name.value = arrList[0][1];
+				document.frm.spec.value = arrList[0][2];
+			}
+			else if( arrList.length > 1){							
+				document.frm.item_name.value = "";
+				document.frm.spec.value = "";
+			}
+			else {
+				return;
+			}
+		}
+	});
+	/* Á¦Ç°ÄÚµå ÀÔ·Â½Ã ÇÏ´Ü ±×¸®µå Á¶È¸ */
+	getList();
+}
+
+// Á¦Ç° °Ë»ö popup
+// create pop-up : search item
+// code_input : code input(search value) input-box name 
+// w_size : size of popup window width, h_size : size of popup window height ==> optional parameter 
+function openItemSearchPop( code_input, w_size, h_size ) { 
+
+	// popup Ã¢ÀÇ input box Ç¥½Ã data : search code 
+	var code_input = document.getElementById(code_input).value; 
+
+	if( !(w_size) ) { 
+		var w_size = 400; 
+		var h_size = 400; 
+	} 
+	
+	var service_url = "service.do?_moon_service=sc_13010_item_search_popup&code_input=" + code_input; 
+	service_url += "&_moon_perpage=200&_moon_pagenumber=1"; 
+	
+	var pop_win_style = "titlebar=no, menubar=no, toolbar=no, status=yes, scrollbars=no, resizable=yes, width=" + w_size + ", height=" + h_size + ", top=0, left=0"; 
+	var newWin = window.open(service_url, "Code_Search", pop_win_style); 
+	newWin.focus(); 
+	
+	
+}
+

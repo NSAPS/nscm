@@ -1,0 +1,1082 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>	
+
+<!--
+=====================================================================================================
+	기준정보 >> 판매계획 >> 일간판매계획
+=====================================================================================================
+-->
+
+	<!--
+	======================================================================
+		계획년도수립
+	======================================================================
+	-->
+
+	<query id="mon_plan_list">
+	
+	
+		SELECT	CY.YYYY
+  		  FROM
+		        (
+		        SELECT	TO_CHAR(ADD_MONTHS(SYSDATE, -12), 'YYYY') YYYY
+		          FROM  DUAL
+		         UNION ALL
+		        SELECT  TO_CHAR(SYSDATE, 'YYYY') YYYY
+		          FROM  DUAL
+		         UNION ALL
+		        SELECT  TO_CHAR(ADD_MONTHS(SYSDATE, +12), 'YYYY') YYYY
+		          FROM  DUAL
+		        ) CY
+	
+	</query>
+	
+	
+	
+	
+	<!--
+	======================================================================
+		버전-차수
+	======================================================================
+	-->
+	
+	
+	<query id="mon_plan_version_list">	
+	
+		SELECT  DISTINCT NW.VERSION, NW.SEQ, NW.YYYY
+		  FROM  NFOS_SALES_PLAN_WEEKLY NW
+		 WHERE  NW.MADE_TYPE != 'DE'
+		 ORDER  BY YYYY DESC, VERSION DESC, SEQ DESC
+          
+    </query>
+    
+    
+
+
+	<!--
+	======================================================================
+		영업지점
+	======================================================================
+	-->
+	
+	
+	<query id="sale_loc_list">	
+	
+		SELECT  DISTINCT HC.HID, HC.HID_NAME
+  		  FROM  HRCHY HC
+         WHERE  HC.HTYPE = '영업'
+		   AND  HC.LVL = '40'
+           AND  HC.MADE_TYPE != 'DE'
+         ORDER  BY HC.HID
+                  
+    </query> 
+    
+      
+    
+    
+    
+	<!--
+	======================================================================
+		배송지점 
+	======================================================================
+	-->
+	
+	
+	<query id="del_loc_list">
+
+     
+        SELECT  DC.DC_ID, DC.DC_NAME
+		  FROM  DC_MST DC
+		  		,(SELECT 'TMP' TP FROM DUAL) TMP
+		 WHERE  DC.MADE_TYPE != 'DE'
+		 ORDER  BY DC.DC_ID 
+          
+          
+    </query>
+    
+    
+    
+    
+    
+    
+ 	<!--
+	======================================================================
+		그리드  W, W+1 날짜들
+	======================================================================
+	-->
+	
+	<query id="date_list">
+	
+    
+		SELECT	TO_CHAR (DAY_D.DDD, 'MM/DD')
+				,TO_CHAR (DAY_D.DDD+1, 'MM/DD')
+				,TO_CHAR (DAY_D.DDD+2, 'MM/DD')
+				,TO_CHAR (DAY_D.DDD+3, 'MM/DD')
+				,TO_CHAR (DAY_D.DDD+4, 'MM/DD')
+				,TO_CHAR (DAY_D.DDD+5, 'MM/DD')
+				,TO_CHAR (DAY_D.DDD+6, 'MM/DD')
+				,TO_CHAR (DAY_D.DDD+7, 'MM/DD')||'~'||TO_CHAR (DAY_D.DDD+13, 'MM/DD')
+		  FROM
+				#if ("$!{creation_date}" == "")
+					(
+					SELECT  SYSDATE DDD
+					  FROM  DUAL
+					) DAY_D
+				#else
+					(
+					SELECT  TO_DATE (REPLACE ('$!{creation_date}', '-', ''),'YYYYMMDD') DDD
+					  FROM  DUAL
+					) DAY_D
+				#end
+    
+    </query>
+    
+    
+    
+    
+    
+	
+	<!--
+	======================================================================
+		일간판매계획조회
+	======================================================================
+	-->	
+	
+	
+	<query id="md_09010_nfosSalesPlanWeekly_list" paging="true">
+		
+		
+		SELECT	NW.SALES_LOC, NW.SALES_LOC_N, NW.DELIV_LOC, NW.DELIV_LOC_N
+				,NW.ITEM_ID, NW.ITEM_ID_N, NN.NAME
+				,MAX(CASE 
+			        WHEN NN.N_NUM = 1 AND NW.YYYYMMDD = TO_CHAR (DAY_D.DDD, 'YYYYMMDD') THEN NW.NORMAL_QTY
+			        WHEN NN.N_NUM = 2 AND NW.YYYYMMDD = TO_CHAR (DAY_D.DDD, 'YYYYMMDD') THEN NW.PROM_QTY
+			        WHEN NN.N_NUM = 3 AND NW.YYYYMMDD = TO_CHAR (DAY_D.DDD, 'YYYYMMDD') THEN NW.SUPT_QTY
+			        WHEN NN.N_NUM = 4 AND NW.YYYYMMDD = TO_CHAR (DAY_D.DDD, 'YYYYMMDD') THEN NW.SAMP_QTY
+		        ELSE 0 END) MMDD_0616
+		        ,MAX(CASE 
+			        WHEN NN.N_NUM = 1 AND NW.YYYYMMDD = TO_CHAR (DAY_D.DDD+1, 'YYYYMMDD') THEN NW.NORMAL_QTY
+			        WHEN NN.N_NUM = 2 AND NW.YYYYMMDD = TO_CHAR (DAY_D.DDD+1, 'YYYYMMDD') THEN NW.PROM_QTY
+			        WHEN NN.N_NUM = 3 AND NW.YYYYMMDD = TO_CHAR (DAY_D.DDD+1, 'YYYYMMDD') THEN NW.SUPT_QTY
+			        WHEN NN.N_NUM = 4 AND NW.YYYYMMDD = TO_CHAR (DAY_D.DDD+1, 'YYYYMMDD') THEN NW.SAMP_QTY
+		        ELSE 0 END) MMDD_0617
+		        ,MAX(CASE 
+			        WHEN NN.N_NUM = 1 AND NW.YYYYMMDD = TO_CHAR (DAY_D.DDD+2, 'YYYYMMDD') THEN NW.NORMAL_QTY
+			        WHEN NN.N_NUM = 2 AND NW.YYYYMMDD = TO_CHAR (DAY_D.DDD+2, 'YYYYMMDD') THEN NW.PROM_QTY
+			        WHEN NN.N_NUM = 3 AND NW.YYYYMMDD = TO_CHAR (DAY_D.DDD+2, 'YYYYMMDD') THEN NW.SUPT_QTY
+			        WHEN NN.N_NUM = 4 AND NW.YYYYMMDD = TO_CHAR (DAY_D.DDD+2, 'YYYYMMDD') THEN NW.SAMP_QTY
+		        ELSE 0 END) MMDD_0618
+		        ,MAX(CASE 
+			        WHEN NN.N_NUM = 1 AND NW.YYYYMMDD = TO_CHAR (DAY_D.DDD+3, 'YYYYMMDD') THEN NW.NORMAL_QTY
+			        WHEN NN.N_NUM = 2 AND NW.YYYYMMDD = TO_CHAR (DAY_D.DDD+3, 'YYYYMMDD') THEN NW.PROM_QTY
+			        WHEN NN.N_NUM = 3 AND NW.YYYYMMDD = TO_CHAR (DAY_D.DDD+3, 'YYYYMMDD') THEN NW.SUPT_QTY
+			        WHEN NN.N_NUM = 4 AND NW.YYYYMMDD = TO_CHAR (DAY_D.DDD+3, 'YYYYMMDD') THEN NW.SAMP_QTY
+		        ELSE 0 END) MMDD_0619
+		        ,MAX(CASE 
+			        WHEN NN.N_NUM = 1 AND NW.YYYYMMDD = TO_CHAR (DAY_D.DDD+4, 'YYYYMMDD') THEN NW.NORMAL_QTY
+			        WHEN NN.N_NUM = 2 AND NW.YYYYMMDD = TO_CHAR (DAY_D.DDD+4, 'YYYYMMDD') THEN NW.PROM_QTY
+			        WHEN NN.N_NUM = 3 AND NW.YYYYMMDD = TO_CHAR (DAY_D.DDD+4, 'YYYYMMDD') THEN NW.SUPT_QTY
+			        WHEN NN.N_NUM = 4 AND NW.YYYYMMDD = TO_CHAR (DAY_D.DDD+4, 'YYYYMMDD') THEN NW.SAMP_QTY
+		        ELSE 0 END) MMDD_0620
+		        ,MAX(CASE 
+			        WHEN NN.N_NUM = 1 AND NW.YYYYMMDD = TO_CHAR (DAY_D.DDD+5, 'YYYYMMDD') THEN NW.NORMAL_QTY
+			        WHEN NN.N_NUM = 2 AND NW.YYYYMMDD = TO_CHAR (DAY_D.DDD+5, 'YYYYMMDD') THEN NW.PROM_QTY
+			        WHEN NN.N_NUM = 3 AND NW.YYYYMMDD = TO_CHAR (DAY_D.DDD+5, 'YYYYMMDD') THEN NW.SUPT_QTY
+			        WHEN NN.N_NUM = 4 AND NW.YYYYMMDD = TO_CHAR (DAY_D.DDD+5, 'YYYYMMDD') THEN NW.SAMP_QTY
+		        ELSE 0 END) MMDD_0621
+		        ,MAX(CASE 
+			        WHEN NN.N_NUM = 1 AND NW.YYYYMMDD = TO_CHAR (DAY_D.DDD+6, 'YYYYMMDD') THEN NW.NORMAL_QTY
+			        WHEN NN.N_NUM = 2 AND NW.YYYYMMDD = TO_CHAR (DAY_D.DDD+6, 'YYYYMMDD') THEN NW.PROM_QTY
+			        WHEN NN.N_NUM = 3 AND NW.YYYYMMDD = TO_CHAR (DAY_D.DDD+6, 'YYYYMMDD') THEN NW.SUPT_QTY
+			        WHEN NN.N_NUM = 4 AND NW.YYYYMMDD = TO_CHAR (DAY_D.DDD+6, 'YYYYMMDD') THEN NW.SAMP_QTY
+		        ELSE 0 END) MMDD_0622
+		        ,SUM(CASE 
+			        WHEN NN.N_NUM = 1 AND NW.YYYYMMDD >= TO_CHAR (DAY_D.DDD+7, 'YYYYMMDD')  
+			         AND TO_CHAR (DAY_D.DDD+13, 'YYYYMMDD') >= NW.YYYYMMDD THEN NW.NORMAL_QTY
+			        WHEN NN.N_NUM = 2 AND NW.YYYYMMDD >= TO_CHAR (DAY_D.DDD+7, 'YYYYMMDD')  
+			         AND TO_CHAR (DAY_D.DDD+13, 'YYYYMMDD') >= NW.YYYYMMDD THEN NW.PROM_QTY
+			        WHEN NN.N_NUM = 3 AND NW.YYYYMMDD >= TO_CHAR (DAY_D.DDD+7, 'YYYYMMDD')  
+			         AND TO_CHAR (DAY_D.DDD+13, 'YYYYMMDD') >= NW.YYYYMMDD THEN NW.SUPT_QTY
+			        WHEN NN.N_NUM = 4 AND NW.YYYYMMDD >= TO_CHAR (DAY_D.DDD+7, 'YYYYMMDD')  
+			         AND TO_CHAR (DAY_D.DDD+13, 'YYYYMMDD') >= NW.YYYYMMDD THEN NW.SAMP_QTY
+		        ELSE 0 END) SUM_MMDD_0622_28
+  		  FROM  (
+         		SELECT	N2.YYYY, N2.VERSION, N2.SEQ, N2.DOMAIN, N2.SALES_LOC, SLM.HID_NAME SALES_LOC_N
+                     	,N2.DELIV_LOC, DN.DC_NAME DELIV_LOC_N, N2.ITEM_ID, IM.ITEM_NAME ITEM_ID_N
+                     	,N2.YYYYMMDD, N2.GUBUN, N2.NORMAL_QTY, N2.PROM_QTY, N2.SUPT_QTY, N2.SAMP_QTY
+                     	,N2.MADE_TYPE, N2.MADE_DTTM, N2.MADE_BY
+                  FROM  NFOS_SALES_PLAN_WEEKLY N2
+                  		,( SELECT  IM.ITEM_ID, IM.ITEM_NAME 
+			            	 FROM  ITEM_MST IM 
+			            	WHERE  IM.MADE_TYPE != 'DE' 
+		            	) IM
+			            ,( SELECT  HR.HID, HR.HID_NAME 
+			            	 FROM  HRCHY HR 
+			            	WHERE  HR.MADE_TYPE != 'DE' 
+			            	  AND  HR.HTYPE = '영업' 
+			            	  AND  HR.LVL_TYPE = 'SALES GROUP' 
+	            	 	) SLM
+			            ,( SELECT  DM.DC_ID, DM.DC_NAME 
+			                 FROM  DC_MST DM 
+			                WHERE  DM.MADE_TYPE != 'DE' 
+		                ) DN                      
+                 WHERE  SLM.HID = N2.SALES_LOC 
+                   AND  DN.DC_ID = N2.DELIV_LOC 
+                   AND  IM.ITEM_ID = N2.ITEM_ID
+                   AND  N2.MADE_TYPE != 'DE'
+                ) NW
+   			 	,(
+		        SELECT  '정상수량' NAME, 1 N_NUM
+		          FROM  DUAL
+		         UNION ALL
+		        SELECT  '행사수량' NAME, 2 N_NUM
+		          FROM  DUAL
+		         UNION ALL
+		        SELECT  '증정수량' NAME, 3 N_NUM
+		          FROM  DUAL
+		         UNION ALL
+		        SELECT  '시식수량' NAME, 4 N_NUM
+		          FROM  DUAL
+		        ) NN		        
+				#if ("$!{creation_date}" == "")
+		        	,(
+		        	SELECT  SYSDATE DDD
+					  FROM  DUAL
+	                ) DAY_D
+		        #else
+		        	,(
+			        SELECT  TO_DATE (REPLACE ('$!{creation_date}', '-', ''),'YYYYMMDD') DDD
+			          FROM  DUAL
+	                ) DAY_D
+		        #end		        
+		 WHERE  NW.YYYYMMDD BETWEEN TO_CHAR (DAY_D.DDD, 'YYYYMMDD') AND TO_CHAR (DAY_D.DDD+13, 'YYYYMMDD')
+		 		#if ("$!{mon_plan}" == "")
+		   			AND NW.YYYY = (
+		   					  SELECT  TO_CHAR (SYSDATE, 'YYYY')
+						  		FROM  DUAL
+					  		  )	
+		   		#else 		   
+		   			AND NW.YYYY = '$!{mon_plan}'
+		        #end		   
+			    #if ("$!{mon_plan_version}" == "")		
+	   		    	AND NW.VERSION||' - '||TO_CHAR(NW.SEQ) = 
+	   		    		(		   		
+						SELECT	MAX(SS.VERSION||' - '|| SS.SEQ) JVER
+	                      FROM  (
+	                            SELECT  DISTINCT NW.VERSION, NW.SEQ
+				                  FROM  NFOS_SALES_PLAN_WEEKLY NW
+				                 WHERE  NW.MADE_TYPE != 'DE'                 
+			   					) SS
+           				)
+	           	#else	   		   
+			   		AND NW.VERSION||' - '||TO_CHAR(NW.SEQ) = '$!{mon_plan_version}'
+				#end
+				#if ("$!{domain}" == "")
+		   	 		AND NW.DOMAIN = 'DO'
+		   		#else
+		     		AND NW.DOMAIN = '$!{domain}'
+		   		#end  		 		  
+				#if ("$!{gubun}" == "")
+					AND NW.GUBUN ='10'
+				#else
+   					AND NW.GUBUN = '$!{gubun}'
+  				#end
+				[AND NW.SALES_LOC = '${sale_loc}']
+				#if ("$!{mon_plan_version}" == "")
+  		   			AND NW.DELIV_LOC = '$!{del_loc}'
+  		   		#else
+  		   			[AND NW.DELIV_LOC = '${del_loc}']
+  		   		#end
+  		   AND  NW.ITEM_ID||NW.ITEM_ID_N LIKE '%'||'$!{item_id}'||'%'
+  		   AND  NW.ITEM_ID_N LIKE '%'||'$!{item_name}'||'%'	  		         	   		   
+		 GROUP  BY NW.SALES_LOC, NW.SALES_LOC_N,  NW.DELIV_LOC, NW.DELIV_LOC_N, NW.ITEM_ID
+		 		,NW.ITEM_ID_N, NN.N_NUM, NN.NAME
+		 ORDER  BY NW.SALES_LOC, NW.SALES_LOC_N,  NW.DELIV_LOC, NW.DELIV_LOC_N, NW.ITEM_ID
+	 			,NW.ITEM_ID_N, NN.N_NUM, NN.NAME	
+		
+		
+	</query>
+	
+
+
+<!--
+=====================================================================================================
+	기준정보 >> 판매계획 >> 월간판매계획
+=====================================================================================================
+-->
+
+
+	
+	<!--
+	======================================================================
+		버전 - 차수 
+	======================================================================
+	-->
+	
+
+	<query id="month_version_seq_list">
+	
+	
+		SELECT  DISTINCT PM.VERSION, PM.SEQ 
+		  FROM  NFOS_SALES_PLAN_MONTHLY PM
+		 WHERE  PM.MADE_TYPE != 'DE'
+		 ORDER  BY PM.VERSION DESC, PM.SEQ DESC
+	
+	
+	</query>
+	
+	
+	
+	
+	
+	<!--
+	======================================================================
+		영업지점 
+	======================================================================
+	-->
+	
+
+	<query id="month_sale_list">
+	
+	
+        SELECT  DISTINCT HC.HID, HC.HID_NAME
+          FROM  HRCHY HC
+         WHERE  HC.HTYPE = '영업'
+		   AND  HC.LVL = '40' 
+           AND	HC.MADE_TYPE != 'DE'
+         ORDER  BY HC.HID
+	
+	
+	</query>
+	
+	
+
+
+	<!--
+	======================================================================
+		배송지점 
+	======================================================================
+	-->
+	
+
+	<query id="month_deliv_list">
+	
+	
+		SELECT  DM.DC_ID, DM.DC_NAME
+          FROM  DC_MST DM
+          		,(SELECT 'TMP' TP FROM DUAL) TMP
+		 WHERE  DM.MADE_TYPE != 'DE'
+         ORDER  BY DM.DC_ID	
+         
+         
+	</query>
+	
+	
+	
+	
+	
+	
+	
+	
+	<!--
+	======================================================================
+		그리드 3개월 표시부분
+	======================================================================
+	-->
+	
+	
+	
+	<query id="month_list">
+	
+	
+		SELECT  TO_CHAR (ADD_MONTHS (MM.YYYYMM, 0), 'YYYY/MM')
+		        ,TO_CHAR (ADD_MONTHS (MM.YYYYMM, 1), 'YYYY/MM')
+		        ,TO_CHAR (ADD_MONTHS (MM.YYYYMM, 2), 'YYYY/MM')
+		  FROM 
+		 		#if ("$!{create_month}" == "")
+			        (
+			        SELECT  SYSDATE YYYYMM 
+			          FROM  DUAL
+			        ) MM		 		
+		 		#else
+			 		(
+					SELECT  TO_DATE (REPLACE ('$!{create_month}', '-', ''),'YYYYMM') YYYYMM
+					  FROM  DUAL
+					) MM
+				#end
+	
+	
+	</query>
+	
+	
+
+
+    
+	
+	<!--
+	======================================================================
+		월간판매계획조회
+	======================================================================
+	-->
+	
+	
+
+	<query id="md_09020_nfosSalesPlanMonthly_list" paging="true">
+		
+		
+		SELECT  NM.SALES_LOC, NM.SALES_LOC_N, NM.DELIV_LOC, NM.DELIV_LOC_N, NM.ITEM_ID, NM.ITEM_ID_N
+		       	,MAX(CASE WHEN NM.YYYYMM = TO_CHAR (ADD_MONTHS (DAY_M.MM, 0), 'YYYYMM') 
+		       		THEN NM.NORMAL_QTY ELSE 0 END) M1_NO_Q
+		   		,MAX(CASE WHEN NM.YYYYMM = TO_CHAR (ADD_MONTHS (DAY_M.MM, 0), 'YYYYMM') 
+		   			THEN NM.PROM_QTY ELSE 0 END) M1_PR_Q
+		       	,MAX(CASE WHEN NM.YYYYMM = TO_CHAR (ADD_MONTHS (DAY_M.MM, 0), 'YYYYMM') 
+		       		THEN NM.SUPT_QTY ELSE 0 END) M1_SUP_Q
+		       	,MAX(CASE WHEN NM.YYYYMM = TO_CHAR (ADD_MONTHS (DAY_M.MM, 0), 'YYYYMM') 
+		       		THEN NM.SAMP_QTY ELSE 0 END) M1_SA_Q		       
+			   	,MAX(CASE WHEN NM.YYYYMM = TO_CHAR (ADD_MONTHS (DAY_M.MM, 1), 'YYYYMM') 
+			   		THEN NM.NORMAL_QTY ELSE 0 END) M2_NO_Q
+			   	,MAX(CASE WHEN NM.YYYYMM = TO_CHAR (ADD_MONTHS (DAY_M.MM, 1), 'YYYYMM') 
+			   		THEN NM.PROM_QTY ELSE 0 END) M2_PR_Q
+			   	,MAX(CASE WHEN NM.YYYYMM = TO_CHAR (ADD_MONTHS (DAY_M.MM, 1), 'YYYYMM') 
+			   		THEN NM.SUPT_QTY ELSE 0 END) M2_SUP_Q
+			   	,MAX(CASE WHEN NM.YYYYMM = TO_CHAR (ADD_MONTHS (DAY_M.MM, 1), 'YYYYMM') 
+			   		THEN NM.SAMP_QTY ELSE 0 END) M2_SA_Q			   
+			   	,MAX(CASE WHEN NM.YYYYMM = TO_CHAR (ADD_MONTHS (DAY_M.MM, 2), 'YYYYMM') 
+			   		THEN NM.NORMAL_QTY ELSE 0 END) M3_NO_Q
+			   	,MAX(CASE WHEN NM.YYYYMM = TO_CHAR (ADD_MONTHS (DAY_M.MM, 2), 'YYYYMM') 
+			   		THEN NM.PROM_QTY ELSE 0 END) M3_PR_Q
+			   	,MAX(CASE WHEN NM.YYYYMM = TO_CHAR (ADD_MONTHS (DAY_M.MM, 2), 'YYYYMM') 
+			   		THEN NM.SUPT_QTY ELSE 0 END) M3_SUP_Q
+			   	,MAX(CASE WHEN NM.YYYYMM = TO_CHAR (ADD_MONTHS (DAY_M.MM, 2), 'YYYYMM') 
+			   		THEN NM.SAMP_QTY ELSE 0 END) M3_SA_Q
+		  FROM 
+		    	(
+		    	SELECT  PM.VERSION, PM.SEQ, PM.DOMAIN, PM.SALES_LOC, SLM.HID_NAME SALES_LOC_N
+		            	,PM.DELIV_LOC, DN.DC_NAME DELIV_LOC_N, PM.ITEM_ID, IM.ITEM_NAME ITEM_ID_N
+		            	,PM.YYYYMM, PM.GUBUN, PM.NORMAL_QTY, PM.PROM_QTY, PM.SUPT_QTY, PM.SAMP_QTY
+		            	,PM.MADE_TYPE, PM.MADE_DTTM, PM.MADE_BY
+	      		  FROM 	NFOS_SALES_PLAN_MONTHLY PM
+			            ,( SELECT  IM.ITEM_ID, IM.ITEM_NAME 
+			            	 FROM  ITEM_MST IM 
+			            	WHERE  IM.MADE_TYPE != 'DE' 
+		            	) IM
+			            ,( SELECT  HR.HID, HR.HID_NAME 
+			            	 FROM  HRCHY HR 
+			            	WHERE  HR.MADE_TYPE != 'DE' 
+			            	  AND  HR.HTYPE = '영업' 
+			            	  AND  HR.LVL_TYPE = 'SALES GROUP' 
+	            	 	) SLM
+			            ,( SELECT  DM.DC_ID, DM.DC_NAME 
+			                 FROM  DC_MST DM 
+			                WHERE  DM.MADE_TYPE != 'DE' 
+		                ) DN            	      		                                      
+		     	 WHERE 	SLM.HID = PM.SALES_LOC 
+		       	   AND  PM.DELIV_LOC = DN.DC_ID(+)
+		       	   AND 	IM.ITEM_ID = PM.ITEM_ID
+		       	   AND  PM.MADE_TYPE !='DE'
+		    	) NM
+		    	#if ("$!{create_month}" == "")
+		    		,(
+		    		SELECT  SYSDATE MM
+		    		  FROM	DUAL
+		    		) DAY_M		    		
+		    	#else    	
+			    	,(
+			    	SELECT  TO_DATE (REPLACE ('$!{create_month}', '-', ''),'YYYYMM') MM
+			          FROM  DUAL
+			    	) DAY_M
+		    	#end
+		 WHERE	NM.YYYYMM BETWEEN TO_CHAR (ADD_MONTHS (DAY_M.MM, 0), 'YYYYMM') AND  TO_CHAR (ADD_MONTHS (DAY_M.MM, 2), 'YYYYMM')		 
+		 		#if ("$!{month_version_seq}" == "")
+		 			AND NM.VERSION||' - '||TO_CHAR(NM.SEQ) =
+		 				(		 				
+						SELECT  MAX(SM.VERSION||' - '||SM.SEQ) 
+						  FROM
+						        (
+						        SELECT  DISTINCT VERSION, SEQ 
+						          FROM  NFOS_SALES_PLAN_MONTHLY
+						         WHERE  MADE_TYPE != 'DE'
+						        ) SM
+						)
+				#else
+					AND NM.VERSION||' - '||TO_CHAR(NM.SEQ) = '$!{month_version_seq}'
+				#end
+				[AND NM.SALES_LOC = '${month_sale}']
+				#if ("$!{month_version_seq}" == "")
+					AND NM.DELIV_LOC = '$!{month_deliv}'
+				#else
+					[AND NM.DELIV_LOC = '${month_deliv}']
+				#end				 
+		 		#if ("$!{domain}" == "")
+		 			AND NM.DOMAIN = 'DO'
+		 		#else
+		 			AND NM.DOMAIN = '$!{domain}'
+		 		#end
+		 
+		 		#if ("$!{gubun}" == "")
+		 			AND NM.GUBUN = '10'
+		 		#else
+		 			AND NM.GUBUN = '$!{gubun}'
+		 		#end
+		   AND  NM.ITEM_ID||NM.ITEM_ID_N LIKE '%'||'$!{item_id}'||'%'
+		   AND  NM.ITEM_ID_N LIKE '%'||'$!{item_name}'||'%'		 		
+		 GROUP	BY NM.SALES_LOC, NM.SALES_LOC_N, NM.DELIV_LOC, NM.DELIV_LOC_N, NM.ITEM_ID, NM.ITEM_ID_N
+		 ORDER	BY NM.SALES_LOC, NM.SALES_LOC_N, NM.DELIV_LOC, NM.DELIV_LOC_N, NM.ITEM_ID, NM.ITEM_ID_N
+
+		
+		
+	</query>
+
+<!--
+=====================================================================================================
+	기준정보  >> 공통 >> 주문조회
+=====================================================================================================
+--> 
+	
+	<!--
+	======================================================================
+		주문조회
+	======================================================================
+	-->
+	
+	<!-- 주문조회 -->
+	<query id="md_01110_nfosOrder_list" paging="true">
+			
+			SELECT 	DECODE(OD.DOMAIN, 'DO', '내수', '수출') , 
+					OD.LOC_ID, DM.DC_SHORT_NAME, OD.ITEM_ID, IM.ITEM_NAME
+				#if( "$!{due_date}" == "" )
+					, SUM(DECODE(TO_CHAR(OD.DUE_DATE, 'YYYYMMDD'), TO_CHAR(SYSDATE, 'YYYYMMDD'), OD.QTY, 0)) D01
+					, SUM(DECODE(TO_CHAR(OD.DUE_DATE, 'YYYYMMDD'), TO_CHAR(SYSDATE+1, 'YYYYMMDD'), OD.QTY, 0)) D02
+					, SUM(DECODE(TO_CHAR(OD.DUE_DATE, 'YYYYMMDD'), TO_CHAR(SYSDATE+2, 'YYYYMMDD'), OD.QTY, 0)) D03
+					, SUM(DECODE(TO_CHAR(OD.DUE_DATE, 'YYYYMMDD'), TO_CHAR(SYSDATE+3, 'YYYYMMDD'), OD.QTY, 0)) D04
+					, SUM(DECODE(TO_CHAR(OD.DUE_DATE, 'YYYYMMDD'), TO_CHAR(SYSDATE+4, 'YYYYMMDD'), OD.QTY, 0)) D05
+					, SUM(DECODE(TO_CHAR(OD.DUE_DATE, 'YYYYMMDD'), TO_CHAR(SYSDATE+5, 'YYYYMMDD'), OD.QTY, 0)) D06
+					, SUM(DECODE(TO_CHAR(OD.DUE_DATE, 'YYYYMMDD'), TO_CHAR(SYSDATE+6, 'YYYYMMDD'), OD.QTY, 0)) D07
+					, SUM(CASE WHEN TO_CHAR(OD.DUE_DATE, 'YYYYMMDD') BETWEEN TO_CHAR(SYSDATE+7, 'YYYYMMDD') 
+																		 AND TO_CHAR(SYSDATE+13, 'YYYYMMDD')
+							   THEN OD.QTY ELSE 0 
+					END) QTY
+				#else
+					, SUM(DECODE(TO_CHAR(OD.DUE_DATE, 'YYYYMMDD'), TO_CHAR(TO_DATE('$!{due_date}', 'YYYY-MM-DD'), 'YYYYMMDD'), OD.QTY, 0)) D01
+					, SUM(DECODE(TO_CHAR(OD.DUE_DATE, 'YYYYMMDD'), TO_CHAR(TO_DATE('$!{due_date}', 'YYYY-MM-DD')+1, 'YYYYMMDD'), OD.QTY, 0)) D02
+					, SUM(DECODE(TO_CHAR(OD.DUE_DATE, 'YYYYMMDD'), TO_CHAR(TO_DATE('$!{due_date}', 'YYYY-MM-DD')+2, 'YYYYMMDD'), OD.QTY, 0)) D03
+					, SUM(DECODE(TO_CHAR(OD.DUE_DATE, 'YYYYMMDD'), TO_CHAR(TO_DATE('$!{due_date}', 'YYYY-MM-DD')+3, 'YYYYMMDD'), OD.QTY, 0)) D04
+					, SUM(DECODE(TO_CHAR(OD.DUE_DATE, 'YYYYMMDD'), TO_CHAR(TO_DATE('$!{due_date}', 'YYYY-MM-DD')+4, 'YYYYMMDD'), OD.QTY, 0)) D05
+					, SUM(DECODE(TO_CHAR(OD.DUE_DATE, 'YYYYMMDD'), TO_CHAR(TO_DATE('$!{due_date}', 'YYYY-MM-DD')+5, 'YYYYMMDD'), OD.QTY, 0)) D06
+					, SUM(DECODE(TO_CHAR(OD.DUE_DATE, 'YYYYMMDD'), TO_CHAR(TO_DATE('$!{due_date}', 'YYYY-MM-DD')+6, 'YYYYMMDD'), OD.QTY, 0)) D07
+					, SUM(CASE WHEN TO_CHAR(OD.DUE_DATE, 'YYYYMMDD') BETWEEN TO_CHAR(TO_DATE('$!{due_date}', 'YYYY-MM-DD')+7, 'YYYYMMDD') 
+																		 AND TO_CHAR(TO_DATE('$!{due_date}', 'YYYY-MM-DD')+13, 'YYYYMMDD')
+							   THEN OD.QTY ELSE 0 
+					END) QTY
+				#end
+			  FROM 	NFOS_ORDER OD, DC_MST DM, ITEM_MST IM
+					,
+					(
+					SELECT	CAL_DATE
+					FROM	CAL_MST
+					#if( "$!{due_date}" == "" )
+				    WHERE 	CAL_DATE BETWEEN TO_CHAR(SYSDATE, 'YYYYMMDD') 
+				   											 AND TO_CHAR(SYSDATE+13, 'YYYYMMDD')
+					#else
+				    WHERE 	CAL_DATE BETWEEN TO_CHAR(TO_DATE('$!{due_date}', 'YYYY-MM-DD'), 'YYYYMMDD') 
+				   											 AND TO_CHAR(TO_DATE('$!{due_date}', 'YYYY-MM-DD')+13, 'YYYYMMDD')
+				#end
+					) CAL
+			 WHERE 	OD.IF_DTTM = '$!{due_date}' --(SELECT MAX(MX.IF_DTTM) IF_DTTM FROM NFOS_ORDER MX) 
+			   --AND 	OD.DUE_DATE = MX.DUE_DATE
+			   AND 	OD.DUE_DATE = CAL.CAL_DATE
+			   AND 	OD.LOC_ID  = DM.DC_ID
+			   AND 	OD.ITEM_ID = IM.ITEM_ID
+			#if( "$!{due_date}" == "" )
+			   AND  OD.ITEM_ID 	 = '$!{item_id}'		-- 제품코드
+			   AND  IM.ITEM_NAME = '$!{item_name}'	-- 제품명
+			#else
+			   AND  OD.ITEM_ID 	 LIKE '%'|| '$!{item_id}' ||'%'		-- 제품코드
+			   AND  IM.ITEM_NAME LIKE '%'|| '$!{item_name}' ||'%'	-- 제품명
+			#end
+			   [AND OD.LOC_ID = '${loc_id}']						-- 배송지점
+			   [AND OD.DOMAIN = '${domain}']						-- 내수/수출 구분
+			 GROUP 	BY OD.DOMAIN, OD.LOC_ID, DM.DC_NAME, DM.DC_SHORT_NAME, OD.ITEM_ID, IM.ITEM_NAME
+			 ORDER 	BY OD.LOC_ID, OD.ITEM_ID
+			
+	</query>
+	
+<!--
+=====================================================================================================
+	기준정보 >> 공통
+=====================================================================================================
+--> 
+		
+	
+	
+	<!--
+	======================================================================
+		품목별 CAPA 정보 누락 검증
+	======================================================================
+	-->
+	
+	
+	<query id="md_01011_masterDataVerification01_list" paging="true">
+		
+		
+		select 	dd.item_id, dd.item_name, dd.plant_id, dd.plant_name,
+		       	ca.line_id, ca.line_name, ca.proc_id, ca.proc_name, ca.capa_mc, ca.mc_qty
+		  from 	(
+		  		select 	dd.item_id, dd.item_name, dd.plant_id, pl.plant_name
+		          from 	(
+		          		select 	im.item_id, im.item_name
+		          				,decode(dt.plant_id, null, 'Undefined', dt.plant_id) plant_id
+		                  from 	item_mst im,
+		                       	item_dtl dt
+		                 where 	im.item_id = dt.item_id(+)
+		                   and 	im.itype = dt.itype(+)
+		                   and 	dt.plant_id != '1300'
+		                   and 	im.itype in ('FERT', 'HALB')
+		               	) dd,
+		               	(
+		               	select	 hid plant_id, hid_name plant_name
+		                  from 	hrchy
+		                 where	 lvl_type = '공장'
+		               	) pl        
+		         where 	dd.plant_id = pl.plant_id(+)  
+		       	) dd,
+				(
+				select	ic.item_id, ic.plant_id, ln.line_id, ln.line_name
+						,pc.proc_id, pc.proc_name, ic.capa_mc, mc_qty
+		          from 	item_capa ic,
+						(
+		               	select 	htype plant_id, hid line_id, hid_name line_name
+		                  from	hrchy
+		                 where 	lvl_type = '라인'
+						) ln,
+		               	(
+		             	select 	htype plant_id, hid proc_id, hid_name proc_name
+		                  from 	hrchy
+		                 where 	lvl_type = '작업장'
+		              	 ) pc
+		         where	ic.line_id = ln.line_id(+)
+		           and 	ic.proc_id = pc.proc_id(+)
+				   and	ic.item_type||'_'||ic.cons_item_type in ('FERT_HALB', 'HALB_HALB', 'FERT_', 'HALB_')       
+		      	 ) ca
+		 where 	dd.item_id  = ca.item_id(+)
+		   and 	dd.plant_id = ca.plant_id(+)
+		   and 	ca.line_id is null
+		   and  dd.item_id||dd.item_name like '%'||'${item_id}'||'%'
+		   and	dd.plant_id||dd.plant_name like '%'||'${plant_id}'||'%'
+		 order by item_id
+		 
+		 
+	</query>
+	
+	
+	
+	
+	
+
+	<!--
+	======================================================================
+		품목별 BOM 정보 누락 검증
+	======================================================================
+	-->
+
+		 
+	
+	<query id="md_01012_masterDataVerification02_list" paging="true">	
+	
+
+		select 	dd.itype, dd.item_id, dd.item_name, dd.plant_id
+				,dd.plant_name, bm.cons_item_id, f_get_item_name(cons_item_id)	cons_item_id_name, bm.cons_item_type
+		  from 	(
+		  		select 	dd.item_id, dd.itype, dd.item_name, dd.plant_id, pl.plant_name
+		          from 	(
+		          		select 	im.item_id, im.itype, im.item_name
+		          				,decode(dt.plant_id, null, 'Undefined', dt.plant_id) plant_id
+		                  from 	item_mst im,
+		                       	item_dtl dt
+		                 where 	im.item_id = dt.item_id(+)
+		                   and 	im.itype = dt.itype(+)
+		                   and 	dt.plant_id != '1300'
+		                   and 	im.itype in ('FERT', 'HALB')
+		               	) dd,
+		               	(
+		               	select	 hid plant_id, hid_name plant_name
+		                  from 	hrchy
+		                 where 	lvl_type = '공장'
+		               	) pl        
+		         where 	dd.plant_id = pl.plant_id(+)  
+		       	) dd,
+				(
+		       	select 	plant_id, prod_item_id, prod_item_type, cons_item_id, cons_item_type
+		          from 	mbom 
+		         where 	prod_item_type = 'FERT'
+		           and 	cons_item_type = 'HALB'
+		         union
+		        select 	bm.plant_id, bm.prod_item_id, bm.prod_item_type
+		        		,bm.cons_item_id, bm.cons_item_type
+		          from 	mbom mb,
+		               	mbom bm
+		         where 	mb.plant_id = bm.plant_id
+		           and 	mb.cons_item_id = bm.prod_item_id
+		           and 	mb.cons_item_type = bm.prod_item_type
+		           and 	mb.prod_ver = bm.prod_ver
+		           and 	bm.prod_item_type = 'HALB'
+		           and 	bm.cons_item_type = 'HALB'
+		         union
+		        select	distinct om.plant_id, om.prod_item_id, om.prod_item_type
+		        		,om.cons_item_id, om.cons_item_type
+		          from 	mbom mb,
+		               	mbom bm,
+		               	mbom om
+		         where 	mb.plant_id = bm.plant_id
+		           and	mb.cons_item_id = bm.prod_item_id
+		           and 	mb.cons_item_type = bm.prod_item_type
+		           and 	mb.prod_ver = bm.prod_ver
+		           and 	bm.plant_id = om.plant_id
+		           and 	bm.cons_item_id = om.prod_item_id
+		           and 	bm.cons_item_type = om.prod_item_type
+		           and 	bm.prod_ver = om.prod_ver
+		           and 	bm.prod_item_type = 'HALB'              
+				) bm
+		 where 	dd.item_id  = bm.prod_item_id(+)
+		   and 	dd.plant_id = bm.plant_id(+)
+		   and  dd.item_id||dd.item_name like '%'||'${item_id}'||'%'
+		   and	dd.plant_id||dd.plant_name like '%'||'${plant_id}'||'%'
+		 order by item_id 
+ 
+ 
+	</query>
+	
+	
+	
+	
+	
+	
+	<!--
+	======================================================================
+		BOM 정보 역전개 누락 검증
+	======================================================================
+	-->
+	
+	
+	
+	
+	<query id="md_01013_masterDataVerification03_list_call">
+	
+		  CALL	SP_VALIDCHK_MBOM('VALIDCHK', SYSDATE, 1, 1, 'NA', SYSDATE)
+	
+	</query>
+	
+	
+	
+	
+	<query id="md_01013_masterDataVerification03_list" paging="true">
+	
+	
+		SELECT  DT_ITEM_ID, IT_ITEM_NAME, DT_PLANT_ID, HR_PLANT_NAME
+		        ,BM_PLANT_ID, BM_CONS_ITEM_ID, BM_CONS_ITEM_TYPE
+		        ,BM_PROD_ITEM_ID, BM_PROD_ITEM_TYPE, BM_PROD_VER
+		  FROM  VALIDCHK_MBOM
+         WHERE  DT_ITEM_ID||IT_ITEM_NAME LIKE '%'||'${item_id}'||'%'
+           AND  DT_PLANT_ID||HR_PLANT_NAME LIKE '%'||'${plant_id}'||'%'
+		 ORDER BY DT_ITEM_ID, DT_PLANT_ID, BM_PROD_ITEM_ID, BM_CONS_ITEM_ID
+		 
+	
+	</query>
+
+
+
+
+
+
+	<!--
+	======================================================================
+		BOM vs CAPA정보 누락검증
+	======================================================================
+	-->
+
+
+	<query id="md_01014_masterDataVerification04_list_call">
+	
+		  CALL	SP_VALIDCHK_CAPA('VALIDCHK', SYSDATE, 1, 1, 'NA', SYSDATE)
+		  
+	</query>
+	
+	
+	
+	<query id="md_01014_masterDataVerification04_list" paging="true">
+	
+	
+		SELECT  BM_ITEM_ID, IT_ITEM_NAME, BM_PLANT_ID, HR_PLANT_NAME, BM_ITEM_TYPE
+		        ,IC_LINE_ID, IC_PROC_ID, IC_CAPA_MC, IC_MC_QTY
+		  FROM  VALIDCHK_CAPA
+		 WHERE  BM_ITEM_ID||IT_ITEM_NAME LIKE '%'||'${item_id}'||'%'
+           AND  BM_PLANT_ID||HR_PLANT_NAME LIKE '%'||'${plant_id}'||'%'		  
+		 ORDER BY BM_ITEM_ID, BM_PLANT_ID, BM_ITEM_TYPE, IC_LINE_ID, IC_PROC_ID
+		 
+	
+	</query>
+	
+	
+	
+	<!--
+	======================================================================
+		기준정보 Check
+	======================================================================
+	-->
+	
+	
+	
+	
+	<!-- 품목 마스타 조회  -->
+	<query id="md_01015_masterDataCheck_list">
+	
+
+		SELECT  ITYPE, ITEM_ID, ITEM_NAME, DIVISION, RECIPE_TYPE, MATERIAL_GROUP 
+		        ,SALES_CAT01, SALES_CAT02, SALES_CAT03, SALES_CAT04, SALES_CAT05 
+		        ,HR_TY1, HR_TY2, HR_TY3, HR_TY4, HR_TY5 
+		        ,SPEC, SPEC_UOM, QTY, BASE_UOM, CONV_QTY, CONV_UOM 
+		        ,TWGT_PER_BUOM, NWGT_PER_BUOM, VOL_PER_BUOM, VOL_UOM 
+		        ,MULTI_FLAG, QTY_PER_MULTI, QTY_PER_MULTI_UOM, BOX_PER_PALET 
+		        ,CROSDOCK_FLAG, MIN_PICK_QTY, PACK_PROC_FLAG 
+		        ,CAT01, CAT02, CAT03, CAT04, CAT05, CAT06, CAT07 
+		        ,TRANS_ALLOC_FLAG, PROD_ALLOC_FLAG, SCRAP_FLAG, ETC_FLAG, ITEM_STATUS, MADE_TYPE 
+		        ,TO_CHAR(MADE_DTTM, 'YYYY-MM-DD'), MADE_BY
+		  FROM  ITEM_MST
+		 WHERE  ITEM_ID = '$!{item_id}'
+		   AND	ITEM_STATUS = 'ST'
+	
+		  
+	
+	
+	</query>
+	
+	
+	
+	
+	<!-- 품목 디테일 조회 -->
+	<query id="md_01015_masterDataCheck_dtl_list">
+	
+	
+		SELECT  ITYPE, ITEM_ID, PLANT_ID, MIN_LOT_SIZE, MAX_LOT_SIZE
+		        ,STD_FIX_COST, STD_CHG_COST, REAL_FIX_COST, REAL_CHG_COST 
+		        ,PRIORITY, REP_ITEM_ID, REP_RATIO, BOX_PER_PALET
+		        ,MIN_PICK_QTY, ALLOC_RATE, MIN_ALLOC_QTY, DAYWEEK_PATTERN 
+		        ,MADE_TYPE, TO_CHAR(MADE_DTTM, 'YYYY-MM-DD'), MADE_BY
+		  FROM  ITEM_DTL
+		 WHERE  ITEM_ID = '$!{item_id}'
+		 
+ 
+	</query>
+	
+	
+	
+	
+	
+	
+	
+	<!-- BOM 정보(iframe) -->
+	<query id="md_01015_masterDataCheckBOM_list">
+
+
+		SELECT  DISTINCT LEVEL,
+		        BM.PLANT_ID         BM_PLANT_ID, 
+		        BM.CONS_ITEM_ID     BM_CONS_ITEM_ID, 
+		        BM.CONS_ITEM_TYPE   BM_CONS_ITEM_TYPE, 
+		        BM.PROD_ITEM_ID     BM_PROD_ITEM_ID, 
+		        BM.PROD_ITEM_TYPE   BM_PROD_ITEM_TYPE, 
+		        BM.PROD_VER         BM_PROD_VER,
+		        BM.CONS_QTY         BM_CONS_QTY,
+		        BM.CONS_QTY_UOM     BM_CONS_QTY_UOM,
+		        BM.PROD_QTY         BM_PROD_QTY,
+		        BM.PROD_QTY_UOM     BM_PROD_QTY_UOM,
+		        BM.YIELD            BM_YIELD,
+		        BM.ALT_BOM          BM_ALT_BOM,
+		        TO_CHAR(BM.VALID_START, 'YYYY-MM-DD') BM_VALID_START,
+		        TO_CHAR(BM.VALID_END, 'YYYY-MM-DD') BM_VALID_END,
+		        BM.MADE_TYPE        BM_MADE_TYPE,
+		        TO_CHAR(BM.MADE_DTTM, 'YYYY-MM-DD') BM_MADE_DTTM,
+		        BM.MADE_BY          BM_MADE_BY  
+		  FROM  (
+		        SELECT  DISTINCT PLANT_ID, 
+		                DECODE(CONS_ITEM_TYPE, 'ROH1', 'MAT', 'ROH2', 'MAT', CONS_ITEM_ID) CONS_ITEM_ID, 
+		                DECODE(CONS_ITEM_TYPE, 'ROH1', 'ROH', 'ROH2', 'ROH', CONS_ITEM_TYPE) CONS_ITEM_TYPE, 
+		                PROD_ITEM_ID, PROD_ITEM_TYPE, 
+		                PROD_VER, 
+		                DECODE(CONS_ITEM_TYPE, 'ROH1', NULL, 'ROH2', NULL, CONS_QTY) CONS_QTY, 
+		                DECODE(CONS_ITEM_TYPE, 'ROH1', NULL, 'ROH2', NULL, CONS_QTY_UOM) CONS_QTY_UOM, 
+		                PROD_QTY, PROD_QTY_UOM, YIELD, ALT_BOM, VALID_START, VALID_END,
+		                MADE_TYPE, MADE_DTTM, MADE_BY
+		          FROM  MBOM 
+		         WHERE  PROD_ITEM_TYPE||'_'||CONS_ITEM_TYPE IN ('FERT_HALB', 'HALB_HALB', 'HALB_ROH1', 'HALB_ROH2')
+		         ORDER BY PLANT_ID, PROD_ITEM_ID
+		        ) BM
+		START WITH PROD_ITEM_ID = '$!{item_id}'	
+		#if("$!{plant_id}" == "")
+			AND	PLANT_ID = 	(
+							SELECT  MIN(PLANT_ID)
+		  					  FROM  ITEM_DTL
+		 					 WHERE  ITEM_ID = '$!{item_id}'
+		 					 )
+		#else
+			AND	PLANT_ID = '$!{plant_id}'
+		#end
+		CONNECT BY PROD_ITEM_ID = PRIOR CONS_ITEM_ID AND PROD_ITEM_TYPE = PRIOR CONS_ITEM_TYPE AND PROD_VER = PRIOR PROD_VER 
+		ORDER BY LEVEL, PLANT_ID, CONS_ITEM_ID, PROD_ITEM_ID, CONS_ITEM_ID
+	
+	
+	</query>
+	
+	
+	
+	
+	
+	
+	
+	
+	<!-- ITEM_CAPA 정보  -->
+	<query id="md_01015_masterDataCheck_capa_list">
+	
+
+
+        SELECT  DISTINCT ITEM_TYPE, ITEM_ID, PLANT_ID, LINE_ID, PROC_ID, PROD_VER, OPER_ID 
+                ,DECODE(CONS_ITEM_TYPE, 'ROH1', 'MAT', 'ROH2', 'MAT', CONS_ITEM_ID) CONS_ITEM_ID 
+                ,DECODE(CONS_ITEM_TYPE, 'ROH1', 'ROH', 'ROH2', 'ROH', CONS_ITEM_TYPE) CONS_ITEM_TYPE 
+                ,CAPA_MC, QTY, QTY_UOM, CONV_QTY, CONV_UOM 
+                ,MIN_LOT_SIZE, MAX_LOT_SIZE, LABOR_MAN, LABOR_WOMAN, TO_CHAR(VALID_START, 'YYYY-MM-DD') 
+                ,TO_CHAR(VALID_END, 'YYYY-MM-DD'), SIMUL_PROC_FLAG, SERIAL_PROD_TYPE, TRANS_TIME, TRANS_TIME_UOM, TRANS_QTY 
+                ,MC_QTY, CAPA_MC_TYPE, ADD_TIME, MADE_TYPE, TO_CHAR(MADE_DTTM, 'YYYY-MM-DD'), MADE_BY
+          FROM  ITEM_CAPA
+		 WHERE  ITEM_ID = '$!{item_id}'
+         ORDER BY ITEM_TYPE, ITEM_ID, PLANT_ID, LINE_ID, PROC_ID, CONS_ITEM_ID
+
+ 		 
+ 		 
+	</query>
+	
+	
+	
+	
+	
+		
+	<!--
+	======================================================================
+		I/F Job Queue 리스트 관리
+	======================================================================
+	-->
+	
+	
+	
+	<!--I/F Job Queue Status 리스트 -->
+	<query id="jobqueue_status_list">
+	
+        SELECT  CD, CD_NAME 
+          FROM  CODE_MST
+         WHERE  CD_GRP = 'IF_JOB_QUEUE_STATUS'
+         ORDER BY CD_NAME DESC
+	
+	</query>
+	
+	
+	
+	
+	<!--I/F Job Queue Cycle 리스트 -->
+	<query id="jobqueue_cycle_list">
+	
+		SELECT  CD, CD_NAME 
+		  FROM  CODE_MST
+		 WHERE  CD_GRP = 'IF_JOB_QUEUE_CYCLE'
+	
+	</query>
+	
+	
+	
+	
+	
+	<!--I/F Job Queue 리스트 -->
+	<query id="md_01100_ifJobQueueControl_list">
+	
+	
+        SELECT  * 
+          FROM  (
+                SELECT  UJ.JOB, IJ.SP_NAME, IJ.SP_DESC, IJ.SP_STATUS
+                        --,(CASE WHEN UJ.BROKEN = 'N' THEN 'Y' ELSE 'N' END) UJ_STU
+                        ,IJ.RUN_CYCLE
+                        ,SUBSTR(IJ.RUN_TIME, 1, 2) RUN_TIME_H, SUBSTR(IJ.RUN_TIME, 3, 2) RUN_TIME_M
+                        ,SUBSTR(IJ.RUN_TIME, 1, 2)||':'||SUBSTR(IJ.RUN_TIME, 3, 2) RUN_TIME
+                        ,TO_CHAR(UJ.LAST_DATE, 'YYYY-MM-DD HH24:MI')
+                        ,TO_CHAR(UJ.NEXT_DATE, 'YYYY-MM-DD HH24:MI') 
+                        ,IJ.IF_SOURCE, IJ.IF_TARGET, IJ.IF_METHOD, IJ.IF_QTY                        
+                  FROM  IF_JOBQUEUE_CONTROL IJ, 
+                        (
+                        SELECT  JOB, LAST_DATE, NEXT_DATE, BROKEN, SUBSTR(WHAT,1,INSTR(WHAT,'(')-1) AS WHAT
+                        FROM    USER_JOBS                
+                        ) UJ   
+                 WHERE  IJ.SP_NAME = UJ.WHAT(+)   
+                 ORDER BY UJ.JOB, IJ.SP_NAME
+                ) DD
+         [WHERE  DD.SP_STATUS = '${status}']
+
+		 
+		
+	</query>
+	
+	
+	
+	
+	<!--I/F Job Queue 리스트 임시 컬럼에 저장-->
+	<query id="md_01100_ifJobQueueControl_list_save_01" iterator="sp_nam">
+	
+        UPDATE  IF_JOBQUEUE_CONTROL
+           SET  TEMP_SP_STATUS = (SELECT SP_STATUS FROM IF_JOBQUEUE_CONTROL WHERE SP_NAME = '$!{sp_nam}')
+                ,TEMP_RUN_CYCLE = (SELECT RUN_CYCLE FROM IF_JOBQUEUE_CONTROL WHERE SP_NAME = '$!{sp_nam}')
+                ,TEMP_RUN_TIME = (SELECT RUN_TIME FROM IF_JOBQUEUE_CONTROL WHERE SP_NAME = '$!{sp_nam}')
+         WHERE  SP_NAME = '$!{sp_nam}'	
+	
+	</query>	
+	
+	
+	
+	
+	<!--I/F Job Queue 리스트 저장-->
+	<query id="md_01100_ifJobQueueControl_list_save_02"  fix="_user_id" iterator="s_status r_cycle run_time_h run_time_m sp_nam">
+	
+	
+		UPDATE  IF_JOBQUEUE_CONTROL
+		   SET  SP_STATUS = '$!{s_status}'
+                ,RUN_CYCLE = '$!{r_cycle}'
+                ,RUN_TIME = '$!{run_time_h}$!{run_time_m}'
+		        ,MADE_DTTM = SYSDATE
+                ,MADE_BY = '$!{_user_id}'
+		 WHERE  MADE_TYPE != 'DE'
+		   AND	SP_NAME = '$!{sp_nam}'
+		 
+		 
+	</query>	
+	
+	
+	
+	
+	
+	<!-- SP_IF_JOB_QUEUE CALL --> 
+	<query id="md_01100_ifJobQueueControl_list_call">
+	
+		CALL  SP_IF_JOB_QUEUE()
+             
+	</query>
+	
+	
+	
+	
+	
+	
+
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+-->
+
+
+
+
+</queries>

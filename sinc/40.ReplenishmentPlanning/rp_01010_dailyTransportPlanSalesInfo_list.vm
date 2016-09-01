@@ -1,0 +1,241 @@
+############################################################
+## 프로그램ID : rp_01010_dailyTransportPlanSalesInfo_list.vm
+## 프로그램명 : 수송계획조회 및 조정 (생산계획, 판매계획 조회)
+## 개발자  : 허준성
+## 개발일자 : 2008-11-25 화요일
+##
+##관련 job file : job_sinc_40_replenishmentPlanning.xml
+##
+##관련 query file : query_sinc_40_replenishmentPlanning.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2008-11-25  허준성    rp_01010_dailyTransportPlanSalesInfo_list.vm 개발
+##
+##
+############################################################
+
+## 비정상적 접근 방지 
+#loginCheck()
+
+## 데이터 조회를 위한 조건 저장
+<input type="hidden" name="version" 		value="$!{version}">
+<input type="hidden" name="seq" 			value="$!{seq}">
+<input type="hidden" name="tgt_loc" 		value="$!{tgt_loc}">
+<input type="hidden" name="plan_type" 		value="plan_type">
+<input type="hidden" name="trans_date" 		value="$!{trans_date}">
+<input type="hidden" name="item_id" 		value="$!{item_id}">
+<input type="hidden" name="sale_yyyy" 		value="$!{sale_yyyy}">
+<input type="hidden" name="sale_version" 	value="$!{sale_version}">
+<input type="hidden" name="sale_seq" 		value="$!{sale_seq}">
+<input type="hidden" name="nfos_if_dttm" 	value="$!{nfos_if_dttm}">
+
+<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+
+    <table width="100%" heigth="85px" border="0" cellpadding="0" cellspacing="0">
+    	<tr>
+    		<td>	
+    			
+    			#if( ${dailyTransportPlanSchPlan_dateList.size()} > 0 )
+    				#set( $d01 = "${dailyTransportPlanSchPlan_dateList.get(0).get(0)}" )
+    				#set( $d02 = "${dailyTransportPlanSchPlan_dateList.get(0).get(1)}" )
+    				#set( $d03 = "${dailyTransportPlanSchPlan_dateList.get(0).get(2)}" )
+    				#set( $d04 = "${dailyTransportPlanSchPlan_dateList.get(0).get(3)}" )
+    				#set( $d05 = "${dailyTransportPlanSchPlan_dateList.get(0).get(4)}" )
+    				#set( $d06 = "${dailyTransportPlanSchPlan_dateList.get(0).get(5)}" )
+    				#set( $d07 = "${dailyTransportPlanSchPlan_dateList.get(0).get(6)}" )
+    			#end
+    			
+    			#set( $header = "공장!%!공장ID!%!출고가능!%!출고확정!%!출고후잔량" )
+    			#set( $header = "$!{header}!%!야간!%!조간!%!주간!%!야간!%!조간!%!주간!%!야간!%!조간!%!주간!%!야간!%!조간!%!주간!%!야간!%!조간!%!주간!%!야간!%!조간!%!주간!%!야간" )
+    			#set( $header = "$!{header}!%!제품 코드!%!제품 명" )
+    			
+    			## 이중헤더
+    			#set( $topheader = "$!{d01}/%/$!{d02}/%/$!{d03}/%/$!{d04}/%/$!{d05}/%/$!{d06}/%/$!{d07}" )
+    			#set( $topheaderPosition = "X!%!X!%!X!%!X!%!X!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O!%!X!%!X" )
+    			
+    			#set( $headerType = "TEXT!%!TEXT!%!NUMBER!%!NUMBER!%!NUMBER" )
+    			#set( $headerType = "$!{headerType}!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER" )
+    			#set( $headerType = "$!{headerType}!%!TEXT!%!TEXT" )
+    			#set( $colwidth = "100!%!0!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!0!%!0" )
+    			#set( $colalign = "CENTER!%!LEFT!%!RIGHT!%!RIGHT!%!RIGHT" )
+    			#set( $colalign = "$!{colalign}!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT" )
+    			#set( $colalign = "$!{colalign}!%!LEFT!%!LEFT" )
+    			#set( $data = $zlattice.getBody($!{rp_01010_dailyTransportPlanSchPlan_pop},"!%!", "/%/") ) 
+    			
+    			<textarea id="txt2" style="display:none;" rows="0" cols="0">
+    				<object name='grid'
+    					classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93" width="100%" height="85px"
+    					##codebase="http://java.sun.com/update/1.5.0/jinstall-1_5_0_03-windows-i586.cab#Version=1,5,3,0">
+    					codebase="http://javadl.sun.com/webapps/download/AutoDL?BundleId=19588#Version=6,0,050,13">
+    					<!--Necessary--> 
+    					<param name="code" value="com.zionex.t3sinc.ui.ZLattice">
+    					<param name="archive" value="zLattice.jar">
+    					<param name="headertypes" value= "$headerType">
+    					<param name="headers"  value= "$header">
+    					<param name="data" value= "$data">
+    					<!--Necessary for Modification Grid -->
+    					<param name="names" value= "" >
+    					<!--Necessary for Cookie -->
+    					<param name="identity" value="rp_01010_dailyTransportPlanSchPlan_pop">
+    					<!--Necessary in TYPE COMBO 
+    					<param name="combo9" value="DATA1!%!DATA2!%!DATA3">-->
+    					<!--optional - Default Value 있음-->
+    					<param name="columndelimeter" value="!%!"> <!-- defalut : !%! -->
+    					<param name="rowdelimeter" value="/%/"> <!-- defalut : /%/ -->
+    					<param name="showgroupingfunction" value="false">  <!-- defalut : true -->
+    					<param name="showprintingfunction" value="false">   <!-- defalut : true -->
+    					<param name="showlockingfunction" value="false"> <!-- defalut : true -->
+    					<param name="showpagingfunction" value="false"> <!-- defalut : true -->
+    					<param name="enablesorting" value="true">   <!-- defalut : true -->
+    					<param name="groupingcolumn" value="-1"> <!-- defalut : 그루핑 없음 -->
+    					<param name="groupsumcolumn" value="0"> <!-- defalut : 그루핑 없음 -->
+    					<param name="lockedcolumn" value="2"> <!-- defalut : 락킹 없음 -->
+    					<param name="presentpage" value="$_moon_pagenumber">   <!-- defalut : 1 -->
+    					<param name="listinpage" value="$_moon_perpage">   <!-- defalut : 40 -->
+    					<param name="bordertype" value="PLANE"> <!-- default - PLANE -->
+    					<param name="indateformat" value="yyyy-MM-dd"> <!-- default - yyyyMMdd -->
+    					<param name="outdateformat" value="yyyy-MM-dd">  <!-- default - yyyyMMdd -->									
+    					<param name="outnumberformat" value="&#035;,&#035;&#035;0"> 									 
+    					<param name="columnwidth" value="$colwidth"> <!-- default -80 -->
+    					<param name="hasverticaltotal" value="false"> <!-- default -true -->
+    					<param name="hashorizontaltotal" value="true"> <!-- default -true -->
+    					<param name="totalrowcolor" value="909090"> <!-- default ? E6E6FA -->
+    					<param name="totalverticalrowcolor" value="909090"> <!-- default ? E6E6FF -->
+    					<param name="totalhorizontalrowcolor" value="cccccc"> <!-- default ? E6E6FF -->
+    					<param name="hascookie" value="false"> <!-- default -false -->
+    					<param name="enableinserting" value="false"> <!-- default -false -->
+    					<param name="enabledeleting" value="false"> <!-- default -false -->
+    					<param name="enableediting" value="false"> <!-- default -false -->
+    					<!--optional - Default Value 없음-->
+    					##set( $colCor = "12=dfdfdf&13=dfdfdf&14=dfdfdf&18=dfdfdf&19=dfdfdf&20=dfdfdf" ) 
+    					<param name="columncolor" value="$!{colCor}">
+    					<param name="rowcolor" value="$!{rowCol}">
+    					<param name="onclickrowfunc" value="fillOpenWindow">
+    					<param name="callingfunction" value="DOUBLECLICKED_CALLING">
+    					<param name="disablecolumns" value="">
+    					<param name="columnalign" value="$colalign">
+    					<param name="font" value="굴림">
+    					<param name="fontsize" value="12">
+    					<param name="columnheight" value="35">
+    					<param name="headertype" value="HORIZONTAL_HEADER">
+    					
+    					## 이중 헤더
+    					<param name="hasnestedsubheader" value="true"> 
+    					<param name="topheaders" value="$!{topheader}">
+    					<param name="topheaderposition" value="$!{topheaderPosition}">
+    					<param name="enabledragging" value="true">
+    				</object>
+    			</textarea> 
+    			<script language="javascript" src="${project}/object_activity.jsp?txtID=txt2"></script>
+    		</td>
+    	</tr>
+    </table>
+</td></tr>
+<tr><td>	
+	<table border="0" width="100%" height="35px" cellpading="0" cellspacing="0">
+		<tr>
+    		<td>	
+    			
+    			#set( $header = "제품코드!%!제품명!%!당일재고!%!예상판매!%!예상재고!%!익일판매!%!익일재고!%!익일수송확정!%!익일수송계획!%!재고일수!%!월판매계획!%!월판매누계!%!평균판매실적!%!안전재고" )
+    			
+    			## 이중헤더
+    			##set( $topheader = "코드/%/속성1/%/속성2" )
+    			##set( $topheaderPosition = "X!%!O!%!O/%/X!%!O!%!O!%!O/%/O!%!O" )
+				#if($item_id == "")
+					#set($item_id = "빈아이템")
+				#end
+				#set( $rowCol = "1,$item_id=dfdfdf" )
+    			
+    			#set( $headerType = "TEXT!%!TEXT!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER" )
+    			#set( $colwidth = "0!%!100!%!60!%!60!%!60!%!60!%!60!%!75!%!75!%!60!%!70!%!70!%!60!%!60" )
+    			#set( $colalign = "LEFT!%!LEFT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT" )
+    			#set( $data = $zlattice.getBody($!{rp_01010_dailyTransportPlanSalesInfo_list},"!%!", "/%/") ) 
+    			
+    			<textarea id="txt1" style="display:none;" rows="0" cols="0"> 
+    				<object name='grid'
+    					classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93" width="100%" height="35px"
+    					##codebase="http://java.sun.com/update/1.5.0/jinstall-1_5_0_03-windows-i586.cab#Version=1,5,3,0">
+    					codebase="http://javadl.sun.com/webapps/download/AutoDL?BundleId=19588#Version=6,0,050,13">
+    					<!--Necessary--> 
+    					<param name="code" value="com.zionex.t3sinc.ui.ZLattice">
+    					<param name="archive" value="zLattice.jar">
+    					<param name="headertypes" value= "$headerType">
+    					<param name="headers"  value= "$header">
+    					<param name="data" value= "$data">
+    					<!--Necessary for Modification Grid -->
+    					<param name="names" value= "" >
+    					<!--Necessary for Cookie -->
+    					<param name="identity" value="rp_01010_dailyTransportPlanSalesInfo_list">
+    					<!--Necessary in TYPE COMBO 
+    					<param name="combo9" value="DATA1!%!DATA2!%!DATA3">-->
+    					<!--optional - Default Value 있음-->
+    					<param name="columndelimeter" value="!%!"> <!-- defalut : !%! -->
+    					<param name="rowdelimeter" value="/%/"> <!-- defalut : /%/ -->
+    					<param name="showgroupingfunction" value="false">  <!-- defalut : true -->
+    					<param name="showprintingfunction" value="false">   <!-- defalut : true -->
+    					<param name="showlockingfunction" value="false"> <!-- defalut : true -->
+    					<param name="showpagingfunction" value="false"> <!-- defalut : true -->
+    					<param name="enablesorting" value="true">   <!-- defalut : true -->
+    					<param name="groupingcolumn" value="-1"> <!-- defalut : 그루핑 없음 -->
+    					<param name="groupsumcolumn" value="0"> <!-- defalut : 그루핑 없음 -->
+    					<param name="lockedcolumn" value="1"> <!-- defalut : 락킹 없음 -->
+    					<param name="presentpage" value="$_moon_pagenumber">   <!-- defalut : 1 -->
+    					<param name="listinpage" value="$_moon_perpage">   <!-- defalut : 40 -->
+    					<param name="bordertype" value="PLANE"> <!-- default - PLANE -->
+    					<param name="indateformat" value="yyyy-MM-dd"> <!-- default - yyyyMMdd -->
+    					<param name="outdateformat" value="yyyy-MM-dd">  <!-- default - yyyyMMdd -->									
+    					<param name="outnumberformat" value="&#035;,&#035;&#035;0"> 									 
+    					<param name="columnwidth" value="$colwidth"> <!-- default -80 -->
+    					<param name="hasverticaltotal" value="false"> <!-- default -true -->
+    					<param name="hashorizontaltotal" value="false"> <!-- default -true -->
+    					<param name="totalrowcolor" value="909090"> <!-- default ? E6E6FA -->
+    					<param name="totalverticalrowcolor" value="909090"> <!-- default ? E6E6FF -->
+    					<param name="totalhorizontalrowcolor" value="a1a1a1"> <!-- default ? E6E6FF -->
+    					<param name="hascookie" value="false"> <!-- default -false -->
+    					<param name="enableinserting" value="false"> <!-- default -false -->
+    					<param name="enabledeleting" value="false"> <!-- default -false -->
+    					<param name="enableediting" value="false"> <!-- default -false -->
+    					<!--optional - Default Value 없음-->
+    					##set( $colCor = "12=dfdfdf&13=dfdfdf&14=dfdfdf&18=dfdfdf&19=dfdfdf&20=dfdfdf" ) 
+    					<param name="columncolor" value="$!{colCor}">
+    					<param name="rowcolor" value="$!{rowCol}">
+    					<param name="onclickrowfunc" value="onclickfunc">
+    					<param name="callingfunction" value="DOUBLECLICKED_CALLING">
+    					<param name="disablecolumns" value="">
+    					<param name="columnalign" value="$colalign">
+    					<param name="font" value="굴림">
+    					<param name="fontsize" value="12">
+    					<param name="columnheight" value="15">
+    					<param name="headertype" value="HORIZONTAL_HEADER">
+    					
+    					## 이중 헤더
+    					<param name="hasnestedsubheader" value="false"> 
+    					<param name="topheaders" value="$!{topheader}">
+    					<param name="topheaderposition" value="$!{topheaderPosition}">
+    					<param name="enabledragging" value="true">
+    				</object>
+    			</textarea> 
+    			<script language="javascript" src="${project}/object_activity.jsp?txtID=txt1"></script>
+    		</td>
+    	</tr>
+	</table>
+
+	<input type="hidden" name="_moon_service">
+	<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+	<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					
+</td></tr></table>
+
+## waiting 표시 영역
+<table width="100%" height="100%" id="waitArea" style="display:none; ">
+	<tr>
+		<td valign="middle" align="center">
+			<img src="sinc/template/basic/skin/nongshim/images/common/progress_waiting.gif" 
+				align="absmiddle" border="0" width="100px" height="32px">
+			<img src="sinc/template/basic/skin/nongshim/images/common/loading_icon.gif" 
+				align="absmiddle" border="0" width="32px" height="32px">
+		</td>
+	</tr>
+</table>

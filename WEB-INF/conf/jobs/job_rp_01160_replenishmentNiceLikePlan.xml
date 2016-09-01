@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+<!--
+=====================================================================================================
+	수송계획 >> 운영정보
+=====================================================================================================
+-->
+	
+	<!--
+	======================================================================
+		자동공급계획
+	======================================================================
+	-->
+	
+	<!-- 자동공급계획 -->
+	<job id="rp_01160_replenishmentNiceLikePlan" job_type="single" check_permission="no">
+		<path>/sinc/40.ReplenishmentPlanning</path>
+		<navigation>수송계획 >> 운영정보 >> 자동공급계획</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>자동공급계획</title>
+		<authority>1</authority>		
+		<description>자동공급계획</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="outOrderAdjDailyTransportPlan_version_list" datasource="t3sinc"/> <!-- 버전리스트 -->
+			<query idref="rp_01160_SCM_CHARGE_list" datasource="t3sinc"/>
+			<query idref="rp_01160_replenishmentNiceLikePlan_DW2_HEADER" datasource="t3sinc"/>			
+		</queries>
+	</job>
+
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</jobs>	

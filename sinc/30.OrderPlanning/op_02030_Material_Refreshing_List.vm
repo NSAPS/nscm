@@ -1,0 +1,138 @@
+############################################################
+## 프로그램ID		: op_02030_Item_Material_list.vm
+## 프로그램명		: 제품별 자재현황 조회 (신규)
+## 변경자			: 우종균
+## 개발일자		: 2013-01-24 요일
+##
+## 관련 job file   : job_sinc_30_OrderPlanning_03.xml
+## 관련 query file : query_sinc_30_OrderPlanning_03.xml
+##        
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2011-11-23  우종균              Develop   
+##
+## CODE_MST   실행구분  : ACT_GUBN
+##			    변경사유  : 
+############################################################ 
+
+     
+## 비정상적 접근 방지 
+#loginCheck() 
+## 화면 resizing 을 위한 size 변수      
+     
+#set( $resizeFuncCallCode = "setGridAutoResize('79', '400')" )           ## 숫자 상승                    
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+## 등록/수정 화면 이동한 후, 본 화면으로 이동할 때 조회조건을 기억하기 위한 parameter
+
+
+<!--  	서버와의 통신이 정상적으로 완료되면 발생한다.   -->
+<script language="javascript" for="WiseGrid" event="Initialize()">
+	init();
+</script>
+<script language="javascript" for="WiseGrid" event="EndQuery()">
+	GridEndQuery();
+</script>
+
+
+<script language="javascript" for="WiseGrid2" event="Initialize()">
+	init2();
+</script>
+<script language="javascript" for="WiseGrid2" event="EndQuery()">
+	GridEndQuery2();
+</script>
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+					<td align="right">
+						#button("search")
+						#toolbar_nscm($_moon_toolbar "" "" "" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr> 
+   
+   ## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; ">
+            				<tr id="search_menu" style="display:block; ">
+								<td width="50px" align="right">	
+            						품 목 :
+            					</td>
+								<td	align="left">
+									<input name="item_id" class="normal" style="width:70px; " onChange="getItemName(this); "
+										onkeypress="enterCheck('${_moon_service}'); " value="$!{item_id}">
+									<input name="item_name" class="normal" readOnly style="width:230px; " value="$!{item_name}"><img
+										name="imgItem" src="sinc/template/basic/skin/nongshim/images/common/icon_search.gif"
+										align="absmiddle" border="0" style="cursor:pointer;"  
+										onClick="openCodeSearchPop('item_id', 'item_name', '400', '300'); ">
+									<input type="button" name="btnSearch" value="상세보기"  style="width:50px; text-align:right;"onClick="Dtl_Search();" class="button1_1">
+									<input type="button" name="btnExt" value="축소" onClick="colExtension(this); " class="button1_1" />
+								</td>
+            				</tr> 
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+    ## 조회 영역
+    <tr>
+    </tr>
+    <input name="search_h" type="hidden" value="45"> ## search 조건 부분 높이 
+    <tr><td height="1"></td></tr>
+	#############################################################################################################
+    ## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+					<table id="gridArea1" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+                        <table name="grid" width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+                            <tr>
+                                <td align="left" width="100%" > ##  height="320px"   
+                                    <script>initWiseGrid("WiseGrid", "100%", "475px");</script>     
+                                </td> 
+            				</tr>
+                            <tr>
+                                <td align="left" width="100%" > ##height="320px"         
+                                    <script>initWiseGrid("WiseGrid2", "100%", "170px");</script>
+                                </td> 
+            				</tr>
+                        </table>
+					
+					</td></tr></table>
+				</div>
+            
+            <table height="5"><tr><td></td></tr></table>
+            <table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+                <input type="hidden" name="_moon_service" value="${_moon_service}">
+                <input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+                <input type="hidden" name="_user_id" value="$!{_user_id}">
+            </td></tr></table>
+            
+            </td></tr></table>
+            
+            ## waiting 표시영역
+            ##waitingArea()
+                    
+        </td>
+    </tr>
+</table>
+

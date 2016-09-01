@@ -1,0 +1,280 @@
+<script type='text/javascript' src='$!{project}/dwr/interface/nongshim.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/engine.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/util.js'></script>
+	
+<table id="dataArea" border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	<tr>
+		<td height="25" align="right" bgcolor="${toolbar_bgcolor}" class="line">
+			<table align="right" width="100%" height="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+				<tr>					
+					<td align="right">
+						<input type="button" name="btnSearch" value=" 조회" onClick="searchIFrameData('fc_01010_itemSiteMgmt_tailer');" class="btn_search_on">
+						#toolbar_nscm_iframe($_moon_toolbar "" "" "fc_01010_newClass_insert_action" "fc_01010_newClass_delete_action")
+					</td>
+				</tr>
+			</table>
+		</td>                                                                                                                                                                                                                  
+	</tr>
+	<tr id="search_menu" style="DISPLAY:block">
+		<td height="20" valign="top" bgcolor="${search_bgcolor}" class="line">
+			
+			<div class="tab-pane" id="itemSiteMgmtHeadTbp">				
+				<div class="tab-page" id="tabPage1">
+					<h2 class="tab" id="tab1">조회 Tab</h2>
+				
+        			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; display:block; ">
+        				<tr>
+        					<td height="10"></td>
+        				</tr>
+        				<tr>
+        					<td width="50%" align="center">
+        						<table height="21" border="0" cellpadding="0" cellspacing="0">
+        							<tr>
+        								<td width="80" align="center" class="td1">
+        									<span>구분</span>
+        								</td>
+        								<td align="left">
+        									<select name="hrchy_code" OnChange="changeLevel(this);">
+        										<option value="">선택</option>
+        										#foreach( $choice in $!{fc_01010_hrchy_codes} )
+        											<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{hrchy_code}") selected #end >$choice.get(0)</option>
+        										#end
+        									</select>											
+        								</td>
+        							</tr>
+									<tr>
+        								<td width="80" align="center" class="td1" rowspan=3>
+        									<span>품목/조직</span>
+        								</td>										
+										<td width="80" align="center" class="td1">
+        									<span>코드</span>
+        								</td>
+        								<td width="120" align="center" class="td1"> 
+        									<span>이름</span>
+        								</td>
+									</tr>
+									<tr>        								
+        								<td align="left">
+											<input name="item_site_code" type="text" value="$!{item_site_code}" class="normal" style="width:82px;" onFocus="this.value=''; document.frm.item_site_name.value='';" onKeyPress="enterSelectItemSite();">															
+        								</td>
+										<td align="left">											
+											<input name="item_site_name" type="text" value="$!{item_site_name}" class="normal" style="width:122px;" onFocus="this.value=''; document.frm.item_site_code.value='';" onKeyPress="enterSelectItemSite();">										        																			
+        								</td>
+										<td align="left">							
+											<img name="searchBt1" src="$!{project}/sinc/template/basic/skin/nongshim/images/common/icon_search.gif" align="absmiddle" onClick="selectItemSite();" style="cursor:pointer; "/>        																			
+        								</td>
+        							</tr>
+									<tr>																		
+										<td align="left" colspan=3>  
+											<select name="item_site" OnChange="setItemSiteAttribute();" style="width:220;">
+        										<option value="">-------------------------------</option>        										
+        									</select>															 	
+        								</td>
+									</tr>
+								</table>
+        					</td>							
+							<td width="50%" align="center"> 
+								<table height="21" border="0" cellpadding="0" cellspacing="0">									
+									<tr>        								
+										<td width="80" align="center" class="td1"> 
+        									<span>조회 계층</span>
+        								</td>
+										<td align="left">
+            								<select name="select_level" OnChange="changeItemSite();" style="width:120;">
+        										<option value="">------------</option>
+        										#foreach( $choice in $!{fc_01010_select_levels} )
+        											<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{select_level}") selected #end >$choice.get(1)</option>
+        										#end
+        									</select>
+										</td>
+        							</tr>
+									<tr>
+										<td width="80" align="center" class="td1"> 
+        									<span>조회 방법</span>
+        								</td>
+        								<td align="left">
+        									<select name="select_type" OnChange="" style="width:120;">
+        										<option value="U">상향식</option>
+												<option value="D">하향식</option>
+        									</select>
+                                        </td>
+        							</tr>
+									<tr>        								
+										<td align="center" class="td1">											
+        									<input type="checkbox" name="user_opt" value="$!{user_opt}" onClick="check(this);" #if("$!{user_opt}" == "Y") checked #end>
+        								</td>
+        								<td align="left" class="td1">
+        									사용자 정의만
+                                        </td>
+        							</tr>
+									<tr>        								
+										<td align="center">											
+        									<span>&nbsp</span>
+        								</td>
+        								<td align="left">
+        									<span>&nbsp</span>
+                                        </td>
+        							</tr>
+        						</table>
+							</td>
+        				 </tr>
+        		  		 <tr height="10"><td></td></tr>
+        		     </table>					
+    			 </div>
+				 <div class="tab-page" id="tabPage2">
+					<h2 class="tab" id="tab2">신규 Class 등록 Tab</h2>
+					<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; display:block; ">
+        				<tr><td height="10"></td></tr>
+						<tr>
+        					<td width="40%" align="center">
+        						<table height="21" border="0" cellpadding="0" cellspacing="0">
+        							<tr>
+        								<td width="80" align="center" class="td1">
+        									<span>구분</span>
+        								</td>
+        								<td align="left">
+        									<select name="class_hrchy_code" OnChange="getNewClassCode(this);">
+        										<option value="">선택</option>
+        										#foreach( $choice in $!{fc_01010_hrchy_codes} )
+        											##<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{class_hrchy_code}") selected #end >$choice.get(0)</option>
+													<option value="$choice.get(0)">$choice.get(0)</option>
+        										#end
+        									</select>											
+        								</td>
+        							</tr>
+									<tr>
+        								<td width="80" align="center" class="td1">
+        									<span>Note</span>
+        								</td>
+        								<td align="left">
+        									<input name="class_note" type="text" value="" class="normal" style="width:120;"/>										
+        								</td>
+        							</tr>
+								</table>
+        					</td>							 
+							<td width="40%" align="left">
+								<table height="21" border="0" cellpadding="0" cellspacing="0">									
+									<tr>
+        								<td width="80" align="center" class="td1" rowspan=2>
+        									<span>Class</span>
+        								</td>										
+										<td width="80" align="center" class="td1">
+        									<span>코드</span>
+        								</td>
+        								<td width="120" align="center" class="td1"> 
+        									<span>이름</span>
+        								</td>
+        							</tr> 
+									<tr>        								
+        								<td align="left">
+											<input name="class_code" type="text" value="" class="normal" style="width:82px;" readonly>															
+        								</td>
+										<td align="left">											
+											<input name="class_name" type="text" value="" class="normal" style="width:122px;">										        																			
+        								</td>										
+        							</tr>
+        						</table>
+							</td>							
+        				</tr>						
+        		  		<tr height="10"><td></td></tr>
+        		    </table>        			
+    			 </div>
+				 <div class="tab-page" id="tabPage3">
+					<h2 class="tab" id="tab3">계층 조정  Tab</h2>
+					<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; display:block; ">
+        				<tr><td height="10"></td></tr>
+						<tr>
+        					<td width="20%" align="center">
+        						<table height="21" border="0" cellpadding="0" cellspacing="0">
+									<tr>
+        								<td width="138" align="center" class="td1">
+        									<span>구분</span>
+										</td>
+        							</tr>									
+        							<tr>        								
+        								<td align="left"> 
+        									<select name="hrchy_ctl_code" OnChange="changeClass(this);" style="width:140;">
+        										<option value="">선택</option> 
+        										#foreach( $choice in $!{fc_01010_hrchy_codes} )
+        											<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{hrchy_ctl_code}") selected #end >$choice.get(0)</option>
+        										#end
+        									</select>											
+        								</td>
+        							</tr>
+									<tr height="20"><td></td></tr>
+									<tr>
+        								<td width="138" align="center" class="td1">
+        									<span>Class 명</span>
+        								</td>	       								
+        							</tr>
+									<tr>        																	
+										<td align="left">
+        									<select name="hrchy_class_code" OnChange="changeItemSiteList(document.frm.hrchy_ctl_code);changeLowItemSiteList();" style="width:140;">
+        										<option value="">-------------------</option>        										
+        									</select>											
+        								</td>
+        							</tr>
+									<script>
+										changeClass(document.frm.hrchy_ctl_code);
+									</script>
+								</table> 
+        					</td>							 
+							<td width="80%" align="left">
+								<table height="21" border="0" cellpadding="0" cellspacing="0">									
+									<tr>	
+										<td width="20" align="center" class="td1">
+        									품<br>목<br>조<br>직
+										 </td>
+        								 <td width="230" align="center">					
+											<input type="hidden" name="removed_item_site_key" value="$!{removed_item_site_key}" style="width:300px;">
+											<input type="hidden" name="added_item_site_key" value="$!{added_item_site_key}" style="width:300px;">
+										    <input type="hidden" name="added_item_site_value" value="$!{added_item_site_value}" style="width:300px;">
+												
+        									<select name="item_site_mcb" style="width:230px;" multiple size=7 OnChange=""> )</select>
+                                         </td>
+    									 <td width="30" align="center">
+                                		     <a href="javascript:add();"><img name="side_expand" src="$!{project}/sinc/template/basic/images/common/application_side_expand.png" align="absmiddle" border="0"/></a>
+											 <br> 
+    										 <a href="javascript:del();"><img name="side_contract" src="$!{project}/sinc/template/basic/images/common/application_side_contract.png" align="absmiddle" border="0"/></a>
+                                		 </td>
+										 <td width="20" align="center" class="td1"> 
+        									하<br>위<br>품<br>목<br>조<br>직
+										 </td>
+										 
+    									 <td width="230" align="left">
+                                            <select multiple size=7 style="width:230px;" name="low_item_site_mcb"></select>										
+    									</td>
+                                    </tr>
+        						</table>
+							</td>
+							
+        				</tr>						
+        		  		<tr height="10"><td></td></tr>
+        		    </table>        			
+    			 </div>
+			 </div>
+		 </td>   
+	 </tr>
+	 <tr class="line" height="10"><td></td></tr>
+	 <tr>
+	 	 <td valign="top">
+			<iframe id="child" name="iframe" src="service.do?_moon_service=fc_01010_itemSiteMgmt_tailer&amp;_moon_perpage=100&amp;_moon_pagenumber=1" width="100%" height="100%" scrolling="no" topmargin="0" leftmargin="0" frameborder="NO" border="0" framespacing="0"></iframe>
+		 </td>
+	 </tr>
+	 <input type="hidden" name="_user_id" value="$!{_user_id}">
+	 <input type="hidden" name="_moon_service" value="${_moon_service}">
+	 <input type="hidden" name="_moon_pagenumber" value="${_moon_pagenumber}">
+</table>
+	
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력  
+	var helpStr = "수요예측 대상 제품과 영업에 대하여 분석용 Category를 관리한다.<br><br>";	
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;	
+				
+</script>

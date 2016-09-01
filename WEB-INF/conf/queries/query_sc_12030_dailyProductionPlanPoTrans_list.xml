@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>
+
+<!--
+=====================================================================================================
+    생산계획 >> 운영정보
+=====================================================================================================
+--> 
+    
+    <!-- 
+    =============================
+        일간생산계획 변경(PO발행)
+    =============================
+    --> 
+    
+    <!-- 당주, 차주, 차차주의 첫번째 날짜(월요일), 마지막 날짜(일요일) -->
+    <query id="weekly_3_start_end_date3">
+    
+            SELECT  TO_CHAR(TRUNC(SYSDATE-1,'D')+1+(0*7)+0, 'YYYY-MM-DD')    AS W0_MON, --1
+                    TO_CHAR(TRUNC(SYSDATE-1,'D')+1+(0*7)+6, 'YYYY-MM-DD')    AS W0_SUN, --2
+                    TO_CHAR(TRUNC(SYSDATE-1,'D')+1+(1*7)+0, 'YYYY-MM-DD')    AS W1_MON, --3
+                    TO_CHAR(TRUNC(SYSDATE-1,'D')+1+(1*7)+6, 'YYYY-MM-DD')    AS W1_SUN, --4
+                    TO_CHAR(TRUNC(SYSDATE-1,'D')+1+(2*7)+0, 'YYYY-MM-DD')    AS W2_MON, --5
+                    TO_CHAR(TRUNC(SYSDATE-1,'D')+1+(2*7)+6, 'YYYY-MM-DD')    AS W2_SUN  --6
+            FROM    DUAL    
+    
+    </query>
+    
+    <!-- 조회 조건 : 공장 리스트 -->
+    <query id="check_plant_list">
+    
+            SELECT  PLANT_ID,
+                    REPLACE(PLANT_NAME,'공장','') PLANT_NAME
+            FROM    V_PLANT  
+            ORDER   BY PLANT_ID
+    
+    </query>
+    
+      <!-- 발행 대상 -->
+    <query id="sc_12030_dailyProductionPlanPoTrans_list01">
+    
+            SELECT  SPO.PLANT_ID,       HR.PLANT_NAME,  --0,1  공장코드/공장명
+                    SPO.PROC_ID,        HR.PROC_NAME,   --2,3  작업장코드/작업장명
+                    SPO.ITEM_ID,        IM.ITEM_NAME,   --4,5  제품코드/제품명
+                    TO_CHAR(TO_DATE(SUBSTR(SPO.WO_ID,12,8),'YYYYMMDD'),'YYYY-MM-DD')  PROD_DATES,  --6  계획일자
+                    ST.CD_NAME03                SHIFT_TYPE,     --7    SHIFT
+                    NVL(SPO.FROM_SHIFT_QTY,0)   FROM_SHIFT_QTY, --8    변경 전 수량
+                    NVL(SPO.TO_SHIFT_QTY,0)     TO_SHIFT_QTY,   --9    변경 후 수량
+                    SPH.REASON01_NAME,                          --10   보정 내역
+                    SPH.REASON02_NAME,                          --11   보정 상세
+                  --case when SPO.OPER_ID is null then '불가' else nvl(SPH.MADE_NAME,'신규') end as MADE_NAME,     --12   보정 구분
+                    decode( SPO.TRANS_TYPE,'C','신규','D','삭제','U','변경') as MADE_NAME ,
+                    '' AS TRANS_NAME,                           --13   전송 구분
+                    SPH.MADE_DTTM,                              --14   수정일자
+                    SPH.MADE_BY,                                --15   수정자
+                    SPO.ORD_NO,                                 --16   오더번호
+                    SPO.ORD_ITEM_NO,                            --17   오더항목번호
+                    ''                          PO_NO,          --18   PO번호
+                    ''                          PO_MSG,         --19   PO MSG
+                    '' as REL_STAT                              --20   오더 릴리즈 성공 유/무
+                   ,'' as IF_MSGS                                                     --21   전송 메시지.
+            FROM    /* PO 발행 대상 */
+                    V_IF_DAILY_SCH_PLAN_PO SPO
+                    ----------------------------
+                    LEFT OUTER JOIN
+                    /* 계획 수정 내역 */
+                    V_DAILY_SCH_PLAN_HISTORY SPH
+                    ON  SPO.PLANT_ID = SPH.PLANT_ID
+                    AND SPO.VERSION  = SPH.VERSION
+                    AND SPO.WO_ID    = SPH.WO_ID
+                    AND SPO.ITEM_ID  = SPH.ITEM_ID
+                    AND SPO.PROC_ID  = SPH.PROC_ID
+                    ----------------------------
+                    LEFT OUTER JOIN
+                    V_HRCHY_PROC HR
+                    ON  SPO.PLANT_ID = HR.PLANT_ID
+                    AND SPO.PROC_ID  = HR.PROC_ID
+                    ----------------------------
+                    LEFT OUTER JOIN
+                    ITEM_MST IM
+                    ON  SPO.ITEM_ID = IM.ITEM_ID
+                    ----------------------------
+                    LEFT OUTER JOIN
+                    V_SHIFT_TYPE ST
+                    ON  SUBSTR(SPO.WO_ID,21,1) = ST.CD
+            WHERE   SPO.PLANT_ID IN ('$commonUtil.replaceAll("$!{selected_plant}","''","'")')
+            AND     SUBSTR(SPO.WO_ID,12,8) BETWEEN REPLACE('$!{sdate}','-','') AND REPLACE('$!{edate}','-','')     
+            ORDER   BY SPO.PLANT_ID, SPO.PROC_ID, SPO.ITEM_ID, SUBSTR(SPO.WO_ID,12,8), SUBSTR(SPO.WO_ID,21,1)
+    
+    </query>
+    
+    <!-- 전송결과 -->
+    <query id="sc_12030_dailyProductionPlanPoTrans_list02">
+    
+            SELECT  SPO.PLANT_ID,       HR.PLANT_NAME,  --0,1  공장코드/공장명
+                    SPO.PROC_ID,        HR.PROC_NAME,   --2,3  작업장코드/작업장명
+                    SPO.ITEM_ID,        IM.ITEM_NAME,   --4,5  제품코드/제품명
+                    TO_CHAR(TO_DATE(SUBSTR(SPO.WO_ID,12,8),'YYYYMMDD'),'YYYY-MM-DD')  PROD_DATES,  --6  계획일자
+                    ST.CD_NAME03                                    SHIFT_TYPE,     --7    SHIFT
+                    NVL(SPO.FROM_SHIFT_QTY,0)                       FROM_SHIFT_QTY, --8    변경 전 수량
+                    NVL(SPO.QTY,0)                                  TO_SHIFT_QTY,   --9    변경 후 수량
+                    REA.REASON01_NAME,                                              --10   보정 내역
+                    REA.REASON02_NAME,                                              --11   보정 상세
+                  --nvl(MDT.MADE_NAME,'신규') as MADE_NAME,                                                  --12   보정 구분
+                    decode( SPO.TRANS_TYPE,'C','신규','D','삭제','U','변경') as MADE_NAME ,
+                    DECODE(SPO.RESULT_STATUS,'S','성공','F','실패')     RESULT_STATUS,  --13   전송 구분
+                    TO_CHAR(SPO.MADE_DTTM,'MM/DD')                  MADE_DTTM,      --14   수정일자
+                    SPO.MADE_BY,                                                    --15   수정자
+                    SPO.ORD_NO,                                                     --16   오더번호
+                    SPO.ORD_ITEM_NO,                                                --17   오더항목번호
+                    SPO.RESULT_PO                                   PO_NO,          --18   PO번호
+                    SPO.RESULT_MSG                                  PO_MSG,         --19   PO MSG
+                    case when SPO.REL_STAT is null then ' '
+                         when SPO.REL_STAT ='S'    then '성공'
+                         else '실패' 
+                     end                                            as REL_STAT      --20   오더 릴리즈 성공 유/무
+                    ,SPO.IF_MSGS                                                     --21   전송 메시지.
+            FROM    /* PO 발행 대상 */
+                    IF_DAILY_SCH_PLAN_PO SPO
+                    ----------------------------
+                    LEFT OUTER JOIN
+                    V_HRCHY_PROC HR
+                    ON  SPO.PLANT_ID = HR.PLANT_ID
+                    AND SPO.PROC_ID  = HR.PROC_ID
+                    ----------------------------
+                    LEFT OUTER JOIN
+                    ITEM_MST IM
+                    ON  SPO.ITEM_ID = IM.ITEM_ID
+                    ----------------------------
+                    LEFT OUTER JOIN
+                    V_SHIFT_TYPE ST
+                    ON  SUBSTR(SPO.WO_ID,21,1) = ST.CD
+                    ----------------------------
+                    left outer join --마지막 공정만 화면에 표기한다.
+                    (
+                     select PLANT_ID ,ITEM_ID ,PROD_VER ,max(OPER_ID) as MAX_OPER_ID
+                       from ITEM_CAPA
+                      where	ITEM_ID	NOT LIKE '72%'
+                      group by PLANT_ID ,ITEM_ID ,PROD_VER
+                     union	all
+                     /* 기지는 첫공정 기준으로 데이터 조회한다 */
+                     select PLANT_ID ,ITEM_ID ,PROD_VER ,min(OPER_ID) as MAX_OPER_ID
+                       from ITEM_CAPA
+                      where	ITEM_ID	LIKE '72%'
+                     group by PLANT_ID ,ITEM_ID ,PROD_VER
+                    ) OPR
+                    on  OPR.PLANT_ID =SPO.PLANT_ID
+                    and OPR.ITEM_ID  =SPO.ITEM_ID
+                    and OPR.PROD_VER =SPO.PROD_VER
+                    ------------------------------
+                    --사유 명.                    
+                    left outer join V_REASON REA
+                    on  REA.REASON01 = SPO.REASON01
+                    and REA.REASON02 = SPO.REASON02                    
+                    ------------------------------
+                    --변경 구분 명                
+                    left outer join V_MADE_TYPE MDT
+                    on  MDT.MADE_TYPE = SPO.MADE_TYPE                                      
+            WHERE   SPO.PLANT_ID IN ('$commonUtil.replaceAll("$!{selected_plant}","''","'")')
+            AND     SUBSTR(SPO.WO_ID,12,8) BETWEEN REPLACE('$!{sdate}','-','') AND REPLACE('$!{edate}','-','')
+            and     OPR.MAX_OPER_ID =SPO.OPER_ID
+            ORDER   BY SPO.PLANT_ID, SPO.PROC_ID, SPO.ITEM_ID, SUBSTR(SPO.WO_ID,12,8), SUBSTR(SPO.WO_ID,21,1)
+    
+    </query>    
+    
+    <!-- 발행현황 -->
+    <query id="sc_12030_dailyProductionPlanPoTrans_list03">
+                
+            SELECT  SPO.PLANT_ID,       HR.PLANT_NAME,                                                   --0,1  공장코드/공장명
+                    SPO.PROC_ID,        HR.PROC_NAME,                                                    --2,3  작업장코드/작업장명
+                    SPO.ITEM_ID,        IM.ITEM_NAME,                                                    --4,5  제품코드/제품명
+                    TO_CHAR(TO_DATE(SUBSTR(SPO.WO_ID,12,8),'YYYYMMDD'),'YYYY-MM-DD')  as PROD_DATES,     --6  계획일자
+                    ST.CD_NAME03                                                      as SHIFT_TYPE,     --7    SHIFT
+                    NVL(SPO.FROM_SHIFT_QTY,0)                       FROM_SHIFT_QTY, --8    변경 전 수량
+                    NVL(SPO.QTY,0)                                  TO_SHIFT_QTY,   --9    변경 후 수량
+                    REA.REASON01_NAME,                                              --10   보정 내역
+                    REA.REASON02_NAME,                                              --11   보정 상세
+                  --nvl(MDT.MADE_NAME,'신규') as MADE_NAME,                                                  --12   보정 구분
+                    decode( SPO.TRANS_TYPE,'C','신규','D','삭제','U','변경') as MADE_NAME ,
+                    DECODE(SPO.RESULT_STATUS,'S','성공','F','실패')                   as RESULT_STATUS,  --13   전송 구분
+                    TO_CHAR(SPO.MADE_DTTM,'MM/DD')                                    as MADE_DTTM,      --14   수정일자
+                    SPO.MADE_BY,                                                                         --15   수정자
+                    SPO.ORD_NO,                                                                          --16   오더번호
+                    SPO.ORD_ITEM_NO,                                                                     --17   오더항목번호
+                    SPO.RESULT_PO                                   PO_NO,                               --18   PO번호
+                    SPO.RESULT_MSG                                  PO_MSG,                              --19   PO MSG
+                    case when SPO.REL_STAT is null then ' '
+                         when SPO.REL_STAT ='S'    then '성공'
+                         else '실패' 
+                     end                                                              as REL_STAT        --20   오더 릴리즈 성공 유/무
+                   ,SPO.IF_MSGS                                                                          --21   전송 메시지.
+            FROM    /* PO 발행 대상 */
+                    IF_DAILY_SCH_PLAN_PO_SET SPO
+                    ----------------------------
+                    left outer join 
+                    (
+                     select --각 공장별 날짜 및 버젼을 가져온다.
+                            PNT.PLANT_ID ,CAL.YYYYMMDD ,FN_GET_VERSION( 'PS',PNT.PLANT_ID,CAL.YYYYMMDD) as DAY_VERSION
+                       from CAL_MST CAL
+                            inner join V_PLANT PNT
+                            on  PNT.PLANT_ID in ('$commonUtil.replaceAll("$!{selected_plant}","''","'")')
+                            and YYYYMMDD between REPLACE('$!{sdate}','-','') AND REPLACE('$!{edate}','-','')
+                    ) VER
+                    on  VER.PLANT_ID =SPO.PLANT_ID
+                    and VER.YYYYMMDD =SUBSTR(SPO.WO_ID,12,8)
+                    ----------------------------
+                    LEFT OUTER JOIN
+                    V_HRCHY_PROC HR
+                    ON  SPO.PLANT_ID = HR.PLANT_ID
+                    AND SPO.PROC_ID  = HR.PROC_ID
+                    ----------------------------
+                    LEFT OUTER JOIN
+                    ITEM_MST IM
+                    ON  SPO.ITEM_ID = IM.ITEM_ID
+                    ----------------------------
+                    LEFT OUTER JOIN
+                    V_SHIFT_TYPE ST
+                    ON  SUBSTR(SPO.WO_ID,21,1) = ST.CD
+                    ----------------------------
+                    left outer join --마지막 공정만 화면에 표기한다.
+                    (
+                     select PLANT_ID ,ITEM_ID ,PROD_VER ,max(OPER_ID) as MAX_OPER_ID
+                       from ITEM_CAPA
+                      group by PLANT_ID ,ITEM_ID ,PROD_VER
+                     union	all
+                     /* 기지는 첫공정 기준으로 데이터 조회한다 */
+                     select PLANT_ID ,ITEM_ID ,PROD_VER ,min(OPER_ID) as MAX_OPER_ID
+                       from ITEM_CAPA
+                      where	ITEM_ID	LIKE '72%'
+                     group by PLANT_ID ,ITEM_ID ,PROD_VER 
+                    ) OPR
+                    on  OPR.PLANT_ID =SPO.PLANT_ID
+                    and OPR.ITEM_ID  =SPO.ITEM_ID
+                    and OPR.PROD_VER =SPO.PROD_VER
+                    ------------------------------
+                    --사유 명.                    
+                    left outer join V_REASON REA
+                    on  REA.REASON01 = SPO.REASON01
+                    and REA.REASON02 = SPO.REASON02                    
+                    ------------------------------
+                    --변경 구분 명                
+                    left outer join V_MADE_TYPE MDT
+                    on  MDT.MADE_TYPE = SPO.MADE_TYPE                                      
+                    
+            WHERE   SPO.PLANT_ID IN ('$commonUtil.replaceAll("$!{selected_plant}","''","'")')
+            AND     SUBSTR(SPO.WO_ID,12,8) BETWEEN REPLACE('$!{sdate}','-','') AND REPLACE('$!{edate}','-','')
+            and     OPR.MAX_OPER_ID =SPO.OPER_ID
+            ORDER   BY SPO.PLANT_ID, SPO.PROC_ID, SPO.ITEM_ID, SUBSTR(SPO.WO_ID,12,8), SUBSTR(SPO.WO_ID,21,1)
+    
+    </query>    
+  
+    <!-- 전송 상태 값 UPDATE -->
+    <query id="sc_12030_dailyProductionPlanPoTrans_trans">
+    
+            UPDATE  PROC_STATUS PS
+            SET     (PS.VERSION, PS.USE_FLAG, PS.D_START_DTTM, PS.D_END_DTTM, PS.START_DATE, PS.END_DATE) =
+                    (
+                        SELECT  NULL		                    VERSION
+                                ,'Y'                            USE_FLAG
+                                ,SYSDATE                        D_START_DTTM
+                                ,NULL                           D_END_DTTM
+                                ,REPLACE('$!{sdate}','-','')    START_DATE
+                                ,REPLACE('$!{edate}','-','')    END_DATE
+                        FROM    V_IF_DAILY_SCH_PLAN_PO TMP
+                        WHERE   TMP.PLANT_ID IN ('$commonUtil.replaceAll("$!{selected_plant}","''","'")')
+                        AND     TMP.PLANT_ID = PS.PLANT_ID
+                        GROUP   BY TMP.PLANT_ID  
+                    ) 
+            WHERE   PS.PLANT_ID IN ('$commonUtil.replaceAll("$!{selected_plant}","''","'")')  
+            AND		PS.JOB_CODE ='TRANS'
+       		and 	PS.CAT_ID   ='PS'
+    
+    </query>
+    
+    <!-- 전송 상태 값 체크 -->
+    <query id="trans_status_check">
+        /*
+            SELECT  F_STATUS, --전송상태값
+                    CASE
+                        WHEN trunc((sysdate - d_start_dttm)*1440) &lt; '10' THEN 'T'
+                        ELSE 'F'
+                    END GAP
+            FROM    PROC_STATUS
+            WHERE   PLANT_ID IN ('$commonUtil.replaceAll("$!{selected_plant}","''","'")')
+              AND   USE_FLAG='Y'
+        */
+
+        select nvl(max(F_STATUS),'S') as F_STATUS ,max(GAP) as GAP
+          from (
+                SELECT  F_STATUS, --전송상태값
+                        CASE
+                            WHEN trunc((sysdate - d_start_dttm)*1440) &lt; '10' THEN 'T'
+                            ELSE 'F'
+                        END GAP
+                FROM    PROC_STATUS
+                WHERE   PLANT_ID IN ('$commonUtil.replaceAll("$!{selected_plant}","''","'")')
+                  AND   USE_FLAG='Y'
+                  AND	JOB_CODE ='TRANS'
+       			  AND 	CAT_ID   ='PS'
+               )            
+
+    
+    </query>
+    
+    
+    <!-- 조회 조건 : 공장 리스트 -->
+    <query id="init_trans_status_check">
+        select --전송 상태값 체크.
+               --1개의 공장이라도 전송중이면 전송 불가능
+               case when COUNT(*)!=0 then 'N' else 'Y' end as STATUS_VALUE
+          from PROC_STATUS
+         where USE_FLAG='Y' 
+         	AND	JOB_CODE ='TRANS'
+			AND 	CAT_ID   ='PS'
+         
+    </query>    
+    
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+-->         
+</queries>  

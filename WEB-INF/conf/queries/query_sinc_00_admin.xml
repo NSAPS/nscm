@@ -1,0 +1,508 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>
+
+<!--
+=====================================================================================================
+	사용자 관리
+=====================================================================================================
+--> 
+	
+	<!-- 
+	=======================
+		GET PERMISSION 
+	=======================
+	--> 
+	
+	<query id="get_permission">
+			
+			SELECT	JOB_ID
+			  FROM	MAP_USER_JOB_PERMISSION, DUAL B
+			 WHERE	USER_ID = '${_user_id}'
+			
+	</query>
+	
+	<!-- 
+	============================
+		ADMIN CHECK 
+		Admin Group ID = GRP001
+	============================
+	-->
+	<query id="super_user_check">
+			
+			SELECT	GU.GROUP_ID 
+			  FROM	REG_USER U, MAP_GRP_USER GU 
+			 WHERE	U.USER_ID = GU.USER_ID 
+			   AND	U.USER_ID = '$!{_user_id}' 
+			   AND	GU.GROUP_ID = 'GRP001'
+			
+	</query>
+	
+	<!-- 
+	=======================
+		사용자 관리 
+	=======================
+	-->
+	
+	<!--사용자 조회 -->
+	<query id="user_list" paging="true">
+		
+			-- 계정!%!사용자명!%!그룹명!%!이메일!%!전화번호
+			SELECT	U.USER_ID, U.USER_NAME, G.GROUP_NAME, U.USER_EMAIL, U.USER_PHON 
+			  FROM	REG_USER U, ( 
+							SELECT	GU.USER_ID, GU.GROUP_ID, RG.GROUP_NAME 
+							  FROM	MAP_GRP_USER GU, REG_GROUP RG 
+							 WHERE	GU.GROUP_ID = RG.GROUP_ID 
+					) G
+			 WHERE	U.USER_ID = G.USER_ID(+) 
+			  [AND	UPPER(${_board_search_condition}) LIKE UPPER('%${_board_search_value}%')]
+			 ORDER	BY G.GROUP_ID, U.USER_ID
+			
+	</query>
+	
+	<!-- 사용자 추가 -->
+	<query id="user_group_add">
+			
+			SELECT	GROUP_ID, GROUP_NAME
+			  FROM	REG_GROUP, DUAL B
+			
+	</query>
+	<!-- USER ID 중복 체크 -->
+	<query id="user_id_dup_check_in_reg_user"> 
+			
+			SELECT	COUNT(U.USER_ID) CNT 
+			  FROM	REG_USER U , DUAL B
+			 WHERE	U.USER_ID = '$!{check_value}'
+			
+	</query>
+	
+	<!-- 사용자 추가 : 사용자 MASTER 저장 -->
+	<query id="user_save">
+			
+			INSERT	INTO REG_USER ( USER_ID, USER_NAME, USER_PWD, USER_EMAIL, USER_PHON, DESCRIPTION, MADE_TYPE, MADE_DTTM, MADE_BY )
+			VALUES	( '${user_id_insert}', '${user_name_insert}', '${user_pwd_insert}', '${user_email_insert}'
+						, '${user_phone_insert}', '$!{description_insert}', 'AD', SYSDATE, 'SYSTEM' )
+			
+	</query>
+	
+	<!-- 사용자 추가 : 사용자-그룹 매핑 정보 저장 -->
+	<query id="user_group_save" >
+			
+			INSERT	INTO MAP_GRP_USER( USER_ID, GROUP_ID, MADE_TYPE, MADE_DTTM, MADE_BY )
+			VALUES	( '${user_id_insert}', '${group_id_insert}', 'AD', SYSDATE, 'SYSTEM' )
+			
+	</query>
+	
+	<!-- 사용자 추가 : 사용자 메뉴 정보 저장 -->
+	<query id="user_menu_save" iterator="check_menu" fix="user_id_insert">
+			
+			INSERT	INTO MAP_USER_MENU ( USER_ID, SERVICE_ID, MADE_TYPE, MADE_DTTM, MADE_BY )
+			VALUES	( '${user_id_insert}', '${check_menu}', 'AD', SYSDATE, 'SYSTEM' )
+			
+	</query>
+	
+	<!-- 사용자 추가 : 사용자 JOB 권한 정보 저장 -->
+	<!-- 등록하는 사용자의 그룹 JOB 권한을 그대로 저장 -->
+	<query id="user_job_save">
+			
+			INSERT	INTO MAP_USER_JOB_PERMISSION ( USER_ID, JOB_ID, MADE_TYPE, MADE_DTTM, MADE_BY )
+			SELECT	'${user_id_insert}', J.JOB_ID, 'AD', SYSDATE, 'SYSTEM'
+			  FROM	MAP_GROUP_JOB_PERMISSION J, DUAL B
+			 WHERE	J.GROUP_ID = '${group_id_insert}'
+			
+	</query>
+	
+	<!-- 사용자 상세 조회 -->
+	<query id="user_detail">
+			
+			SELECT	T4.USER_ID, T4.USER_NAME, T4.USER_EMAIL, T4.USER_PHON, T4.DESCRIPTION
+					,T1.GROUP_ID, T1.GROUP_NAME
+			  FROM	REG_USER T4
+					LEFT OUTER JOIN MAP_GRP_USER T2 ON T4.USER_ID = T2.USER_ID
+					LEFT OUTER JOIN REG_GROUP T1 ON T1.GROUP_ID = T2.GROUP_ID
+			 WHERE	T4.USER_ID ='${user_id}'
+			
+	</query>
+	
+	<!-- 사용자 수정 화면 리스트 -->
+	<query id="user_modify" >
+			
+			SELECT	T4.USER_ID, T4.USER_NAME, T4.USER_EMAIL, T4.USER_PHON, T4.DESCRIPTION
+					,T1.GROUP_ID, T4.USER_PWD
+			  FROM	REG_USER T4
+					LEFT OUTER JOIN MAP_GRP_USER T2 ON T4.USER_ID = T2.USER_ID
+				 	LEFT OUTER JOIN REG_GROUP T1 ON T1.GROUP_ID = T2.GROUP_ID
+			 WHERE	T4.USER_ID ='${user_id}'
+			
+	</query>
+	
+	<!-- 사용자 수정 : 사용자 MASTER 정보 UPDATE -->
+	<query id="user_update">
+			
+			UPDATE	REG_USER 
+			   SET	USER_NAME = '$!{user_name_insert}'
+					, USER_EMAIL = '$!{user_email_insert}'
+					, USER_PHON = '$!{user_phone_insert}'
+					, DESCRIPTION = '$!{description_insert}'
+					, USER_PWD = '$!{user_pwd_insert}'
+			 WHERE	USER_ID = '$!{user_id_insert}'
+			
+	</query>
+	
+	<!-- 사용자 수정 : ADMIN -->
+	<!-- 사용자-그룹 매핑정보 삭제 (기존 정보 삭제 후, 수정한 정보를 INSERT) -->
+	<query id="user_group_delete">
+			
+			DELETE	FROM MAP_GRP_USER
+			 WHERE	USER_ID = '${user_id}'
+			
+	</query>
+	
+	<!-- 사용자 수정 : 사용자-그룹 매핑정보 INSERT -->
+	<query id="user_group_update">
+			
+			INSERT	INTO MAP_GRP_USER( USER_ID, GROUP_ID, MADE_TYPE, MADE_DTTM, MADE_BY )
+			VALUES	( '${user_id_insert}', '${group_id}', 'AD', SYSDATE, 'SYSTEM' )
+			
+	</query>
+	
+	<!-- 사용자 메뉴 정보 삭제 -->
+	<query id="user_menu_delete">
+			
+			DELETE	FROM MAP_USER_MENU
+			 WHERE	USER_ID = '${user_id}'
+			
+	</query>
+	
+	<!-- 사용자 JOB 권한 정보 삭제 -->
+	<query id="user_job_delete">
+			
+			DELETE	FROM MAP_USER_JOB_PERMISSION
+			 WHERE	USER_ID = '${user_id}'
+			  -- 관리자 계정인 경우, 권한상세화면 권한과 권한수정저장 권한은 삭제하지 않음
+			   AND	( USER_ID != 'admin' OR ( JOB_ID != 'user_job_permission_detail' AND JOB_ID != 'user_job_permission_detail_save' ) )
+				 
+	</query>
+	
+	<!-- 사용자 삭제 : 사용자 MASTER DELETE -->
+	<query id="user_delete">
+			
+			DELETE	FROM REG_USER 
+			 WHERE	USER_ID = '${user_id_delete}'
+			
+	</query>
+	
+	<!-- 
+	=======================
+		GROUP 관리 
+	=======================
+	-->
+	
+	<!-- 그룹 조회 -->
+	<query id="group_list" paging="true">
+			
+			SELECT	T2.GROUP_ID, T2.GROUP_NAME
+			  FROM	REG_GROUP T2, DUAL B
+			[WHERE	UPPER(${_board_search_condition}) LIKE UPPER('%${_board_search_value}%')]	
+			 ORDER	BY T2.GROUP_ID
+			 
+	</query>
+	
+	<!-- 그룹 추가 -->
+	<query id="group_add">
+			
+			SELECT	T1.GROUP_ID, T2.GROUP_NAME
+			  FROM	MAP_GRP_USER T1, REG_GROUP T2
+			 WHERE	T1.GROUP_ID = T2.GROUP_ID
+			
+	</query>
+	<!-- GROUP ID 중복 체크 -->
+	<query id="group_id_dup_check_in_reg_group"> 
+			
+			SELECT	COUNT(G.GROUP_ID) CNT 
+			  FROM	REG_GROUP G , DUAL B
+			 WHERE	G.GROUP_ID = '$!{check_value}'
+			
+	</query>
+	
+	<!-- 그룹 추가 : 저장 -->
+	<query id="group_save">
+			
+			INSERT	INTO REG_GROUP( GROUP_ID, GROUP_NAME, MADE_TYPE, MADE_DTTM, MADE_BY )
+			VALUES	( '${group_id_insert}', '${group_name_insert}', 'AD', SYSDATE, 'SYSTEM' )
+			
+	</query>
+	
+	<!-- 그룹 메뉴 정보 INSERT -->
+	<query id="group_menu_save" iterator="check_menu" fix="group_id_insert">
+			
+			INSERT	INTO MAP_GROUP_MENU( GROUP_ID, SERVICE_ID, MADE_TYPE, MADE_DTTM, MADE_BY )
+			VALUES	( '${group_id_insert}', '${check_menu}', 'AD', SYSDATE, 'SYSTEM' )
+			
+	</query>
+	
+	<!-- 그룹 상세 -->
+	<query id="group_detail">
+			
+			SELECT	GROUP_ID, GROUP_NAME
+			  FROM	REG_GROUP , DUAL B
+			 WHERE	GROUP_ID = '${group_id}'
+			 
+	</query>
+	
+	<!-- 그룹 수정 : 저장(기존 정보 삭제 후, 수정 정보 INSERT) -->
+	<!-- 그룹 메뉴 정보 삭제 -->
+	<query id="group_menu_delete">
+			
+			DELETE	FROM MAP_GROUP_MENU
+			 WHERE	GROUP_ID = '${group_id}'
+			
+	</query>
+	
+	<!-- 그룹 메뉴 정보 INSERT -->
+	<query id="group_menu_update" iterator="check_menu" fix="group_id_insert">
+			
+			INSERT	INTO MAP_GROUP_MENU( GROUP_ID, SERVICE_ID, MADE_TYPE, MADE_DTTM, MADE_BY )
+			VALUES	( '${group_id_insert}', '${check_menu}', 'AD', SYSDATE, 'SYSTEM' )
+				
+	</query>
+	
+	<!-- 그룹 JOB 권한 정보 삭제 -->
+	<query id="group_job_delete">
+			
+			DELETE	FROM MAP_GROUP_JOB_PERMISSION
+			 WHERE	GROUP_ID = '${group_id}'
+			  -- 관리자 그룹인 경우, 권한상세화면 권한과 권한수정저장 권한은 삭제하지 않음
+			   AND	( GROUP_ID != 'GRP001' OR ( JOB_ID != 'user_job_permission_detail' AND JOB_ID != 'user_job_permission_detail_save' ) )
+			 
+	</query>
+	
+	<!-- 그룹 JOB 권한 정보 INSERT -->
+	<query id="group_job_update" iterator="check_menu" fix="group_id_insert">
+			
+			INSERT	INTO MAP_GROUP_JOB_PERMISSION( GROUP_ID, JOB_ID, MADE_TYPE, MADE_DTTM, MADE_BY )
+			VALUES	( '${group_id_insert}', '${check_menu}', 'AD', SYSDATE, 'SYSTEM' )
+				
+	</query>
+	
+	<!-- 그룹 MASTER 정보 UPDATE -->
+	<query id="group_update">
+			
+			UPDATE	REG_GROUP 
+			   SET	GROUP_NAME = '${group_name_insert}'
+			 WHERE	GROUP_ID = '${group_id}'
+			
+	</query>
+	
+	<!-- 그룹 삭제 -->
+	<!-- 그룹 MASTER 정보 DELETE -->
+	<query id="group_delete">
+			
+			DELETE	FROM REG_GROUP 
+			 WHERE	GROUP_ID = '${group_id}'
+			
+	</query>
+	
+	<!-- 삭제하려는 그룹을 가진 사용자가 있는지 CHECK -->
+	<query id="group_delete_check">
+			
+			SELECT	USER_ID
+			  FROM	MAP_GRP_USER, DUAL B
+			 WHERE	GROUP_ID = '${group_id}'
+			
+	</query>
+	
+	<!-- 
+	=======================
+		사용자권한관리 
+	=======================
+	--> 
+	
+	<!-- 사용자권한관리 : 상세 : 사용자 기본 정보 --> 
+	<query id="user_job_permission_detail_user_info" paging="false"> 
+			
+			SELECT 	U.USER_ID, U.USER_NAME, GU.GROUP_ID 
+			  FROM 	REG_USER U, MAP_GRP_USER GU 
+			 WHERE 	U.USER_ID = GU.USER_ID(+) 
+			   AND 	U.USER_ID = '$!{user_id}' 
+			
+	</query> 
+	
+	<!-- 사용자권한관리 : 권한별 사용자 메뉴/권한 일괄 저장 --> 
+	<!-- 	===============================================================
+			 * 절차
+			===============================================================
+			1. MAP_USER_MENU : 모든 데이터 삭제
+			2. MAP_USER_MENU : INSERT
+			3. MAP_USER_JOB_PERMISSION : 모든 데이터 삭제
+			4. MAP_USER_JOB_PERMISSION : INSERT
+			===============================================================
+			 * 주의
+			===============================================================
+			1. 반드시 그룹별 메뉴와 권한 설정을 정확히 하고 난 후 실행해야 합니다.
+			2. 그룹별 메뉴와 권한 설정은 
+				반드시 그룹 메뉴를 먼저 설정하고, 그 다음 권한을 설정해야 합니다. 
+			=============================================================== -->
+	<query id="map_user_menu_delete"> 
+			
+			DELETE 	MAP_USER_MENU
+			
+	</query> 
+	<query id="map_user_menu_insert"> 
+			
+			INSERT	INTO MAP_USER_MENU ( USER_ID, SERVICE_ID, MADE_TYPE, MADE_DTTM, MADE_BY )
+			SELECT 	MP.USER_ID, M.SERVICE_ID, 'AD', SYSDATE, 'SYSTEM'
+			  FROM 	MAP_GRP_USER MP    -- MAP
+					, MAP_GROUP_MENU M -- MENU 
+			 WHERE 	MP.GROUP_ID = M.GROUP_ID
+			
+	</query> 
+	<query id="map_user_job_permission_delete"> 
+			
+			DELETE 	MAP_USER_JOB_PERMISSION 
+			
+	</query> 
+	<query id="map_user_job_permission_insert"> 
+			
+			INSERT	INTO MAP_USER_JOB_PERMISSION ( USER_ID, JOB_ID, MADE_TYPE, MADE_DTTM, MADE_BY )
+			SELECT 	MP.USER_ID, P.JOB_ID, 'AD', SYSDATE, 'SYSTEM'
+			  FROM 	MAP_GRP_USER MP              -- MAP
+					, MAP_GROUP_JOB_PERMISSION P -- PERMISSION 
+			 WHERE 	MP.GROUP_ID = P.GROUP_ID
+			
+	</query> 
+	
+	<!-- 사용자권한관리 : 상세 : 사용자 JOB 권한 LIST --> 
+	<query id="user_job_permission_detail" paging="false"> 
+			
+			SELECT 	JP.JOB_ID, JP.USER_ID 
+			  FROM 	MAP_USER_JOB_PERMISSION JP , DUAL B
+			 WHERE 	USER_ID = '$!{user_id}'
+			
+	</query> 
+	
+	<!-- 사용자권한관리 : 상세 : 저장 : DELETE --> 
+	<query id="user_job_permission_detail_save_delete"> 
+			
+			DELETE 	MAP_USER_JOB_PERMISSION 
+			 WHERE 	USER_ID = '$!{user_id}' 
+			
+	</query> 
+	
+	<!-- 사용자 권한 관리 : 상세 : 저장 : INSERT --> 
+	<query id="user_job_permission_detail_save_insert" fix="user_id" iterator="job_id"> 
+			
+			INSERT	INTO MAP_USER_JOB_PERMISSION ( USER_ID, JOB_ID, MADE_TYPE, MADE_DTTM, MADE_BY )
+			SELECT 	'$!{user_id}' AS USER_ID, '$!{job_id}' AS JOB_ID, 'AD', SYSDATE, 'SYSTEM' 
+			  FROM 	DUAL 
+			 WHERE 	NOT EXISTS ( SELECT USER_ID FROM MAP_USER_JOB_PERMISSION WHERE USER_ID = '$!{user_id}' AND JOB_ID = '$!{job_id}' ) 
+			
+	</query> 
+	
+	<!-- 
+	=======================
+		그룹권한관리 
+	=======================
+	--> 
+	
+	<!-- 그룹권한관리 : 상세 : 그룹 기본 정보 --> 
+	<query id="group_job_permission_detail_user_info" paging="false"> 
+			
+			SELECT 	G.GROUP_ID, G.GROUP_NAME 
+			  FROM 	REG_GROUP G , DUAL B
+			 WHERE 	G.GROUP_ID = '$!{group_id}' 
+			
+	</query> 
+	
+	<!-- 그룹권한관리 : 상세 --> 
+	<query id="group_job_permission_detail" paging="false"> 
+			
+			SELECT 	JP.JOB_ID, JP.GROUP_ID 
+			  FROM 	MAP_GROUP_JOB_PERMISSION JP, DUAL B 
+			 WHERE 	JP.GROUP_ID = '$!{group_id}'
+			
+	</query> 
+	
+	<!-- 그룹권한관리 : 상세 : 저장 : DELETE --> 
+	<query id="group_job_permission_detail_save_delete"> 
+			
+			DELETE 	MAP_GROUP_JOB_PERMISSION 
+			 WHERE 	GROUP_ID = '$!{group_id}' 
+			
+	</query> 
+	
+	<!-- 그룹권한관리 : 상세 : 저장 : INSERT --> 
+	<query id="group_job_permission_detail_save_insert" fix="group_id" iterator="job_id"> 
+			
+			INSERT	INTO MAP_GROUP_JOB_PERMISSION ( GROUP_ID, JOB_ID, MADE_TYPE, MADE_DTTM, MADE_BY )
+			SELECT 	'$!{group_id}' AS GROUP_ID, '$!{job_id}' AS JOB_ID, 'AD', SYSDATE, 'SYSTEM'
+			  FROM 	DUAL 
+			 WHERE 	NOT EXISTS ( SELECT GROUP_ID FROM MAP_GROUP_JOB_PERMISSION WHERE GROUP_ID = '$!{group_id}' AND JOB_ID = '$!{job_id}' ) 
+			
+	</query>
+
+	<!-- 
+	=======================
+		메뉴 관리 
+	=======================
+	-->
+	
+	<!--메뉴ID 조회 -->
+	<query id="menu_list" paging="true">
+		
+			-- 메뉴ID
+			SELECT 	DISTINCT M.SERVICE_ID
+			  FROM 	TMETA.MAP_USER_MENU M, DUAL B
+			 WHERE 	M.MADE_TYPE != 'DE'
+			  [AND 	UPPER(M.SERVICE_ID) LIKE UPPER('%${service_id}%')]
+			 ORDER 	BY M.SERVICE_ID
+			
+	</query>
+	
+	<!-- 메뉴ID 삭제 -->
+	<!-- MAP_USER_MENU 에서 삭제 -->
+	<query id="menu_del_user">
+			
+			DELETE	MAP_USER_MENU M 
+			 WHERE	M.SERVICE_ID = '${menu_id_delete}'
+			 
+	</query>
+	<!-- MAP_GROUP_MENU 에서 삭제 -->
+	<!-- MAP_USER_MENU 에 없는 MAP_GROUP_MENU 의 모든 SERVICE_ID 삭제 -->
+	<query id="menu_del_group">
+			
+			DELETE	MAP_GROUP_MENU M 
+			 WHERE	M.SERVICE_ID NOT IN (
+						SELECT DISTINCT UM.SERVICE_ID
+						  FROM MAP_USER_MENU UM
+						 WHERE UM.MADE_TYPE != 'DE'
+					)
+			
+	</query>
+	
+	<!-- 메뉴ID 중복  체크 -->
+	<query id="menu_id_check">
+			
+			SELECT	COUNT(M.SERVICE_ID) CNT
+			  FROM	TMETA.MAP_USER_MENU M, DUAL B
+			 WHERE	M.SERVICE_ID = '${check_value}'
+			 
+	</query>
+	
+	<!--메뉴ID 저장 -->
+	<query id="menu_save">
+			
+			INSERT	INTO TMETA.MAP_USER_MENU ( USER_ID, SERVICE_ID, MADE_TYPE, MADE_DTTM, MADE_BY )
+			SELECT	'admin', '${menu_id_insert}', 'AD', SYSDATE, '!{_user_id}'
+			  FROM	DUAL
+			 WHERE	NOT EXISTS ( SELECT M.SERVICE_ID FROM TMETA.MAP_USER_MENU M WHERE M.SERVICE_ID = '${menu_id_insert}' )
+			
+	</query>
+	
+	
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+	
+</queries>

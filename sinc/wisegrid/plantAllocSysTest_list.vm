@@ -1,0 +1,149 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setGridAutoResize('130', '155')" )   
+
+##공장할당 버전
+<input type="hidden" name="plant_alloc_version" value="$plant_alloc_version.get(0).get(0)">
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						#button("search")
+						#toolbar_nscm($_moon_toolbar "" "" "sc_01060_plantAllocationPlanResultAnalysis_list_save_comp" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table id="search_menu" style="background-color:#f2f2f2; display:block; " border="0" width="100%" cellpading="0" cellspacing="0" >
+            				<tr>
+								<td width="10%" align="right">조회 일자 :</td> 
+								<td width="20%">  																	    
+            						#date_sole_no_title( "sdate" "10" "normal" "searchBtn" $date.get('yyyy-MM-dd'))
+            					</td>
+								<td width="40%"> 
+									<input type="radio" name="checked_domain" value="DO" style="border:0px;"
+            							onClick="this.checked" #if("$!{checked_domain}" == "DO" ) checked #else #end>내수</input>&nbsp;
+            						<input type="radio" name="checked_domain" value="EXMTS" style="border:0px;"
+            							onClick="this.checked" #if("$!{checked_domain}" == "EXMTS") checked #else #end>수출MTS</input>&nbsp;            						
+            						<input type="radio" name="checked_domain" value="EXMTO" style="border:0px;"
+            							onClick="this.checked" #if("$!{checked_domain}" == "EXMTO") checked #else #end>수출MTO</input>&nbsp;            						
+									<input type="radio" name="checked_domain" value=""  style="border:0px;"
+            							onClick="this.checked" #if("$!{checked_domain}" == "") checked #else #end>전체</input>
+            					</td>
+								<td width="10%" align="right">필요량/계획 :</td>
+            					<td width="20%"> 
+									<input type="radio" name="checked_pa_pr" value="" style="border:0px;" checked="on"
+            							onClick="this.checked" #if("$!{checked_pa_pr}" == "") checked #else #end>생산필요량</input>&nbsp;
+            						<input type="radio" name="checked_pa_pr" value="PR" style="border:0px;"
+            							onClick="this.checked" #if("$!{checked_pa_pr}" == "PR") checked #else #end>생산계획</input>           					       						
+            					</td>
+								#*<td width="8%" align="right">차 주확판매계획 기간:</td>          
+            					<td width="32%">			 	 									    
+									#date_sole_no_title( "sdate" "10" "normal" "startBtn" $date.get('yyyy-MM-dd'))~
+            						#date_sole_no_title( "edate" "10" "normal" "endBtn" $date.get('yyyy-MM-dd'))
+            					</td>
+								<td width="8%" align="right">보충요구량 산출기간 :</td>          
+            					<td width="32%">			 	 		 							    
+									#date_sole_no_title( "sdate" "10" "normal" "startBtn" $date.get('yyyy-MM-dd'))~
+            						#date_sole_no_title( "edate" "10" "normal" "endBtn" $date.get('yyyy-MM-dd'))
+            					</td>*#
+							</tr>
+							<tr>								
+            				</tr>        				
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="26"> ## search 조건 부분 높이 
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+								<img src="/nscm/sinc/template/basic/skin/nongshim/images/common/dot_sub6.gif" width="16" height="13">Total :
+								<span id="areaTot" class="f_color_o b">$!{_moon_service_count}</span>
+							</td> 
+						</tr>
+					</table>
+					
+					<table name="grid" width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td align="left">
+								<script>initWiseGrid("WiseGrid", "100%", "350");</script>
+							</td>
+						</tr>
+					</table> 
+					
+					<table border="0" width="100%" cellpadding="0" cellspacing="0" height="5px"><tr><td></td></tr></table>
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+						
+					<input type="hidden" name="_moon_service">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					<input type="hidden" name="_user_id" value="$!{_user_id}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+																				
+				</div>
+			</div> 
+		</td>
+	</tr>
+</table> 
+ 
+<script>
+	 
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력 
+	var helpStr = "◈ 조회 일자를 선택하고 우측 상단의 조회 버튼을 클릭하면 공장할당 결과 조정 화면이 조회 됩니다.";		
+	helpStr += "<br>◈ 차주 생산필요량은 최신 공장할당 계획 결과에서 산출 합니다.";
+	helpStr += "<br>◈ 차주 생산필요량을 변경하면 요구/생산 차이, 차주 예상재고, 소계, 총계 등이 자동으로 변경 됩니다.";
+	helpStr += "<br>◈ 차주 생산필요량을 수정하고 우측 상단의 저장 버튼을 클릭하면 변경된 내용이 저장 됩니다.";
+	helpStr += "<br>";
+	helpStr += "<br>◈ 계산 로직";
+	helpStr += "<br>◈ 1. 3주평균 접근율, 1주평균 접근율 : 판매계획/판매실적";
+	helpStr += "<br>◈ 2. 기초재고 : 조회일자 당일 기초재고";
+	helpStr += "<br>◈ 3. 금주생산계획, 금주판매계획 : 금주 조회일자부터 남은기간";
+	helpStr += "<br>◈ 4. 1주평균 판매대비 : 금주판매계획/(1주일평균판매*금주잔여판매일수)";
+	helpStr += "<br>◈ 5. 예상재고(차주초) : 기초재고 + 금주생산계획 - 금주판매계획";
+	helpStr += "<br>◈ 6. 요구/생산차이 : 생산필요량 - 보충요구량";
+	helpStr += "<br>◈ 7. 계획대비 재고일수 : 예상재고/(해당주 판매계획/영업일수)";
+	helpStr += "<br>◈ 8. 실적대비 재고일수 : 예상재고/ 일주평균 판매 ";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+		
+</script>

@@ -1,0 +1,606 @@
+
+/* ====================(Common)========================== */	
+
+A:link {color:#000000;font-size:9pt;text-decoration:none;}
+A:visited {color:#000000;font-size:9pt;text-decoration:none;}
+A:active {color:#3E79FF;font-size:9pt;text-decoration:none;}
+A:hover {color:#3E79FF;font-size:9pt;text-decoration:none;}
+p {margin-top:5px;margin-bottom:3px;line-height:4mm}
+
+td{
+	font-family: "µ¸¿ò,µ¸¿òÃ¼,»õ±¼¸²,±¼¸²,±¼¸²Ã¼,Helvetica,Verdana"; 
+	font-size: 9pt ; 
+	color: #000000
+}
+
+.normal-table{
+	font-family: "µ¸¿ò,µ¸¿òÃ¼,»õ±¼¸²,±¼¸²,±¼¸²Ã¼,Helvetica,Verdana"; 
+	font-size: 9pt ; 
+	font-style: normal; line-height: 15pt; 
+	font-weight: normal; font-variant: normal; 
+	text-transform: none; 
+	color: #000000
+}
+
+.normal-table td{
+	font-family: "µ¸¿ò,µ¸¿òÃ¼,»õ±¼¸²,±¼¸²,±¼¸²Ã¼,Helvetica,Verdana"; 
+	font-size: 9pt ; 
+	font-style: normal; line-height: 15pt; 
+	font-weight: normal; font-variant: normal; 
+	text-transform: none; 
+	color: #000000
+}
+
+.normal-table2{
+	font-family: "µ¸¿ò,µ¸¿òÃ¼,»õ±¼¸²,±¼¸²,±¼¸²Ã¼,Helvetica,Verdana"; 
+	font-size: 9pt ; 
+	font-style: normal; line-height: 15pt; 
+	font-weight: normal; font-variant: normal; 
+	text-transform: none; 
+	border:	1px solid;
+	border-color:	#E5E5E5 #A7A7A7; 
+	border-top-width: 1px; 
+	border-right-width: 0px; 
+	border-bottom-width: 0px; 
+	border-left-width: 1px; 
+	color: #000000
+}
+
+.toolbar{
+	font-family: "µ¸¿ò,µ¸¿òÃ¼,»õ±¼¸²,±¼¸²,±¼¸²Ã¼,Helvetica,Verdana"; 
+	font-size: 9pt ; 
+	font-style: normal; line-height: 15pt; 
+	font-weight: normal; font-variant: normal; 
+	text-transform: none; 
+	color: #000000
+}
+
+.line {
+	padding:		1px 5px 1px 5px;
+	border:			1px solid rgb( 145, 155, 156 );
+	border-right:	0;
+	border-left:	0;
+	border-top:	0;
+}
+
+.normal{
+	font-size: 10pt;
+	border: 1px solid;
+	border-color:	#919b9c #919b9c
+				#919b9c #919b9c;
+	background:	#FFFFFF;	
+}
+
+input.normal{
+	height:	19px;
+	font-size: 10pt;
+	border: 1px solid;
+	border-color:	#919b9c #919b9c
+				#919b9c #919b9c;
+	background:	#FFFFFF;	
+}
+
+input.gray {  
+	height:	19px;
+	font-size: 10pt;
+	border: 1px solid;
+	border-color:	silver silver
+				silver silver;
+	background:	#D7E1DB;	
+	color: #666666;
+}
+
+input.small{
+	height:	17px;
+	font-size: 10pt;
+	border: 1px solid;
+	border-color:	#919b9c #919b9c
+				#919b9c #919b9c;
+	background:	#FFFFFF;	
+}
+
+input.readonly{
+	font-size: 10pt;
+	text-align: center;
+	border: 1px solid;
+	border-color:	#919b9c #919b9c
+				#919b9c #919b9c;
+	background:	#CCCCCC;	
+	color: #666666;
+}
+
+.table_scroll {
+	width:99%; height:400px; 
+	border: 1px solid;
+	border-color:	silver silver silver silver;
+	overflow:auto;
+	scrollbar-face-color:#FFFFFF;
+	scrollbar-shadow-color:#666666;
+	scrollbar-highlight-color:#666666;
+	scrollbar-3dlight-color:#FFFFFF;
+	scrollbar-darkshadow-color:#FFFFFF;
+	scrollbar-track-color:#FFFFFF;
+	scrollbar-arrow-color:#666666;
+}
+
+.table1 {  
+	border:			1px solid;
+	border-color:	#E5E5E5 #A7A7A7 #A7A7A7 #E5E5E5;
+}
+
+.table2 {  
+	border:			1px solid;
+	border-color:	#A7A7A7 #A7A7A7 #A7A7A7 #A7A7A7;
+}
+
+.td1 {  
+	font-family: "µ¸¿ò,µ¸¿òÃ¼,»õ±¼¸²,±¼¸²,±¼¸²Ã¼,Helvetica,Verdana"; 
+	font-size: 9pt; 
+	font-style: normal; 
+	line-height: normal; 
+	font-weight: normal; 
+	font-variant: normal; 
+	text-transform: none; 
+	background-color: #4B6255;     /******header color change******/
+	color: #FFFFFF; 
+	text-decoration: none; 
+	height: 20px; 	
+	border:			1px solid;
+	border-color:	ButtonHighlight ButtonShadow ButtonShadow ButtonHighlight;
+}	
+
+.td2{
+	font-family: "µ¸¿ò,µ¸¿òÃ¼,»õ±¼¸²,±¼¸²,±¼¸²Ã¼,Helvetica,Verdana"; 
+	font-size: 9pt ; 
+	font-style: normal; line-height: 15pt; 
+	font-weight: normal; font-variant: normal; 
+	text-transform: none; 
+	border:	1px solid;
+	border-color:	#E5E5E5 #A7A7A7; 
+	border-top-width: 0px; 
+	border-right-width: 1px; 
+	border-bottom-width: 1px; 
+	border-left-width: 0px; 
+	color: #000000
+}
+
+.td3{
+	font-family: "µ¸¿ò,µ¸¿òÃ¼,»õ±¼¸²,±¼¸²,±¼¸²Ã¼,Helvetica,Verdana"; 
+	font-size: 9pt ; 
+	font-style: normal; line-height: 15pt; 
+	font-weight: normal; font-variant: normal; 
+	text-transform: none; 
+	border:	1px solid;
+	border-color:	#E5E5E5 #A7A7A7; 
+	border-top-width: 0px; 
+	border-right-width: 0px; 
+	border-bottom-width: 1px; 
+	border-left-width: 0px; 
+	color: #000000
+}
+
+.td2_1 {  
+	font-family: "µ¸¿ò,µ¸¿òÃ¼,»õ±¼¸²,±¼¸²,±¼¸²Ã¼,Helvetica,Verdana"; 
+	font-size: 9pt; 
+	font-style: normal; 
+	line-height: normal; 
+	font-weight: normal; 
+	font-variant: normal; 
+	text-transform: none; 
+	background-color: #DBE6DD;    
+	color: #000000; 
+}	
+
+.td3_1 {  
+	font-family: "µ¸¿ò,µ¸¿òÃ¼,»õ±¼¸²,±¼¸²,±¼¸²Ã¼,Helvetica,Verdana"; 
+	font-size: 9pt; 
+	font-style: normal; 
+	line-height: normal; 
+	font-weight: normal; 
+	font-variant: normal; 
+	text-transform: none; 
+	background-color: #BED0C1;   
+	color: #000000; 
+}	
+
+.line_td{
+	background-color: #C5C5C5; 
+}
+
+.line_td02{
+	background-color: #B1BEB3; 
+}
+
+.tr_head {  	
+	background-color: #4B6255;       /******header color change******/
+	height: 20px; 
+}
+
+.tr_head td{  	
+	font-family: µ¸¿ò; 
+	font-size: 9pt; 
+	text-transform: none; 
+	color: #FFFFFF; 
+	text-decoration: none; 
+	border:			1px solid;
+	border-color:	ButtonHighlight ButtonShadow ButtonShadow ButtonHighlight;
+	border-top-width: 0px; border-right-width: 0px; border-bottom-width: 0px; border-left-width: 0px;
+}
+
+.tr_head01{
+	background-color: #819A85;       /******header color change    #4B6255******/
+}
+
+.tr_head01 td{
+	font-family: µ¸¿ò; 
+	font-size: 9pt; 
+	text-transform: none; 
+	color: #000000; 
+	text-decoration: none; 
+}
+
+.tr_head02{
+	background-color: #BED0C1;       /******header color change   #819A85******/
+}
+
+.tr_head02 td{
+	font-family: µ¸¿ò; 
+	font-size: 9pt; 
+	text-transform: none; 
+	color: #000000; 
+	text-decoration: none; 
+}
+
+/* ====================(table)========================== */	
+
+	.sort-table {
+		font:		Icon;
+		border:		1px Solid;
+		border-color:	#E5E5E5 #A7A7A7;     /*#A7A7A7*/
+		border-top-width: 0px; 
+		border-right-width: 0px; 
+		border-bottom-width: 0px; 
+		border-left-width: 0px; 
+		color:		WindowText;
+	}
+	
+	.sort-table thead {
+		background-color: #4B6255;     /******head color change******/
+		height: 22px; 
+	}
+		
+	.sort-table thead td {
+		font-family: µ¸¿ò; 
+		font-size: 9pt; 
+		text-transform: none; 
+		color: #FFFFFF; 
+		text-decoration: none; 
+		border:			1px solid;
+		border-color:	ButtonHighlight ButtonShadow ButtonShadow ButtonHighlight;
+		cursor:			default;
+	}
+	
+	.sort-table thead td:active {
+		border-color:	ButtonShadow ButtonHighlight 
+						ButtonHighlight ButtonShadow;
+		padding:		3px 4px 1px 6px;
+	}
+	
+	.sort-table tbody td {		
+		font-family: µ¸¿ò; 
+		font-size: 9pt; 
+		text-transform: none; 
+		color: #000000; 
+		text-decoration: none; 
+		border:	1px solid;
+		border-color:	#E5E5E5 #A7A7A7; 
+		border-top-width: 0px; 
+		border-right-width: 1px; 
+		border-bottom-width: 1px; 
+		border-left-width: 0px; 
+	}
+			
+	.sort-arrow {
+		width:					11px;
+		height:					11px;
+		background-position:	center center;
+		background-repeat:		no-repeat;
+		margin:					0 2px;
+	}
+	
+	.sort-arrow.descending {
+		background-image:		url("/basic/images/common/downsimple.png");
+		
+	}
+	
+	.sort-arrow.ascending {
+		background-image:		url("/basic/images/common/upsimple.png");
+	}
+	
+/* ==================(Tab-pane)====================== */
+
+	.dynamic-tab-pane-control.tab-pane {
+		position:	relative;
+		width:		100%;
+	}
+	
+	.dynamic-tab-pane-control .tab-row .tab {
+		font:				Menu;
+		cursor:			Default;
+		display:		inline;
+		margin:			1px -2px 1px 2px;
+		float:				left;
+		padding:		2px 5px 3px 5px;
+		background:	#FFFFFF;
+		border:			1px solid;
+		border-color:	ThreeDDarkShadow ThreeDDarkShadow
+						ThreeDDarkShadow ThreeDDarkShadow;
+		border-bottom:	0;
+		z-index:		1;
+		position:		relative;
+		top:			0;
+	}
+	
+	.dynamic-tab-pane-control .tab-row .tab.selected {
+		border-bottom:	0;
+		z-index:		3;
+		padding:		2px 6px 5px 7px;
+		margin:			1px -3px -2px 0px;
+		top:			-2px;
+	}
+	
+	.dynamic-tab-pane-control .tab-row .tab a {
+		font:					Menu;
+		color:				WindowText;
+		text-decoration:	none;
+		cursor:				default;
+	}
+	
+	.dynamic-tab-pane-control .tab-row .hover a {
+		color:	blue;
+	}
+	
+	.dynamic-tab-pane-control .tab-page {
+		clear:			both;
+		border:			1px solid;
+		border-color:	ThreeDDarkShadow ThreeDDarkShadow
+						ThreeDDarkShadow ThreeDDarkShadow;
+		background:		#FFFFFF;
+		z-index:		2;
+		position:		relative;
+		top:			-2px;
+		color:			WindowText;
+		font:			Message-Box;
+		padding:		10px;
+		
+		height:		99%;
+		width:		99%;
+		overflow:		auto;
+	}
+	
+	.dynamic-tab-pane-control .tab-row {
+		z-index:		1;
+		white-space:	nowrap;
+	}
+	
+/* ==================(Tree)========================= */
+
+	.webfx-tree-container {
+		margin: 0px;
+		padding: 0px;
+		font: icon;
+		white-space: nowrap;
+		border-left-width : medium 
+	}
+	
+	.webfx-tree-item {
+		padding: 0px;
+		margin: 0px;
+		font: icon;
+		color: black;
+		white-space: nowrap;
+	}
+	
+	.webfx-tree-item a, .webfx-tree-item a:active, .webfx-tree-item a:hover {
+		margin-left: 3px;
+		padding: 1px 2px 1px 2px;
+	}
+	
+	.webfx-tree-item a {
+		color: black;
+		text-decoration: none;
+	}
+	
+	.webfx-tree-item a:hover {
+		color: blue;
+		text-decoration: underline;
+	}
+	
+	.webfx-tree-item a:active {
+		color: black;
+		background: white;
+		/*background: highlight;
+		color: highlighttext;*/
+		text-decoration: none;
+	}
+	
+	.webfx-tree-item img {
+		vertical-align: middle;
+		border: 0px;
+	}
+	
+	.webfx-tree-icon {
+		width: 16px;
+		height: 16px;
+	}
+	.webfx-tree-item a.selected {
+		color: black;
+		background: white;
+		/*color: selectedtext;
+		background: selected;*/
+	}
+	
+	.webfx-tree-item a.selected-inactive {
+		color: black;
+		/*color: windowtext;*/
+		background: buttonface;
+	}	
+	
+/* ====================(simple table)========================== */	
+
+	.tableClass {
+		table-layout: fixed;
+		empty-cells: show;
+		
+		overflow: hidden;
+		background: white;
+		
+		border-width: 1px;
+		border-style: solid;
+		border-color: threedshadow threedhighlight threedhighlight threedshadow;
+	}
+	
+	.tableClass td {
+		font: menu;
+		empty-cells: show;
+		white-space: nowrap;
+		overflow: hidden;
+		
+		height: 22px;
+		padding: 0px 0px 2px 2px;
+		
+		background: white;
+		border-width: 1px;
+		border-style: solid;
+		border-color: buttonhighlight buttonshadow buttonshadow buttonhighlight;
+	}
+	
+	.tableClass td.head {
+		font: menu;
+		empty-cells: show;
+		white-space: nowrap;
+		overflow: hidden;
+		
+		height: 22px;
+		padding: 0px 0px 2px 2px;
+		text-align: center;
+		
+		background: buttonface;
+		border-width: 1px;
+		border-style: solid;
+		border-color: buttonhighlight buttonshadow buttonshadow buttonhighlight;
+	}
+	
+	.tableClass td.sub {
+		font: menu;
+		empty-cells: show;
+		white-space: nowrap;
+		overflow: hidden;
+		
+		height: 22px;
+		padding: 0px 0px 2px 2px;
+		text-align: center;
+		
+		background: E5E5E5;
+		border-width: 1px;
+		border-style: solid;
+		border-color: buttonhighlight buttonshadow buttonshadow buttonhighlight;
+	}
+	
+	.tableClass table td.line {
+		height:3px;
+		background: buttonface;
+		border-width: 0px;
+	}		
+	
+/* ====================(calendar table)========================== */		
+
+	.calendar{
+		overflow: hidden;
+		
+		background: white;		
+		border-width: 1px;
+		border-style: solid;
+		border-color: #FFFFFF #FFFFFF #FFFFFF #FFFFFF;
+	}
+	
+	.calendar td.body{
+		font: menu;
+		empty-cells: show;
+		white-space: nowrap;
+		overflow: hidden;
+		
+		height: 22px;
+		padding: 0px 0px 2px 2px;
+		
+		background: white;
+		border-width: 0px;
+		border-style: solid;
+		border-color: buttonhighlight buttonshadow buttonshadow buttonhighlight;
+	}
+	
+	.calendar td.head{
+		font: menu;
+		empty-cells: show;
+		white-space: nowrap;
+		overflow: hidden;
+		
+		height: 22px;
+		padding: 0px 0px 2px 2px;
+		text-align: center;
+		
+		background: buttonface;
+		border-width: 1px;
+		border-style: solid;
+		border-color: buttonhighlight buttonshadow buttonshadow buttonhighlight;
+	}
+	
+	.calendar td.sun{
+		font: menu;
+		empty-cells: show;
+		white-space: nowrap;
+		overflow: hidden;
+		
+		height: 22px;
+		padding: 0px 0px 2px 2px;
+		text-align: center;
+		
+		background: buttonface;
+		border-width: 1px;
+		border-style: solid;
+		border-color: buttonhighlight buttonshadow buttonshadow buttonhighlight;
+		color:red;
+	}
+	
+	.calendar td.sat{
+		font: menu;
+		empty-cells: show;
+		white-space: nowrap;
+		overflow: hidden;
+		
+		height: 22px;
+		padding: 0px 0px 2px 2px;
+		text-align: center;
+		
+		background: buttonface;
+		border-width: 1px;
+		border-style: solid;
+		border-color: buttonhighlight buttonshadow buttonshadow buttonhighlight;
+		color:blue;
+	}
+	
+	.calendar td.title{
+		font: menu;
+		empty-cells: show;
+		white-space: nowrap;
+		overflow: hidden;
+		
+		height: 22px;
+		padding: 0px 0px 2px 2px;
+		text-align: center;
+		
+		background: white;
+		border-width: 1px;
+		border-style: solid;
+		border-color: #FFFFFF #FFFFFF buttonshadow #FFFFFF;
+	}				

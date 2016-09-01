@@ -1,0 +1,200 @@
+## 비정상적 접근 방지 
+#loginCheck() 
+## 화면 resizing 을 위한 function 호출 코드
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('90', '142')" )
+##쿼리 결과 값 저장
+#set( $item_list = $!{sc_03030_plantAllocationPolicyItem_list})
+
+<input type="hidden" name="selected_item" value="$selected_item">
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<script>
+		areaBtn.innerHTML = " &nbsp; <input type=\"button\" name=\"btnSave\" value=\"  저장\" onClick=\"GoSave('sc_03030_plantAllocationPolicy_popup_save_comp')\" class=\"btn_sav_on\" >";
+	</script>
+	## 조회 영역
+	<tr>
+		<td width="90%" valign="top"> 
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2">
+					<td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" 
+							id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr>
+								<td width="15%" align="right"> 
+									제품코드: 
+								</td> 
+								<td width="20%" align="left"> 
+									<input type="text" name="item_id" size="10"  style="text-align:center; " class="normal" 
+										#if($item_list.size() == 0) value="" #else value="$item_list.get(0).get(1)" #end readOnly>
+								</td>
+								<td width="10%" align="right">  
+									제품명 : 
+								</td>
+								<td width="55%" align="left">     
+									<input type="text" name="item_name" size="100"  style="width:260px; text-align:center; " class="normal" 
+										#if($item_list.size() == 0) value="" #else value="$item_list.get(0).get(2)" #end readOnly>            						
+								</td>                            	
+            				</tr>
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="26"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table id="tbMain" border="0" width="100%" cellpadding="0" cellspacing="0" ><tr><td>
+						##좌측상단헤더
+						<div id="topLeft" style="height:40px; width:570px; overflow:hidden; ">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead>
+									<tr height="40px"> 
+										<td width="50px">공장</td>
+										<td width="60px">배분율</td>
+										<td width="80px">최소배분량</td>
+										<td width="60px">UOM</td>
+										<td width="80px">실 고정비</td>
+										<td width="80px">실 변동비</td>
+										<td width="80px">표준 고정비</td>
+										<td width="80px" class="right">표준 변동비</td>
+									</tr> 
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td>
+					<td> 
+						##우측상단헤더
+						<div id="topLine" style="height:40px; width:0px;overflow:hidden;">
+							<table width="520px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead>
+									##<tr height="40px">										
+									##</tr>									
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td></tr>	
+					<tr><td valign="top">
+						## 좌측 하단 로우
+						<div id="leftDisplay" style="width:570px; overflow:hidden; " onscroll="scrollY(); ">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="left_tbody">								
+								#foreach( $tr in $item_list )
+									<tr id="left_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+										## 공장
+										<td width="50px" align="center" style="background-color:${search_bgcolor}; ">
+											<a id="divPlant">$tr.get(4)</a>
+											<input type="hidden" name="plant_id" value="$tr.get(4)">
+										</td>	
+										## 배분율
+										<td width="60px" align="right" onClick="setEditMode(this); ">
+											<a id="divAllocRate">$tr.get(5)&nbsp;</a><input 
+												type="text" name="alloc_rate" class="normal" size="10" value="$tr.get(5)"
+												onKeyDown="moveNextBox(this); " onFocusOut="setViewMode(this); " tabindex="1"
+												style="width:100%; padding-left:5px; display:none; text-align:right; " onDblClick="this.select(); ">
+										</td>
+										## 최소할당배분량
+										<td width="80px" align="right" onClick="setEditMode(this); ">
+											<a id="divMinQty">$tr.get(6)&nbsp;</a><input
+												type="text" name="min_qty" class="normal" size="20" value="$tr.get(6)"
+												onKeyDown="moveNextBox(this); " onFocusOut="setViewMode(this); " tabindex="2"
+												style="width:100%; padding-right:5px; display:none; text-align:right; " onDblClick="this.select(); ">
+										</td>
+										## UOM
+										<td width="60px" align="center">
+											<a id="divUom">$tr.get(7)</a>
+										</td>
+										## 실 고정비
+										<td width="80px" align="right" >
+											<a id="divRealFixCost">$tr.get(8)&nbsp;</a>
+										</td>
+										## 실 변동비
+										<td width="80px" align="right" >
+											<a id="divRealChgCost">$tr.get(9)&nbsp;</a>
+										</td>
+										## 표준 고정비
+										<td width="80px" align="right" >
+											<a id="divStdFixCost">$tr.get(10)&nbsp;</a>
+										</td>
+										## 표준 변동비
+										<td width="80px" align="right" class="right">
+											<a id="divStdChgCost">$tr.get(11)&nbsp;</a>
+										</td>	
+									</tr>
+								#end
+								</tbody> 
+							</table> 
+						</div>
+					</td> 
+					<td valign="top"> 
+						## 우측 하단 로우
+						<div id="mainDisplay" class="ns_scroll" style="border:0; width:0px; " onscroll="scrollY(); ">
+							<table width="0px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="main_tbody">
+								
+								</tbody>
+							</table>
+						</div>
+					</td></tr></table> 
+					
+					<table height="5"><tr><td></td></tr></table>
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>						
+						<input type="hidden" name="_moon_service" value="${_moon_service}">
+						<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+						<input type="hidden" name="_user_id" value="$!{_user_id}">
+					</td></tr></table>
+					
+					</td></tr></table>
+					
+					## waiting 표시영역
+					##waitingArea()
+					<table width="100%" height="100%" id="waitArea" style="display:none; ">
+                    	<tr>
+                    		<td valign="middle" align="center">
+                    			<img src="sinc/template/basic/skin/nongshim/images/common/progress_waiting.gif" 
+                    				align="absmiddle" border="0" width="200px" height="60px">
+                    			<img src="sinc/template/basic/skin/nongshim/images/common/loading_icon.gif" 
+                    				align="absmiddle" border="0" width="60px" height="60px">
+                    			<br><h6>&nbsp;</h6>
+                    		</td>
+                    	</tr>
+                    </table>
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 배분율과 최소배분량을 입력 후 상단의 저장버튼을 클릭하면 새로운 내용을 저장합니다.";
+	helpStr += "<br>◈ 배분율의 총 합은 100을 넘을 수 없습니다.";
+	helpStr += "<br>◈ 배분율과 최소배분량은 반드시 숫자로만 입력합니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+</script> 

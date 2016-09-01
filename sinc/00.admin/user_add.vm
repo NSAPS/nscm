@@ -1,0 +1,156 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수
+#set( $resizeFuncCallCode = "setTabAutoResize2('90', '224')" )
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						#toolbar($_moon_toolbar "" "user_register" "" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr style="display:none; ">
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; ">
+            				<tr id="search_menu" style="display:block; ">
+            					<td width="10%" align="right">
+									&nbsp;
+            					</td>
+            					<td width="90%" align="left">
+									&nbsp;
+            					</td>
+            				</tr> 
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="0"> ## search 조건 부분 높이 
+	##<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+						
+					<table cellspacing="0" width="100%" class="table2">	
+						<tr> 
+							<td class="td1" width="15%" align="center">계정</td>
+							<td class="td2" width="35%"><input type="text" name="user_id_insert" size="30" class="normal" 
+								onkeydown="enterToTapCheck();" style="padding-left:5px; width:100%; " value="$!{user_id_insert}"></td>
+							<td class="td1" width="15%" align="center">비밀번호</td>
+							<td class="td2" width="35%"><input type="password" name="user_pwd_insert" size="30" class="normal" 
+								onkeydown="enterToTapCheck();" style="padding-left:5px; width:100%; " value="$!{user_pwd_insert}"></td>
+						</tr>
+						<tr>
+							<td class="td1" width="15%" align="center">사용자 명</td>
+							<td class="td2" width="35%"><input type="text" name="user_name_insert" size="30" class="normal" 
+								onkeydown="enterToTapCheck();" style="padding-left:5px; width:100%; " value="$!{user_name_insert}"></td>
+							<td class="td1" width="15%" align="center">이메일</td>
+							<td class="td2" width="35%"><input type="text" name="user_email_insert" size="30" class="normal" 
+								onkeydown="enterToTapCheck();" style="padding-left:5px; width:100%; " value="$!{user_email_insert}"></td> 
+						</tr>
+						<tr>
+							<td class="td1" width="15%" align="center">전화번호</td>
+							<td class="td2" width="35%"><input type="text" name="user_phone_insert" size="30" class="normal" 
+								onkeydown="enterToTapCheck();" style="padding-left:5px; width:100%; " value="$!{user_phone_insert}"></td>
+							<td class="td1" width="15%" align="center">메모</td>
+							<td class="td2" width="35%"><input type="text" name="description_insert" size="30" class="normal"
+								onkeydown="enterToTapCheck();" style="padding-left:5px; width:100%; " value="$!{description_insert}"></td> 
+						</tr> 
+						<tr>
+							<td class="td1" width="15%" align="center">그룹</td>
+							<td class="td2" width="50%" colspan="3">
+								<select name="group_id_insert" onChange="changeGroup('$!{_moon_service}', this); ">
+										<option value="-1" selected>---------</option>
+									#foreach($tr in ${user_group_add})
+										<option value=$tr.get(0) #if("${group_id_insert}"== "$tr.get(0)") selected #end> $tr.get(1)</option>
+									#end
+								</select>
+							</td>
+						</tr>
+						<tr><td colspan="4">
+							<div id="divIDOut"> 
+								<style> 
+									.scroll {
+										width:100%; height:250px; 
+										border: 1px solid;
+										border-color:	silver silver silver silver;
+										overflow:auto;
+										scrollbar-face-color:#FFFFFF;
+										scrollbar-shadow-color:#666666;
+										scrollbar-highlight-color:#666666;
+										scrollbar-3dlight-color:#FFFFFF;
+										scrollbar-darkshadow-color:#FFFFFF;
+										scrollbar-track-color:#FFFFFF;
+										scrollbar-arrow-color:#666666;
+									}
+								</style>
+								#if("${group_change}"=="Y")
+									${menulist.getScriptStringForMenuAuthority(${_moon_menus},  $!{menus_group}, $request.getContextPath())} 
+								#else
+									${menulist.getScriptStringForMenuAuthority(${_moon_menus},  $!{check_menu}, $request.getContextPath())}	
+								#end 
+							</div> 
+						</td></tr>	
+						<input type="hidden" name="_moon_service">
+						<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+						<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+						<input type="hidden" name="group_change" value="">
+						<input type="hidden" name="group_id" value="">
+					</table>
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 메뉴 표시 부분 ID 생성
+	divIDOut.childNodes[1].rows(1).cells(0).childNodes[0].id = "divID";
+	
+	// 메뉴 전체 선택/해제 체크박스 생성
+	var menuStr = "&nbsp; <input type='checkbox' name='boxCheckAll' onClick='clickMenuAll(this); ' style='border:0px; '>";
+	menuStr += "&nbsp; Select Menu";
+	divIDOut.childNodes[1].rows(0).cells(0).innerHTML = menuStr;
+	
+	// 메뉴 선택 체크박스 테두리 제거
+	delBorderCheck();
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 각 항목을 입력한 후 상단의 저장 버튼을 클릭하여 사용자를 등록합니다.";
+	//helpStr += "<br>◈ ";
+	helpCont.innerHTML = helpStr;
+	// 도움말 zoomOut 높이 조절 변수
+	hDynamicHeight = 0;
+	
+</script>

@@ -1,0 +1,73 @@
+<script type='text/javascript' src='$!{project}/dwr/interface/nongshim.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/engine.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/util.js'></script>
+	
+<table id="dataArea" border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	<tr>
+		<td height="25" align="right" bgcolor="${toolbar_bgcolor}" class="line">
+			<table align="right" width="100%" height="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+				<tr>					
+					<td align="right">						
+						#toolbar_nscm_iframe($_moon_toolbar "" "" "fc_03010_parameterMgmt_tailer_update" "")
+					</td>
+				</tr>
+			</table>
+		</td>                                                                                                                                                                                                                  
+	</tr>
+	<tr id="search_menu" style="DISPLAY:block">
+		<td height="20" valign="top" bgcolor="${search_bgcolor}" class="line">		
+			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; display:block;">
+				<tr>
+					<td height="10"></td>
+				</tr>
+				<tr>										
+					<td width="30%" align="left">
+						<table height="21" border="0" cellpadding="0" cellspacing="0">							
+							<tr> 
+								<td width="80" align="center" class="td1">
+									<span>수요예측 방법</span>
+								</td>
+								<td align="left">
+									<select name="fcst_method" style="width:200px;" onChange="searchIFrameData('fc_03010_parameterMgmt_tailer');">
+										<option value="">전체</option> 
+										#foreach( $choice in $!{fc_03010_fcst_methods} )
+											<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{fcst_method}") selected #end >$choice.get(1)</option>
+										#end 
+									</select>									
+								</td>
+							</tr>							
+						</table>
+					</td>
+				 </tr>	
+		  		 <tr height="10"><td></td></tr>
+		     </table>			
+		 </td>   
+	 </tr>
+	 <tr class="line" height="10"><td></td></tr>
+	 <tr>
+	 	 <td valign="top">
+			<iframe id="child" name="iframe" src="service.do?_moon_service=fc_03010_parameterMgmt_tailer&amp;_moon_perpage=100&amp;_moon_pagenumber=1" width="100%" height="100%" scrolling="no" topmargin="0" leftmargin="0" frameborder="NO" border="0" framespacing="0"></iframe>
+		 </td>
+	 </tr>
+	 <input type="hidden" name="_moon_service" value="${_moon_service}">	
+</table>
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력  
+	var helpStr = "수요예측 기법들의 파라미터를 관리하는 화면입니다. 디폴트 값 유지를 권장합니다.<br>"; 
+	helpStr += "◈Simple Exponential Smoothing(단순지수평활법) : 최근 관측값에 더 많은 가중치를 부여하도록 과거의 관측값들을 지수적으로 가중평균하여 미래 예측.<br>"; 
+	helpStr += "◈Logarithmic(대수법) : Log 함수를 이용한 Nonlinear regression을 통해 시계열의 비선형 추세를 예측.<br>";
+	helpStr += "◈Winter's Additive(가법계절지수평활법) : 시계열이 선형 추세와 계절 요인으로 구성되어 있다고 가정하고, 통계적으로 연관된 3가지 Series(Level, Trend, Seasonality) 로 미래의 추세와 계절성을 예측.<br>"; 
+	helpStr += "◈Optimal Winter's(최적계절지수평활법) : Simple Winter’s method의 Level, Trend, Seasonal Factor의 조합 중 Forecast Error 가 최소가 되는 조합을 찾아 수요예측을 수행.<br>"; 
+	helpStr += "◈Seasonal Logarithmic(계절대수) : Logarithmic에 Seasonality를 반영하여 좀더 현실적인 수요예측을 수행.<br>"; 
+	helpStr += "◈Simple Moving Average(단순 이동평균법) : 과거 시계열자료를 연속적으로 산술평균하여 관광수요를 예측.<br>"; 
+	helpStr += "◈Weighted Moving Average(가중 이동평균법) : 과거 시계열자료를 연속적으로 산술평균 가중치를 주어 관광수요를 예측.<br>"; 
+	helpStr += "◈Optimal Forecasting(최적 수요예측) : 다양한 Forecast model을 적용한 후, 그 중 최적의 Model을 선택하는 방법.<br>";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;	
+			
+</script> 

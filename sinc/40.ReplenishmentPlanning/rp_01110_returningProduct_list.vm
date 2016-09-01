@@ -1,0 +1,418 @@
+############################################################
+## 프로그램ID : rp_01110_returningProduct_list.vm
+## 프로그램명 : 반품 수송 계획 조회
+## 개발자  : 허준성
+## 개발일자 : 2008-08-14 목요일
+##
+##관련 job file : job_sinc_40_replenishmentPlanning_00.xml
+##
+##관련 query file : query_sinc_40_replenishmentPlanning_00.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2008-08-14  허준성    rp_01110_returningProduct_list.vm 개발
+##
+##
+############################################################
+
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수
+
+#set( $resizeFuncCallCode = "setGridAutoResize('130', '180');" )
+
+<input type="hidden" name="status_flag" >
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+					<td align="left" >
+						<input type="button" name="btnCreate" value=" 계획생성" onClick="GoSave('rp_01110_returningProduct_list_create_comp')" class="btn1_on">
+					</td>
+                	<td align="right">
+						#button("search")
+						#toolbar_nscm($_moon_toolbar "" "" "" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" 
+							id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr>
+            					<td width="12%" align="right">
+            						출고장 :
+            					</td>
+            					<td width="15%" align="left">
+									<select name="src_loc_sel" >
+											<option value="">전체</option>
+										#foreach( $tr in $trans_dc_id_and_short_name_list )
+											<option value="$tr.get(0)" 
+												#if( "$!{src_loc_sel}" == "$tr.get(0)" ) selected #end>$tr.get(1)</option>
+										#end
+									</select>
+            					</td>
+								<td width="12%" align="right">
+            						구분 :
+            					</td>
+            					<td width="15%" align="left">
+									<select name="gubun" >
+										#foreach( $tr in $code_mst_and_scrap_flag )
+											<option value="$tr.get(0)" 
+												#if( "$!{gubun}" == "$tr.get(0)" ) selected #end>$tr.get(1)</option>
+										#end
+									</select>
+            					</td>
+								<td width="12%" align="right">
+            						수송일자 :
+            					</td>
+            					<td width="34%" align="left">
+									#date_sole_no_title("trans_start" "10" "normal" "btnS" "")
+									~ #date_sole_no_title("trans_end" "10" "normal" "btnE" "")
+            					</td>
+            				</tr>
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="24"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title} 조회</h2>
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+								<img src="/nscm/sinc/template/basic/skin/nongshim/images/common/dot_sub6.gif" width="16" height="13">Total :
+								<span class="f_color_o b">$!{rp_01110_returningProduct_list_01.size()}</span>
+							</td>						
+						</tr>
+					</table> 
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+        						<textarea id="txt1" style="display:none;" rows="0" cols="0">
+                            		#set( $headertype = "TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!NUMBER!%!NUMBER" )		
+                            		#set( $header = "전표번호!%!전표\n순번!%!출고장!%!입고장!%!차량\n순번!%!제품코드!%!제품명!%!수송일자!%!수량(BOX)!%!수량(EA)" )
+                            		#set( $colwidth = "80!%!50!%!130!%!130!%!40!%!80!%!130!%!90!%!60!%!60")
+                            		#set( $data = $grid.getBody(${rp_01110_returningProduct_list_01},"!%!", "/%/") )
+                            		#set( $columaligns = "CENTER!%!CENTER!%!LEFT!%!LEFT!%!CENTER!%!CENTER!%!LEFT!%!CENTER!%!RIGHT")
+        							
+									<object name='grid' classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93" width="100%" 
+                            		 codebase="http://java.sun.com/update/1.6.0/jinstall-6-windows-i586.cab#Version=1,5,3,0">
+									
+                            			<!--Necessary-->
+                            			<param name="code" value="com.zionex.t3sinc.ui.ZLattice.class">
+                            			<param name="archive" value="$request.getContextPath()/zLattice.jar">
+                            			<param name="headertypes" value="$!{headertype}">
+                            			<param name="headers" value="$!{header}">
+                            			<param name="headertype" value="HORIZONTAL_HEADER">
+                            			<param name="columnheight" value="40"> ## 한줄 추가 될때마다 20 의 배수로 증가하면 됨			
+                            			<param name="data" value="$!{data}">
+                            				
+                            			<!--optional - Default Value 있음-->
+                            			<param name="hasnestedsubheader" value="false"> <!-- defalut : false -->
+                            			<!--<param name="topheaders" value="Item/%/Site">-->
+                            			<!--<param name="topheaderposition" value="O!%!O/%/O!%!O/%/X!%!X!%!X">-->
+                            			<param name="columndelimeter" value="!%!"> <!-- defalut : !%! -->
+                            			<param name="rowdelimeter" value="/%/"> <!-- defalut : /%/ -->
+                            			<param name="showgroupingfunction" value="false">  <!-- defalut : true -->
+                            			<param name="showprintingfunction" value="false">   <!-- defalut : true -->
+                            			<param name="showlockingfunction" value="false"> <!-- defalut : true -->
+                            			<param name="showpagingfunction" value="false"> <!-- defalut : true -->
+                            			<param name="enablesorting" value="true">   <!-- defalut : true -->
+                            			<param name="enabledragging" value="true"> <!-- defalut : false -->
+                            			<param name="groupingcolumn" value="4"> <!-- defalut : 그루핑 없음 --> 
+                            			<param name="groupsumcolumn" value="-1"> <!-- defalut : 그루핑 없음 -->
+                            			<param name="lockedcolumn" value="4"> <!-- defalut : 락킹 없음 -->
+                            			<param name="presentpage" value="1">   <!-- defalut : 1 -->
+                            			<param name="listinpage" value="1">   <!-- defalut : 40 -->
+                            			<param name="bordertype" value="PLANE"> <!-- default - PLANE : PICTURE, RAISED, NONE -->
+                            			##<param name="indateformat" value="yyyy-MM-dd HH:mm:ss.SSS"> <!-- default - yyyyMMdd -->
+                            			<param name="indateformat" value="yyyy/MM/dd"> <!-- default - yyyyMMdd -->
+                            			<param name="outdateformat" value="yyyy/MM/dd">  <!-- default - yyyyMMdd -->
+                            			##<param name="outnumberformat" value="###,###,##0.000##"> ## 을 주석으로 인식하므로 아래와 같이 &#035; 로 표기
+                            			##<param name="outnumberformat" value="&#035;,&#035;&#035;0.00">
+                            			<param name="columnwidth" value="$!{colwidth}"> <!-- default -80 -->
+                            
+                            			<!--<param name="combo3" value="DECIMAL(10,2)!%!VARCHAR!%!CHAR(1)!%!INT!%!DATETIME"> -->
+                            
+                            			<!--Necessary for Modifiability -->
+                            			<param name="names" value="">
+                            			<param name="enableinserting" value="false"> <!-- default -false -->
+                            			<param name="enabledeleting" value="false"> <!-- default -false -->
+                            			<param name="enableediting" value="false"> <!-- default -false -->
+                            
+                            			<param name="disablecolumns" value="0">
+                            
+                            			<param name="hasverticaltotal" value="false"> <!-- default -true -->
+                            			<param name="hashorizontaltotal" value="false"> <!-- default -true -->
+                            
+                            			<param name="columnalign" value="$!{columaligns}">
+                            			<param name="font" value="굴림체">
+                            			<param name="fontsize" value="12">
+                            
+                            			<!--optional - Default Value 없음 -->
+                            			<!--<param name="columncolor" value="5=FFE4E1&6=FFE4E1&7=FFE4E1">
+                            			<param name="rowcolor" value="1,일별합계=33FFFF&1,LOT 합계=FF9966">
+                            			<param name="columncolor" value="1=D2FFD2">--> 
+                            
+                            			<param name="onclickrowfunc" value="forwardDetailForm">
+                            			<param name="callingfunction" value="DOUBLECLICKED_CALLING"> <!-- 더블클릭으로 이벤트 발생 -->
+                            			##<param name="rowcolor" value="1,전체합계=FFCC99&1,합계=D2FFD2"> 
+                            			<!--optional - Default Value 없음
+                            			<param name="columncolor" value="5=FFE4E1&6=FFE4E1&7=FFE4E1">
+                            			<param name="rowcolor" value="1,일별합계=33FFFF&1,LOT 합계=FF9966">
+                            			<param name="onclickrowfunc" value="onclickfunc">
+                            			-->
+                            		</object>
+                            	</textarea>
+								<script language="javascript" src="${project}/object_activity.jsp?txtID=txt1"></script>
+        						<!-- <script language="javascript" src="${project}/object_activity.vm"></script> -->
+							</td>
+						</tr>
+					</table>					
+				</div>
+				
+				<div class="tab-page" id="tabPage2" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title} 생성</h2>
+					
+					## 입고장코드, 수송일자, 차량 번호를 보여 주기 위한 textbox 영역
+					<table id="viewText" width="100%" border="0" cellpadding="0" cellspacing="0">
+					<tr><td width="100%" valign="top">
+							<table border="0" width="100%" cellpading="0" cellspacing="0">
+								<tr height="2"><td colspan="3" style="background-color:#D0B8F1; "></td></tr>
+								<tr>
+									<td width="2" style="background-color:#D0B8F1; "></td>
+									<td width="100%">
+										<table border="0" width="100%" cellpading="0" cellspacing="0" 
+											style="background-color:#ffffff; ">
+											<tr>
+												<td width="70px" align="right">
+                            						입고장 :
+                            					</td>
+                            					<td width="120px" align="left">
+                									<select name="tgt_loc" style="width:100px; ">
+                										<option value="">선택</option>
+                									#foreach( $tr in $trans_dc_id_and_short_name_list )
+                										<option value="${tr.get(0)}" 
+                											#if( "$!{tgt_loc}" == "${tr.get(0)}" ) selected #end)>${tr.get(1)}</option>
+                									#end
+                									</select>
+                            					</td>
+												<td width="70px" align="right">
+													재고일자 :
+												</td>
+												<td width="120px" align="left">
+                									#date_sole_no_title("stock_date" "10" "normal" "btnC" "$date.get('yyyy-MM-dd')")
+                            					</td>
+												<td width="70px" align="right">
+													수송일자 :
+												</td>
+												<td width="120px" align="left">
+                									#date_sole_no_title("trans_date" "10" "normal" "btnD" "$date.get('yyyy-MM-dd')")
+													##date_sole_no_title("trans_date" "10" "normal" "btnS" "")
+                									##date_sole_no_title("trans_date" "10" "normal" "btnC" "$date.get('yyyy-MM-dd')")
+                									##date_sole_no_title("trans_start" "10" "normal" "btnS" "$date.get('yyyy-MM-dd')") ~
+                									##date_sole_no_title("trans_date" "10" "normal" "btnE" "$!{trans_date}")
+                									##date_sole_no_title("trans_date" "10" "normal" "btnC" "$date.get('yyyy-MM-dd')")
+                            					</td>
+												<td width="70px" align="right">
+													차량번호 :
+												</td>
+												<td width="120px" align="left">
+													<input type="text" name="truck_num" size="5" class="normal" ondblClick="this.select(); "
+														value="1" onkeypress="filterKey('[0-9]')" style="text-align:center;">
+												</td>
+												<td>
+												</td>
+											</tr>
+										</table>
+									</td>
+									<td width="2" style="background-color:#D0B8F1; ""></td>
+								</tr>
+								<tr height="2"><td colspan="3" style="background-color:#D0B8F1; "></td></tr>
+							</table>
+					</td></tr>
+					<tr><td height="5"></td></tr>
+					</table>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+								<img src="/nscm/sinc/template/basic/skin/nongshim/images/common/dot_sub6.gif" width="16" height="13">Total :
+								<span id="areaTot" class="f_color_o b">$!{_moon_service_count}</span>
+							</td>
+						</tr>
+					</table>
+					
+					<table id="tbMain" border="0" width="100%" cellpadding="0" cellspacing="0"><tr><td>
+						<div id="topLeft" style="height:35px; width:100%; overflow:hidden; padding-right:16px;">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead>
+									<tr height="35px">
+										<td width="5%">번호</td>
+										<td width="5%">코드</td>
+										<td width="10%">배송지점명</td>
+										<td width="10%">제품코드</td>
+										<td width="30%">제품명</td>
+										<td width="15%">출고박스</td>
+										<td width="15%">출고봉</td>
+										<td width="10%" class="right">출고<input 
+											type="checkbox" name="all_check_flag" value="" class="normal"
+											style="text-align:center; border-width:0; " onClick="allCheck(); "></input>
+										</td>
+									</tr> 
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td>
+					<td> 
+						<div id="topLine" style="height:35px; width:0px;overflow:hidden;">
+			   			</div>
+					</td></tr>	
+					<tr><td valign="top">
+						<div id="leftDisplay" class="ns_scroll" style="border:0; width:100%; overflow-y:scroll;">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="left_tbody">
+								#foreach( $tr in $rp_01110_returningProduct_list_02 )
+									<tr id="left_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+										## ITEM_ID(0), ITEM_NAME(1), UNIT_UOM(2), UNIT_QTY(3), STOCK_QTY(4),
+										## BOX_QTY(5), STOCK_QTY(6), EA_QTY(7)
+										
+										## 번호
+										<td width="5%" align="center" style="background-color:${search_bgcolor}; ">
+											<a id="divRowNo">$velocityCount</a>
+										</td>
+										## 배송지점코드
+										<td width="5%" align="center">
+											<a id="divRDCId">&nbsp;$tr.get(0)</a>
+											<input type="hidden" name="rdc_id" value="$tr.get(0)">
+										</td>
+										## 배송지점명
+										<td width="10%" align="center">
+											<a id="divRDCIdName">&nbsp;$tr.get(1)</a>
+											<input type="hidden" name="rdc_id_name" value="$tr.get(1)">
+										</td>
+										
+										## 제품코드
+										<td width="10%" align="center">
+											<a id="divItemId">&nbsp;$tr.get(2)</a>
+											<input type="hidden" name="item_id" value="$tr.get(2)">
+										</td>
+										## 제품명
+										<td width="30%" align="left">
+											<a id="divItemName">&nbsp;$tr.get(3)</a>
+											<input type="hidden" name="item_name" value="$tr.get(3)">
+											<input type="hidden" name="unit_uom"  value="$tr.get(4)">
+											<input type="hidden" name="unit_qty"  value="$tr.get(5)">
+											<input type="hidden" name="cal_qty"> ## IF_TRANS_PLAN의 QTY에 넣을값(UI 수정된 값을 가짐.)
+										</td>
+										## 출고박스
+										<td width="15%" align="center" onClick="setEditMode(this); ">
+											<a id="divBoxQty">&nbsp;$tr.get(7)</a><input 
+												type="text" name="box_qty" class="normal" value="$tr.get(7)" size="10" maxlength="12"
+												onFocusOut="setViewMode(this);" onkeypress="filterKey('[0-9]')" ondblClick="this.select(); "
+												style="width:100%; text-align:center; display:none; " onKeyDown="moveNextBox(this); ">
+										</td>
+										## 출고봉
+										<td width="15%" align="center" onClick="setEditMode(this); ">
+											<a id="divEaQty">&nbsp;$tr.get(8)</a><input 
+												type="text" name="ea_qty" class="normal" value="$tr.get(8)" size="10" maxlength="12"
+												onFocusOut="setViewMode(this); setCalQty(this);" onkeypress="filterKey('[0-9]')" 
+												ondblClick="this.select(); "
+												style="width:100%; text-align:center; display:none; " onKeyDown="moveNextBox(this); ">
+										</td>
+										## 출고
+										<td width="10%" align="center" class="right">
+											<input type="checkbox" name="check_flag" value="" class="normal"
+												style="text-align:center; border-width:0; " onKeyDown="moveNextBox(this); "></input>
+											<input type="hidden" name="check_value" value="">
+										</td>
+									</tr>
+								#end
+								</tbody>
+							</table> 
+						</div>
+					</td> 
+					<td valign="top"> 
+						<div id="mainDisplay" >	
+							<table width="0px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="main_tbody">
+								
+								</tbody>
+							</table>
+						</div>
+					</td></tr></table>
+					
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+						
+					<input type="hidden" name="_moon_service">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					<input type="hidden" name="_user_id" value="$!{_user_id}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+					
+				</div>
+				
+			</div>
+		
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode};}
+	
+	setDate();
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 1. 반품 수송 계획 조회 TAB";
+	helpStr += "<br>◈ 출고장과 수송기간을 선택한 후 조회 버튼을 클릭하시면 데이타가 조회 됩니다.(구분은 반품 수송 계획 생성시 반영됨)";
+	helpStr += "<br>◈ 반품 수송 계획 조회 화면에서는 계획생성 버튼을 클릭하셔도 실행되지 않습니다.";
+	helpStr += "<br>◈ 수량(EA)는 출고박스와 출고봉이 모두 포함된 수량입니다.";
+	helpStr += "<br>";
+	helpStr += "<br>◈ 2. 반품 수송 계획 생성 TAB";
+	helpStr += "<br>◈ 출고장과 구분을 선택한 후 조회 버튼을 클릭하시면 데이타가 조회 됩니다.(수송기간은 반품 수송 계획 조회시 반영됨)";
+	helpStr += "<br>◈ 출고 체크박스를 먼저 체크하셔야 해당 ROW의 출고박스와 출고봉을 수정하실 수 있습니다.";
+	helpStr += "<br>◈ 출고박스와 출고봉은 숫자 이외의 문자는 입력이 되지 않습니다.";
+	helpStr += "<br>◈ 수송계획생성을 하시려면, 먼저 원하시는 출고장을 선택하신 후 조회를 하셔야 합니다.";
+	helpStr += "<br>◈ 조회를 하신 후 선택하신 출고장의 데이타가 없는 경우 수송계획생성을 하실 수 없습니다.";
+	helpStr += "<br>◈ 수송계획생성을 하시려면, 출고장과 입고장, 수송일자, 차량번호를 꼭 입력하셔야 합니다.";
+	helpStr += "<br>◈ 또한 하나 이상의 출고 체크박스를 체크하지 않으면 계획생성 버튼을 클릭하셔도 계획 생성이 이루어 지지 않습니다.";
+	helpStr += "<br>◈ 출고 체크박스가 선택된 ROW값만 수송계획생성에 반영됩니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+
+</script>

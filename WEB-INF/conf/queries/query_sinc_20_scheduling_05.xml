@@ -1,0 +1,2565 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>	
+  
+	<!-- 
+	=======================
+	 유통가공 정보 조정
+	======================= 
+	-->  
+	<!--  1. 유통가공품 정보 조회 -->   
+	<query id="sc_01100_etc_plan_list">                  
+	
+	SELECT * 
+	    FROM
+		    (
+		    SELECT 
+		           PA.VERSION,                              --1. VERSION
+		           PA.SEQ,                                  --2. SEQ
+		           IM.ITEM_ID,                              --3. ITEM_ID
+		           IM.ITEM_NAME,                            --4. ITEM_NAME
+		           IM.SPEC,                                 --5. SPEC
+		           DC.BASE_STOCK,                           --6. BASE_STOCK
+		           DC.SCH_PLAN_W0,                          --7. SCH_PLAN_W0
+		           DC.SALES_PLAN_W0,                        --8. SALES_PLAN_W0
+		           DC.EXPERT_STOCK,                         --9. 예상재고
+		           PA.W1_PA_PLAN  PA_PLAN_W1,               --10.생산필요량_W1
+		           -----------------------------------------------------------
+		           LOC_INFO.LOC_ID||'_'||LOC_INFO.PROC_ID   LOC_ID_W1,
+		           LOC_INFO.HID_NM                          HID_NM_W1,
+		           -----------------------------------------------------------
+		           0 W1_MON_SCH,                            --12.
+		           0 W1_TUE_SCH,                            --13.
+		           0 W1_WED_SCH,                            --14.
+		           0 W1_THU_SCH,                            --15.
+		           0 W1_FRI_SCH,                            --16.
+		           0 W1_SAT_SCH,                            --17.
+		           0 W1_SUN_SCH,                            --18.           
+		           DC.SALES_PLAN_W1,                        --19.판매계획_W1
+		           PA.W2_PA_PLAN PA_PLAN_W2,                --20.생산필요량_W2
+		           -----------------------------------------------------------
+		           LOC_INFO.LOC_ID||'_'||LOC_INFO.PROC_ID   LOC_ID_W2,
+		           LOC_INFO.HID_NM                          HID_NM_W2,
+		           -----------------------------------------------------------
+		           0 W2_MON_SCH,                            --22.
+		           0 W2_TUE_SCH,                            --23.
+		           0 W2_WED_SCH,                            --24.
+		           0 W2_THU_SCH,                            --25.
+		           0 W2_FRI_SCH,                            --26.
+		           0 W2_SAT_SCH,                            --27.
+		           0 W2_SUN_SCH,                            --28.            
+		           DC.SALES_PLAN_W2                         --29. 판매계획_W2
+		    FROM
+		    		  (
+		    		    --1. 기초재고외 조회
+		    		    SELECT  ITEM_ID,            
+		    		            BASE_STOCK,         --기초재고
+		    		            SCH_PLAN_W0,        --금주생산계획 
+		    		            SALES_PLAN_W0 ,     --금주판매계획
+		    		            BASE_STOCK + SCH_PLAN_W0 - SALES_PLAN_W0  EXPERT_STOCK,  -- 예상재고(차주초)        
+		    		            SALES_PLAN_W1,      --차주판매계획       
+		    		            SALES_PLAN_W2       --차차주판매계획  
+		    		    FROM        
+		    		    (
+		    		    SELECT  ITEM_ID,
+		    		            SUM(DECODE(YYYYMMDD, REPLACE ('$!{sdate}', '-', ''),BASE_STOCK,0))                              BASE_STOCK,      --기초재고
+		    		            SUM(CASE WHEN  YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IYYYIW')
+		    		                           AND YYYYMMDD >= TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'YYYYMMDD')
+		    		                     THEN  RECEIPT_EXPT
+		    		                     ELSE  0
+		    		                END)       SCH_PLAN_W0,                                                                                       --금주생산계획
+		    		            SUM(CASE WHEN  YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IYYYIW')
+		    		                           AND YYYYMMDD >= TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'YYYYMMDD')
+		    		                     THEN  SALES_PLAN
+		    		                     ELSE  0
+		    		                END)       SALES_PLAN_W0,                                                                                    --금주판매계획    
+		    		            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 'IYYYIW'),SALES_PLAN, 0))    SALES_PLAN_W1,   --차주판매계획                                      		                                              
+		    		            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2), 'IYYYIW'),SALES_PLAN, 0))    SALES_PLAN_W2    --차차주판매계획                                      
+		    		    FROM
+		    		            (
+		    		            SELECT  DD.ITEM_ID,
+		    		                    DECODE(DC.DC_ID, NULL, 0, DD.BASE_STOCK) BASE_STOCK,
+		    		                    DD.RECEIPT_EXPT,
+		    		                    (DD.SALES_PLAN+DD.PROM_PLAN) SALES_PLAN, --판매계획수량수정(2008.11.12 수정)
+		    		                    SALES_MEAN_1WEEK,
+		    		                    CAL.YYYYWW,
+		    		                    CAL.YYYYMMDD
+		    		            FROM    DC_DATAWAREHOUSE DD, CAL_MST CAL,
+		    		    	            (
+		    		    	            SELECT 	DC_ID, DC_NAME
+		    		               		  FROM 	DC_MST
+		    		                	 WHERE 	CDC_FLAG = 'Y'
+		    		                	UNION 
+		    		                 	SELECT 	DC_ID, DC_NAME
+		    		               		  FROM 	DC_MST
+		    		                	 WHERE 	RDC_FLAG = 'Y'    
+		    		    	            ) DC
+		    		    	    WHERE   DD.CNFM_DATE = CAL.YYYYMMDD
+		    		    	    AND     DD.DC_ID    =   DC.DC_ID(+)
+		    		    	    AND     DD.ITEM_ID =  (
+								                        SELECT ITEM_ID 
+								                         FROM ITEM_MST 
+								                        WHERE ETC_FLAG = '900' 
+								                          AND ITEM_STATUS = 'ST' 
+								                          AND ITEM_ID = DD.ITEM_ID
+								                      )	
+		    		            -- 당주 월요일부터 ~ 차차주 일요일까지 (3WEEK)     
+		    		            AND     DD.CNFM_DATE BETWEEN  TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*-1), 2),   'YYYYMMDD')
+		    		                                 AND      TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2) , 1)  , 'YYYYMMDD')          
+		    		            
+		    		            )
+		    		         GROUP BY ITEM_ID     
+		    		        ) 
+		    		  ) DC,
+		    		  (
+		      		    --2. 생산필요량 조회
+		                SELECT MAX(VERSION) VERSION, 
+		                       MAX(SEQ)     SEQ, 
+		                       ITEM_ID,     
+		                       SUM(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)
+		                                                   AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 1)
+		                         THEN  QTY
+		                         ELSE  0
+		                       END)       W1_PA_PLAN,
+		                       SUM(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)
+		                                                   AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2), 1)
+		                         THEN  QTY
+		                         ELSE  0
+		                       END)       W2_PA_PLAN
+		                  FROM PLANT_ALLOC_PLAN 
+		                 WHERE VERSION = '$!{version}'							  
+		                   AND     SEQ = '$!{seq}'
+		                  AND DUE_DATE BETWEEN  NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*-1), 2)
+		                                   AND  NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2), 1)              		    
+		                GROUP BY ITEM_ID
+		                ) PA,
+		                (
+		                --3. 유통가공품인 ITEM
+		                SELECT ITEM_ID, ITEM_NAME, SPEC 
+		                 FROM ITEM_MST
+		                WHERE ETC_FLAG = '900'
+		                  AND ITEM_STATUS = 'ST'     
+		                ) IM,
+		                (
+	                    SELECT DISTINCT IC.ITEM_ID,
+	                           CM.CAT01     LOC_ID,
+	                           CM.CD        PROC_ID,
+	                           HR.HID_NAME  HID_NM
+	                    FROM
+	                        (
+	                        --DC_ID와 PROC_ID(생산계획) 정의 테이블
+	                        SELECT CD, CAT01 
+	                          FROM CODE_MST WHERE CD_GRP = 'ETC_DC_MAP'
+	                        ) CM,
+	                        (
+	                        SELECT HID, HID_NAME
+	                         FROM HRCHY
+	                        WHERE HTYPE = '1300' 
+	                          AND LVL_TYPE = '원가부문'   
+	                        ) HR,
+	                        (
+	                        --1300 PLANT만의 PROC_ID(작업장)
+	                        SELECT DISTINCT ITEM_ID, PROC_ID
+	                          FROM ITEM_CAPA
+	                        WHERE PLANT_ID = '1300'    
+	                        ) IC
+	                    WHERE CM.CD = HR.HID
+	                      AND CM.CD = IC.PROC_ID
+		                ) LOC_INFO
+		    WHERE PA.ITEM_ID    = IM.ITEM_ID 
+		      AND PA.ITEM_ID    = DC.ITEM_ID(+) 
+		      AND PA.ITEM_ID    = LOC_INFO.ITEM_ID(+) 
+		      AND NOT EXISTS (
+		                      SELECT 'X' FROM ETC_INFO_MST
+		                      WHERE VERSION = '$!{version}'							  
+		                        AND     SEQ = '$!{seq}'
+		     				 )     	
+			UNION ALL
+			------------------------------
+			-- 유통가공 마스터 TABLE 
+			------------------------------
+			SELECT ETC_MST.VERSION,                              
+			       ETC_MST.SEQ,
+			       ETC_MST.P_ITEM_ID,
+			       IM.ITEM_NAME,
+			       IM.SPEC,
+			       DC.BASE_STOCK,
+			       DC.SCH_PLAN_W0,
+			       DC.SALES_PLAN_W0,   
+			       DC.EXPERT_STOCK,  
+			       ETC_MST.PA_PLAN_W1 PA_PLAN_W1,
+		           ETC_MST.LOC_ID_W1||'_'||ETC_MST.PROC_ID_W1   LOC_ID_W1,
+			       (
+			       SELECT HID_NAME
+				 FROM HRCHY
+				WHERE HTYPE = '1300' 
+				  AND LVL_TYPE = '원가부문' 
+				  AND HID      = ETC_MST.PROC_ID_W1
+				) HID_NM_W1,
+			       -------------------
+				   ETC_MST.MON_SCH_W1,
+			       ETC_MST.TUE_SCH_W1,
+			       ETC_MST.WED_SCH_W1,
+			       ETC_MST.THU_SCH_W1,
+			       ETC_MST.FRI_SCH_W1,
+			       ETC_MST.SAT_SCH_W1,
+			       ETC_MST.SUN_SCH_W1, 
+			       -------------------
+			       DC.SALES_PLAN_W1,
+			       ETC_MST.PA_PLAN_W2 PA_PLAN_W2,  
+		           ETC_MST.LOC_ID_W2||'_'||ETC_MST.PROC_ID_W2   LOC_ID_W2,
+			       (
+			       SELECT HID_NAME
+				 FROM HRCHY
+				WHERE HTYPE = '1300' 
+				  AND LVL_TYPE = '원가부문' 
+				  AND HID      = ETC_MST.PROC_ID_W2
+				) HID_NM_W2,		       
+			       -------------------      
+			       ETC_MST.MON_SCH_W2,
+			       ETC_MST.TUE_SCH_W2,
+			       ETC_MST.WED_SCH_W2,
+			       ETC_MST.THU_SCH_W2,
+			       ETC_MST.FRI_SCH_W2,
+			       ETC_MST.SAT_SCH_W2,
+			       ETC_MST.SUN_SCH_W2, 
+			       ------------------- 
+			       DC.SALES_PLAN_W2    
+		        FROM
+		            (
+				    --1. 기초재고외 조회
+				    SELECT  ITEM_ID,            
+				            BASE_STOCK,         --기초재고
+				            SCH_PLAN_W0,        --금주생산계획 
+				            SALES_PLAN_W0 ,     --금주판매계획
+				            BASE_STOCK + SCH_PLAN_W0 - SALES_PLAN_W0  EXPERT_STOCK,  -- 예상재고(차주초)        
+				            SALES_PLAN_W1,      --차주판매계획       
+				            SALES_PLAN_W2       --차차주판매계획  
+				    FROM        
+				    (
+				    SELECT  ITEM_ID,
+				            SUM(DECODE(YYYYMMDD, REPLACE ('$!{sdate}', '-', ''),BASE_STOCK,0))                              BASE_STOCK,      --기초재고
+				            SUM(CASE WHEN  YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IYYYIW')
+				                           AND YYYYMMDD >= TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'YYYYMMDD')
+				                     THEN  RECEIPT_EXPT
+				                     ELSE  0
+				                END)       SCH_PLAN_W0,                                                                                       --금주생산계획
+				            SUM(CASE WHEN  YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IYYYIW')
+				                           AND YYYYMMDD >= TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'YYYYMMDD')
+				                     THEN  SALES_PLAN
+				                     ELSE  0
+				                END)       SALES_PLAN_W0,                                                                                     --금주판매계획    
+				            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 'IYYYIW'),SALES_PLAN, 0))    SALES_PLAN_W1,   --차주판매계획                                      		                                              
+				            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2), 'IYYYIW'),SALES_PLAN, 0))    SALES_PLAN_W2    --차차주판매계획                                      
+				    FROM
+				            (
+				            SELECT  DD.ITEM_ID,
+				                    DECODE(DC.DC_ID, NULL, 0, DD.BASE_STOCK) BASE_STOCK,
+				                    DD.RECEIPT_EXPT,
+				                    (DD.SALES_PLAN+DD.PROM_PLAN) SALES_PLAN, --판매계획수량수정(2008.11.12 수정)
+				                    SALES_MEAN_1WEEK,
+				                    CAL.YYYYWW,
+				                    CAL.YYYYMMDD
+				            FROM    DC_DATAWAREHOUSE DD, CAL_MST CAL,
+				    	            (
+				    	            SELECT 	DC_ID, DC_NAME
+				               		  FROM 	DC_MST
+				                	 WHERE 	CDC_FLAG = 'Y'
+				                	UNION 
+				                 	SELECT 	DC_ID, DC_NAME
+				               		  FROM 	DC_MST
+				                	 WHERE 	RDC_FLAG = 'Y'    
+				    	            ) DC
+				    	    WHERE   DD.CNFM_DATE = CAL.YYYYMMDD
+				    	    AND     DD.DC_ID    =   DC.DC_ID(+)
+				    	    AND     DD.ITEM_ID =  (
+							                        SELECT ITEM_ID 
+							                          FROM ITEM_MST 
+							                        WHERE ETC_FLAG = '900' 
+							                          AND ITEM_STATUS = 'ST' 
+							                          AND ITEM_ID = DD.ITEM_ID
+							                      )	
+				            -- 당주 월요일부터 ~ 차차주 일요일까지 (3WEEK)   
+				            AND     DD.CNFM_DATE BETWEEN  TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*-1), 2), 'YYYYMMDD')
+				                                 AND      TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2) , 1)  , 'YYYYMMDD')          
+				            
+				            )
+				         GROUP BY ITEM_ID     
+				        )   
+		           ) DC,
+		           (
+				    --2. 유통가공품 조회
+		            SELECT MAX(VERSION)     VERSION, 
+		                   MAX(SEQ)         SEQ, 
+		                   MAX(
+		                       CASE WHEN DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)
+		                                              AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+6
+		                            THEN LOC_ID
+		                       END
+		                   ) LOC_ID_W1,   
+		                   MAX(
+		                       CASE WHEN DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)
+		                                              AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+6
+		                            THEN PROC_ID
+		                       END
+		                   ) PROC_ID_W1,  	                                            
+		                   MAX(
+		                       CASE WHEN DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)
+		                                              AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+6
+		                            THEN LOC_ID
+		                       END
+		                   ) LOC_ID_W2,      
+		                   MAX(
+		                       CASE WHEN DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)
+		                                              AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+6
+		                            THEN PROC_ID
+		                       END
+		                   ) PROC_ID_W2,  	                              
+		                   P_ITEM_ID        P_ITEM_ID,
+		                   MAX(SCH_W0_QTY)  SCH_W0_QTY,
+		                   SUM(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*-1), 2)
+		                                               AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 1)
+		                     THEN  PA_WEEK_QTY
+		                     ELSE  0 
+		                   END)    PA_PLAN_W0,	           
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2),   ETC_QTY,0))  MON_SCH_W1, --차주생산계획(W1_월)  
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+1, ETC_QTY,0))  TUE_SCH_W1, --차주생산계획(W1_화)  
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+2, ETC_QTY,0))  WED_SCH_W1, --차주생산계획(W1_수)          
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+3, ETC_QTY,0))  THU_SCH_W1, --차주생산계획(W1_목)
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+4, ETC_QTY,0))  FRI_SCH_W1, --차주생산계획(W1_금)
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+5, ETC_QTY,0))  SAT_SCH_W1, --차주생산계획(W1_토)
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+6, ETC_QTY,0))  SUN_SCH_W1, --차주생산계획(W1_일)
+		                   ----------------------------------------------------------------------------------------------------------------------------------
+		                   MAX(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)
+		                                               AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 1)
+		                     THEN  PA_WEEK_QTY
+		                     ELSE  0
+		                   END)    PA_PLAN_W1,		           
+		                   ----------------------------------------------------------------------------------------------------------------------------------
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2),   ETC_QTY,0))  MON_SCH_W2,--차주생산계획(W1_월)  
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+1, ETC_QTY,0))  TUE_SCH_W2,--차주생산계획(W1_화)  
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+2, ETC_QTY,0))  WED_SCH_W2,--차주생산계획(W1_수)          
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+3, ETC_QTY,0))  THU_SCH_W2,--차주생산계획(W1_목)
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+4, ETC_QTY,0))  FRI_SCH_W2,--차주생산계획(W1_금)
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+5, ETC_QTY,0))  SAT_SCH_W2,--차주생산계획(W1_토)
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+6, ETC_QTY,0))  SUN_SCH_W2,--차주생산계획(W1_일)    
+		                   ----------------------------------------------------------------------------------------------------------------------------------
+		                   MAX(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)
+		                                               AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2), 1)
+		                     THEN  PA_WEEK_QTY
+		                     ELSE  0
+		                   END)       PA_PLAN_W2
+		              FROM ETC_INFO_MST 
+			      WHERE VERSION = '$!{version}'			
+				AND     SEQ = '$!{seq}'      			
+		            GROUP BY P_ITEM_ID
+		            ) ETC_MST, ITEM_MST IM
+			WHERE ETC_MST.P_ITEM_ID = DC.ITEM_ID(+)
+			  AND ETC_MST.P_ITEM_ID = IM.ITEM_ID(+)       
+			 ) 
+		ORDER BY 1,2,3	 		 
+	</query>   
+        
+    <!--  물류 plant_id 조회 --> 
+	<query id="grid_logi_plant_list"> 
+		SELECT HID  
+		       --, HID_NAME
+		FROM
+		    (
+		    SELECT DISTINCT PLANT_ID 
+		      FROM ITEM_DTL
+		    ) DT,
+		    (
+		    SELECT  HR.HID, HR.HID_NAME
+		      FROM  HRCHY HR, DUAL
+		     WHERE  HR.LVL_TYPE = '공장' 
+		       AND  HR.MADE_TYPE != 'DE'    
+		    ) HR
+		WHERE DT.PLANT_ID = HR.HID    
+		UNION 
+	    SELECT '----' FROM DUAL
+	</query> 
+	 
+    <!-- 유통가공품 물류 loc_id 조회 --> 
+	<query id="grid_p_loc_list">
+		SELECT DISTINCT LOC_ID,
+               HID_NM                  
+        FROM    
+            (
+            SELECT DISTINCT IC.ITEM_ID,
+                   CM.CAT01||'_'||CM.CD LOC_ID,
+                   HR.HID_NAME  HID_NM
+            FROM
+                (
+                --DC_ID와 PROC_ID(생산계획) 정의 테이블    --추가
+                SELECT CD, CAT01 
+                  FROM CODE_MST WHERE CD_GRP = 'ETC_DC_MAP'
+                ) CM,
+                (
+                SELECT HID, HID_NAME
+                 FROM HRCHY
+                WHERE HTYPE = '1300' 
+                  AND LVL_TYPE = '원가부문'   
+                ) HR,
+                (
+                --1300 PLANT만의 PROC_ID(작업장)             --추가
+                SELECT DISTINCT ITEM_ID, PROC_ID
+                  FROM ITEM_CAPA
+                WHERE PLANT_ID = '1300'
+                ) IC
+            WHERE CM.CD = HR.HID
+              AND CM.CD = IC.PROC_ID
+              [AND ITEM_ID = '${curItemId}']
+            )
+          [WHERE LOC_ID = '${curLocId}']  	
+    </query>   
+     
+	<query id="grid_loc_list">
+ 		SELECT DC_ID, DC_NAME
+		  FROM DC_MST
+		WHERE PLANT_ID IS NOT NULL          
+	</query> 
+		 
+	<!-- 생산 가능 공장 -->
+	<query id="grid_plant_list">
+		SELECT PLANT_ID, HID_NAME PLANT_NM
+		FROM
+		    (
+		    SELECT DISTINCT CAP.PLANT_ID, HR.HID_NAME         
+		      FROM ITEM_CAPA CAP, HRCHY HR  
+		    WHERE HR.LVL_TYPE = '공장' 
+		      AND CAP.PLANT_ID = HR.HID 
+		      [AND CAP.ITEM_ID = '${curItemId}']
+		    )
+		[WHERE PLANT_ID = '${curPlantId}']    
+     </query>         
+      
+	<!--  2. 유통가공 구성품 정보 조회 -->        
+	<query id="sc_01100_etc_plan_detail_list"> 
+	           
+		SELECT NO, 
+		       VERSION,
+		       SEQ,
+		       CONS_ITEM_ID,
+		       PROD_ITEM_ID,
+		       CONS_ITEM_NAME,
+		       SEPC,
+		       DECODE(CONS_ITEM_ID,PROD_ITEM_ID,TO_CHAR(BASE_STOCK),'-') BASE_STOCK,
+		       DECODE(CONS_ITEM_ID,PROD_ITEM_ID,TO_CHAR(SCH_PLAN_W0),'-') SCH_PLAN_W0,
+		       C_DO_PLAN_W0,       
+		       EXPT_STOCK_W0,
+		       P_PA_PLAN_W1,
+		       PLANT_ID_W1,
+		       LOC_ID_W1,
+		       MON_SCH_W1,
+		       TUE_SCH_W1,  
+		       WED_SCH_W1,
+		       THU_SCH_W1,
+		       FRI_SCH_W1,
+		       SAT_SCH_W1,
+		       SUN_SCH_W1,
+		       C_DO_PLAN_W1,
+		       PLANT_ID_W2,
+		       LOC_ID_W2,
+		       P_PA_PLAN_W2,
+		       MON_SCH_W2,
+		       TUE_SCH_W2,
+		       WED_SCH_W2,
+		       THU_SCH_W2,
+		       FRI_SCH_W2,
+		       SAT_SCH_W2,
+		       SUN_SCH_W2,
+		       C_DO_PLAN_W2,
+		       CONS_RATIO,
+		       P_SCH_W0_QTY,
+               P_SCH_W1_QTY,
+               P_SCH_W2_QTY
+		FROM    
+		    (
+		SELECT NO,                --1.
+		       VERSION,           --2.
+		       SEQ,               --3.
+		       CONS_ITEM_ID,      --4.
+		       PROD_ITEM_ID,      --5.
+		       CONS_ITEM_NAME,    --6.
+		       SEPC,              --7.
+		       BASE_STOCK,        --8.  
+		       SCH_PLAN_W0,       --9.
+		       C_DO_PLAN_W0,      --10.
+		       EXPT_STOCK_W0,     --11.
+		       P_PA_PLAN_W1,      --12
+		       (
+		       SELECT PLANT_ID    
+		        FROM ITEM_CAPA 
+		       WHERE ITEM_ID = MAIN.CONS_ITEM_ID
+		        AND ROWNUM = 1
+		       ) PLANT_ID_W1,     --13. 생산가능공장   
+		       LOC_ID_W1,         --14.
+		       ----------
+		       MON_SCH_W1,        --15.
+		       TUE_SCH_W1,        --16.
+		       WED_SCH_W1,        --17.
+		       THU_SCH_W1,        --18.
+		       FRI_SCH_W1,        --19.
+		       SAT_SCH_W1,        --20.
+		       SUN_SCH_W1,        --21.
+		       -----------
+		       C_DO_PLAN_W1,      --22.
+		       P_PA_PLAN_W2,
+		       (                                       
+		       SELECT PLANT_ID    
+		        FROM ITEM_CAPA 
+		       WHERE ITEM_ID = MAIN.CONS_ITEM_ID
+		        AND ROWNUM = 1
+		       ) PLANT_ID_W2,      --23. 생산가능공장            
+		       LOC_ID_W2,          --24.   
+		       ---------- 
+		       MON_SCH_W2,         --25.
+		       TUE_SCH_W2,         --26.
+		       WED_SCH_W2,         --27.
+		       THU_SCH_W2,         --28.
+		       FRI_SCH_W2,         --29.
+		       SAT_SCH_W2,         --30.
+		       SUN_SCH_W2,         --31.
+		       -----------
+		       C_DO_PLAN_W2,       --32.
+		       CONS_RATIO,         --33.
+		       P_SCH_W0_QTY,
+               P_SCH_W1_QTY,
+               P_SCH_W2_QTY
+		FROM
+		    (
+		    SELECT NO,                                                                          --1. NO  
+		           MAX(ETC_MST.VERSION)  VERSION,                                               --2. VERSION
+		           MAX(ETC_MST.SEQ)      SEQ,                                                   --3. SEQ
+		           MBOM.CONS_ITEM_ID,                                                           --4. 구성품
+		           DECODE(NO,2,MBOM.PROD_ITEM_ID,MBOM.CONS_ITEM_ID)   PROD_ITEM_ID,             --5. ITEM_ID
+		           MAX(DECODE(NO,2,CONS_ITEM_NAME,CONS_ITEM_NAME||'계')) CONS_ITEM_NAME,        --6. ITEM_NAME
+		           MAX(SPEC)                                             SEPC,                  --7. SPEC
+		           MAX(DECODE(NO,2,DC.BASE_STOCK,1,DC.BASE_STOCK))             BASE_STOCK,      --8. 기초재고 
+		           SUM(DECODE(NO,2,DC.SCH_PLAN_W0,1,DC.SCH_PLAN_W0))           SCH_PLAN_W0,     --9. C_생산계획_W0
+		           SUM(DECODE(NO,2,CEIL(ETC_MST.P_SCH_W0_QTY*MBOM.CONS_RATIO),1,CEIL(ETC_MST.P_SCH_W0_QTY*MBOM.CONS_RATIO))) C_DO_PLAN_W0,    --10. C_사용계획_W0
+		           MAX(DECODE(NO,2,(DC.BASE_STOCK+DC.SCH_PLAN_W0)-CEIL(ETC_MST.P_SCH_W0_QTY*MBOM.CONS_RATIO),1,(DC.BASE_STOCK+DC.SCH_PLAN_W0)-CEIL(ETC_MST.P_SCH_W0_QTY*MBOM.CONS_RATIO)))  EXPT_STOCK_W0,   --11. C_예상재고_W0
+		           MAX(P_PA_PLAN_W1)                                     P_PA_PLAN_W1,          --12. P_생산필요량_W1
+		           MAX(ETC_MST.LOC_ID)                                   LOC_ID_W1,             --14. LOC_ID_W1
+		           0 MON_SCH_W1,                                                                --15. 
+		           0 TUE_SCH_W1,                                                                --16.   
+		           0 WED_SCH_W1,                                                                --17. 
+		           0 THU_SCH_W1,                                                                --18.
+		           0 FRI_SCH_W1,                                                                --19.
+		           0 SAT_SCH_W1,                                                                --20.
+		           0 SUN_SCH_W1,                                                                --21.
+		           SUM(DECODE(NO,2,CEIL(ETC_MST.P_SCH_W1_QTY*MBOM.CONS_RATIO),1,CEIL(ETC_MST.P_SCH_W1_QTY*MBOM.CONS_RATIO))) C_DO_PLAN_W1,    --21. C_사용계획_W1
+		           MAX(ETC_MST.LOC_ID)                                   LOC_ID_W2,             --24. LOC_ID_W1        
+		           MAX(P_PA_PLAN_W2)                                     P_PA_PLAN_W2,          --25. P_생산필요량_W2           
+		           0 MON_SCH_W2,                                                                --26.       
+		           0 TUE_SCH_W2,                                                                --27.     
+		           0 WED_SCH_W2,                                                                --28.
+		           0 THU_SCH_W2,                                                                --29.
+		           0 FRI_SCH_W2,                                                                --30.
+		           0 SAT_SCH_W2,                                                                --31.
+		           0 SUN_SCH_W2,  	                                                            --32.     
+		           SUM(DECODE(NO,2,CEIL(ETC_MST.P_SCH_W2_QTY*MBOM.CONS_RATIO),1,CEIL(ETC_MST.P_SCH_W2_QTY*MBOM.CONS_RATIO))) C_DO_PLAN_W2,    --30. C_사용계획_W2
+		           MAX(CONS_RATIO)                                      CONS_RATIO,             --34.
+		           SUM(DECODE(NO,2,ETC_MST.P_SCH_W0_QTY,1,ETC_MST.P_SCH_W0_QTY)) P_SCH_W0_QTY,
+		           SUM(DECODE(NO,2,ETC_MST.P_SCH_W1_QTY,1,ETC_MST.P_SCH_W1_QTY)) P_SCH_W1_QTY,
+		           SUM(DECODE(NO,2,ETC_MST.P_SCH_W2_QTY,1,ETC_MST.P_SCH_W2_QTY)) P_SCH_W2_QTY
+		        FROM
+				    (
+		    		    --1. 기초재고외 조회
+		    		    /*   
+		    		    *  1. 기초재고            : 조회일자(오늘)에 해당하는 BASE_STOCK  SUM
+		    		    *  2. 금주생산계획        : 조회일자(오늘)에서 마지막 영업일까지(조회일자 주의 토요일)  SUM
+		    		    *  3. 금주판매계획        : 조회일자(오늘)에서 마지막 영업일까지(조회일자 주의 토요일)  SUM
+		    		    *  4. 예상재고(차주초)    : 기초재고 + 금주생산계획 - 금주판매계획
+		    		    *  5. 차주판매계획        : 차주판매계획
+		    		    *  6. 차차주판매계획      : 차차주판매계획
+		    		    */ 
+		    		    SELECT  ITEM_ID,            
+		    		            BASE_STOCK,         --기초재고
+		    		            SCH_PLAN_W0,        --금주생산계획 
+		    		            SALES_PLAN_W0 ,     --금주판매계획
+		    		            BASE_STOCK + SCH_PLAN_W0 - SALES_PLAN_W0  EXPERT_STOCK,  -- 예상재고(차주초)        
+		    		            SALES_PLAN_W1,      --차주판매계획       
+		    		            SALES_PLAN_W2       --차차주판매계획  
+		    		    FROM        
+		    		    (
+		    		    SELECT  ITEM_ID,
+		    		            SUM(DECODE(YYYYMMDD, REPLACE('$!{sdate}', '-', ''),BASE_STOCK,0))                              BASE_STOCK,      --기초재고
+		    		            SUM(CASE WHEN  YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IYYYIW')
+		    		                           AND YYYYMMDD >= TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'YYYYMMDD')
+		    		                     THEN  RECEIPT_EXPT
+		    		                     ELSE  0
+		    		                END)       SCH_PLAN_W0,                                                                                       --금주생산계획
+		    		            SUM(CASE WHEN  YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IYYYIW')
+		    		                           AND YYYYMMDD >= TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'YYYYMMDD')
+		    		                     THEN  SALES_PLAN
+		    		                     ELSE  0
+		    		                END)       SALES_PLAN_W0,                                                                                     --금주판매계획    
+		    		            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 'IYYYIW'),SALES_PLAN))    SALES_PLAN_W1,   --차주판매계획                                      		                                              
+		    		            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2), 'IYYYIW'),SALES_PLAN))    SALES_PLAN_W2    --차차주판매계획                                      
+		    		    FROM
+		    		            (
+		    		            SELECT  DD.ITEM_ID,
+		    		                    DECODE(DC.DC_ID, NULL, 0, DD.BASE_STOCK) BASE_STOCK,
+		    		                    DD.RECEIPT_EXPT,
+		    		                    (DD.SALES_PLAN+DD.PROM_PLAN) SALES_PLAN, --판매계획수량수정(2008.11.12 수정)
+		    		                    SALES_MEAN_1WEEK,
+		    		                    CAL.YYYYWW,
+		    		                    CAL.YYYYMMDD
+		    		            FROM    DC_DATAWAREHOUSE DD, CAL_MST CAL,
+		    		    	            (
+		    		    	            SELECT 	DC_ID, DC_NAME
+		    		               		  FROM 	DC_MST
+		    		                	 WHERE 	CDC_FLAG = 'Y'
+		    		                	UNION 
+		    		                 	SELECT 	DC_ID, DC_NAME
+		    		               		  FROM 	DC_MST
+		    		                	 WHERE 	RDC_FLAG = 'Y'    
+		    		    	            ) DC
+		    		    	    WHERE   DD.CNFM_DATE = CAL.YYYYMMDD
+		    		    	    AND     DD.DC_ID    =   DC.DC_ID(+)
+		    		            /* 당주 월요일부터 ~ 차차주 일요일까지 (3WEEK) */    
+		    		            AND     DD.CNFM_DATE BETWEEN  TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*-1), 2), 'YYYYMMDD')
+		    		                                 AND      TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2) , 1)  , 'YYYYMMDD')          
+		    		            
+		    		            )
+		    		         GROUP BY ITEM_ID     
+		    		        )       
+				     ) DC,
+				     (
+				    --2. 생산필요량 조회
+				    /* 
+				    *  1. 모제품의 당주생산계획 SUM
+				    *  2. 모제품의 차주생산계획 SUM 
+				    *  3. 모제품의 차주생산필요량   : 조회일자(오늘)에 해당하는 차주   SUM
+				    *  4. 모제품의 차차주생산계획 SUM
+				    *  5. 모제품의 차차주생산필요량 : 조회일자(오늘)에 해당하는 차차주 SUM
+				    */ 
+			            SELECT MAX(VERSION) VERSION,
+			                   MAX(SEQ)     SEQ,  
+			                   P_ITEM_ID,
+			                   MAX(LOC_ID)  LOC_ID,     
+			                   --당주생산계획
+			                   MAX(SCH_W0_QTY)  P_SCH_W0_QTY,
+			                   --차주생산계획
+			                   MAX(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)
+			                                               AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 1)
+			                     THEN  SCH_WEEK_QTY
+			                     ELSE  0
+			                    END)            P_SCH_W1_QTY, 
+			                   --차주생산필요량
+			                   MAX(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)
+			                                               AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 1)
+			                       THEN  PA_WEEK_QTY
+			                       ELSE  0
+			                       END)         P_PA_PLAN_W1, 
+			                   --차차주생산계획    
+			                   MAX(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)
+			                                               AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2), 1)
+			                     THEN  SCH_WEEK_QTY
+			                     ELSE  0
+			                    END)            P_SCH_W2_QTY,	                    
+			                   --차차주생산필요량
+			                   MAX(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)
+			                                               AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2), 1)
+			                     THEN  PA_WEEK_QTY
+			                     ELSE  0
+			                    END)         P_PA_PLAN_W2
+			                    -------------------------------------------------------------------------------------------
+			             FROM ETC_INFO_MST
+			            #if ("$!{checked_etc}" == "etc_mst")  
+			            WHERE VERSION = '$!{version}' 
+			              AND SEQ     = 0
+			            #elseif ("$!{checked_etc}" == "etc_dtl")
+			            WHERE VERSION = '$!{version}' 
+			              AND SEQ     = '$!{seq}'
+						#else
+			            WHERE VERSION = '$!{version}' 
+			              AND SEQ     = 0							            
+			            #end 
+			            GROUP BY P_ITEM_ID	     
+				    ) ETC_MST,
+				    (
+		            --3. 유통구성품에 대한 BOX단위 환산 산출식
+		            SELECT DISTINCT MB.PROD_ITEM_ID,   --(중복 유가공품 제거)
+		                   MB.PLANT_ID,
+		                   MB.CONS_ITEM_ID CONS_ITEM_ID,
+		                   ID.ITEM_NAME    CONS_ITEM_NAME,
+		                   ID.SPEC,
+		                   MB.CONS_QTY,
+		                   MB.CONS_QTY_UOM,
+		                   CU.BASE_QTY,
+		                   CU.BASE_UOM,
+		                   CU.CONV_QTY,
+		                   ROUND(MB.CONS_QTY/CU.BASE_QTY, 3) CONS_RATIO
+		            FROM ITEM_MST         IM, --유통가공품
+		                 ITEM_MST         ID, --유통구성품
+		                 CONV_UOM         CU,
+		                 (SELECT DISTINCT PLANT_ID, 
+		                         PROD_ITEM_ID, PROD_ITEM_TYPE, PROD_QTY, PROD_QTY_UOM, 
+		                         CONS_ITEM_ID, CONS_ITEM_TYPE,  CONS_QTY, CONS_QTY_UOM
+		                    FROM MBOM
+		                   WHERE CONS_ITEM_TYPE IN ('FERT', 'HAWA')                
+		                 ) MB
+		            WHERE MB.PROD_ITEM_ID  = IM.ITEM_ID(+)
+		              AND MB.CONS_ITEM_ID  = ID.ITEM_ID(+)
+		              AND MB.CONS_ITEM_ID  = CU.ITEM_ID(+)    
+		              AND IM.ETC_FLAG = '900'   
+		              AND IM.ITEM_STATUS = 'ST'
+		              AND ID.ITEM_STATUS = 'ST'
+		              AND CU.CONV_UOM     = 'BOX'		    
+				    ) MBOM,
+			        (
+			          SELECT 1 NO FROM DUAL
+			          UNION ALL
+			          SELECT 2 NO FROM DUAL
+			        ) GUBUN		       
+		    WHERE ETC_MST.P_ITEM_ID  = MBOM.PROD_ITEM_ID(+)
+		      AND ETC_MST.P_ITEM_ID  = DC.ITEM_ID(+)
+		      AND NOT EXISTS (
+		                      SELECT 'X' FROM ETC_INFO_DTL
+					            #if ("$!{checked_etc}" == "etc_mst")  
+					            WHERE VERSION = '$!{version}' 
+					              AND SEQ     = 0
+					            #elseif ("$!{checked_etc}" == "etc_dtl")
+					            WHERE VERSION = '$!{version}' 
+					              AND SEQ     = '$!{seq}'
+								#else
+					            WHERE VERSION = '$!{version}' 
+					              AND SEQ     = 0							            
+					            #end 
+		     				 )          
+		    --WHERE CONS_ITEM_ID = '102000458'     
+		    GROUP BY NO, CONS_ITEM_ID, DECODE(NO,2,PROD_ITEM_ID,CONS_ITEM_ID)              
+		    --ORDER BY CONS_ITEM_ID, NO, PROD_ITEM_ID   
+		    ) MAIN       
+		UNION ALL
+		    SELECT NO,                                                                         --1
+		           MAX(ETC_MST.VERSION)                                        VERSION,        --2.
+		           MAX(ETC_MST.SEQ)                                            SEQ,            --3.
+		           ETC_DTL.C_ITEM_ID                                           C_ITEM_ID,      --4.
+		           DECODE(NO,2,ETC_DTL.P_ITEM_ID,ETC_DTL.C_ITEM_ID)            PROD_ITEM_ID,   --5.
+		           MAX(DECODE(NO,2,IM.ITEM_NAME,IM.ITEM_NAME||'계'))           CONS_ITEM_NAME, --6.
+		           MAX(IM.SPEC)                                                SEPC,           --7.
+		           MAX(DECODE(NO,2,DC.BASE_STOCK,1,DC.BASE_STOCK))             BASE_STOCK,     --8.
+		           SUM(DECODE(NO,2,DC.SCH_PLAN_W0,1,DC.SCH_PLAN_W0))           SCH_PLAN_W0,    --9. C_생산계획_W0
+		           SUM(DECODE(NO,2,CEIL(ETC_MST.P_SCH_W0_QTY*ETC_DTL.CONS_RATIO),1,CEIL(ETC_MST.P_SCH_W0_QTY*ETC_DTL.CONS_RATIO))) C_DO_PLAN_W0,    --C_사용계획_W0
+		           MAX(DECODE(NO,2,(DC.BASE_STOCK+DC.SCH_PLAN_W0)-CEIL(ETC_MST.P_SCH_W0_QTY*ETC_DTL.CONS_RATIO),1,(DC.BASE_STOCK+DC.SCH_PLAN_W0)-CEIL(ETC_MST.P_SCH_W0_QTY*ETC_DTL.CONS_RATIO)))  EXPT_STOCK_W0,   --C_예상재고_W0
+		           MAX(P_PA_PLAN_W1)                                     P_PA_PLAN_W1,         --12.P_생산필요량_W1
+		           MAX(ETC_DTL.PLANT_ID_W1)                              PLANT_ID_W1,          --13.
+		           MAX(ETC_DTL.LOC_ID_W1)                                LOC_ID_W1,            --14. LOC_ID_W1 
+		           MAX(ETC_DTL.MON_SCH_W1) MON_SCH_W1,                                         --15.
+		           MAX(ETC_DTL.TUE_SCH_W1) TUE_SCH_W1,                                         --16.
+		           MAX(ETC_DTL.WED_SCH_W1) WED_SCH_W1,                                         --17.
+		           MAX(ETC_DTL.THU_SCH_W1) THU_SCH_W1,                                         --18.
+		           MAX(ETC_DTL.FRI_SCH_W1) FRI_SCH_W1,                                         --19.
+		           MAX(ETC_DTL.SAT_SCH_W1) SAT_SCH_W1,                                         --20.
+		           MAX(ETC_DTL.SUN_SCH_W1) SUN_SCH_W1,                                         --21.
+		           SUM(DECODE(NO,2,CEIL(ETC_MST.P_SCH_W1_QTY*ETC_DTL.CONS_RATIO),1,CEIL(ETC_MST.P_SCH_W1_QTY*ETC_DTL.CONS_RATIO))) C_DO_PLAN_W1,    --C_사용계획_W1    
+		           MAX(P_PA_PLAN_W2)                                     P_PA_PLAN_W2,         --23.P_생산필요량_W2
+		           MAX(ETC_DTL.PLANT_ID_W2)                              PLANT_ID_W2,
+		           MAX(ETC_DTL.LOC_ID_W2)                                LOC_ID_W2,            --13. LOC_ID_W1     
+		           MAX(ETC_DTL.MON_SCH_W2) MON_SCH_W2,                                         --23.
+		           MAX(ETC_DTL.TUE_SCH_W2) TUE_SCH_W2,                                         --24.
+		           MAX(ETC_DTL.WED_SCH_W2) WED_SCH_W2,                                         --25.
+		           MAX(ETC_DTL.THU_SCH_W2) THU_SCH_W2,                                         --26.
+		           MAX(ETC_DTL.FRI_SCH_W2) FRI_SCH_W2,                                         --27.
+		           MAX(ETC_DTL.SAT_SCH_W2) SAT_SCH_W2,                                         --28.
+		           MAX(ETC_DTL.SUN_SCH_W2) SUN_SCH_W2,                                         --29.
+		           SUM(DECODE(NO,2,CEIL(ETC_MST.P_SCH_W2_QTY*ETC_DTL.CONS_RATIO),1,CEIL(ETC_MST.P_SCH_W2_QTY*ETC_DTL.CONS_RATIO))) C_DO_PLAN_W2,    --C_사용계획_W2
+		           MAX(CONS_RATIO)                                       CONS_RATIO,            --31.
+		           SUM(DECODE(NO,2,ETC_MST.P_SCH_W0_QTY,1,ETC_MST.P_SCH_W0_QTY)) P_SCH_W0_QTY,
+		           SUM(DECODE(NO,2,ETC_MST.P_SCH_W1_QTY,1,ETC_MST.P_SCH_W1_QTY)) P_SCH_W1_QTY,
+		           SUM(DECODE(NO,2,ETC_MST.P_SCH_W2_QTY,1,ETC_MST.P_SCH_W2_QTY)) P_SCH_W2_QTY
+		       FROM 
+		    		(
+		    		    --1. 기초재고외 조회
+		    		    /*   
+		    		    *  1. 기초재고            : 조회일자(오늘)에 해당하는 BASE_STOCK  SUM
+		    		    *  2. 금주생산계획        : 조회일자(오늘)에서 마지막 영업일까지(조회일자 주의 토요일)  SUM
+		    		    *  3. 금주판매계획        : 조회일자(오늘)에서 마지막 영업일까지(조회일자 주의 토요일)  SUM
+		    		    *  4. 예상재고(차주초)    : 기초재고 + 금주생산계획 - 금주판매계획
+		    		    *  5. 차주판매계획        : 차주판매계획
+		    		    *  6. 차차주판매계획      : 차차주판매계획
+		    		    */ 
+		    		    SELECT  ITEM_ID,            
+		    		            BASE_STOCK,         --기초재고
+		    		            SCH_PLAN_W0,        --금주생산계획 
+		    		            SALES_PLAN_W0 ,     --금주판매계획
+		    		            BASE_STOCK + SCH_PLAN_W0 - SALES_PLAN_W0  EXPERT_STOCK,  -- 예상재고(차주초)        
+		    		            SALES_PLAN_W1,      --차주판매계획       
+		    		            SALES_PLAN_W2       --차차주판매계획  
+		    		    FROM        
+		    		    (
+		    		    SELECT  ITEM_ID,
+		    		            SUM(DECODE(YYYYMMDD, REPLACE('$!{sdate}', '-', ''),BASE_STOCK,0))                              BASE_STOCK,      --기초재고
+		    		            SUM(CASE WHEN  YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IYYYIW')
+		    		                           AND YYYYMMDD >= TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'YYYYMMDD')
+		    		                     THEN  RECEIPT_EXPT
+		    		                     ELSE  0
+		    		                END)       SCH_PLAN_W0,                                                                                       --금주생산계획
+		    		            SUM(CASE WHEN  YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IYYYIW')
+		    		                           AND YYYYMMDD >= TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'YYYYMMDD')
+		    		                     THEN  SALES_PLAN
+		    		                     ELSE  0
+		    		                END)       SALES_PLAN_W0,                                                                                     --금주판매계획    
+		    		            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 'IYYYIW'),SALES_PLAN))    SALES_PLAN_W1,   --차주판매계획                                      		                                              
+		    		            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2), 'IYYYIW'),SALES_PLAN))    SALES_PLAN_W2    --차차주판매계획                                      
+		    		    FROM
+		    		            (
+		    		            SELECT  DD.ITEM_ID,
+		    		                    DECODE(DC.DC_ID, NULL, 0, DD.BASE_STOCK) BASE_STOCK,
+		    		                    DD.RECEIPT_EXPT,
+		    		                    (DD.SALES_PLAN+DD.PROM_PLAN) SALES_PLAN, --판매계획수량수정(2008.11.12 수정)
+		    		                    SALES_MEAN_1WEEK,
+		    		                    CAL.YYYYWW,
+		    		                    CAL.YYYYMMDD
+		    		            FROM    DC_DATAWAREHOUSE DD, CAL_MST CAL,
+		    		    	            (
+		    		    	            SELECT 	DC_ID, DC_NAME
+		    		               		  FROM 	DC_MST
+		    		                	 WHERE 	CDC_FLAG = 'Y'
+		    		                	UNION 
+		    		                 	SELECT 	DC_ID, DC_NAME
+		    		               		  FROM 	DC_MST
+		    		                	 WHERE 	RDC_FLAG = 'Y'    
+		    		    	            ) DC
+		    		    	    WHERE   DD.CNFM_DATE = CAL.YYYYMMDD
+		    		    	    AND     DD.DC_ID    =   DC.DC_ID(+)
+		    		            /* 당주 월요일부터 ~ 차차주 일요일까지 (3WEEK) */    
+		    		            AND     DD.CNFM_DATE BETWEEN  TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*-1), 2), 'YYYYMMDD')
+		    		                                 AND      TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2) , 1)  , 'YYYYMMDD')          
+		    		            
+		    		            )
+		    		         GROUP BY ITEM_ID     
+		    		        )   
+		    		) DC,
+		    		(
+			           --2. 생산필요량 조회
+		    		    /* 
+		    		    *  1. 모제품의 당주생산계획 SUM
+		    		    *  2. 모제품의 차주생산계획 SUM 
+		    		    *  3. 모제품의 차주생산필요량   : 조회일자(오늘)에 해당하는 차주   SUM
+		    		    *  4. 모제품의 차차주생산계획 SUM
+		    		    *  5. 모제품의 차차주생산필요량 : 조회일자(오늘)에 해당하는 차차주 SUM
+		    		    */ 
+			            SELECT MAX(VERSION) VERSION,
+			                   MAX(SEQ)     SEQ,  
+			                   P_ITEM_ID,
+			                   MAX(LOC_ID)  LOC_ID,     
+			                   --당주생산계획
+			                   MAX(SCH_W0_QTY)  P_SCH_W0_QTY,
+			                   --차주생산계획 
+			                   MAX(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)
+			                                               AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 1)
+			                     THEN  SCH_WEEK_QTY
+			                     ELSE  0
+			                    END)            P_SCH_W1_QTY, 
+			                   --차주생산필요량
+			                   MAX(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)
+			                                               AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 1)
+			                       THEN  PA_WEEK_QTY
+			                       ELSE  0
+			                       END)         P_PA_PLAN_W1, 
+			                   --차차주생산계획    
+			                   MAX(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)
+			                                               AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2), 1)
+			                     THEN  SCH_WEEK_QTY
+			                     ELSE  0
+			                    END)            P_SCH_W2_QTY,	                    
+			                   --차차주생산필요량
+			                   MAX(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)
+			                                               AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2), 1)
+			                     THEN  PA_WEEK_QTY
+			                     ELSE  0
+			                    END)         P_PA_PLAN_W2
+			                    -------------------------------------------------------------------------------------------
+			             FROM ETC_INFO_MST
+			            #if ("$!{checked_etc}" == "etc_mst")  
+			            WHERE VERSION = '$!{version}' 
+			              AND SEQ     = 0
+			            #elseif ("$!{checked_etc}" == "etc_dtl")
+			            WHERE VERSION = '$!{version}' 
+			              AND SEQ     = '$!{seq}'
+						#else
+			            WHERE VERSION = '$!{version}' 
+			              AND SEQ     = 0							            
+			            #end 
+			            GROUP BY P_ITEM_ID    		
+		    		)  ETC_MST,
+		    		(
+		            SELECT MAX(VERSION)     VERSION, 
+		                   MAX(SEQ)         SEQ, 
+		                   MAX(
+		                       CASE WHEN DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)
+		                                              AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+6
+		                            THEN PLANT_ID
+		                       END
+		                   ) PLANT_ID_W1,                
+		                   MAX(
+		                       CASE WHEN DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)
+		                                              AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+6
+		                            THEN LOC_ID
+		                       END
+		                   ) LOC_ID_W1,                
+		                   MAX(
+		                       CASE WHEN DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)
+		                                              AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+6
+		                            THEN PLANT_ID
+		                       END
+		                   ) PLANT_ID_W2,     
+		                   MAX(
+		                       CASE WHEN DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)
+		                                              AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+6
+		                            THEN LOC_ID
+		                       END
+		                   ) LOC_ID_W2,                               
+		                   C_ITEM_ID        C_ITEM_ID, 
+		                   P_ITEM_ID        P_ITEM_ID,
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2),   ETC_QTY,0))  MON_SCH_W1,--차주생산계획(W1_월)  
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+1, ETC_QTY,0))  TUE_SCH_W1,--차주생산계획(W1_화)  
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+2, ETC_QTY,0))  WED_SCH_W1,--차주생산계획(W1_수)          
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+3, ETC_QTY,0))  THU_SCH_W1,--차주생산계획(W1_목)
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+4, ETC_QTY,0))  FRI_SCH_W1,--차주생산계획(W1_금)
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+5, ETC_QTY,0))  SAT_SCH_W1,--차주생산계획(W1_토)
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+6, ETC_QTY,0))  SUN_SCH_W1,--차주생산계획(W1_일)	           
+		                   ----------------------------------------------------------------------------------------------------------------------------------
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2),   ETC_QTY,0))  MON_SCH_W2,--차주생산계획(W1_월)  
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+1, ETC_QTY,0))  TUE_SCH_W2,--차주생산계획(W1_화)  
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+2, ETC_QTY,0))  WED_SCH_W2,--차주생산계획(W1_수)          
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+3, ETC_QTY,0))  THU_SCH_W2,--차주생산계획(W1_목)
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+4, ETC_QTY,0))  FRI_SCH_W2,--차주생산계획(W1_금)
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+5, ETC_QTY,0))  SAT_SCH_W2,--차주생산계획(W1_토)
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+6, ETC_QTY,0))  SUN_SCH_W2,--차주생산계획(W1_일)       
+		                   MAX(CONS_RATIO) CONS_RATIO
+		              FROM ETC_INFO_DTL  
+		            #if ("$!{checked_etc}" == "etc_mst")  
+		            WHERE VERSION = '$!{version}' 
+		              AND SEQ     = 0
+		            #elseif ("$!{checked_etc}" == "etc_dtl")
+		            WHERE VERSION = '$!{version}' 
+		              AND SEQ     = '$!{seq}'
+					#else
+		            WHERE VERSION = '$!{version}' 
+		              AND SEQ     = 0							            
+		            #end  
+		              AND DUE_DATE BETWEEN  NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*-1), 2)
+		                               AND  NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2), 1)          			
+		            GROUP BY C_ITEM_ID, P_ITEM_ID    		
+		    		) ETC_DTL, ITEM_MST IM, 
+		    	    (
+			          SELECT 1 NO FROM DUAL
+			          UNION ALL
+			          SELECT 2 NO FROM DUAL
+			        ) GUBUN	     
+		     WHERE ETC_DTL.P_ITEM_ID  = ETC_MST.P_ITEM_ID(+)
+		       AND ETC_DTL.C_ITEM_ID  = DC.ITEM_ID(+)
+		       AND ETC_DTL.C_ITEM_ID  = IM.ITEM_ID(+)         
+		    GROUP BY NO, ETC_DTL.C_ITEM_ID, DECODE(NO,2,ETC_DTL.P_ITEM_ID,ETC_DTL.C_ITEM_ID)    
+		    )         
+		ORDER BY CONS_ITEM_ID, NO, PROD_ITEM_ID   
+
+	</query>      
+
+   	<!--  3. 유통가공품 상세 조회 -->   
+	<query id="sc_01100_etc_plan_popup"> 
+	SELECT PA.VERSION,
+	       PA.SEQ,
+	       IM.ITEM_ID,      --1.
+	       IM.ITEM_NAME,    --2.
+	       IM.SPEC,         --3.
+	       DC.BASE_STOCK,   --4.
+	       DC.SCH_PLAN_W0,  --5.
+	       DC.SALES_PLAN_W0,--6.
+	       DC.EXPERT_STOCK, --7.
+	       PA.PA_PLAN_W1,   --8.
+	       NULL LOC_ID_W1,  --9.
+	       0 MON_SCH_W1,    --10.
+	       0 TUE_SCH_W1,    --11.
+	       0 WED_SCH_W1,    --12.
+	       0 THU_SCH_W1,    --13.
+	       0 FRI_SCH_W1,    --14.
+	       0 SAT_SCH_W1,    --15.
+	       0 SUN_SCH_W1,    --16.
+	       SALES_PLAN_W1,   --17.
+	       PA.PA_PLAN_W2,   --18.     
+	       NULL LOC_ID_W2,  --19.       
+	       0 MON_SCH_W2,    --20.
+	       0 TUE_SCH_W2,    --21.
+	       0 WED_SCH_W2,    --22.
+	       0 THU_SCH_W2,    --23.
+	       0 FRI_SCH_W2,    --24.
+	       0 SAT_SCH_W2,    --25.
+	       0 SUN_SCH_W2,    --26.
+	       SALES_PLAN_W2    --27
+	FROM
+		    (
+		    --1. 기초재고외 조회
+		    /*   
+		    *  1. 기초재고            : 조회일자(오늘)에 해당하는 BASE_STOCK  SUM
+		    *  2. 금주생산계획        : 조회일자(오늘)에서 마지막 영업일까지(조회일자 주의 토요일)  SUM
+		    *  3. 금주판매계획        : 조회일자(오늘)에서 마지막 영업일까지(조회일자 주의 토요일)  SUM
+		    *  4. 예상재고(차주초)    : 기초재고 + 금주생산계획 - 금주판매계획
+		    *  5. 차주판매계획        : 차주판매계획
+		    *  6. 차차주판매계획      : 차차주판매계획
+		    */ 
+		    SELECT  ITEM_ID,            
+		            BASE_STOCK,         --기초재고
+		            SCH_PLAN_W0,        --금주생산계획 
+		            SALES_PLAN_W0 ,     --금주판매계획
+		            BASE_STOCK + SCH_PLAN_W0 - SALES_PLAN_W0  EXPERT_STOCK,  -- 예상재고(차주초)        
+		            SALES_PLAN_W1,      --차주판매계획       
+		            SALES_PLAN_W2       --차차주판매계획  
+		    FROM        
+		    (
+		    SELECT  ITEM_ID,
+		            SUM(DECODE(YYYYMMDD, REPLACE ('$!{set_sdate}', '-', ''),BASE_STOCK,0))                              BASE_STOCK,      --기초재고
+		            SUM(CASE WHEN  YYYYWW = TO_CHAR(TO_DATE('$!{set_sdate}','YYYY-MM-DD'), 'IYYYIW')
+		                           AND YYYYMMDD >= TO_CHAR(TO_DATE('$!{set_sdate}','YYYY-MM-DD'), 'YYYYMMDD')
+		                     THEN  RECEIPT_EXPT
+		                     ELSE  0
+		                END)       SCH_PLAN_W0,                                                                                       --금주생산계획
+		            SUM(CASE WHEN  YYYYWW = TO_CHAR(TO_DATE('$!{set_sdate}','YYYY-MM-DD'), 'IYYYIW')
+		                           AND YYYYMMDD >= TO_CHAR(TO_DATE('$!{set_sdate}','YYYY-MM-DD'), 'YYYYMMDD')
+		                     THEN  SALES_PLAN
+		                     ELSE  0
+		                END)       SALES_PLAN_W0,                                                                                     --금주판매계획    
+		            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*1), 'IYYYIW'),SALES_PLAN, 0))    SALES_PLAN_W1,   --차주판매계획                                      		                                              
+		            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*2), 'IYYYIW'),SALES_PLAN, 0))    SALES_PLAN_W2    --차차주판매계획                                      
+		    FROM
+		            (
+		            SELECT  DD.ITEM_ID,
+		                    DECODE(DC.DC_ID, NULL, 0, DD.BASE_STOCK) BASE_STOCK,
+		                    DD.RECEIPT_EXPT,
+		                    (DD.SALES_PLAN+DD.PROM_PLAN) SALES_PLAN, --판매계획수량수정(2008.11.12 수정)
+		                    SALES_MEAN_1WEEK,
+		                    CAL.YYYYWW,
+		                    CAL.YYYYMMDD
+		            FROM    DC_DATAWAREHOUSE DD, CAL_MST CAL,
+		    	            (
+		    	            SELECT 	DC_ID, DC_NAME
+		               		  FROM 	DC_MST
+		                	 WHERE 	CDC_FLAG = 'Y'
+		                	UNION 
+		                 	SELECT 	DC_ID, DC_NAME
+		               		  FROM 	DC_MST
+		                	 WHERE 	RDC_FLAG = 'Y'    
+		    	            ) DC
+		    	    WHERE   DD.CNFM_DATE = CAL.YYYYMMDD
+		    	    AND     DD.DC_ID    =   DC.DC_ID(+)
+			    	AND     EXISTS (
+	            		    	    SELECT PROD_ITEM_ID
+	                                  FROM MBOM
+	                                WHERE CONS_ITEM_TYPE IN ('FERT', 'HAWA')   
+	                                 AND CONS_ITEM_ID = '$!{set_c_item_id}' 
+	                                 AND PROD_ITEM_ID = DD.ITEM_ID
+	            		    	    )
+		            /* 당주 월요일부터 ~ 차차주 일요일까지 (3WEEK) */    
+		            AND     DD.CNFM_DATE BETWEEN  TO_CHAR(NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*-1), 2), 'YYYYMMDD')
+		                                 AND      TO_CHAR(NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*2) , 1)  , 'YYYYMMDD')          
+		            
+		            )
+		         GROUP BY ITEM_ID     
+		        ) 
+		 ) DC,
+		 (
+	    --1. 생산필요량 조회
+	    /*   
+	    *  1. W1_PA_PLAN          : 조회일자(오늘)에 해당하는 차주   SUM
+	    *  2. 차주생산필요량      : 조회일자(오늘)에 해당하는 차차주 SUM
+	    *  3. 차차주생산필요량    : 조회일자(오늘)에서 마지막 영업일까지(조회일자 주의 토요일)  SUM
+	    */ 
+	    SELECT MAX(VERSION) VERSION, 
+	           MAX(SEQ)     SEQ, 
+	           --PLANT_ID, 
+	           ITEM_ID, 
+	           SUM(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*0), 2)
+	                                       AND NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*1), 1)
+	             THEN  QTY
+	             ELSE  0
+	           END)       PA_PLAN_W1,
+	           SUM(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*1), 2)
+	                                       AND NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*2), 1)
+	             THEN  QTY
+	             ELSE  0
+	           END)       PA_PLAN_W2
+	      FROM PLANT_ALLOC_PLAN PA
+	     WHERE VERSION = '$!{set_version}'							  
+	       AND     SEQ = '$!{set_seq}'
+	       AND     EXISTS (
+	    		    	    SELECT PROD_ITEM_ID
+	                          FROM MBOM
+	                        WHERE CONS_ITEM_TYPE IN ('FERT', 'HAWA')   
+	                         AND CONS_ITEM_ID = '$!{set_c_item_id}' 
+	                         AND PROD_ITEM_ID = PA.ITEM_ID
+	    		    	   )                    		    	    
+	      AND DUE_DATE BETWEEN  NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*-1), 2)
+	                       AND  NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*2), 1)              		    
+	    GROUP BY ITEM_ID --PLANT_ID, 
+	    ) PA, ITEM_MST IM
+	WHERE PA.ITEM_ID = DC.ITEM_ID(+)
+	  AND PA.ITEM_ID = IM.ITEM_ID(+)
+	  AND NOT EXISTS (
+	                  SELECT 'X' FROM ETC_INFO_MST
+	                  WHERE VERSION = '$!{set_c_version}'							  
+	                    AND     SEQ = '$!{set_c_seq}'
+	 				 )     
+	UNION ALL
+	    SELECT 
+	           ETC_MST.VERSION,
+	           ETC_MST.SEQ,
+	           IM.ITEM_ID,          --1
+	           IM.ITEM_NAME,        --2
+	           IM.SPEC,             --3.
+	           DC.BASE_STOCK,       --4.
+	           DC.SCH_PLAN_W0,      --5.
+	           DC.SALES_PLAN_W0,    --6.
+	           DC.EXPERT_STOCK,     --7.
+	           ETC_MST.PA_PLAN_W1,  --8
+	           ETC_MST.LOC_ID_W1 LOC_ID_W1,   --9
+	           ETC_MST.MON_SCH_W1,  --10         
+	           ETC_MST.TUE_SCH_W1,  --11
+	           ETC_MST.WED_SCH_W1,  --12
+	           ETC_MST.THU_SCH_W1,  --13
+	           ETC_MST.FRI_SCH_W1,  --14
+	           ETC_MST.SAT_SCH_W1,  --15
+	           ETC_MST.SUN_SCH_W1,  --16    
+	           DC.SALES_PLAN_W1,    --17
+	           ETC_MST.PA_PLAN_W2,  --18
+	           ETC_MST.LOC_ID_W2 LOC_ID_W2,   --20
+	           ETC_MST.MON_SCH_W2,  --21                        
+	           ETC_MST.TUE_SCH_W2,  --22
+	           ETC_MST.WED_SCH_W2,  --23
+	           ETC_MST.THU_SCH_W2,  --24
+	           ETC_MST.FRI_SCH_W2,  --25
+	           ETC_MST.SAT_SCH_W2,  --26
+	           ETC_MST.SUN_SCH_W2,  --27              
+	           DC.SALES_PLAN_W2     --28    
+	      FROM
+	    	  (	    
+	    		    --1. 기초재고외 조회
+	    		    /*   
+	    		    *  1. 기초재고            : 조회일자(오늘)에 해당하는 BASE_STOCK  SUM
+	    		    *  2. 금주생산계획        : 조회일자(오늘)에서 마지막 영업일까지(조회일자 주의 토요일)  SUM
+	    		    *  3. 금주판매계획        : 조회일자(오늘)에서 마지막 영업일까지(조회일자 주의 토요일)  SUM
+	    		    *  4. 예상재고(차주초)    : 기초재고 + 금주생산계획 - 금주판매계획
+	    		    *  5. 차주판매계획        : 차주판매계획
+	    		    *  6. 차차주판매계획      : 차차주판매계획
+	    		    */ 
+	    		    SELECT  ITEM_ID,            
+	    		            BASE_STOCK,         --기초재고
+	    		            SCH_PLAN_W0,        --금주생산계획 
+	    		            SALES_PLAN_W0 ,     --금주판매계획
+	    		            BASE_STOCK + SCH_PLAN_W0 - SALES_PLAN_W0  EXPERT_STOCK,  -- 예상재고(차주초)        
+	    		            SALES_PLAN_W1,      --차주판매계획       
+	    		            SALES_PLAN_W2       --차차주판매계획  
+	    		    FROM        
+	    		    (
+	    		    SELECT  ITEM_ID,
+	    		            SUM(DECODE(YYYYMMDD, REPLACE ('$!{set_sdate}', '-', ''),BASE_STOCK,0))                              BASE_STOCK,      --기초재고
+	    		            SUM(CASE WHEN  YYYYWW = TO_CHAR(TO_DATE('$!{set_sdate}','YYYY-MM-DD'), 'IYYYIW')
+	    		                           AND YYYYMMDD >= TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'YYYYMMDD')
+	    		                     THEN  RECEIPT_EXPT
+	    		                     ELSE  0
+	    		                END)       SCH_PLAN_W0,                                                                                       --금주생산계획
+	    		            SUM(CASE WHEN  YYYYWW = TO_CHAR(TO_DATE('$!{set_sdate}','YYYY-MM-DD'), 'IYYYIW')
+	    		                           AND YYYYMMDD >= TO_CHAR(TO_DATE('$!{set_sdate}','YYYY-MM-DD'), 'YYYYMMDD')
+	    		                     THEN  SALES_PLAN
+	    		                     ELSE  0
+	    		                END)       SALES_PLAN_W0,                                                                                     --금주판매계획    
+	    		            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*1), 'IYYYIW'),SALES_PLAN, 0))    SALES_PLAN_W1,   --차주판매계획                                      		                                              
+	    		            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*2), 'IYYYIW'),SALES_PLAN, 0))    SALES_PLAN_W2    --차차주판매계획                                      
+	    		    FROM
+	    		            (
+	    		            SELECT  DD.ITEM_ID, 
+	    		                    DECODE(DC.DC_ID, NULL, 0, DD.BASE_STOCK) BASE_STOCK,
+	    		                    DD.RECEIPT_EXPT,
+	    		                    (DD.SALES_PLAN+DD.PROM_PLAN) SALES_PLAN, --판매계획수량수정(2008.11.12 수정)
+	    		                    SALES_MEAN_1WEEK,
+	    		                    CAL.YYYYWW,
+	    		                    CAL.YYYYMMDD
+	    		            FROM    DC_DATAWAREHOUSE DD, CAL_MST CAL,
+	    		    	            (
+	    		    	            SELECT 	DC_ID, DC_NAME
+	    		               		  FROM 	DC_MST
+	    		                	 WHERE 	CDC_FLAG = 'Y'
+	    		                	UNION 
+	    		                 	SELECT 	DC_ID, DC_NAME
+	    		               		  FROM 	DC_MST 
+	    		                	 WHERE 	RDC_FLAG = 'Y'    
+	    		    	            ) DC
+	    		    	    WHERE   DD.CNFM_DATE = CAL.YYYYMMDD
+	    		    	    AND     DD.DC_ID    =   DC.DC_ID(+)
+		    		    	AND     EXISTS (
+	                    		    	    SELECT PROD_ITEM_ID
+	                                          FROM MBOM
+	                                        WHERE CONS_ITEM_TYPE IN ('FERT', 'HAWA')   
+	                                         AND CONS_ITEM_ID = '$!{set_c_item_id}' 
+	                                         AND PROD_ITEM_ID = DD.ITEM_ID
+	                    		    	    )
+	    		            /* 당주 월요일부터 ~ 차차주 일요일까지 (3WEEK) */    
+	    		            AND     DD.CNFM_DATE BETWEEN  TO_CHAR(NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*-1), 2), 'YYYYMMDD')
+	    		                                 AND      TO_CHAR(NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*2) , 1)  , 'YYYYMMDD')          
+	    		            
+	    		            )
+	    		         GROUP BY ITEM_ID     
+	    		        ) 
+	    		) DC,
+	    		(
+	            SELECT MAX(VERSION)     VERSION, 
+	                   MAX(SEQ)         SEQ, 
+	                   MAX(
+	                       CASE WHEN DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*0), 2)
+	                                              AND NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*0), 2)+6
+	                            THEN LOC_ID
+	                       END
+	                   ) LOC_ID_W1,                
+	                   MAX(
+	                       CASE WHEN DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*1), 2)
+	                                              AND NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*1), 2)+6
+	                            THEN LOC_ID
+	                       END
+	                   ) LOC_ID_W2,              
+	                   P_ITEM_ID        P_ITEM_ID, 
+	                   --LOC_ID           LOC_ID,
+	                   MAX(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*-1), 2)
+	                                               AND NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*-1), 1)
+	                     THEN  PA_WEEK_QTY
+	                     ELSE  0
+	                   END)    PA_PLAN_W0,	           
+	                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*0), 2),   ETC_QTY,0))  MON_SCH_W1,--차주생산계획(W1_월)  
+	                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*0), 2)+1, ETC_QTY,0))  TUE_SCH_W1,--차주생산계획(W1_화)  
+	                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*0), 2)+2, ETC_QTY,0))  WED_SCH_W1,--차주생산계획(W1_수)          
+	                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*0), 2)+3, ETC_QTY,0))  THU_SCH_W1,--차주생산계획(W1_목)
+	                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*0), 2)+4, ETC_QTY,0))  FRI_SCH_W1,--차주생산계획(W1_금)
+	                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*0), 2)+5, ETC_QTY,0))  SAT_SCH_W1,--차주생산계획(W1_토)
+	                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*0), 2)+6, ETC_QTY,0))  SUN_SCH_W1,--차주생산계획(W1_일)
+	                   ----------------------------------------------------------------------------------------------------------------------------------
+	                   MAX(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*0), 2)
+	                                               AND NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*0), 1)
+	                     THEN  PA_WEEK_QTY
+	                     ELSE  0
+	                   END)    PA_PLAN_W1,		           
+	                   ----------------------------------------------------------------------------------------------------------------------------------
+	                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*1), 2),   ETC_QTY,0))  MON_SCH_W2,--차주생산계획(W1_월)  
+	                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*1), 2)+1, ETC_QTY,0))  TUE_SCH_W2,--차주생산계획(W1_화)  
+	                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*1), 2)+2, ETC_QTY,0))  WED_SCH_W2,--차주생산계획(W1_수)          
+	                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*1), 2)+3, ETC_QTY,0))  THU_SCH_W2,--차주생산계획(W1_목)
+	                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*1), 2)+4, ETC_QTY,0))  FRI_SCH_W2,--차주생산계획(W1_금)
+	                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*1), 2)+5, ETC_QTY,0))  SAT_SCH_W2,--차주생산계획(W1_토)
+	                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*1), 2)+6, ETC_QTY,0))  SUN_SCH_W2,--차주생산계획(W1_일)       ----------------------------------------------------------------------------------------------------------------------------------
+	                   MAX(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*1), 2)
+	                                               AND NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*1), 1)
+	                     THEN  PA_WEEK_QTY
+	                     ELSE  0
+	                   END)       PA_PLAN_W2
+	              FROM ETC_INFO_MST      
+	            WHERE VERSION = '$!{set_c_version}'
+	              AND SEQ     = '$!{set_c_seq}' 
+	              AND DUE_DATE BETWEEN  NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*-1), 2)
+	                               AND  NEXT_DAY(TO_DATE('$!{set_sdate}','YYYY-MM-DD')+(7*2), 1)          			
+	            GROUP BY P_ITEM_ID --, LOC_ID
+	            ) ETC_MST, ITEM_MST IM    	            
+		WHERE ETC_MST.P_ITEM_ID = DC.ITEM_ID
+		  AND ETC_MST.P_ITEM_ID = IM.ITEM_ID  
+    </query>	
+     
+	<!--  4. 유통가공 구성품 상세 조회 -->   
+	<query id="sc_01100_etc_plan_detail02_list">  
+     
+		SELECT PROD_ITEM_ID,   --1. 모제품       
+		       CONS_ITEM_ID,   --2. 구성품
+		       CONS_ITEM_NAME, --3. 구성품명 
+		       SPEC,           --4. 구성품 SPEC            
+		       BASE_STOCK,     --5. 기초재고
+		       W0_SCH_PLAN,    --6. 생산계획_W0
+		       --------------------------------
+			   CEIL(TO_NUMBER(NVL('$!{set_p_sch_plan_w0Q}',0))*CONS_RATIO)   C_DO_PLAN_W0Q,                              --7. 사용계획_W0 (--param으로 유통가공품의 'W0_SUM : 당주(W0)생산계획량')
+			   BASE_STOCK+W0_SCH_PLAN-CEIL(TO_NUMBER(NVL('$!{set_p_sch_plan_w0Q}',0))*CONS_RATIO) EXPERT_STOCK_W0,       --8. 예상재고_W0   
+		       TO_NUMBER(NVL('$!{set_p_sch_w1Q}',0))-(BASE_STOCK+W0_SCH_PLAN-CEIL(TO_NUMBER(NVL('$!{set_p_sch_plan_w0Q}',0))*CONS_RATIO))  PA_QTY_W1,       --9. 모제품의 PA_QTY_W1 
+		       NULL                                                 PLANT_ID_W1, --10. 생산위치_W1
+			   0 C_MONDAY_Q_W1,                                                  --11.                    
+			   0 C_THEDAY_Q_W1,                                                  --12.                    
+			   0 C_WEDDAY_Q_W1,                                                  --13.                    
+			   0 C_THUDAY_Q_W1,                                                  --14.                    
+			   0 C_FRIDAY_Q_W1,                                                  --15.                    
+			   0 C_SATDAY_Q_W1,                                                  --16.                    
+			   0 C_SUNDAY_Q_W1,                                                  --17.            
+			   ------------------------------------------------------------------------------------	           
+			   CEIL(TO_NUMBER(NVL('$!{set_p_sch_plan_w1Q}',0))*CONS_RATIO)   C_DO_PLAN_W1Q,                              --18. 사용계획_W1 (--param으로 유통가공품의 'W0_SUM : 당주(W0)생산계획량')
+		       TO_NUMBER(NVL('$!{set_p_sch_w2Q}',0))                PA_QTY_W2,   --19. 모제품의 PA_QTY_W2 
+		       NULL                                                 PLANT_ID_W2, --20. 생산위치_W2
+			   0 C_MONDAY_Q_W2,                                                  --21.                    
+			   0 C_THEDAY_Q_W2,                                                  --22.                    
+			   0 C_WEDDAY_Q_W2,                                                  --23.                    
+			   0 C_THUDAY_Q_W2,                                                  --24.                    
+			   0 C_FRIDAY_Q_W2,                                                  --25.                    
+			   0 C_SATDAY_Q_W2,                                                  --26.                    
+			   0 C_SUNDAY_Q_W2,                                                  --27.            
+			   CEIL(TO_NUMBER(NVL('$!{set_p_sch_plan_w2Q}',0))*CONS_RATIO)   C_DO_PLAN_W2Q,                              --28. 사용계획_W2 (--param으로 유통가공품의 'W0_SUM : 당주(W0)생산계획량')
+		       --------------------------------   
+		       CONS_RATIO                                                        --29
+		FROM     
+		     (
+		     --1. 유통구성품에 대한 BOX단위 환산 산출식
+			            SELECT DISTINCT MB.PROD_ITEM_ID,   --(중복 유가공품 제거)
+			                   MB.PLANT_ID,
+			                   MB.CONS_ITEM_ID CONS_ITEM_ID,
+			                   ID.ITEM_NAME    CONS_ITEM_NAME,
+			                   ID.SPEC,
+			                   MB.CONS_QTY,
+			                   MB.CONS_QTY_UOM,
+			                   CU.BASE_QTY,
+			                   CU.BASE_UOM,
+			                   CU.CONV_QTY,
+			                   ROUND(MB.CONS_QTY/CU.BASE_QTY, 3) CONS_RATIO
+			            FROM ITEM_MST         IM, --유통가공품
+			                 ITEM_MST         ID, --유통구성품
+			                 CONV_UOM         CU,
+			                 (SELECT DISTINCT PLANT_ID, 
+			                         PROD_ITEM_ID, PROD_ITEM_TYPE, PROD_QTY, PROD_QTY_UOM, 
+			                         CONS_ITEM_ID, CONS_ITEM_TYPE,  CONS_QTY, CONS_QTY_UOM
+			                    FROM MBOM
+			                   WHERE CONS_ITEM_TYPE IN ('FERT', 'HAWA')                
+			                 ) MB
+			            WHERE MB.PROD_ITEM_ID  = IM.ITEM_ID(+)
+			              AND MB.CONS_ITEM_ID  = ID.ITEM_ID(+)
+			              AND MB.CONS_ITEM_ID  = CU.ITEM_ID    
+			              AND IM.ETC_FLAG = '900'   
+			              AND IM.ITEM_STATUS = 'ST'
+			              AND ID.ITEM_STATUS = 'ST'
+			              AND CU.CONV_UOM     = 'BOX'
+			              AND MB.PROD_ITEM_ID = '$!{set_p_item_id}'
+			      ) MBOM,
+			      (
+					    --1. 기초재고외 조회
+				    /*   
+				    *  1. 기초재고            : 조회일자(오늘)에 해당하는 BASE_STOCK  SUM
+				    *  2. 금주생산계획        : 조회일자(오늘)에서 마지막 영업일까지(조회일자 주의 토요일)  SUM
+				    */ 
+				    SELECT  ITEM_ID,            
+				            BASE_STOCK,         --기초재고
+				            W0_SCH_PLAN         --금주생산계획 
+				    FROM        
+				    (
+				    SELECT  ITEM_ID,
+				            SUM(DECODE(YYYYMMDD, REPLACE ('$!{sdate}', '-', ''),BASE_STOCK,0))                              BASE_STOCK,      --기초재고
+				            SUM(CASE WHEN  YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IYYYIW')
+				                           AND YYYYMMDD >= TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'YYYYMMDD')
+				                     THEN  RECEIPT_EXPT
+				                     ELSE  0
+				                END)       W0_SCH_PLAN                                                                                       --금주생산계획
+				            /*
+				            SUM(CASE WHEN  YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IYYYIW')
+				                           AND YYYYMMDD >= TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'YYYYMMDD')
+				                     THEN  SALES_PLAN
+				                     ELSE  0
+				                END)       W0_SALES_PLAN,                                                                                     --금주판매계획    
+				            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 'IYYYIW'),SALES_PLAN))    W1_SALES_PLAN,   --차주판매계획                                      		                                              
+				            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2), 'IYYYIW'),SALES_PLAN))    W2_SALES_PLAN    --차차주판매계획
+				            */                                      
+				    FROM
+				            (
+				            SELECT  DD.ITEM_ID,
+				                    DECODE(DC.DC_ID, NULL, 0, DD.BASE_STOCK) BASE_STOCK,
+				                    DD.RECEIPT_EXPT,
+				                    (DD.SALES_PLAN+DD.PROM_PLAN) SALES_PLAN, --판매계획수량수정(2008.11.12 수정)
+				                    SALES_MEAN_1WEEK,
+				                    CAL.YYYYWW,
+				                    CAL.YYYYMMDD
+				            FROM    DC_DATAWAREHOUSE DD, CAL_MST CAL,
+				    	            (
+				    	            SELECT 	DC_ID, DC_NAME
+				               		  FROM 	DC_MST
+				                	 WHERE 	CDC_FLAG = 'Y'
+				                	UNION 
+				                 	SELECT 	DC_ID, DC_NAME
+				               		  FROM 	DC_MST
+				                	 WHERE 	RDC_FLAG = 'Y'    
+				    	            ) DC
+				    	    WHERE   DD.CNFM_DATE = CAL.YYYYMMDD
+				    	    AND     DD.DC_ID    =   DC.DC_ID(+)
+				    	    AND     EXISTS (
+		                		    	    SELECT CONS_ITEM_ID
+		                                      FROM MBOM
+		                                    WHERE CONS_ITEM_TYPE IN ('FERT', 'HAWA')   
+		                                     AND PROD_ITEM_ID = '$!{set_p_item_id}' 
+		                                     AND CONS_ITEM_ID = DD.ITEM_ID
+		                		    	    )
+				            /* 당주 월요일부터 ~ 차차주 일요일까지 (3WEEK) */    
+				            AND     DD.CNFM_DATE BETWEEN  TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*-1), 2), 'YYYYMMDD')
+				                                 AND      TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2) , 1)  , 'YYYYMMDD')          
+				            
+				            )   
+				         GROUP BY ITEM_ID      
+				        )   	      	      
+			      ) DC
+			WHERE MBOM.CONS_ITEM_ID = DC.ITEM_ID
+		      AND NOT EXISTS (
+		                      SELECT 'X' FROM ETC_INFO_DTL
+		                      WHERE VERSION = '$!{version}'							  
+		                        AND     SEQ = '$!{seq}'
+		     				 )                
+		UNION ALL
+		
+		     SELECT ETC_DTL.P_ITEM_ID,               --1. 모제품
+		            ETC_DTL.C_ITEM_ID,               --2. 구성품
+		            IM.ITEM_NAME,                    --3. 구성품명
+		            IM.SPEC,                         --4. 구성품 SPEC
+		            DC.BASE_STOCK,                   --5. 기초재고
+		            DC.W0_SCH_PLAN,                  --6. 생산계획_W0
+		            --------------------------------
+		    	    CEIL(TO_NUMBER(NVL('$!{set_p_sch_plan_w0Q}',0))*ETC_DTL.CONS_RATIO)   C_DO_PLAN_W0Q,                                --7. 사용계획_W0 (--param으로 유통가공품의 'W0_SUM : 당주(W0)생산계획량')
+		    	    DC.BASE_STOCK+DC.W0_SCH_PLAN-CEIL(TO_NUMBER(NVL('$!{set_p_sch_plan_w0Q}',0))*ETC_DTL.CONS_RATIO) EXPERT_STOCK_W0,   --8. 예상재고_W0   
+		            TO_NUMBER(NVL('$!{set_p_sch_w1Q}',0))-(DC.BASE_STOCK+DC.W0_SCH_PLAN-CEIL(TO_NUMBER(NVL('$!{set_p_sch_plan_w0Q}',0))*ETC_DTL.CONS_RATIO))  PA_QTY_W1,  --9. 모제품의 PA_QTY_W1 
+		            -------------------
+		            ETC_DTL.PLANT_ID_W1,             --10. 차주생산위치 
+		            ETC_DTL.MON_SCH_W1,              --11. 
+		            ETC_DTL.TUE_SCH_W1,              --12.
+		            ETC_DTL.WED_SCH_W1,              --13.
+		            ETC_DTL.THU_SCH_W1,              --14.
+		            ETC_DTL.FRI_SCH_W1,              --15.
+		            ETC_DTL.SAT_SCH_W1,              --16.                    
+		            ETC_DTL.SUN_SCH_W1,              --17.
+		            ------------------
+		    	    CEIL(TO_NUMBER(NVL('$!{set_p_sch_plan_w1Q}',0))*ETC_DTL.CONS_RATIO)   C_DO_PLAN_W1Q,                              --18. 사용계획_W1 (--param으로 유통가공품의 'W0_SUM : 당주(W0)생산계획량')
+		            TO_NUMBER(NVL('$!{set_p_sch_w2Q}',0))                                 PA_QTY_W2,                              --19. 모제품의 PA_QTY_W2
+		            ETC_DTL.PLANT_ID_W2,             --20. 차차주생산위치
+		            ETC_DTL.MON_SCH_W2,              --21.
+		            ETC_DTL.TUE_SCH_W1,              --22.
+		            ETC_DTL.WED_SCH_W2,              --23.
+		            ETC_DTL.THU_SCH_W2,              --24.
+		            ETC_DTL.FRI_SCH_W2,              --25.
+		            ETC_DTL.SAT_SCH_W2,              --26.
+		            ETC_DTL.SUN_SCH_W2,              --27.
+		            ------------------
+		    	    CEIL(TO_NUMBER(NVL('$!{set_p_sch_plan_w2Q}',0))*ETC_DTL.CONS_RATIO)   C_DO_PLAN_W2Q,                              --28. 사용계획_W2 (--param으로 유통가공품의 'W0_SUM : 당주(W0)생산계획량')            
+		            ETC_DTL.CONS_RATIO               --29
+		       FROM
+		            (
+				    /*   
+				    *  1. 기초재고            : 조회일자(오늘)에 해당하는 BASE_STOCK  SUM
+				    *  2. 금주생산계획        : 조회일자(오늘)에서 마지막 영업일까지(조회일자 주의 토요일)  SUM
+				    */ 
+				    SELECT  ITEM_ID,            
+				            BASE_STOCK,         --기초재고
+				            W0_SCH_PLAN         --금주생산계획 
+				    FROM        
+				    (
+				    SELECT  ITEM_ID,
+				            SUM(DECODE(YYYYMMDD, REPLACE ('$!{sdate}', '-', ''),BASE_STOCK,0))                              BASE_STOCK,      --기초재고
+				            SUM(CASE WHEN  YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IYYYIW')
+				                           AND YYYYMMDD >= TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'YYYYMMDD')
+				                     THEN  RECEIPT_EXPT
+				                     ELSE  0
+				                END)       W0_SCH_PLAN                                                                                       --금주생산계획
+				            /*
+				            SUM(CASE WHEN  YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IYYYIW')
+				                           AND YYYYMMDD >= TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'YYYYMMDD')
+				                     THEN  SALES_PLAN
+				                     ELSE  0
+				                END)       W0_SALES_PLAN,                                                                                     --금주판매계획    
+				            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 'IYYYIW'),SALES_PLAN))    W1_SALES_PLAN,   --차주판매계획                                      		                                              
+				            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2), 'IYYYIW'),SALES_PLAN))    W2_SALES_PLAN    --차차주판매계획
+				            */                                      
+				    FROM
+				            (
+				            SELECT  DD.ITEM_ID,
+				                    DECODE(DC.DC_ID, NULL, 0, DD.BASE_STOCK) BASE_STOCK,
+				                    DD.RECEIPT_EXPT,
+				                    (DD.SALES_PLAN+DD.PROM_PLAN) SALES_PLAN, --판매계획수량수정(2008.11.12 수정)
+				                    SALES_MEAN_1WEEK,
+				                    CAL.YYYYWW,
+				                    CAL.YYYYMMDD
+				            FROM    DC_DATAWAREHOUSE DD, CAL_MST CAL,
+				    	            (
+				    	            SELECT 	DC_ID, DC_NAME
+				               		  FROM 	DC_MST
+				                	 WHERE 	CDC_FLAG = 'Y'
+				                	UNION 
+				                 	SELECT 	DC_ID, DC_NAME
+				               		  FROM 	DC_MST
+				                	 WHERE 	RDC_FLAG = 'Y'    
+				    	            ) DC
+				    	    WHERE   DD.CNFM_DATE = CAL.YYYYMMDD
+				    	    AND     DD.DC_ID    =   DC.DC_ID(+)
+				    	    AND     EXISTS (
+		                                    SELECT C_ITEM_ID  
+		                                    FROM ETC_INFO_DTL
+		                                    WHERE VERSION = '$!{version}'
+		                                      AND P_ITEM_ID = '$!{set_p_item_id}'
+		                                      AND SEQ     = '$!{seq}'  
+		                                      AND C_ITEM_ID = DD.ITEM_ID
+		                		    	    )
+				            /* 당주 월요일부터 ~ 차차주 일요일까지 (3WEEK) */    
+				            AND     DD.CNFM_DATE BETWEEN  TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*-1), 2), 'YYYYMMDD')
+				                                 AND      TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2) , 1)  , 'YYYYMMDD')          
+				            
+				            )   
+				         GROUP BY ITEM_ID     
+				        )   
+				    ) DC,
+				    (
+		            SELECT C_ITEM_ID        C_ITEM_ID, 
+		                   P_ITEM_ID        P_ITEM_ID,
+		                   MAX(
+		                       CASE WHEN DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)
+		                                              AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+6
+		                            THEN PLANT_ID
+		                       END
+		                   ) PLANT_ID_W1,                
+		                   MAX(
+		                       CASE WHEN DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)
+		                                              AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+6
+		                            THEN PLANT_ID
+		                       END
+		                   ) PLANT_ID_W2,         
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2),   ETC_QTY,0))  MON_SCH_W1,--차주생산계획(W1_월)  
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+1, ETC_QTY,0))  TUE_SCH_W1,--차주생산계획(W1_화)  
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+2, ETC_QTY,0))  WED_SCH_W1,--차주생산계획(W1_수)          
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+3, ETC_QTY,0))  THU_SCH_W1,--차주생산계획(W1_목)
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+4, ETC_QTY,0))  FRI_SCH_W1,--차주생산계획(W1_금)
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+5, ETC_QTY,0))  SAT_SCH_W1,--차주생산계획(W1_토)
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+6, ETC_QTY,0))  SUN_SCH_W1,--차주생산계획(W1_일)	           
+		                   ----------------------------------------------------------------------------------------------------------------------------------
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2),   ETC_QTY,0))  MON_SCH_W2,--차주생산계획(W1_월)  
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+1, ETC_QTY,0))  TUE_SCH_W2,--차주생산계획(W1_화)  
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+2, ETC_QTY,0))  WED_SCH_W2,--차주생산계획(W1_수)          
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+3, ETC_QTY,0))  THU_SCH_W2,--차주생산계획(W1_목)
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+4, ETC_QTY,0))  FRI_SCH_W2,--차주생산계획(W1_금)
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+5, ETC_QTY,0))  SAT_SCH_W2,--차주생산계획(W1_토)
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+6, ETC_QTY,0))  SUN_SCH_W2,--차주생산계획(W1_일)       
+		                   MAX(CONS_RATIO) CONS_RATIO
+		              FROM ETC_INFO_DTL  
+		            WHERE VERSION = '$!{version}' 
+		              AND SEQ     = '$!{seq}'
+		              AND P_ITEM_ID = '$!{set_p_item_id}'
+		              AND DUE_DATE BETWEEN  NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*-1), 2)
+		                               AND  NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2), 1)          			
+		            GROUP BY C_ITEM_ID, P_ITEM_ID
+				    ) ETC_DTL, ITEM_MST IM
+		WHERE  ETC_DTL.C_ITEM_ID = DC.ITEM_ID(+)
+		  AND  ETC_DTL.C_ITEM_ID = IM.ITEM_ID(+)
+				 
+	</query>	
+	
+	<query id="sc_01100_etc_plan_list_save_01">     
+			DELETE  ETC_INFO_MST 
+			WHERE   VERSION = '$!{version}' 
+			  AND   SEQ     = '$!{seq}'  
+			--WHERE   VERSION = '$!{plant_alloc_version}'    
+    </query>
+      
+    <!-- 5. 유통가공품 저장 -->     
+	<query id="sc_01100_etc_plan_list_save_02" fix="_user_id p_w1_MondayD p_w1_TuedayD p_w1_WeddayD p_w1_ThudayD p_w1_FridayD p_w1_SatdayD p_w1_SundayD p_w2_MondayD p_w2_TuedayD p_w2_WeddayD p_w2_ThudayD p_w2_FridayD p_w2_SatdayD p_w2_SundayD"  iterator="p_version p_seq p_item_id p_sch_w1Q p_sch_w2Q p_locId_w1 p_locId_w2 p_sch_plan_w0Q p_sch_plan_w1Q p_sch_plan_w2Q p_w1_MondayQ p_w1_TuedayQ p_w1_WeddayQ p_w1_ThudayQ p_w1_FridayQ p_w1_SatdayQ p_w1_SundayQ p_w2_MondayQ p_w2_TuedayQ p_w2_WeddayQ p_w2_ThudayQ p_w2_FridayQ p_w2_SatdayQ p_w2_SundayQ ">  	
+            INSERT  INTO ETC_INFO_MST(VERSION, SEQ, P_ITEM_ID, LOC_ID, PROC_ID, DUE_DATE, PA_WEEK_QTY, SCH_W0_QTY, SCH_WEEK_QTY, ETC_QTY, ETC_UOM, MADE_TYPE, MADE_DTTM, MADE_BY)
+            SELECT  '$!{p_version}'                       	AS P_VERSION, 
+            		'$!{p_seq}'                       	    AS P_SEQ,
+            		'$!{p_item_id}'                       	AS P_CODE,            		
+            		SUBSTR('$!{p_locId_w1}',1,INSTR('$!{p_locId_w1}', '_')-1)  AS P_LOC_ID_W1,
+            		SUBSTR('$!{p_locId_w1}',INSTR('$!{p_locId_w1}', '_')+1)    AS P_PROC_ID_W1,
+                    '$!{p_w1_MondayD}'                      AS DUE_DATE,                     
+                    '$!{p_sch_w1Q}'                         AS PA_WEEK_QTY, 
+                    '$!{p_sch_plan_w0Q}'                    AS SCH_W0_QTY,  
+                    '$!{p_sch_plan_w1Q}'                    AS SCH_WEEK_QTY,   
+                    '$!{p_w1_MondayQ}'                      AS ETC_QTY,
+                    'BOX'                                   AS ETC_UOM,               
+                    'AD'                                	AS MADE_TYPE,
+                    SYSDATE                             	AS MADE_DTTM,
+                    '$!{_user_id}'                      	AS MADE_BY                       
+             FROM   DUAL
+            --WHERE   REPLACE('$!{p_w1_MondayQ}',',') &gt; 0     
+            UNION ALL
+            SELECT  '$!{p_version}'                       	AS P_VERSION, 
+            		'$!{p_seq}'                       	    AS P_SEQ,
+            		'$!{p_item_id}'                       	AS P_CODE,
+            		SUBSTR('$!{p_locId_w1}',1,INSTR('$!{p_locId_w1}', '_')-1)  AS P_LOC_ID_W1,
+            		SUBSTR('$!{p_locId_w1}',INSTR('$!{p_locId_w1}', '_')+1)    AS P_PROC_ID_W1,
+                    '$!{p_w1_TuedayD}'                      AS DUE_DATE,  
+                    '$!{p_sch_w1Q}'                         AS PA_WEEK_QTY, 
+                    '$!{p_sch_plan_w0Q}'                    AS SCH_W0_QTY,  
+                    '$!{p_sch_plan_w1Q}'                    AS SCH_WEEK_QTY,                                              
+                    '$!{p_w1_TuedayQ}'                      AS ETC_QTY,
+                    'BOX'                                   AS ETC_UOM,
+                    'AD'                                	AS MADE_TYPE,
+                    SYSDATE                             	AS MADE_DTTM,
+                    '$!{_user_id}'                      	AS MADE_BY                       
+             FROM   DUAL
+            --WHERE   REPLACE('$!{p_w1_TuedayQ}',',') &gt; 0      
+            UNION ALL
+            SELECT  '$!{p_version}'                       	AS P_VERSION, 
+            		'$!{p_seq}'                       	    AS P_SEQ,
+            		'$!{p_item_id}'                       	AS P_CODE,
+            		SUBSTR('$!{p_locId_w1}',1,INSTR('$!{p_locId_w1}', '_')-1)  AS P_LOC_ID_W1,
+            		SUBSTR('$!{p_locId_w1}',INSTR('$!{p_locId_w1}', '_')+1)    AS P_PROC_ID_W1,
+                    '$!{p_w1_WeddayD}'                      AS DUE_DATE,   
+                    '$!{p_sch_w1Q}'                         AS PA_WEEK_QTY, 
+                    '$!{p_sch_plan_w0Q}'                    AS SCH_W0_QTY,  
+                    '$!{p_sch_plan_w1Q}'                    AS SCH_WEEK_QTY,                       
+                    '$!{p_w1_WeddayQ}'                      AS ETC_QTY,
+                    'BOX'                                   AS ETC_UOM,
+                    'AD'                                	AS MADE_TYPE,
+                    SYSDATE                             	AS MADE_DTTM,
+                    '$!{_user_id}'                      	AS MADE_BY                       
+             FROM   DUAL
+            --WHERE   REPLACE('$!{p_w1_WeddayQ}',',') &gt; 0
+            UNION ALL
+            SELECT  '$!{p_version}'                       	AS P_VERSION, 
+            		'$!{p_seq}'                       	    AS P_SEQ,
+            		'$!{p_item_id}'                       	AS P_CODE,
+            		SUBSTR('$!{p_locId_w1}',1,INSTR('$!{p_locId_w1}', '_')-1)  AS P_LOC_ID_W1,
+            		SUBSTR('$!{p_locId_w1}',INSTR('$!{p_locId_w1}', '_')+1)    AS P_PROC_ID_W1,
+                    '$!{p_w1_ThudayD}'                      AS DUE_DATE,      
+                    '$!{p_sch_w1Q}'                         AS PA_WEEK_QTY, 
+                    '$!{p_sch_plan_w0Q}'                    AS SCH_W0_QTY,  
+                    '$!{p_sch_plan_w1Q}'                    AS SCH_WEEK_QTY,                                      
+                    '$!{p_w1_ThudayQ}'                      AS ETC_QTY,
+                    'BOX'                                   AS ETC_UOM,               
+                    'AD'                                	AS MADE_TYPE,
+                    SYSDATE                             	AS MADE_DTTM,
+                    '$!{_user_id}'                      	AS MADE_BY                       
+             FROM   DUAL
+            --WHERE   REPLACE('$!{p_w1_ThudayQ}',',') &gt; 0
+            UNION ALL
+            SELECT  '$!{p_version}'                       	AS P_VERSION, 
+            		'$!{p_seq}'                       	    AS P_SEQ,
+            		'$!{p_item_id}'                       	AS P_CODE,
+            		SUBSTR('$!{p_locId_w1}',1,INSTR('$!{p_locId_w1}', '_')-1)  AS P_LOC_ID_W1,
+            		SUBSTR('$!{p_locId_w1}',INSTR('$!{p_locId_w1}', '_')+1)    AS P_PROC_ID_W1,
+                    '$!{p_w1_FridayD}'                      AS DUE_DATE,
+                    '$!{p_sch_w1Q}'                         AS PA_WEEK_QTY, 
+                    '$!{p_sch_plan_w0Q}'                    AS SCH_W0_QTY,  
+                    '$!{p_sch_plan_w1Q}'                    AS SCH_WEEK_QTY,                                                
+                    '$!{p_w1_FridayQ}'                      AS ETC_QTY,       
+                    'BOX'      								AS ETC_UOM,        
+                    'AD'                                	AS MADE_TYPE,
+                    SYSDATE                             	AS MADE_DTTM,
+                    '$!{_user_id}'                      	AS MADE_BY                       
+             FROM   DUAL
+            --WHERE   REPLACE('$!{p_w1_FridayQ}',',') &gt; 0
+            UNION ALL
+            SELECT  '$!{p_version}'                       	AS P_VERSION, 
+            		'$!{p_seq}'                       	    AS P_SEQ,
+            		'$!{p_item_id}'                       	AS P_CODE,
+            		SUBSTR('$!{p_locId_w1}',1,INSTR('$!{p_locId_w1}', '_')-1)  AS P_LOC_ID_W1,
+            		SUBSTR('$!{p_locId_w1}',INSTR('$!{p_locId_w1}', '_')+1)    AS P_PROC_ID_W1,
+                    '$!{p_w1_SatdayD}'                      AS DUE_DATE,
+                    '$!{p_sch_w1Q}'                         AS PA_WEEK_QTY, 
+                    '$!{p_sch_plan_w0Q}'                    AS SCH_W0_QTY,  
+                    '$!{p_sch_plan_w1Q}'                    AS SCH_WEEK_QTY,                     
+                    '$!{p_w1_SatdayQ}'                      AS ETC_QTY,
+                    'BOX'									AS ETC_UOM,               
+                    'AD'                                	AS MADE_TYPE,
+                    SYSDATE                             	AS MADE_DTTM,
+                    '$!{_user_id}'                      	AS MADE_BY                       
+             FROM   DUAL
+            --WHERE   REPLACE('$!{p_w1_SatdayQ}',',') &gt; 0
+            UNION ALL
+            SELECT  '$!{p_version}'                       	AS P_VERSION, 
+            		'$!{p_seq}'                       	    AS P_SEQ,
+            		'$!{p_item_id}'                       	AS P_CODE,
+            		SUBSTR('$!{p_locId_w1}',1,INSTR('$!{p_locId_w1}', '_')-1)  AS P_LOC_ID_W1,
+            		SUBSTR('$!{p_locId_w1}',INSTR('$!{p_locId_w1}', '_')+1)    AS P_PROC_ID_W1,
+                    '$!{p_w1_SundayD}'                      AS DUE_DATE,    
+                    '$!{p_sch_w1Q}'                         AS PA_WEEK_QTY, 
+                    '$!{p_sch_plan_w0Q}'                    AS SCH_W0_QTY,  
+                    '$!{p_sch_plan_w1Q}'                    AS SCH_WEEK_QTY,                                          
+                    '$!{p_w1_SundayQ}'                      AS ETC_QTY,
+                    'BOX'									AS ETC_UOM,               
+                    'AD'                                	AS MADE_TYPE,
+                    SYSDATE                             	AS MADE_DTTM,
+                    '$!{_user_id}'                      	AS MADE_BY                       
+             FROM   DUAL
+            --WHERE   REPLACE('$!{p_w1_SundayQ}',',') &gt; 0
+            ----------------------------------------------
+            -- WEEK 2
+            UNION ALL 
+            ----------------------------------------------
+            SELECT  '$!{p_version}'                       	AS P_VERSION, 
+            		'$!{p_seq}'                       	    AS P_SEQ,
+            		'$!{p_item_id}'                       	AS P_CODE,
+            		SUBSTR('$!{p_locId_w2}',1,INSTR('$!{p_locId_w2}', '_')-1)  AS P_LOC_ID_W2,
+            		SUBSTR('$!{p_locId_w2}',INSTR('$!{p_locId_w2}', '_')+1)    AS P_PROC_ID_W2,
+                    '$!{p_w2_MondayD}'                      AS DUE_DATE,
+                    '$!{p_sch_w2Q}'                         AS PA_WEEK_QTY, 
+                    '$!{p_sch_plan_w0Q}'                    AS SCH_W0_QTY,  
+                    '$!{p_sch_plan_w2Q}'                    AS SCH_WEEK_QTY,                            
+                    '$!{p_w2_MondayQ}'                      AS ETC_QTY,
+                    'BOX'									AS ETC_UOM,               
+                    'AD'                                	AS MADE_TYPE,
+                    SYSDATE                             	AS MADE_DTTM,
+                    '$!{_user_id}'                      	AS MADE_BY                       
+             FROM   DUAL
+            --WHERE   REPLACE('$!{p_w2_MondayQ}',',') &gt; 0     
+            UNION ALL
+            SELECT  '$!{p_version}'                       	AS P_VERSION, 
+            		'$!{p_seq}'                       	    AS P_SEQ,
+            		'$!{p_item_id}'                       	AS P_CODE,
+            		SUBSTR('$!{p_locId_w2}',1,INSTR('$!{p_locId_w2}', '_')-1)  AS P_LOC_ID_W2,
+            		SUBSTR('$!{p_locId_w2}',INSTR('$!{p_locId_w2}', '_')+1)    AS P_PROC_ID_W2,
+                    '$!{p_w2_TuedayD}'                      AS DUE_DATE,   
+                    '$!{p_sch_w2Q}'                         AS PA_WEEK_QTY, 
+                    '$!{p_sch_plan_w0Q}'                    AS SCH_W0_QTY,  
+                    '$!{p_sch_plan_w2Q}'                    AS SCH_WEEK_QTY,                                                   
+                    '$!{p_w2_TuedayQ}'                      AS ETC_QTY,
+                    'BOX'									AS ETC_UOM,               
+                    'AD'                                	AS MADE_TYPE,
+                    SYSDATE                             	AS MADE_DTTM,
+                    '$!{_user_id}'                      	AS MADE_BY                       
+             FROM   DUAL
+            --WHERE   REPLACE('$!{p_w2_TuedayQ}',',') &gt; 0      
+            UNION ALL
+            SELECT  '$!{p_version}'                       	AS P_VERSION, 
+            		'$!{p_seq}'                       	    AS P_SEQ,
+            		'$!{p_item_id}'                       	AS P_CODE,
+            		SUBSTR('$!{p_locId_w2}',1,INSTR('$!{p_locId_w2}', '_')-1)  AS P_LOC_ID_W2,
+            		SUBSTR('$!{p_locId_w2}',INSTR('$!{p_locId_w2}', '_')+1)    AS P_PROC_ID_W2,
+                    '$!{p_w2_WeddayD}'                      AS DUE_DATE,    
+                    '$!{p_sch_w2Q}'                         AS PA_WEEK_QTY, 
+                    '$!{p_sch_plan_w0Q}'                    AS SCH_W0_QTY,  
+                    '$!{p_sch_plan_w2Q}'                    AS SCH_WEEK_QTY,                            
+                    '$!{p_w2_WeddayQ}'                      AS ETC_QTY,
+                    'BOX'									AS ETC_UOM,               
+                    'AD'                                	AS MADE_TYPE,
+                    SYSDATE                             	AS MADE_DTTM,
+                    '$!{_user_id}'                      	AS MADE_BY                       
+             FROM   DUAL
+            --WHERE   REPLACE('$!{p_w2_WeddayQ}',',') &gt; 0
+            UNION ALL
+            SELECT  '$!{p_version}'                       	AS P_VERSION, 
+            		'$!{p_seq}'                       	    AS P_SEQ,
+            		'$!{p_item_id}'                       	AS P_CODE,
+            		SUBSTR('$!{p_locId_w2}',1,INSTR('$!{p_locId_w2}', '_')-1)  AS P_LOC_ID_W2,
+            		SUBSTR('$!{p_locId_w2}',INSTR('$!{p_locId_w2}', '_')+1)    AS P_PROC_ID_W2,
+                    '$!{p_w2_ThudayD}'                      AS DUE_DATE,
+                    '$!{p_sch_w2Q}'                         AS PA_WEEK_QTY, 
+                    '$!{p_sch_plan_w0Q}'                    AS SCH_W0_QTY,  
+                    '$!{p_sch_plan_w2Q}'                    AS SCH_WEEK_QTY,                                                      
+                    '$!{p_w2_ThudayQ}'                      AS ETC_QTY,
+                    'BOX'									AS ETC_UOM,               
+                    'AD'                                	AS MADE_TYPE,
+                    SYSDATE                             	AS MADE_DTTM,
+                    '$!{_user_id}'                      	AS MADE_BY                       
+             FROM   DUAL
+            --WHERE   REPLACE('$!{p_w2_ThudayQ}',',') &gt; 0
+            UNION ALL
+            SELECT  '$!{p_version}'                       	AS P_VERSION, 
+            		'$!{p_seq}'                       	    AS P_SEQ,
+            		'$!{p_item_id}'                       	AS P_CODE,
+            		SUBSTR('$!{p_locId_w2}',1,INSTR('$!{p_locId_w2}', '_')-1)  AS P_LOC_ID_W2,
+            		SUBSTR('$!{p_locId_w2}',INSTR('$!{p_locId_w2}', '_')+1)    AS P_PROC_ID_W2,
+                    '$!{p_w2_FridayD}'                      AS DUE_DATE, 
+                    '$!{p_sch_w2Q}'                         AS PA_WEEK_QTY, 
+                    '$!{p_sch_plan_w0Q}'                    AS SCH_W0_QTY,  
+                    '$!{p_sch_plan_w2Q}'                    AS SCH_WEEK_QTY,                                                     
+                    '$!{p_w2_FridayQ}'                      AS ETC_QTY,
+                    'BOX'									AS ETC_UOM,               
+                    'AD'                                	AS MADE_TYPE,
+                    SYSDATE                             	AS MADE_DTTM,
+                    '$!{_user_id}'                      	AS MADE_BY                       
+             FROM   DUAL
+            --WHERE   REPLACE('$!{p_w2_FridayQ}',',') &gt; 0
+            UNION ALL
+            SELECT  '$!{p_version}'                       	AS P_VERSION, 
+            		'$!{p_seq}'                       	    AS P_SEQ,
+            		'$!{p_item_id}'                       	AS P_CODE,
+            		SUBSTR('$!{p_locId_w2}',1,INSTR('$!{p_locId_w2}', '_')-1)  AS P_LOC_ID_W2,
+            		SUBSTR('$!{p_locId_w2}',INSTR('$!{p_locId_w2}', '_')+1)    AS P_PROC_ID_W2,
+                    '$!{p_w2_SatdayD}'                      AS DUE_DATE,
+                    '$!{p_sch_w2Q}'                         AS PA_WEEK_QTY, 
+                    '$!{p_sch_plan_w0Q}'                    AS SCH_W0_QTY,  
+                    '$!{p_sch_plan_w2Q}'                    AS SCH_WEEK_QTY,                                 
+                    '$!{p_w2_SatdayQ}'                      AS ETC_QTY,
+                    'BOX'									AS ETC_UOM,               
+                    'AD'                                	AS MADE_TYPE,
+                    SYSDATE                             	AS MADE_DTTM,
+                    '$!{_user_id}'                      	AS MADE_BY                       
+             FROM   DUAL
+            --WHERE   REPLACE('$!{p_w2_SatdayQ}',',') &gt; 0
+            UNION ALL
+            SELECT  '$!{p_version}'                       	AS P_VERSION, 
+            		'$!{p_seq}'                       	    AS P_SEQ,
+            		'$!{p_item_id}'                       	AS P_CODE,
+            		SUBSTR('$!{p_locId_w2}',1,INSTR('$!{p_locId_w2}', '_')-1)  AS P_LOC_ID_W2,
+            		SUBSTR('$!{p_locId_w2}',INSTR('$!{p_locId_w2}', '_')+1)    AS P_PROC_ID_W2,
+                    '$!{p_w2_SundayD}'                      AS DUE_DATE,      
+                    '$!{p_sch_w2Q}'                         AS PA_WEEK_QTY, 
+                    '$!{p_sch_plan_w0Q}'                    AS SCH_W0_QTY,  
+                    '$!{p_sch_plan_w2Q}'                    AS SCH_WEEK_QTY,                            
+                    '$!{p_w2_SundayQ}'                      AS ETC_QTY,
+                    'BOX' 									AS ETC_UOM,               
+                    'AD'                                	AS MADE_TYPE,
+                    SYSDATE                             	AS MADE_DTTM,
+                    '$!{_user_id}'                      	AS MADE_BY                       
+             FROM   DUAL
+            --WHERE   REPLACE('$!{p_w2_SundayQ}',',') &gt; 0            
+                                      
+ 	</query>		     
+ 
+	<query id="sc_01100_etc_plan_detail_list_save_01">     
+			DELETE  ETC_INFO_DTL  
+			WHERE   VERSION = '$!{version}' 
+			  AND   SEQ     = '$!{seq}'  
+			--WHERE   VERSION = '$!{plant_alloc_version}'    
+    </query>
+    	    
+	<!-- 6. 유통가공 구성품 저장 -->  
+	<query id="sc_01100_etc_plan_detail_list_save_02" fix="_user_id c_w1_MondayD c_w1_TuedayD c_w1_WeddayD c_w1_ThudayD c_w1_FridayD c_w1_SatdayD c_w1_SundayD c_w2_MondayD c_w2_TuedayD c_w2_WeddayD c_w2_ThudayD c_w2_FridayD c_w2_SatdayD c_w2_SundayD"  iterator="c_version c_seq c_flag c_item_id c_p_item_id c_plantId_w1 c_plantId_w2 c_locId_w1 c_locId_w2 c_w1_MondayQ c_w1_TuedayQ c_w1_WeddayQ c_w1_ThudayQ c_w1_FridayQ c_w1_SatdayQ c_w1_SundayQ c_w2_MondayQ c_w2_TuedayQ c_w2_WeddayQ c_w2_ThudayQ c_w2_FridayQ c_w2_SatdayQ c_w2_SundayQ cons_ratio ">  		   
+            INSERT  INTO ETC_INFO_DTL(VERSION, SEQ, P_ITEM_ID, C_ITEM_ID, PLANT_ID, LOC_ID, DUE_DATE, ETC_QTY, ETC_UOM, CONS_RATIO, MADE_TYPE, MADE_DTTM, MADE_BY)               
+            /* 구성품의 값 조회 및 확인 */
+            SELECT  '$!{c_version}'                       	AS C_VERSION, 
+            		TO_NUMBER('$!{c_seq}')                  AS C_SEQ,
+            		'$!{c_p_item_id}'                       AS P_CODE,
+            		'$!{c_item_id}'                       	AS C_CODE,
+            		'$!{c_plantId_w1}'                      AS PLANT_ID,
+            		'$!{c_locId_w1}'                        AS LOC_ID,
+            		TO_DATE('$!{c_w1_MondayD}','YYYYMMDD')  AS DUE_DATE,
+            		TO_NUMBER('$!{c_w1_MondayQ}')           AS ETC_QTY,
+            		'BOX'                                   AS ETC_UOM,
+            		TO_NUMBER('$!{cons_ratio}')             AS CONS_RATIO,
+                    'AD'                                	AS MADE_TYPE,
+                    SYSDATE                             	AS MADE_DTTM,
+                    '$!{_user_id}'                      	AS MADE_BY                        
+             FROM   DUAL
+            WHERE   REPLACE('$!{c_flag}',',') &lt;&gt; 1   
+            --AND   REPLACE('$!{c_w1_MondayQ}',',') &gt; 0 
+            UNION ALL
+            SELECT  '$!{c_version}'                       	AS C_VERSION, 
+					TO_NUMBER('$!{c_seq}')                  AS C_SEQ,
+            		'$!{c_p_item_id}'                       AS P_CODE,
+            		'$!{c_item_id}'                       	AS C_CODE,
+            		'$!{c_plantId_w1}'                      AS PLANT_ID,
+ 	          		'$!{c_locId_w1}'                        AS LOC_ID,         		
+            		TO_DATE('$!{c_w1_TuedayD}', 'YYYYMMDD') AS DUE_DATE,
+            		TO_NUMBER('$!{c_w1_TuedayQ}')           AS ETC_QTY,
+            		'BOX'                                   AS ETC_UOM,
+            		TO_NUMBER('$!{cons_ratio}')             AS CONS_RATIO,
+                    'AD'                                	AS MADE_TYPE,
+                    SYSDATE                             	AS MADE_DTTM,
+                    '$!{_user_id}'                      	AS MADE_BY                        
+             FROM   DUAL
+            WHERE   REPLACE('$!{c_flag}',',') &lt;&gt; 1   
+            --AND   REPLACE('$!{c_w1_TuedayQ}',',') &gt; 0 
+            UNION ALL
+            SELECT  '$!{c_version}'                       	AS C_VERSION, 
+            		TO_NUMBER('$!{c_seq}')                  AS C_SEQ,
+            		'$!{c_p_item_id}'                       AS P_CODE,
+            		'$!{c_item_id}'                       	AS C_CODE,
+            		'$!{c_plantId_w1}'                      AS PLANT_ID,
+            		'$!{c_locId_w1}'                        AS LOC_ID,           		
+            		TO_DATE('$!{c_w1_WeddayD}', 'YYYYMMDD') AS DUE_DATE,
+            		TO_NUMBER('$!{c_w1_WeddayQ}')           AS ETC_QTY,
+            		'BOX'                                   AS ETC_UOM,
+            		TO_NUMBER('$!{cons_ratio}')             AS CONS_RATIO,
+                    'AD'                                	AS MADE_TYPE,
+                    SYSDATE                             	AS MADE_DTTM,
+                    '$!{_user_id}'                      	AS MADE_BY                        
+             FROM   DUAL
+            WHERE   REPLACE('$!{c_flag}',',') &lt;&gt; 1   
+            --AND   REPLACE('$!{c_w1_WeddayQ}',',') &gt; 0 
+            UNION ALL
+            SELECT  '$!{c_version}'                       	AS C_VERSION, 
+            		TO_NUMBER('$!{c_seq}')                  AS C_SEQ,
+            		'$!{c_p_item_id}'                       AS P_CODE,
+            		'$!{c_item_id}'                       	AS C_CODE,
+            		'$!{c_plantId_w1}'                      AS PLANT_ID,
+ 	          		'$!{c_locId_w1}'                        AS LOC_ID,            		
+            		TO_DATE('$!{c_w1_ThudayD}', 'YYYYMMDD') AS DUE_DATE,
+            		TO_NUMBER('$!{c_w1_ThudayQ}')           AS ETC_QTY,
+            		'BOX'                                   AS ETC_UOM,
+            		TO_NUMBER('$!{cons_ratio}')             AS CONS_RATIO,
+                    'AD'                                	AS MADE_TYPE,
+                    SYSDATE                             	AS MADE_DTTM,
+                    '$!{_user_id}'                      	AS MADE_BY                        
+             FROM   DUAL
+            WHERE   REPLACE('$!{c_flag}',',') &lt;&gt; 1   
+            --AND   REPLACE('$!{c_w1_ThudayQ}',',') &gt; 0 
+            UNION ALL
+            SELECT  '$!{c_version}'                       	AS C_VERSION, 
+            		TO_NUMBER('$!{c_seq}')                  AS C_SEQ,
+            		'$!{c_p_item_id}'                       AS P_CODE,
+            		'$!{c_item_id}'                       	AS C_CODE,
+            		'$!{c_plantId_w1}'                      AS PLANT_ID,
+ 	          		'$!{c_locId_w1}'                        AS LOC_ID,            		            	
+            		TO_DATE('$!{c_w1_FridayD}', 'YYYYMMDD') AS DUE_DATE,
+            		TO_NUMBER('$!{c_w1_FridayQ}')           AS ETC_QTY,
+            		'BOX'                                   AS ETC_UOM,
+            		TO_NUMBER('$!{cons_ratio}')             AS CONS_RATIO,
+                    'AD'                                	AS MADE_TYPE,
+                    SYSDATE                             	AS MADE_DTTM,
+                    '$!{_user_id}'                      	AS MADE_BY                        
+             FROM   DUAL
+            WHERE   REPLACE('$!{c_flag}',',') &lt;&gt; 1   
+            --AND   REPLACE('$!{c_w1_FridayQ}',',') &gt; 0 
+            UNION ALL
+            SELECT  '$!{c_version}'                       	AS C_VERSION, 
+            		TO_NUMBER('$!{c_seq}')                  AS C_SEQ,
+            		'$!{c_p_item_id}'                       AS P_CODE,
+            		'$!{c_item_id}'                       	AS C_CODE,
+            		'$!{c_plantId_w1}'                      AS PLANT_ID,
+ 	          		'$!{c_locId_w1}'                        AS LOC_ID,            		        
+            		TO_DATE('$!{c_w1_SatdayD}', 'YYYYMMDD') AS DUE_DATE,
+            		TO_NUMBER('$!{c_w1_SatdayQ}')           AS ETC_QTY,
+            		'BOX'                                   AS ETC_UOM,
+            		TO_NUMBER('$!{cons_ratio}')             AS CONS_RATIO,
+                    'AD'                                	AS MADE_TYPE,
+                    SYSDATE                             	AS MADE_DTTM,
+                    '$!{_user_id}'                      	AS MADE_BY                        
+             FROM   DUAL
+            WHERE   REPLACE('$!{c_flag}',',') &lt;&gt; 1   
+            --AND   REPLACE('$!{c_w1_SatdayQ}',',') &gt; 0 
+            UNION ALL
+            SELECT  '$!{c_version}'                       	AS C_VERSION, 
+            		TO_NUMBER('$!{c_seq}')                  AS C_SEQ,
+            		'$!{c_p_item_id}'                       AS P_CODE,
+            		'$!{c_item_id}'                       	AS C_CODE,
+            		'$!{c_plantId_w1}'                      AS PLANT_ID,
+ 	          		'$!{c_locId_w1}'                        AS LOC_ID,            		
+            		TO_DATE('$!{c_w1_SundayD}', 'YYYYMMDD') AS DUE_DATE, 
+            		TO_NUMBER('$!{c_w1_SundayQ}')           AS ETC_QTY,
+            		'BOX'                                   AS ETC_UOM,
+            		TO_NUMBER('$!{cons_ratio}')             AS CONS_RATIO,
+                    'AD'                                	AS MADE_TYPE,
+                    SYSDATE                             	AS MADE_DTTM,
+                    '$!{_user_id}'                      	AS MADE_BY                        
+             FROM   DUAL
+            WHERE   REPLACE('$!{c_flag}',',') &lt;&gt; 1   
+            --AND   REPLACE('$!{c_w1_SundayQ}',',') &gt; 0 
+            ----------------------------------------------
+            -- WEEK 2 
+            UNION ALL 
+            ----------------------------------------------
+            SELECT  '$!{c_version}'                       	AS C_VERSION, 
+            		TO_NUMBER('$!{c_seq}')                  AS C_SEQ,
+            		'$!{c_p_item_id}'                       AS P_CODE,
+            		'$!{c_item_id}'                       	AS C_CODE,
+            		'$!{c_plantId_w2}'                      AS PLANT_ID,
+ 	          		'$!{c_locId_w2}'                        AS LOC_ID,            		
+            		TO_DATE('$!{c_w2_MondayD}','YYYYMMDD')  AS DUE_DATE,
+            		TO_NUMBER('$!{c_w2_MondayQ}')           AS ETC_QTY,
+            		'BOX'                                   AS ETC_UOM,
+            		TO_NUMBER('$!{cons_ratio}')             AS CONS_RATIO,
+                    'AD'                                	AS MADE_TYPE,
+                    SYSDATE                             	AS MADE_DTTM,
+                    '$!{_user_id}'                      	AS MADE_BY                        
+             FROM   DUAL
+            WHERE   REPLACE('$!{c_flag}',',') &lt;&gt; 1   
+            --AND   REPLACE('$!{c_w2_MondayQ}',',') &gt; 0 
+            UNION ALL
+            SELECT  '$!{c_version}'                       	AS C_VERSION, 
+					TO_NUMBER('$!{c_seq}')                  AS C_SEQ,
+            		'$!{c_p_item_id}'                       AS P_CODE,
+            		'$!{c_item_id}'                       	AS C_CODE,
+            		'$!{c_plantId_w2}'                      AS PLANT_ID,
+ 	          		'$!{c_locId_w2}'                        AS LOC_ID,            		
+            		TO_DATE('$!{c_w2_TuedayD}', 'YYYYMMDD') AS DUE_DATE,
+            		TO_NUMBER('$!{c_w2_TuedayQ}')           AS ETC_QTY,
+            		'BOX'                                   AS ETC_UOM,
+            		TO_NUMBER('$!{cons_ratio}')             AS CONS_RATIO,
+                    'AD'                                	AS MADE_TYPE,
+                    SYSDATE                             	AS MADE_DTTM,
+                    '$!{_user_id}'                      	AS MADE_BY                        
+             FROM   DUAL
+            WHERE   REPLACE('$!{c_flag}',',') &lt;&gt; 1   
+            --AND   REPLACE('$!{c_w2_TuedayQ}',',') &gt; 0 
+            UNION ALL
+            SELECT  '$!{c_version}'                       	AS C_VERSION, 
+            		TO_NUMBER('$!{c_seq}')                  AS C_SEQ,
+            		'$!{c_p_item_id}'                       AS P_CODE,
+            		'$!{c_item_id}'                       	AS C_CODE,
+            		'$!{c_plantId_w2}'                      AS PLANT_ID,
+  	          		'$!{c_locId_w2}'                        AS LOC_ID,            		
+            		TO_DATE('$!{c_w2_WeddayD}', 'YYYYMMDD') AS DUE_DATE,
+            		TO_NUMBER('$!{c_w2_WeddayQ}')           AS ETC_QTY,
+            		'BOX'                                   AS ETC_UOM,
+            		TO_NUMBER('$!{cons_ratio}')             AS CONS_RATIO,
+                    'AD'                                	AS MADE_TYPE,
+                    SYSDATE                             	AS MADE_DTTM,
+                    '$!{_user_id}'                      	AS MADE_BY                        
+             FROM   DUAL
+            WHERE   REPLACE('$!{c_flag}',',') &lt;&gt; 1   
+            --AND   REPLACE('$!{c_w2_WeddayQ}',',') &gt; 0 
+            UNION ALL
+            SELECT  '$!{c_version}'                       	AS C_VERSION, 
+            		TO_NUMBER('$!{c_seq}')                  AS C_SEQ,
+            		'$!{c_p_item_id}'                       AS P_CODE,
+            		'$!{c_item_id}'                       	AS C_CODE,
+            		'$!{c_plantId_w2}'                      AS PLANT_ID,
+ 	          		'$!{c_locId_w2}'                        AS LOC_ID,            		
+            		TO_DATE('$!{c_w2_ThudayD}', 'YYYYMMDD') AS DUE_DATE,
+            		TO_NUMBER('$!{c_w2_ThudayQ}')           AS ETC_QTY,
+            		'BOX'                                   AS ETC_UOM,
+            		TO_NUMBER('$!{cons_ratio}')             AS CONS_RATIO,
+                    'AD'                                	AS MADE_TYPE,
+                    SYSDATE                             	AS MADE_DTTM,
+                    '$!{_user_id}'                      	AS MADE_BY                        
+             FROM   DUAL
+            WHERE   REPLACE('$!{c_flag}',',') &lt;&gt; 1   
+            --AND   REPLACE('$!{c_w2_ThudayQ}',',') &gt; 0 
+            UNION ALL
+            SELECT  '$!{c_version}'                       	AS C_VERSION, 
+            		TO_NUMBER('$!{c_seq}')                  AS C_SEQ,
+            		'$!{c_p_item_id}'                       AS P_CODE,
+            		'$!{c_item_id}'                       	AS C_CODE,
+            		'$!{c_plantId_w2}'                      AS PLANT_ID,
+ 	          		'$!{c_locId_w2}'                        AS LOC_ID,            		
+            		TO_DATE('$!{c_w2_FridayD}', 'YYYYMMDD') AS DUE_DATE,
+            		TO_NUMBER('$!{c_w2_FridayQ}')           AS ETC_QTY,
+            		'BOX'                                   AS ETC_UOM,
+            		TO_NUMBER('$!{cons_ratio}')             AS CONS_RATIO,
+                    'AD'                                	AS MADE_TYPE,
+                    SYSDATE                             	AS MADE_DTTM,
+                    '$!{_user_id}'                      	AS MADE_BY                        
+             FROM   DUAL
+            WHERE   REPLACE('$!{c_flag}',',') &lt;&gt; 1   
+            --AND   REPLACE('$!{c_w2_FridayQ}',',') &gt; 0 
+            UNION ALL
+            SELECT  '$!{c_version}'                       	AS C_VERSION, 
+            		TO_NUMBER('$!{c_seq}')                  AS C_SEQ,
+            		'$!{c_p_item_id}'                       AS P_CODE,
+            		'$!{c_item_id}'                       	AS C_CODE,
+            		'$!{c_plantId_w2}'                      AS PLANT_ID,
+ 	          		'$!{c_locId_w2}'                        AS LOC_ID,            		
+            		TO_DATE('$!{c_w2_SatdayD}', 'YYYYMMDD') AS DUE_DATE,
+            		TO_NUMBER('$!{c_w2_SatdayQ}')           AS ETC_QTY,
+            		'BOX'                                   AS ETC_UOM,
+            		TO_NUMBER('$!{cons_ratio}')             AS CONS_RATIO,
+                    'AD'                                	AS MADE_TYPE,
+                    SYSDATE                             	AS MADE_DTTM,
+                    '$!{_user_id}'                      	AS MADE_BY                        
+             FROM   DUAL
+            WHERE   REPLACE('$!{c_flag}',',') &lt;&gt; 1   
+            --AND   REPLACE('$!{c_w2_SatdayQ}',',') &gt; 0  
+            UNION ALL
+            SELECT  '$!{c_version}'                       	AS C_VERSION, 
+            		TO_NUMBER('$!{c_seq}')                  AS C_SEQ,  
+            		'$!{c_p_item_id}'                       AS P_CODE,
+            		'$!{c_item_id}'                       	AS C_CODE,
+            		'$!{c_plantId_w2}'                      AS PLANT_ID,
+ 	          		'$!{c_locId_w2}'                        AS LOC_ID,            		
+            		TO_DATE('$!{c_w2_SundayD}', 'YYYYMMDD') AS DUE_DATE,
+            		TO_NUMBER('$!{c_w2_SundayQ}')           AS ETC_QTY,
+            		'BOX'                                   AS ETC_UOM,
+            		TO_NUMBER('$!{cons_ratio}')             AS CONS_RATIO,
+                    'AD'                                	AS MADE_TYPE,
+                    SYSDATE                             	AS MADE_DTTM,
+                    '$!{_user_id}'                      	AS MADE_BY                        
+             FROM   DUAL
+            WHERE   REPLACE('$!{c_flag}',',') &lt;&gt; 1    
+            --AND   REPLACE('$!{c_w2_SundayQ}',',') &gt; 0 
+	</query>	 
+		 
+	<query id="etc_day_list" >
+            SELECT  TO_CHAR(DD+ 7, 'MM/DD(DY)')     AS MON_W1, --월(차주)
+                    TO_CHAR(DD+ 8, 'MM/DD(DY)')     AS TUS_W1, --화(차주)
+                    TO_CHAR(DD+ 9, 'MM/DD(DY)')     AS WED_W1, --수(차주)
+                    TO_CHAR(DD+10, 'MM/DD(DY)')     AS THU_W1, --목(차주)
+                    TO_CHAR(DD+11, 'MM/DD(DY)')     AS FRI_W1, --금(차주)
+                    TO_CHAR(DD+12, 'MM/DD(DY)')     AS SAT_W1, --토(차주)
+                    TO_CHAR(DD+13, 'MM/DD(DY)')     AS SUN_W1, --일(차주)
+                    ----------------------------------------------------
+                    TO_CHAR(DD+14, 'MM/DD(DY)')     AS MON_W2, --월(차차주)
+                    TO_CHAR(DD+15, 'MM/DD(DY)')     AS TUS_W2, --화(차차주)
+                    TO_CHAR(DD+16, 'MM/DD(DY)')     AS WED_W2, --수(차차주)
+                    TO_CHAR(DD+17, 'MM/DD(DY)')     AS THU_W2, --목(차차주)
+                    TO_CHAR(DD+18, 'MM/DD(DY)')     AS FRI_W2, --금(차차주)
+                    TO_CHAR(DD+19, 'MM/DD(DY)')     AS SAT_W2, --토(차차주)
+                    TO_CHAR(DD+20, 'MM/DD(DY)')     AS SUN_W2  --일(차차주)                    
+            FROM
+                (        
+    		    SELECT NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*-1), 2) DD
+    		    FROM DUAL
+    		    ) 
+            UNION ALL
+            SELECT  TO_CHAR(DD+7, 'YYYYMMDD')   DD0,
+                    TO_CHAR(DD+8, 'YYYYMMDD')   DD1,
+                    TO_CHAR(DD+9, 'YYYYMMDD')   DD2,
+                    TO_CHAR(DD+10, 'YYYYMMDD')  DD3,
+                    TO_CHAR(DD+11, 'YYYYMMDD')  DD4,
+                    TO_CHAR(DD+12, 'YYYYMMDD')  DD5,
+                    TO_CHAR(DD+13, 'YYYYMMDD')  DD6,
+                    TO_CHAR(DD+14, 'YYYYMMDD')  DD7,
+                    TO_CHAR(DD+15, 'YYYYMMDD')  DD8,
+                    TO_CHAR(DD+16, 'YYYYMMDD')  DD9,
+                    TO_CHAR(DD+17, 'YYYYMMDD')  DD10,
+                    TO_CHAR(DD+18, 'YYYYMMDD')  DD11, 
+                    TO_CHAR(DD+19, 'YYYYMMDD')  DD12,
+                    TO_CHAR(DD+20, 'YYYYMMDD')  DD13                    
+            FROM
+                (        
+    		    SELECT NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*-1), 2) DD
+    		    FROM DUAL
+    		    )        
+    </query>  
+
+    <query id="sc_01100_etc_plan_excel">
+	SELECT /* sc_01100_etc_plan_excel */ 
+		   ETC_MST.VERSION,                              
+	       ETC_MST.SEQ,
+	       ETC_MST.P_ITEM_ID,
+	       IM.ITEM_NAME,
+	       IM.SPEC,
+	       DC.BASE_STOCK,
+	       DC.SCH_PLAN_W0,
+	       DC.SALES_PLAN_W0,   
+	       DC.EXPERT_STOCK,  
+	       ETC_MST.PA_PLAN_W1 PA_PLAN_W1,   
+	       ETC_MST.SCH_SUM_W1,                                                  --생산계획계 추가 _W1
+	       ETC_MST.LOC_ID_W1,
+	       -------------------
+		   ETC_MST.MON_SCH_W1,
+	       ETC_MST.TUE_SCH_W1,
+	       ETC_MST.WED_SCH_W1,
+	       ETC_MST.THU_SCH_W1,
+	       ETC_MST.FRI_SCH_W1,
+	       ETC_MST.SAT_SCH_W1,
+	       ETC_MST.SUN_SCH_W1, 
+	       -------------------
+	       DC.SALES_PLAN_W1,
+	       (DC.EXPERT_STOCK+ETC_MST.SCH_SUM_W1)-DC.SALES_PLAN_W1 EXPERT_STOCK_W1, --예상재고_W1
+	       ETC_MST.PA_PLAN_W2 PA_PLAN_W2,
+	       ETC_MST.SCH_SUM_W2,
+	       ETC_MST.LOC_ID_W2,
+	       -------------------
+		   ETC_MST.MON_SCH_W2,
+	       ETC_MST.TUE_SCH_W2,
+	       ETC_MST.WED_SCH_W2,
+	       ETC_MST.THU_SCH_W2,
+	       ETC_MST.FRI_SCH_W2,
+	       ETC_MST.SAT_SCH_W2,
+	       ETC_MST.SUN_SCH_W2, 
+	       ------------------- 
+	       DC.SALES_PLAN_W2,
+	       (((DC.EXPERT_STOCK+ETC_MST.SCH_SUM_W1)-DC.SALES_PLAN_W1)-ETC_MST.SCH_SUM_W2)-DC.SALES_PLAN_W2 EXPERT_STOCK_W2 --예상재고_W2    
+	    FROM
+	        (
+		    --1. 기초재고외 조회
+		    /*   
+		    *  1. 기초재고            : 조회일자(오늘)에 해당하는 BASE_STOCK  SUM
+		    *  2. 금주생산계획        : 조회일자(오늘)에서 마지막 영업일까지(조회일자 주의 토요일)  SUM
+		    *  3. 금주판매계획        : 조회일자(오늘)에서 마지막 영업일까지(조회일자 주의 토요일)  SUM
+		    *  4. 예상재고(차주초)    : 기초재고 + 금주생산계획 - 금주판매계획
+		    *  5. 차주판매계획        : 차주판매계획
+		    *  6. 차차주판매계획      : 차차주판매계획
+		    */ 
+		    SELECT  ITEM_ID,            
+		            BASE_STOCK,         --기초재고
+		            SCH_PLAN_W0,        --금주생산계획 
+		            SALES_PLAN_W0 ,     --금주판매계획
+		            BASE_STOCK + SCH_PLAN_W0 - SALES_PLAN_W0  EXPERT_STOCK,  -- 예상재고(차주초)        
+		            SALES_PLAN_W1,      --차주판매계획       
+		            SALES_PLAN_W2       --차차주판매계획  
+		    FROM        
+		    (
+		    SELECT  ITEM_ID,
+		            SUM(DECODE(YYYYMMDD, REPLACE ('$!{sdate}', '-', ''),BASE_STOCK,0))                              BASE_STOCK,      --기초재고
+		            SUM(CASE WHEN  YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IYYYIW')
+		                           AND YYYYMMDD >= TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'YYYYMMDD')
+		                     THEN  RECEIPT_EXPT
+		                     ELSE  0
+		                END)       SCH_PLAN_W0,                                                                                       --금주생산계획
+		            SUM(CASE WHEN  YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IYYYIW')
+		                           AND YYYYMMDD >= TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'YYYYMMDD')
+		                     THEN  SALES_PLAN
+		                     ELSE  0
+		                END)       SALES_PLAN_W0,                                                                                     --금주판매계획    
+		            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 'IYYYIW'),SALES_PLAN, 0))    SALES_PLAN_W1,   --차주판매계획                                      		                                              
+		            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2), 'IYYYIW'),SALES_PLAN, 0))    SALES_PLAN_W2    --차차주판매계획                                      
+		    FROM
+		            (
+		            SELECT  DD.ITEM_ID,
+		                    DECODE(DC.DC_ID, NULL, 0, DD.BASE_STOCK) BASE_STOCK,
+		                    DD.RECEIPT_EXPT,
+		                    (DD.SALES_PLAN+DD.PROM_PLAN) SALES_PLAN, --판매계획수량수정(2008.11.12 수정)
+		                    SALES_MEAN_1WEEK,
+		                    CAL.YYYYWW,
+		                    CAL.YYYYMMDD
+		            FROM    DC_DATAWAREHOUSE DD, CAL_MST CAL,
+		    	            (
+		    	            SELECT 	DC_ID, DC_NAME
+		               		  FROM 	DC_MST
+		                	 WHERE 	CDC_FLAG = 'Y'
+		                	UNION 
+		                 	SELECT 	DC_ID, DC_NAME
+		               		  FROM 	DC_MST
+		                	 WHERE 	RDC_FLAG = 'Y'    
+		    	            ) DC
+		    	    WHERE   DD.CNFM_DATE = CAL.YYYYMMDD
+		    	    AND     DD.DC_ID    =   DC.DC_ID(+)
+		    	    AND     DD.ITEM_ID =  (
+					                        SELECT ITEM_ID 
+					                          FROM ITEM_MST 
+					                        WHERE ETC_FLAG = '900' 
+					                          AND ITEM_STATUS = 'ST' 
+					                          AND ITEM_ID = DD.ITEM_ID
+					                      )	
+		            /* 당주 월요일부터 ~ 차차주 일요일까지 (3WEEK) */    
+		            AND     DD.CNFM_DATE BETWEEN  TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*-1), 2), 'YYYYMMDD')
+		                                 AND      TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2) , 1)  , 'YYYYMMDD')          
+		            
+		            )
+		         GROUP BY ITEM_ID     
+		        )   
+	       ) DC,
+	       (
+		    --2. 유통가공품 조회
+		    /*   
+		    *  1. 생산위치            : 조회일자(오늘) 기준 차주 생산공장
+		    *  2. 생산위치            : 조회일자(오늘) 기준 차차주 생산공장
+		    *  3. 금주생산계획         : 조회일자(오늘)에서 마지막 영업일까지(조회일자 주의 토요일)  SUM
+		    *  4. 금주생산필요량       : 		
+		    *  5. 차주생산계획         : 차주 월~일
+		    *  6. 차주생산필요량       : 
+		    *  7. 차차주생산계획       : 차차주 월~일
+		    *  8. 차차주생산필요량     :
+		    *  9. LOC_ID : 공장할당계획에서 나오는 LOC_ID는 없는 데이터도 있기 때문에, 무시한다. 
+		    */ 
+	        SELECT MAX(VERSION)     VERSION, 
+	               MAX(SEQ)         SEQ, 
+	               MAX(
+	                   CASE WHEN DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)
+	                                          AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+6
+	                        THEN LOC_ID
+	                   END
+	               ) LOC_ID_W1,                
+	               MAX(
+	                   CASE WHEN DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)
+	                                          AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+6
+	                        THEN LOC_ID
+	                   END
+	               ) LOC_ID_W2,                 
+	               P_ITEM_ID        P_ITEM_ID,
+	               --LOC_ID           LOC_ID, 
+	               MAX(SCH_W0_QTY)  SCH_W0_QTY,
+	               SUM(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*-1), 2)
+	                                           AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 1)
+	                 THEN  PA_WEEK_QTY
+	                 ELSE  0
+	               END)    PA_PLAN_W0,	  
+	               --차주 생산계획 SUM         
+	               SUM(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)
+	                                           AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 1)
+	                 THEN  ETC_QTY
+	                 ELSE  0
+	               END)    SCH_SUM_W1,	  
+	               SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2),   ETC_QTY,0))  MON_SCH_W1, --차주생산계획(W1_월)  
+	               SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+1, ETC_QTY,0))  TUE_SCH_W1, --차주생산계획(W1_화)  
+	               SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+2, ETC_QTY,0))  WED_SCH_W1, --차주생산계획(W1_수)          
+	               SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+3, ETC_QTY,0))  THU_SCH_W1, --차주생산계획(W1_목)
+	               SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+4, ETC_QTY,0))  FRI_SCH_W1, --차주생산계획(W1_금)
+	               SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+5, ETC_QTY,0))  SAT_SCH_W1, --차주생산계획(W1_토)
+	               SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+6, ETC_QTY,0))  SUN_SCH_W1, --차주생산계획(W1_일)
+	               ----------------------------------------------------------------------------------------------------------------------------------
+	               MAX(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)
+	                                           AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 1)
+	                 THEN  PA_WEEK_QTY
+	                 ELSE  0
+	               END)    PA_PLAN_W1,		           
+	               ----------------------------------------------------------------------------------------------------------------------------------
+	               --차차주 생산계획 SUM         
+	               SUM(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)
+	                                           AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2), 1)
+	                 THEN  ETC_QTY
+	                 ELSE  0
+	               END)    SCH_SUM_W2,	  
+	               SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2),   ETC_QTY,0))  MON_SCH_W2,--차주생산계획(W1_월)  
+	               SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+1, ETC_QTY,0))  TUE_SCH_W2,--차주생산계획(W1_화)  
+	               SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+2, ETC_QTY,0))  WED_SCH_W2,--차주생산계획(W1_수)          
+	               SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+3, ETC_QTY,0))  THU_SCH_W2,--차주생산계획(W1_목)
+	               SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+4, ETC_QTY,0))  FRI_SCH_W2,--차주생산계획(W1_금)
+	               SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+5, ETC_QTY,0))  SAT_SCH_W2,--차주생산계획(W1_토)
+	               SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+6, ETC_QTY,0))  SUN_SCH_W2,--차주생산계획(W1_일)    
+	               ----------------------------------------------------------------------------------------------------------------------------------
+	               MAX(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)
+	                                           AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2), 1)
+	                 THEN  PA_WEEK_QTY
+	                 ELSE  0
+	               END)       PA_PLAN_W2
+	          FROM ETC_INFO_MST  
+	        WHERE VERSION = '$!{version}' 
+	          AND SEQ     = '$!{seq}'        			
+	        GROUP BY P_ITEM_ID --, LOC_ID
+	        ) ETC_MST, ITEM_MST IM
+	WHERE ETC_MST.P_ITEM_ID = DC.ITEM_ID(+)
+	  AND ETC_MST.P_ITEM_ID = IM.ITEM_ID(+)		  
+	</query> 	  
+ 
+	<query id="sc_01100_etc_plan_detail_excel">
+	    
+	SELECT /* sc_01100_etc_plan_detail_excel */
+	       NO,              --0.
+	       VERSION,         --1.
+	       SEQ,             --2.       
+	       C_ITEM_ID,       --3.
+	       PROD_ITEM_ID,    --4.
+	       CONS_ITEM_NAME,  --5.
+	       SEPC,            --6.
+	       BASE_STOCK,      --7.
+	       SCH_PLAN_W0,     --8.
+	       C_DO_PLAN_W0,    --9.
+	       EXPT_STOCK_W0,   --10.
+	       P_PA_PLAN_W1,    --11.
+	      (C_DO_PLAN_W1-EXPT_STOCK_W0) C_PA_PLAN_W1, --12. 구성품 생산필요량_W1
+	       PLANT_ID_W1,     --13.
+	       LOC_ID_W1,       --14.
+	       SCH_SUM_W1,      --15. 생산계획계_W1
+	       MON_SCH_W1,      --16
+	       TUE_SCH_W1,      --17
+	       WED_SCH_W1,      --18
+	       THU_SCH_W1,      --19
+	       FRI_SCH_W1,      --20
+	       SAT_SCH_W1,      --21
+	       SUN_SCH_W1,      --22
+	       C_DO_PLAN_W1,    --23. 구성품의 사용계획_W1
+	       ((EXPT_STOCK_W0+SCH_SUM_W1)-C_DO_PLAN_W1) EXPT_STOCK_W1,  --24. 구성품의 예상재고_W1
+	       P_PA_PLAN_W2,    --25 모제품의 생산필요량_W2
+	       (C_DO_PLAN_W2-((EXPT_STOCK_W0+SCH_SUM_W1)-C_DO_PLAN_W1)) C_PA_PLAN_W2, --26. 구성품의 생산필요량_W2 
+	       PLANT_ID_W2,     --27.
+	       LOC_ID_W2,       --28.
+	       SCH_SUM_W2,      --29. 생산계획계_W2
+	       MON_SCH_W2,      --30.
+	       TUE_SCH_W2,      --31.
+	       WED_SCH_W2,      --32    
+	       THU_SCH_W2,      --33
+	       FRI_SCH_W2,      --34
+	       SAT_SCH_W2,      --35
+	       SUN_SCH_W2,      --36
+	       C_DO_PLAN_W2,    --37    
+	       (((EXPT_STOCK_W0+SCH_SUM_W1)-C_DO_PLAN_W1)+SCH_SUM_W2)-C_DO_PLAN_W2 EXPT_STOCK_W1, --38. 예상재고_W2
+	       CONS_RATIO,      --39
+	       P_SCH_W0_QTY,    --40    
+	       P_SCH_W1_QTY,    --41
+	       P_SCH_W2_QTY     --42
+		FROM
+		    (
+		    SELECT NO,                                                                         --0
+		           MAX(ETC_MST.VERSION)                                        VERSION,        --1.
+		           MAX(ETC_MST.SEQ)                                            SEQ,            --2.
+		           ETC_DTL.C_ITEM_ID                                           C_ITEM_ID,      --3.
+		           DECODE(NO,2,ETC_DTL.P_ITEM_ID,ETC_DTL.C_ITEM_ID)            PROD_ITEM_ID,   --4.
+		           MAX(DECODE(NO,2,IM.ITEM_NAME,IM.ITEM_NAME||'계'))           CONS_ITEM_NAME, --5.
+		           MAX(IM.SPEC)                                                SEPC,           --6.
+		           MAX(DECODE(NO,2,DC.BASE_STOCK,1,DC.BASE_STOCK))             BASE_STOCK,     --7.
+		           SUM(DECODE(NO,2,DC.SCH_PLAN_W0,1,DC.SCH_PLAN_W0))           SCH_PLAN_W0,    --8. C_생산계획_W0
+		           SUM(DECODE(NO,2,CEIL(ETC_MST.P_SCH_W0_QTY*ETC_DTL.CONS_RATIO),1,CEIL(ETC_MST.P_SCH_W0_QTY*ETC_DTL.CONS_RATIO))) C_DO_PLAN_W0,    --9.C_사용계획_W0
+		           MAX(DECODE(NO,2,(DC.BASE_STOCK+DC.SCH_PLAN_W0)-CEIL(ETC_MST.P_SCH_W0_QTY*ETC_DTL.CONS_RATIO),1,(DC.BASE_STOCK+DC.SCH_PLAN_W0)-CEIL(ETC_MST.P_SCH_W0_QTY*ETC_DTL.CONS_RATIO)))  EXPT_STOCK_W0,   --10.C_예상재고_W0
+		           MAX(P_PA_PLAN_W1)                                     P_PA_PLAN_W1,         --11.P_생산필요량_W1
+		           MAX(ETC_DTL.PLANT_ID_W1)                              PLANT_ID_W1,          --12.
+		           MAX(ETC_DTL.LOC_ID_W1)                                LOC_ID_W1,            --13. LOC_ID_W1 
+		           MAX(ETC_DTL.SCH_SUM_W1)                               SCH_SUM_W1,           --14. 생산계획량_W1
+		           MAX(ETC_DTL.MON_SCH_W1) MON_SCH_W1,                                         --15.
+		           MAX(ETC_DTL.TUE_SCH_W1) TUE_SCH_W1,                                         --16.
+		           MAX(ETC_DTL.WED_SCH_W1) WED_SCH_W1,                                         --17.
+		           MAX(ETC_DTL.THU_SCH_W1) THU_SCH_W1,                                         --18.
+		           MAX(ETC_DTL.FRI_SCH_W1) FRI_SCH_W1,                                         --19.
+		           MAX(ETC_DTL.SAT_SCH_W1) SAT_SCH_W1,                                         --20.
+		           MAX(ETC_DTL.SUN_SCH_W1) SUN_SCH_W1,                                         --21.
+		           SUM(DECODE(NO,2,CEIL(ETC_MST.P_SCH_W1_QTY*ETC_DTL.CONS_RATIO),1,CEIL(ETC_MST.P_SCH_W1_QTY*ETC_DTL.CONS_RATIO))) C_DO_PLAN_W1,    --22.C_사용계획_W1    
+		           MAX(P_PA_PLAN_W2)                                     P_PA_PLAN_W2,         --23.P_생산필요량_W2
+		           MAX(ETC_DTL.PLANT_ID_W2)                              PLANT_ID_W2,          --24.
+		           MAX(ETC_DTL.LOC_ID_W2)                                LOC_ID_W2,            --25. LOC_ID_W1     
+		           MAX(ETC_DTL.SCH_SUM_W2)                               SCH_SUM_W2,           --26. 생산계획량_W2
+		           MAX(ETC_DTL.MON_SCH_W2) MON_SCH_W2,                                         --27.
+		           MAX(ETC_DTL.TUE_SCH_W2) TUE_SCH_W2,                                         --28.
+		           MAX(ETC_DTL.WED_SCH_W2) WED_SCH_W2,                                         --29.
+		           MAX(ETC_DTL.THU_SCH_W2) THU_SCH_W2,                                         --30.
+		           MAX(ETC_DTL.FRI_SCH_W2) FRI_SCH_W2,                                         --31.
+		           MAX(ETC_DTL.SAT_SCH_W2) SAT_SCH_W2,                                         --32.
+		           MAX(ETC_DTL.SUN_SCH_W2) SUN_SCH_W2,                                         --33.
+		           SUM(DECODE(NO,2,CEIL(ETC_MST.P_SCH_W2_QTY*ETC_DTL.CONS_RATIO),1,CEIL(ETC_MST.P_SCH_W2_QTY*ETC_DTL.CONS_RATIO))) C_DO_PLAN_W2,    --34.C_사용계획_W2
+		           MAX(CONS_RATIO)                                       CONS_RATIO,            --35.
+		           SUM(DECODE(NO,2,ETC_MST.P_SCH_W0_QTY,1,ETC_MST.P_SCH_W0_QTY)) P_SCH_W0_QTY,  --36.
+		           SUM(DECODE(NO,2,ETC_MST.P_SCH_W1_QTY,1,ETC_MST.P_SCH_W1_QTY)) P_SCH_W1_QTY,  --37.
+		           SUM(DECODE(NO,2,ETC_MST.P_SCH_W2_QTY,1,ETC_MST.P_SCH_W2_QTY)) P_SCH_W2_QTY   --38
+		       FROM 
+		    		(
+		    		    --1. 기초재고외 조회
+		    		    /*   
+		    		    *  1. 기초재고            : 조회일자(오늘)에 해당하는 BASE_STOCK  SUM
+		    		    *  2. 금주생산계획        : 조회일자(오늘)에서 마지막 영업일까지(조회일자 주의 토요일)  SUM
+		    		    *  3. 금주판매계획        : 조회일자(오늘)에서 마지막 영업일까지(조회일자 주의 토요일)  SUM
+		    		    *  4. 예상재고(차주초)    : 기초재고 + 금주생산계획 - 금주판매계획
+		    		    *  5. 차주판매계획        : 차주판매계획
+		    		    *  6. 차차주판매계획      : 차차주판매계획
+		    		    */ 
+		    		    SELECT  ITEM_ID,            
+		    		            BASE_STOCK,         --기초재고
+		    		            SCH_PLAN_W0,        --금주생산계획 
+		    		            SALES_PLAN_W0 ,     --금주판매계획
+		    		            BASE_STOCK + SCH_PLAN_W0 - SALES_PLAN_W0  EXPERT_STOCK,  -- 예상재고(차주초)        
+		    		            SALES_PLAN_W1,      --차주판매계획       
+		    		            SALES_PLAN_W2       --차차주판매계획  
+		    		    FROM        
+		    		    (
+		    		    SELECT  ITEM_ID,
+		    		            SUM(DECODE(YYYYMMDD, REPLACE('$!{sdate}', '-', ''),BASE_STOCK,0))                              BASE_STOCK,      --기초재고
+		    		            SUM(CASE WHEN  YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IYYYIW')
+		    		                           AND YYYYMMDD >= TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'YYYYMMDD')
+		    		                     THEN  RECEIPT_EXPT
+		    		                     ELSE  0
+		    		                END)       SCH_PLAN_W0,                                                                                       --금주생산계획
+		    		            SUM(CASE WHEN  YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IYYYIW')
+		    		                           AND YYYYMMDD >= TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'YYYYMMDD')
+		    		                     THEN  SALES_PLAN
+		    		                     ELSE  0
+		    		                END)       SALES_PLAN_W0,                                                                                     --금주판매계획    
+		    		            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 'IYYYIW'),SALES_PLAN))    SALES_PLAN_W1,   --차주판매계획                                      		                                              
+		    		            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2), 'IYYYIW'),SALES_PLAN))    SALES_PLAN_W2    --차차주판매계획                                      
+		    		    FROM
+		    		            (
+		    		            SELECT  DD.ITEM_ID,
+		    		                    DECODE(DC.DC_ID, NULL, 0, DD.BASE_STOCK) BASE_STOCK,
+		    		                    DD.RECEIPT_EXPT,
+		    		                    (DD.SALES_PLAN+DD.PROM_PLAN) SALES_PLAN, --판매계획수량수정(2008.11.12 수정)
+		    		                    SALES_MEAN_1WEEK,
+		    		                    CAL.YYYYWW,
+		    		                    CAL.YYYYMMDD
+		    		            FROM    DC_DATAWAREHOUSE DD, CAL_MST CAL,
+		    		    	            (
+		    		    	            SELECT 	DC_ID, DC_NAME
+		    		               		  FROM 	DC_MST
+		    		                	 WHERE 	CDC_FLAG = 'Y'
+		    		                	UNION 
+		    		                 	SELECT 	DC_ID, DC_NAME
+		    		               		  FROM 	DC_MST
+		    		                	 WHERE 	RDC_FLAG = 'Y'    
+		    		    	            ) DC
+		    		    	    WHERE   DD.CNFM_DATE = CAL.YYYYMMDD
+		    		    	    AND     DD.DC_ID    =   DC.DC_ID(+)
+		    		            /* 당주 월요일부터 ~ 차차주 일요일까지 (3WEEK) */    
+		    		            AND     DD.CNFM_DATE BETWEEN  TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*-1), 2), 'YYYYMMDD')
+		    		                                 AND      TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2) , 1)  , 'YYYYMMDD')          
+		    		            
+		    		            )
+		    		         GROUP BY ITEM_ID     
+		    		        )   
+		    		) DC,
+		    		(
+		               --2. 생산필요량 조회
+		    		    /* 
+		    		    *  1. 모제품의 당주생산계획 SUM
+		    		    *  2. 모제품의 차주생산계획 SUM 
+		    		    *  3. 모제품의 차주생산필요량   : 조회일자(오늘)에 해당하는 차주   SUM
+		    		    *  4. 모제품의 차차주생산계획 SUM
+		    		    *  5. 모제품의 차차주생산필요량 : 조회일자(오늘)에 해당하는 차차주 SUM
+		    		    */ 
+		                SELECT MAX(VERSION) VERSION,
+		                       MAX(SEQ)     SEQ,  
+		                       P_ITEM_ID,
+		                       MAX(LOC_ID)  LOC_ID,     
+		                       --당주생산계획
+		                       MAX(SCH_W0_QTY)  P_SCH_W0_QTY,
+		                       --차주생산계획 
+		                       MAX(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)
+		                                                   AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 1)
+		                         THEN  SCH_WEEK_QTY
+		                         ELSE  0
+		                        END)            P_SCH_W1_QTY, 
+		                       --차주생산필요량
+		                       MAX(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('2009-01-08','YYYY-MM-DD')+(7*0), 2)
+		                                                   AND NEXT_DAY(TO_DATE('2009-01-08','YYYY-MM-DD')+(7*1), 1)
+		                           THEN  PA_WEEK_QTY
+		                           ELSE  0
+		                           END)         P_PA_PLAN_W1, 
+		                       --차차주생산계획    
+		                       MAX(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)
+		                                                   AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2), 1)
+		                         THEN  SCH_WEEK_QTY
+		                         ELSE  0
+		                        END)            P_SCH_W2_QTY,	                    
+		                       --차차주생산필요량
+		                       MAX(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)
+		                                                   AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2), 1)
+		                         THEN  PA_WEEK_QTY
+		                         ELSE  0
+		                        END)         P_PA_PLAN_W2
+		                        -------------------------------------------------------------------------------------------
+		                 FROM ETC_INFO_MST
+		                 WHERE VERSION = '$!{version}' 
+		                  AND SEQ     = '$!{seq}'
+			            GROUP BY P_ITEM_ID    		
+		    		)  ETC_MST,
+		    		(
+		            SELECT MAX(VERSION)     VERSION, 
+		                   MAX(SEQ)         SEQ, 
+		                   MAX(
+		                       CASE WHEN DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)
+		                                              AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+6
+		                            THEN PLANT_ID
+		                       END
+		                   ) PLANT_ID_W1,                
+		                   MAX(
+		                       CASE WHEN DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)
+		                                              AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+6
+		                            THEN LOC_ID
+		                       END
+		                   ) LOC_ID_W1,                
+		                   MAX(
+		                       CASE WHEN DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)
+		                                              AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+6
+		                            THEN PLANT_ID
+		                       END
+		                   ) PLANT_ID_W2,     
+		                   MAX(
+		                       CASE WHEN DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)
+		                                              AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+6
+		                            THEN LOC_ID
+		                       END
+		                   ) LOC_ID_W2,                               
+		                   C_ITEM_ID        C_ITEM_ID, 
+		                   P_ITEM_ID        P_ITEM_ID,
+		                   --차주 생산계획 SUM         
+		                   SUM(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)
+		                                               AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 1)
+		                     THEN  ETC_QTY
+		                     ELSE  0
+		                   END)    SCH_SUM_W1,	  
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2),   ETC_QTY,0))  MON_SCH_W1,--차주생산계획(W1_월)  
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+1, ETC_QTY,0))  TUE_SCH_W1,--차주생산계획(W1_화)  
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+2, ETC_QTY,0))  WED_SCH_W1,--차주생산계획(W1_수)          
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+3, ETC_QTY,0))  THU_SCH_W1,--차주생산계획(W1_목)
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+4, ETC_QTY,0))  FRI_SCH_W1,--차주생산계획(W1_금)
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+5, ETC_QTY,0))  SAT_SCH_W1,--차주생산계획(W1_토)
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*0), 2)+6, ETC_QTY,0))  SUN_SCH_W1,--차주생산계획(W1_일)	           
+		                   ----------------------------------------------------------------------------------------------------------------------------------
+		                   --차차주 생산계획 SUM         
+		                   SUM(CASE WHEN  DUE_DATE BETWEEN NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)
+		                                               AND NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2), 1)
+		                     THEN  ETC_QTY
+		                     ELSE  0
+		                   END)    SCH_SUM_W2,	 
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2),   ETC_QTY,0))  MON_SCH_W2,--차주생산계획(W1_월)  
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+1, ETC_QTY,0))  TUE_SCH_W2,--차주생산계획(W1_화)  
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+2, ETC_QTY,0))  WED_SCH_W2,--차주생산계획(W1_수)          
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+3, ETC_QTY,0))  THU_SCH_W2,--차주생산계획(W1_목)
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+4, ETC_QTY,0))  FRI_SCH_W2,--차주생산계획(W1_금)
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+5, ETC_QTY,0))  SAT_SCH_W2,--차주생산계획(W1_토)
+		                   SUM(DECODE(DUE_DATE, NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 2)+6, ETC_QTY,0))  SUN_SCH_W2,--차주생산계획(W1_일)       
+		                   MAX(CONS_RATIO) CONS_RATIO
+		              FROM ETC_INFO_DTL  
+		            WHERE VERSION = '$!{version}' 
+		              AND SEQ     = '$!{seq}'
+		              AND DUE_DATE BETWEEN  NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*-1), 2)
+		                               AND  NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2), 1)          			
+		            GROUP BY C_ITEM_ID, P_ITEM_ID    		
+		    		) ETC_DTL, ITEM_MST IM, 
+		    	    (
+		              SELECT 1 NO FROM DUAL
+		              UNION ALL
+		              SELECT 2 NO FROM DUAL
+		            ) GUBUN	    
+		     WHERE ETC_MST.P_ITEM_ID  = ETC_DTL.P_ITEM_ID
+		       AND ETC_DTL.C_ITEM_ID  = DC.ITEM_ID
+		       AND ETC_DTL.C_ITEM_ID  = IM.ITEM_ID          
+		    GROUP BY NO, ETC_DTL.C_ITEM_ID, DECODE(NO,2,ETC_DTL.P_ITEM_ID,ETC_DTL.C_ITEM_ID)    
+		    )		
+	    ORDER BY C_ITEM_ID, NO, PROD_ITEM_ID 
+</query>  
+  		    	 
+<!--
+=====================================================================================================
+ 끝  
+=====================================================================================================
+--> 
+
+</queries>  	 

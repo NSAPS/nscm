@@ -1,0 +1,985 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>
+
+	<!--
+	======================================================================
+		품목마스터 관리
+	======================================================================
+	-->
+
+	<!-- 
+	=======================
+	  유통본부 미납 추적 분석
+	=======================
+	-->	
+	<!-- f_get_code_name --> 
+	<query id="f_get_code_name" paging="false"> 
+		/* f_get_code_name */
+		SELECT  '' CD,
+		        '' CD_NAME
+		FROM    DUAL 
+		UNION ALL
+        SELECT  CD, CD_NAME CD_NAME
+        FROM    CODE_MST
+        WHERE   CD_GRP = '$!{cd_grp}'
+        --ORDER BY	CAT01
+	</query> 	
+
+
+	<!-- 품목타입 콤보 박스 -->
+	<query id="md_01060_combo_item_type"> 
+		SELECT		CD, CD_NAME
+		FROM		CODE_MST, DUAL B
+		WHERE		CD_GRP = 'ITYPE'
+		ORDER BY	CAT01
+	</query> 
+
+	<!-- YN 콤보 박스 -->
+	<query id="md_01060_combo_yn" > 
+        SELECT  	CD, CD_NAME
+        FROM    	CODE_MST, DUAL B
+        WHERE   	CD_GRP = 'YN'
+        ORDER BY 	CAT01
+	</query>
+
+	<!-- MULTI_FLAG -->
+	<query id="md_01060_combo_multi" > 
+		SELECT  	CD, CD_NAME
+		FROM    	CODE_MST, DUAL B
+		WHERE   	CD_GRP LIKE 'MULTI_FLAG'
+        ORDER BY 	CAT01
+	</query>
+
+		
+	<!-- CAT01 콤보 박스 -->
+	<query id="md_01060_combo_cat01" > 
+		SELECT		CD, CD_NAME
+		FROM		CODE_MST, DUAL B
+		WHERE		CD_GRP = 'SCH_PARAM'
+		ORDER BY	CAT01
+	</query>
+
+	<!-- CAT02 콤보 박스 -->
+	<query id="md_01060_combo_cat02" > 
+		SELECT		CD, CD_NAME
+		FROM		CODE_MST, DUAL B
+		WHERE		CD_GRP = 'SS_PARAM'
+		ORDER BY	CAT01
+	</query>TRAS_STOP
+	
+	<!-- CAT03 콤보 박스 -->
+	<query id="md_01060_combo_cat03" > 
+		SELECT		CD, CD_NAME
+		FROM		CODE_MST, DUAL B
+		WHERE		CD_GRP = 'REPL_PROD_GRP'
+		ORDER BY	CAT01
+	</query>
+
+	<!-- CAT06 콤보 박스 -->
+	<query id="md_01060_combo_cat06" > 
+		SELECT		CD, CD_NAME
+		FROM		CODE_MST, DUAL B
+		WHERE		CD_GRP = 'CAT06'
+		ORDER BY	1
+	</query>
+
+	<!-- CAT07 콤보 박스 -->
+	<query id="md_01060_combo_cat07" > 
+		SELECT		CD, CD_NAME
+		FROM		CODE_MST, DUAL B
+		WHERE		CD_GRP = 'TRANS_STOP'
+		ORDER BY	CAT01
+	</query>
+
+	<!-- DAYWEEK_PATTERN 콤보 박스 -->
+	<query id="md_01060_combo_dayweek_pattern" > 
+		SELECT		CD, CD_NAME
+		FROM		CODE_MST, DUAL B
+		WHERE		CD_GRP = 'DAYWEEK_PATTERN'
+		ORDER BY	CAT01
+	</query>
+	
+		<!-- MC_TYPE 콤보 박스 -->
+	<query id="md_01060_combo_mc_type" > 
+		SELECT		CD, CD_NAME
+		FROM		CODE_MST, DUAL B
+		WHERE		CD_GRP = 'MC_TYPE'
+		ORDER BY	CAT01
+	</query>
+
+		<!-- MC_TYPE 콤보 박스 -->
+	<query id="md_01060_combo_sales_plan_appl_code" > 
+		SELECT		CD, CD_NAME
+		FROM		CODE_MST, DUAL B
+		WHERE		CD_GRP = 'SALES_PLAN_APPL_CODE'
+		ORDER BY	CAT01
+	</query>
+
+		<!-- MC_TYPE 콤보 박스 -->
+	<query id="md_01060_combo_cm_gubn" > 
+		SELECT		CD, CD_NAME
+		FROM		CODE_MST, DUAL B
+		WHERE		CD_GRP = 'CM_GUBN'
+		ORDER BY	CAT01
+	</query>
+	
+	
+	<!-- 품목마스터 : 조회 -->
+	<query id="md_01060_itemMasterManagement_list" paging="true"> 
+		SELECT		DISTINCT IM.ITEM_ID,
+					IM.ITEM_NAME,
+                    IM.SPEC,    
+                    IM.SPEC_UOM,                    
+					IM.MULTI_FLAG,
+					IM.QTY_PER_MULTI,
+					IM.QTY_PER_MULTI_UOM,
+			        DECODE(NVL(HS.NEW_ITEM_ID,'A'), 'A', 'X', 'O')		"품목이력",
+					IM.BOX_PER_PALET,
+					--F_GET_CODE_NAME('YN', IM.CROSDOCK_FLAG)            CROSDOCK_FLAG,  -- SALES_PLAN_APPL_CODE 코드와 중복으로 수정
+					IM.CAT03		        	"수송계획기준정보", --REPL_PROD_GRP
+                    IM.CAT06        			"공장할당기준정보", --CAT06                    
+                    IM.SALES_PLAN_APPL_HIST     "판매계획분류번호", --SALES_PLAN_APPL_CODE
+                    IM.CM_GUBN           		"CM구분",
+					IM.CAT07		           	"수송중지 플레그",
+					IM.MIN_PICK_QTY,--
+					IM.PACK_PROC_FLAG,
+                    IM.CAT01,
+                    IM.CAT02,
+                    IM.CAT04,
+                    IM.CAT05,
+                    IM.TRANS_ALLOC_FLAG          TRANS_ALLOC_FLAG,
+                    IM.PROD_ALLOC_FLAG           PROD_ALLOC_FLAG, 
+                    F_GET_CODE_NAME('DIVISION', IM.DIVISION)            DIVISION, 
+                    F_GET_ITEM_NAME(RECIPE_TYPE)						RECIPE_TYPE,
+                    F_GET_CODE_NAME('MAT_GROUP', IM.MATERIAL_GROUP)     MATERIAL_GROUP,    
+                    F_GET_CODE_NAME('SALES_CAT1', IM.SALES_CAT01)       SALES_CAT01,    
+                    F_GET_CODE_NAME('SALES_CAT2', IM.SALES_CAT02)       SALES_CAT02,    
+                    F_GET_CODE_NAME('SALES_CAT3', IM.SALES_CAT03)       SALES_CAT03,    
+                    F_GET_CODE_NAME('SALES_CAT4', IM.SALES_CAT04)       SALES_CAT04,    
+                    F_GET_CODE_NAME('SALES_CAT5', IM.SALES_CAT05)       SALES_CAT05,    
+                    HR.HID_NAME                                         HR_TY1,                        
+                    IM.HR_TY2,    
+                    IM.HR_TY3,                         
+                    IM.HR_TY4,    
+                    IM.HR_TY5,                        
+                    IM.QTY,    
+                    IM.BASE_UOM,                    
+                    IM.TWGT_PER_BUOM,    
+                    IM.NWGT_PER_BUOM,                
+                    IM.VOL_PER_BUOM,    
+                    IM.VOL_UOM,
+                    IM.REFE_ITEM1,
+                    F_GET_ITEM_NAME(IM.REFE_ITEM1) REFE_ITEM1_NAME ,
+                    SEARCH_FLAG,
+                    DECODE(IM.MTO_MTS_TYPE,'0001','MTO','0002','MTS','기타')  ,
+                    IM.EX_NATION	EX_NATION                  
+        FROM        ITEM_MST	IM,
+                    HRCHY		HR,
+                    (
+			        SELECT  IH.NEW_ITEM_ID            NEW_ITEM_ID,
+			                --IMN.ITEM_NAME            NEW_ITEM_NAME,
+			                --TO_CHAR(TO_DATE(IH.STRT_DATE),'YYYY-MM-DD')                START_DATE,
+			                MAX(IH.OLD_ITEM_ID)            OLD_ITEM_ID
+			                --IMO.ITEM_NAME            OLD_ITEM_NAME
+			        FROM    ITEM_HIST    IH,
+			                ITEM_MST    IMN,
+			                ITEM_MST    IMO
+			        WHERE   IH.END_DATE        =    '99991231'
+			        AND     IH.NEW_ITEM_ID    =    IMN.ITEM_ID
+			        AND     IH.OLD_ITEM_ID    =    IMO.ITEM_ID
+			        AND     IMN.ITYPE        IN    ('FERT','HAWA')
+			        AND     IMN.ITEM_STATUS = 'ST'
+			        GROUP BY NEW_ITEM_ID
+                    ) HS
+        WHERE       IM.ITYPE		= '$!{item_type}'
+        AND         IM.HR_TY1		=  HR.HID(+)
+        AND			IM.ITEM_ID = HS.NEW_ITEM_ID(+)
+         -- 내수/수출
+		#if("$!{domain}" == "DO")
+        AND			NOT (IM.MATERIAL_GROUP >= '5K000' AND     IM.MATERIAL_GROUP &lt;= '5S999') --내수제품만 조회
+		#elseif("$!{domain}" == "EX")
+        AND			(IM.MATERIAL_GROUP >= '5K000' AND     IM.MATERIAL_GROUP &lt;= '5S999') --수출제품 조회
+		#else
+		#end
+		 --판매중지일		        
+		#if("$!{sell_stop_date}" == "99991231")
+        AND         (SELL_STOP_DATE &gt; to_char(sysdate, 'yyyymmdd') OR SELL_STOP_DATE = '00000000')
+		#else
+		#end
+        [AND		(IM.ITEM_ID		LIKE '%'||'$!{serch_word}'||'%'
+				OR	IM.ITEM_NAME	LIKE '%'||'$!{serch_word}'||'%')]
+        ORDER BY    IM.ITEM_ID
+	</query> 
+
+	<!-- PLANT별 품목 관리 : 조회 -->
+	<query id="md_01070_itemMasterDetail_list" paging="true"> 
+        SELECT      ID.PLANT_ID,
+                    HR.HID_NAME,
+                    ID.PRIORITY,
+                    IM.ITEM_NAME			REP_ITEM_ID,
+			        ID.REP_RATIO,
+                    ID.BOX_PER_PALET,
+                    ID.MIN_PICK_QTY,
+                    ID.ALLOC_RATE,
+                    ID.MIN_ALLOC_QTY,
+                    ID.DAYWEEK_PATTERN,    
+                    ID.MC_TYPE,    
+                    ID.MIN_LOT_SIZE,
+                    ID.MAX_LOT_SIZE, 
+                    ID.STD_FIX_COST,
+                    ID.STD_CHG_COST,
+                    ID.REAL_FIX_COST,
+                    ID.REAL_CHG_COST,
+                    ID.ITEM_ID
+        FROM        ITEM_DTL ID, 
+                    (
+                    SELECT	HR.HID, HR.HID_NAME
+                      FROM	HRCHY HR
+                     WHERE	HR.MADE_TYPE != 'DE'
+                       AND  HR.LVL_TYPE = '공장'
+                     ORDER  BY HR.HID
+                    )  HR,
+                    ITEM_MST IM,
+                    (
+		            select *
+		            from CODE_MST
+		            where CD_GRP = 'DAYWEEK_PATTERN'
+		            ) CD
+        WHERE       ID.ITEM_ID		='$!{item_id}'
+        AND         ID.PLANT_ID		= HR.HID
+        AND			ID.REP_ITEM_ID	= IM.ITEM_ID(+)
+		AND         ID.DAYWEEK_PATTERN = CD.CD(+)
+        ORDER BY    ID.PLANT_ID
+	</query> 
+
+
+	<!-- 품목마스터 : 수정 리스트-->
+	<query id="md_01060_itemMasterManagement_mod" paging="true"> 	
+		SELECT  ITEM_ID,             
+		        ITEM_NAME,     
+		        MULTI_FLAG,         
+		        QTY_PER_MULTI,     
+		        QTY_PER_MULTI_UOM,     
+		        BOX_PER_PALET,     
+		        F_GET_CODE_NAME('YN', IM.CROSDOCK_FLAG)         CROSDOCK_FLAG,        
+		        MIN_PICK_QTY,
+		        PACK_PROC_FLAG,     
+		        F_GET_CODE_NAME('SCH_PARAM', IM.CAT01)          CAT01,    
+		        F_GET_CODE_NAME('PS_PARAM', IM.CAT02)           CAT02,    
+		        F_GET_CODE_NAME('REPL_PROD_GRP', IM.CAT03)      CAT03,    
+		        CAT04,                
+		        CAT05,    
+		        F_GET_CODE_NAME('CAT06', IM.CAT06)              CAT06,    
+		        F_GET_CODE_NAME('TRANS_STOP', IM.CAT07)         CAT07,     
+		        F_GET_CODE_NAME('YN', IM.TRANS_ALLOC_FLAG)      TRANS_ALLOC_FLAG,    
+		        F_GET_CODE_NAME('YN', IM.PROD_ALLOC_FLAG)       PROD_ALLOC_FLAG,
+		        DECODE(HS.NEW_ITEM_ID, NULL, 'X', 'O')		 HIST_FLAG,
+                F_GET_CODE_NAME('CM_GUBN', IM.CM_GUBN)       CM_GUBN,
+                F_GET_CODE_NAME('SALES_PLAN_APPL_CODE', IM.SALES_PLAN_APPL_HIST)       SALES_PLAN_APPL_CODE
+		FROM    ITEM_MST IM,
+		        (     
+		        SELECT  IH.NEW_ITEM_ID            NEW_ITEM_ID,
+		                --IMN.ITEM_NAME            NEW_ITEM_NAME,
+		                --TO_CHAR(TO_DATE(IH.STRT_DATE),'YYYY-MM-DD')                START_DATE,
+		                MAX(IH.OLD_ITEM_ID)            OLD_ITEM_ID
+		                --IMO.ITEM_NAME            OLD_ITEM_NAME
+		        FROM    ITEM_HIST    IH,
+		                ITEM_MST    IMN,
+		                ITEM_MST    IMO
+		        WHERE   IH.END_DATE        =    '99991231'
+		        AND     IH.NEW_ITEM_ID    =    IMN.ITEM_ID
+		        AND     IH.OLD_ITEM_ID    =    IMO.ITEM_ID
+		        AND     IMN.ITYPE        IN    ('FERT','HAWA')
+		        AND     IMN.ITEM_STATUS = 'ST'
+		        GROUP BY NEW_ITEM_ID
+		        ) HS
+        WHERE	ITYPE	=	'$!{item_type}'
+        AND		IM.ITEM_ID = HS.NEW_ITEM_ID(+)
+         -- 내수/수출
+		#if("$!{domain}" == "DO")
+        AND			NOT (IM.MATERIAL_GROUP >= '5K000' AND     IM.MATERIAL_GROUP &lt;= '5S999') --내수제품만 조회
+		#elseif("$!{domain}" == "EX")
+        AND			(IM.MATERIAL_GROUP >= '5K000' AND     IM.MATERIAL_GROUP &lt;= '5S999') --수출제품 조회
+		#else
+		#end
+		 --판매중지일		        
+		#if("$!{sell_stop_date}" == "99991231")
+        AND         (SELL_STOP_DATE &gt; to_char(sysdate, 'yyyymmdd') OR SELL_STOP_DATE = '00000000')
+		#else
+		#end        
+        [AND	(ITEM_ID		LIKE '%'||'$!{serch_word}'||'%'
+				OR	ITEM_NAME	LIKE '%'||'$!{serch_word}'||'%')]		        
+		ORDER BY    IM.ITEM_ID	
+	</query>
+	
+	<!-- 품목마스터 : 수정 리스트-->
+	<query id="md_01060_get_old_item_id" paging="true"> 
+		SELECT  NVL(MAX(OLD_ITEM_ID), '$!{item_id}') OLD_ITEM_ID,
+		        F_GET_ITEM_NAME(NVL(MAX(OLD_ITEM_ID), '$!{item_id}')) OLD_ITEM_NAME
+		FROM    ITEM_HIST    IH
+		WHERE   IH.NEW_ITEM_ID  = '$!{item_id}'
+		AND     IH.OLD_ITEM_ID != '$!{item_id}'
+	</query>
+
+
+	<!-- PLANT별 품목 관리 : 수정리스트 -->
+	<query id="md_01070_itemMasterDetail_mod" paging="true"> 
+        SELECT      ID.PLANT_ID,
+                    HR.HID_NAME,
+                    ID.PRIORITY,
+                    ID.REP_ITEM_ID,
+                    ID.REP_RATIO,
+                    ID.BOX_PER_PALET,
+                    ID.MIN_PICK_QTY,
+                    ID.ALLOC_RATE,
+                    ID.MIN_ALLOC_QTY,
+                    F_GET_CODE_NAME('DAYWEEK_PATTERN', ID.DAYWEEK_PATTERN)      DAYWEEK_PATTERN,    
+                    F_GET_CODE_NAME('MC_TYPE', ID.MC_TYPE)       				MC_TYPE                      
+        FROM        ITEM_DTL ID, 
+                    (
+                    SELECT	HR.HID, HR.HID_NAME
+                      FROM	HRCHY HR
+                     WHERE	HR.MADE_TYPE != 'DE'
+                       AND  HR.LVL_TYPE = '공장'
+                     ORDER  BY HR.HID
+                    )  HR
+        WHERE       ID.ITEM_ID	='$!{item_id}'
+        AND         ID.PLANT_ID	= HR.HID
+        ORDER BY    ID.PLANT_ID 
+	</query>
+
+	
+	<!-- 품목마스터 : 업데이트-저장-->
+	<query id="md_01060_itemMasterManagement_mod_save" iterator="item_id MULTI_FLAG QTY_PER_MULTI QTY_PER_MULTI_UOM BOX_PER_PALET MIN_PICK_QTY PACK_PROC_FLAG CAT01 CAT02 CAT03 CAT04 CAT05 CAT06 CAT07 TRANS_ALLOC_FLAG PROD_ALLOC_FLAG SALES_PLAN_APPL_CODE CM_GUBN"> 
+        UPDATE  ITEM_MST
+        SET     MULTI_FLAG			= '$!{MULTI_FLAG}',
+                QTY_PER_MULTI		= '$!{QTY_PER_MULTI}',
+                QTY_PER_MULTI_UOM	= '$!{QTY_PER_MULTI_UOM}',
+                BOX_PER_PALET		= '$!{BOX_PER_PALET}',
+                --CROSDOCK_FLAG		= '$!{CROSDOCK_FLAG}',  -- SALES_PLAN_APPL_CODE 코드와 중복으로 수정
+                MIN_PICK_QTY		= '$!{MIN_PICK_QTY}',
+                PACK_PROC_FLAG		= '$!{PACK_PROC_FLAG}',
+                CAT01				= '$!{CAT01}',
+                CAT02				= '$!{CAT02}',
+                CAT03				= '$!{CAT03}',
+                CAT04				= '$!{CAT04}',
+                CAT05				= '$!{CAT05}',
+                CAT06				= '$!{CAT06}',
+                CAT07				= '$!{CAT07}',
+                TRANS_ALLOC_FLAG	= '$!{TRANS_ALLOC_FLAG}',
+                PROD_ALLOC_FLAG		= '$!{PROD_ALLOC_FLAG}',
+                SALES_PLAN_APPL_HIST= '$!{SALES_PLAN_APPL_CODE}',
+                CM_GUBN				= '$!{CM_GUBN}',
+                MADE_TYPE			= 'UP',
+		        MADE_DTTM			= SYSDATE,
+		        MADE_BY				= '$!{_user_id}' 
+        WHERE   ITEM_ID				= '$!{item_id}' 
+	</query> 
+
+	<!-- 품목마스터  iframe : 업데이트-저장-->
+	<query id="md_01070_itemMasterDetail_mod_save" fix="ITEM_ID" iterator="PLANT_ID PRIORITY REP_ITEM_ID REP_RATIO BOX_PER_PALET MIN_PICK_QTY ALLOC_RATE MIN_ALLOC_QTY DAYWEEK_PATTERN MC_TYPE"> 
+        UPDATE  ITEM_DTL
+        SET     PRIORITY		= '$!{PRIORITY}',
+                REP_ITEM_ID		= '$!{REP_ITEM_ID}',
+                REP_RATIO		= '$!{REP_RATIO}',
+                BOX_PER_PALET	= '$!{BOX_PER_PALET}',
+                MIN_PICK_QTY	= '$!{MIN_PICK_QTY}',
+                ALLOC_RATE		= '$!{ALLOC_RATE}',
+                MIN_ALLOC_QTY	= '$!{MIN_ALLOC_QTY}',
+                DAYWEEK_PATTERN	= '$!{DAYWEEK_PATTERN}',
+                MC_TYPE			= '$!{MC_TYPE}',
+                MADE_TYPE		= 'UP',
+		        MADE_DTTM		= SYSDATE,
+		        MADE_BY			= '$!{_user_id}' 
+		WHERE   PLANT_ID		= '$!{PLANT_ID}'
+        AND		ITEM_ID			= '$!{ITEM_ID}'
+	</query> 
+	
+
+	<!-- 품목이력 생성 SP -->
+	<query id="md_01060_create_item_hist">
+		CALL SP_CR_ITEM_HIST( '$!{new_item_id}', '$!{old_item_id}', '$!{hidden_item_id}', '$!{user_id}')
+	</query>	
+
+	<!-- 
+	=======================
+		검사 제약정보 조회 
+	=======================
+	--> 	
+
+	<!-- 검사 제약정보 조회  -->
+	<query id="md_04100_inspectionRestriction_list" paging="true"> 
+		SELECT  IC.ITEM_ID,
+		        IM.ITEM_NAME, 
+                f_get_code_name('INS_TYPE', IC.INS_CAT)        	INS_CAT,    
+                f_get_code_name('INS_LOC', IC.INS_LOC)        	INS_LOC,    
+		        IC.INS_DAYS, 
+                f_get_code_name('INS_DAYS', IC.INS_AVAIL_DWEEK) INS_AVAIL_DWEEK,    
+                f_get_code_name('INS_MARKET', IC.MARKET_LOC)    MARKET_LOC,    
+		        IM.SPEC,
+		        IM.QTY, 
+		        IM.BASE_UOM, 
+		        IM.NWGT_PER_BUOM, 
+		        IM.VOL_PER_BUOM
+		FROM    INSPECT_CONSTRAINT IC, ITEM_MST IM
+		WHERE   IC.ITEM_ID	= IM.ITEM_ID
+		AND     IC.PLANT_ID	= '$!{plant}'
+		AND     IM.ITYPE 	LIKE '%' || '$!{item_type}' || '%'
+        [AND	(IC.ITEM_ID		LIKE '%'||'$!{serch_word}'||'%'
+				OR	IM.ITEM_NAME	LIKE '%'||'$!{serch_word}'||'%')]
+        ORDER BY	IC.ITEM_ID
+
+	</query> 
+
+	<!-- combo plant --> 
+	<query id="md_04100_combo_plant" paging="false"> 
+
+		SELECT	HTYPE,	HID_NAME
+        FROM	HRCHY, DUAL B
+		WHERE	LVL_TYPE	= '공장'
+		AND		LVL			= '10'        
+
+	</query> 
+
+
+	<!-- 품목타입 콤보 박스 -->
+	<query id="md_04100_combo_item_type" paging="true"> 
+		SELECT		CD, CD_NAME
+		FROM		CODE_MST, DUAL B
+		WHERE		CD_GRP = 'ITYPE'
+        ORDER BY 	CAT01
+	</query> 
+
+	<!-- 검사종류 콤보 박스 -->
+	<query id="md_04100_combo_ins_type" paging="true"> 
+		SELECT		CD, CD_NAME
+		FROM		CODE_MST, DUAL B
+		WHERE		CD_GRP = 'INS_TYPE'
+        ORDER BY 	CAT01
+	</query> 	
+
+
+	<!-- 검사장소 콤보 박스 -->
+	<query id="md_04100_combo_ins_loc" paging="true"> 
+		SELECT		CD, CD_NAME
+		FROM		CODE_MST, DUAL B
+		WHERE		CD_GRP = 'INS_LOC'
+        ORDER BY 	CAT01
+	</query>
+
+	<!-- 검사 요청가능일 콤보 박스 -->
+	<query id="md_04100_combo_ins_days" paging="true"> 
+		SELECT		CD, CD_NAME
+		FROM		CODE_MST, DUAL B
+		WHERE		CD_GRP = 'INS_DAYS'
+        ORDER BY 	CAT01
+	</query>
+
+	<!-- 시장지역 콤보 박스 -->
+	<query id="md_04100_combo_ins_market" paging="true"> 
+		SELECT		CD, CD_NAME
+		FROM		CODE_MST, DUAL B
+		WHERE		CD_GRP = 'INS_MARKET'
+        ORDER BY 	CAT01
+	</query>
+
+
+	<!-- 검사 제약정보 조회 수정화면 -->
+	<query id="md_04100_inspectionRestriction_mod" paging="true"> 
+		SELECT  IC.ITEM_ID,
+		        IM.ITEM_NAME, 
+                f_get_code_name('INS_TYPE', IC.INS_CAT)        	INS_CAT,    
+                f_get_code_name('INS_LOC', IC.INS_LOC)        	INS_LOC,    
+		        IC.INS_DAYS, 
+                f_get_code_name('INS_DAYS', IC.INS_AVAIL_DWEEK) INS_AVAIL_DWEEK,    
+                f_get_code_name('INS_MARKET', IC.MARKET_LOC)    MARKET_LOC, 
+                IC.INS_CAT	old_ins_cat
+		FROM    INSPECT_CONSTRAINT IC, ITEM_MST IM
+		WHERE   IC.ITEM_ID 	= IM.ITEM_ID
+		AND     IC.PLANT_ID	= '$!{plant}'
+		AND     IM.ITYPE 	LIKE '%' || '$!{item_type}' || '%'
+        [AND	(IC.ITEM_ID		LIKE '%'||'$!{serch_word}'||'%'
+				OR	IM.ITEM_NAME	LIKE '%'||'$!{serch_word}'||'%')]
+        ORDER BY	IC.ITEM_ID
+
+	</query> 
+	
+	<!-- 검사 제약정보 수정 저장 -->
+	<query id="md_04100_inspectionRestriction_mod_save"   fix="old_plant" paging="true" iterator="old_item_id old_ins_cat item_id INS_CAT INS_LOC INS_DAYS INS_AVAIL_DWEEK MARKET_LOC"> 
+        UPDATE  INSPECT_CONSTRAINT
+        SET     ITEM_ID			= '$!{item_id}',
+        		INS_CAT         = '$!{INS_CAT}',
+                INS_LOC       	= '$!{INS_LOC}',
+                INS_DAYS   		= '$!{INS_DAYS}',
+                INS_AVAIL_DWEEK = '$!{INS_AVAIL_DWEEK}',
+                MARKET_LOC      = '$!{MARKET_LOC}'
+        WHERE   ITEM_ID 		= '$!{old_item_id}'
+        AND		PLANT_ID 		= '$!{old_plant}'
+        AND		INS_CAT 		= '$!{old_ins_cat}'
+
+	</query>
+
+	<!-- 설비운영칼렌다 수정 : 저장 -->
+	<!-- 01. 해당 Plant의 설비운영칼렌다 OLD항목 삭제 -->
+	<!-- 02. 해당 Plant의 설비운영칼렌다 NEW항목 삭제 -->
+	<!-- 03. 해당 Plant의 설비운영칼렌다 모든항목 INSERT -->
+	<query id="md_04100_inspectionRestriction_mod_save_01" fix="plant" iterator="old_item_id old_ins_cat"> 
+			
+			DELETE 	INSPECT_CONSTRAINT
+			WHERE 	ITEM_ID		= '$!{old_item_id}'
+	        AND		PLANT_ID	= '$!{plant}'
+	        AND		INS_CAT		= '$!{old_ins_cat}'
+			
+	</query>
+
+	<query id="md_04100_inspectionRestriction_mod_save_02" fix="plant" iterator="item_id ins_cat"> 
+			
+			DELETE 	INSPECT_CONSTRAINT
+			WHERE 	ITEM_ID		= '$!{item_id}'
+	        AND		PLANT_ID	= '$!{plant}'
+	        AND		INS_CAT		= '$!{ins_cat}'
+			
+	</query>
+	
+	<query id="md_04100_inspectionRestriction_mod_save_03" fix="plant _user_id" iterator="item_id ins_cat INS_LOC INS_DAYS INS_AVAIL_DWEEK MARKET_LOC">
+
+	    INSERT  INTO INSPECT_CONSTRAINT( PLANT_ID, ITEM_ID, INS_CAT, INS_LOC, INS_DAYS, INS_AVAIL_DWEEK, MARKET_LOC, MADE_TYPE, MADE_DTTM, MADE_BY)
+	    SELECT  '$!{plant}' 			AS PLANT_ID,
+	            '$!{item_id}' 			AS ITEM_ID,
+	            '$!{ins_cat}' 			AS INS_CAT,
+	            '$!{INS_LOC}' 			AS INS_LOC,
+	            '$!{INS_DAYS}' 			AS INS_DAYS,
+	            '$!{INS_AVAIL_DWEEK}' 	AS INS_AVAIL_DWEEK,
+	            '$!{MARKET_LOC}' 		AS MARKET_LOC,
+	            'AD' 					AS MADE_TYPE,
+	            SYSDATE 				AS MADE_DTTM,
+	            '$!{_user_id}' 			AS MADE_BY
+	    FROM  DUAL
+	    WHERE  	NOT EXISTS (
+	    SELECT  PLANT_ID
+	    FROM  	INSPECT_CONSTRAINT
+	    WHERE  	PLANT_ID 	= '$!{plant}'
+	    AND  	ITEM_ID 	= '$!{item_id}'
+	    AND  	INS_CAT 	= '$!{ins_cat}'
+	    )
+		
+	</query>
+
+
+
+
+	<!-- 검사 제약정보 신규등록 저장 -->
+	<query id="md_04100_inspectionRestriction_reg_save" fix="plant _user_id" iterator="item_id INS_CAT INS_LOC INS_DAYS INS_AVAIL_DWEEK MARKET_LOC">
+	
+	    INSERT  INTO INSPECT_CONSTRAINT( PLANT_ID, ITEM_ID, INS_CAT, INS_LOC, INS_DAYS, INS_AVAIL_DWEEK, MARKET_LOC, MADE_TYPE, MADE_DTTM, MADE_BY)
+	    SELECT  '$!{plant}' 			AS PLANT_ID,
+	            '$!{item_id}' 			AS ITEM_ID,
+	            '$!{INS_CAT}' 			AS INS_CAT,
+	            '$!{INS_LOC}' 			AS INS_LOC,
+	            '$!{INS_DAYS}' 			AS INS_DAYS,
+	            '$!{INS_AVAIL_DWEEK}' 	AS INS_AVAIL_DWEEK,
+	            '$!{MARKET_LOC}' 		AS MARKET_LOC,
+	            'AD' 					AS MADE_TYPE,
+	            SYSDATE 				AS MADE_DTTM,
+	            '$!{_user_id}' 			AS MADE_BY
+	    FROM  DUAL
+	    WHERE  	NOT EXISTS (
+	    SELECT  PLANT_ID
+	    FROM  	INSPECT_CONSTRAINT
+	    WHERE  	PLANT_ID 	= '$!{plant}'
+	    AND  	ITEM_ID 	= '$!{item_id}'
+	    AND  	INS_CAT 	= '$!{INS_CAT}'
+	    )
+	
+	</query>
+	
+
+	<!--
+	======================================================================
+		품목이력 관리
+	======================================================================
+	-->
+	<!-- 품목이력 : 조회 -->
+	<query id="md_01080_itemHistoryMgmt_list" paging="true"> 
+		SELECT	IH.NEW_ITEM_ID			NEW_ITEM_ID,
+				IMN.ITEM_NAME			NEW_ITEM_NAME,
+                TO_CHAR(TO_DATE(IH.STRT_DATE),'YYYY-MM-DD')				START_DATE,
+                IH.OLD_ITEM_ID			OLD_ITEM_ID,
+				IMO.ITEM_NAME			OLD_ITEM_NAME
+        FROM	ITEM_HIST	IH,
+				ITEM_MST	IMN,
+				ITEM_MST	IMO
+		WHERE	IH.END_DATE		=	'99991231'
+		AND		IH.NEW_ITEM_ID	=	IMN.ITEM_ID
+		AND		IH.OLD_ITEM_ID	=	IMO.ITEM_ID
+		#if("$!{checked_item_group}" == "FERT")
+			AND			IMN.ITYPE		=	'FERT'
+		#elseif("$!{checked_item_group}" == "HAWA")
+			AND			IMN.ITYPE		=	'HAWA'
+		#else
+			AND			IMN.ITYPE		IN	('FERT','HAWA')
+		#end
+		[AND		IH.NEW_ITEM_ID	LIKE '%'||'$!{item_id}'||'%']
+		ORDER		BY	IH.NEW_ITEM_ID,IH.OLD_ITEM_ID,IH.STRT_DATE
+	</query> 
+
+	<!-- 품목이력 : 수정 리스트-->
+	<query id="md_01080_itemHistoryMgmt_mod" paging="true"> 
+        SELECT	'S'								IDU_FLAG,
+                IH.OLD_ITEM_ID			OLD_ITEM_ID,
+				IMO.ITEM_NAME			OLD_ITEM_NAME,
+                TO_CHAR(TO_DATE(IH.STRT_DATE),'YYYY-MM-DD')				START_DATE
+         FROM	ITEM_HIST	IH,
+				ITEM_MST	IMN,
+				ITEM_MST	IMO
+		WHERE	IH.END_DATE		=	'99991231'
+		AND		IH.NEW_ITEM_ID	=	IMN.ITEM_ID
+		AND		IH.OLD_ITEM_ID	=	IMO.ITEM_ID
+		AND		IH.NEW_ITEM_ID	=	'$!{pre_item_id}'
+		ORDER	BY	IH.NEW_ITEM_ID,IH.OLD_ITEM_ID,IH.STRT_DATE
+	</query>
+	
+	<!-- CODE_GRP 중복 체크 -->
+	<query id="md_01080_dup_check_item_hist"> 
+			
+			SELECT	COUNT(IH.END_DATE) CNT 
+			FROM	ITEM_HIST	IH, 
+					( SELECT 'TMP' TP FROM DUAL ) TP
+			WHERE	IH.NEW_ITEM_ID	=	'$!{check_value}'
+			AND		IH.END_DATE		=	'99991231'
+			
+	</query>
+	
+	<!-- ITEM SEARCH POPUP : ITEM_HIST 용 화면 -->
+	<query id="md_01080_item_search_popup_for_item_hist" paging="true">
+			
+            SELECT	DISTINCT IM.ITEM_ID, IM.ITEM_NAME
+			FROM	ITEM_MST	IM, 
+					( SELECT 'TMP' TP FROM DUAL ) TP
+			WHERE	IM.ITEM_ID	NOT	IN	(
+										SELECT	DISTINCT	ITEM_ID
+										FROM	(
+		                                        SELECT	DISTINCT	NEW_ITEM_ID	ITEM_ID
+		                                        FROM	ITEM_HIST,
+		                                        		( 
+                                        				SELECT 'TMP' TP FROM DUAL ) TP
+				                                        WHERE	END_DATE	=	'99991231'
+				                                        UNION	ALL
+				                                        SELECT	DISTINCT	OLD_ITEM_ID	ITEM_ID
+				                                        FROM	ITEM_HIST
+														)
+												)
+			[AND	UPPER(IM.ITEM_ID)||UPPER(IM.ITEM_NAME) LIKE UPPER('%${code_input}%')]
+			ORDER	BY	IM.ITEM_ID
+																	
+	</query>
+	
+	<!-- 품목이력 정정 : 업데이트-저장-->
+	<query id="md_01080_itemHistoryMgmt_mod_save_01" fix="_user_id pre_item_id new_start_date"
+																						iterator="old_item_id idu_flag">
+		UPDATE	ITEM_HIST
+        SET		END_DATE		=	TO_CHAR(TO_DATE(REPLACE('$!{new_start_date}','-',''),'YYYYMMDD')-1,'YYYYMMDD'),
+        		MADE_DTTM		=	SYSDATE,
+        		MADE_BY			=	'$!{_user_id}'
+        WHERE	NEW_ITEM_ID	=	'$!{pre_item_id}'
+        AND		OLD_ITEM_ID	=	'$!{old_item_id}'
+        AND		END_DATE		=	'99991231'
+        
+	</query>
+	
+	<!-- 품목이력  정정: 입력-저장-->
+	<query id="md_01080_itemHistoryMgmt_mod_save_02" fix="_user_id pre_item_id new_item_id new_start_date"
+																						iterator="old_item_id idu_flag">
+	#if($!{idu_flag} == "D")
+		
+		UPDATE	ITEM_HIST
+		SET		MADE_DTTM		=	SYSDATE
+		WHERE	'$!{idu_flag}'	=	'$!{old_item_id}'
+		
+	#else
+		
+		INSERT	INTO		ITEM_HIST
+				(NEW_ITEM_ID,OLD_ITEM_ID,STRT_DATE,END_DATE,MADE_TYPE,MADE_DTTM,MADE_BY)
+		SELECT	'$!{new_item_id}'						NEW_ITEM_ID,
+				'$!{old_item_id}'						OLD_ITEM_ID,
+				TO_CHAR(TO_DATE(REPLACE('$!{new_start_date}','-',''),'YYYYMMDD'),'YYYYMMDD')	STRT_DATE,
+				'99991231'								END_DATE,
+				'AD'									MADE_TYPE,
+				SYSDATE									MADE_DTTM,
+				'$!{_user_id}'							MADE_BY
+		FROM	DUAL
+		WHERE	'$!{idu_flag}'	!=	'D'
+		
+	#end
+	
+	</query> 
+	
+	<!-- 품목이력  등록: 입력-저장-->
+	<query id="md_01080_itemHistoryMgmt_reg_save_01" fix="_user_id new_item_id new_start_date"
+																						iterator="old_item_id">
+		
+		INSERT	INTO		ITEM_HIST
+				(NEW_ITEM_ID,OLD_ITEM_ID,STRT_DATE,END_DATE,MADE_TYPE,MADE_DTTM,MADE_BY)
+		SELECT	'$!{new_item_id}'						NEW_ITEM_ID,
+				'$!{old_item_id}'						OLD_ITEM_ID,
+				TO_CHAR(TO_DATE(REPLACE('$!{new_start_date}','-',''),'YYYYMMDD'),'YYYYMMDD')	STRT_DATE,
+				'99991231'								END_DATE,
+				'AD'									MADE_TYPE,
+				SYSDATE									MADE_DTTM,
+				'$!{_user_id}'							MADE_BY
+		FROM	DUAL
+		WHERE	NOT	EXISTS	(	SELECT	NEW_ITEM_ID,	OLD_ITEM_ID
+								FROM	ITEM_HIST
+								WHERE	NEW_ITEM_ID	=	'$!{new_item_id}'	
+								AND		OLD_ITEM_ID	=	'$!{old_item_id}'
+								AND		END_DATE	=	'99991231'
+							)
+			
+	</query>
+	
+	<!-- 품목이력  등록: 입력-저장(신규품목을 한번 더 저장-->
+	<query id="md_01080_itemHistoryMgmt_reg_save_02" >
+		
+		INSERT	INTO		ITEM_HIST
+				(NEW_ITEM_ID,OLD_ITEM_ID,STRT_DATE,END_DATE,MADE_TYPE,MADE_DTTM,MADE_BY)
+		SELECT	'$!{new_item_id}'						NEW_ITEM_ID,
+				'$!{new_item_id}'						OLD_ITEM_ID,
+				TO_CHAR(TO_DATE(REPLACE('$!{new_start_date}','-',''),'YYYYMMDD'),'YYYYMMDD')	STRT_DATE,
+				'99991231'								END_DATE,
+				'AD'									MADE_TYPE,
+				SYSDATE									MADE_DTTM,
+				'$!{_user_id}'							MADE_BY
+		FROM	DUAL
+		WHERE	NOT	EXISTS	(	SELECT	NEW_ITEM_ID,	OLD_ITEM_ID
+								FROM	ITEM_HIST
+								WHERE	NEW_ITEM_ID	=	'$!{new_item_id}'	
+								AND		OLD_ITEM_ID	=	'$!{new_item_id}'
+								AND		END_DATE		=	'99991231'
+							)
+
+	</query>    
+	
+	<!--
+	======================================================================
+		11. 입고DC별 수송단위관리
+	======================================================================
+	-->
+	
+	<!-- 입고DC별 수송단위관리 : 조회 -->
+	<query id="md_04110_transUnit_list" paging="true"> 
+		
+		SELECT  TU.RDC_ID, 
+                TU.ITEM_ID, 
+                IM.ITEM_NAME,
+                TU.MIN_PICK_QTY, 
+                DECODE(NVL(IM.BOX_PER_PALET,100), 0, 100, NVL(IM.BOX_PER_PALET,100)) BOX_PER_PALET,
+                CASE    WHEN TU.MIN_PICK_QTY = DECODE(NVL(IM.BOX_PER_PALET,100), 0, 100, NVL(IM.BOX_PER_PALET,100))
+                        THEN 'Y'  --  MIN_PICK_QTY가 1PLT 인 경우
+                        ELSE 'N'  --  MIN_PICK_QTY가 BOX인 경우
+                END PLT_FLAG
+        FROM    TRANS_UNIT TU,
+                (
+                SELECT  IM.ITEM_ID, IM.ITEM_NAME, IM.BOX_PER_PALET
+                FROM    ITEM_MST IM
+                WHERE   IM.ITEM_STATUS = 'ST' 
+                AND     IM.ITYPE IN ('FERT','HAWA')
+                AND     SUBSTR(IM.CAT03, 1, 1) NOT IN ('O')
+                AND		  IM.SALES_CAT02 &lt;&gt; '128'
+                AND 	  IM.CAT03 IS NOT NULL
+                ) IM
+        WHERE   TU.RDC_ID = '$!{tgt_loc_sel}'
+        [AND		(IM.ITEM_ID		LIKE '%'||'$!{serch_word}'||'%'
+				OR	IM.ITEM_NAME LIKE '%'||'$!{serch_word}'||'%')]
+        AND     TU.ITEM_ID = IM.ITEM_ID
+      #if("$!{tgt_loc_sel}" != "")
+        UNION ALL
+        SELECT  '$!{tgt_loc_sel}' RDC_ID,
+                IM.ITEM_ID,
+                IM.ITEM_NAME,
+                0  MIN_PICK_QTY,
+                DECODE(NVL(IM.BOX_PER_PALET,100), 0, 100, NVL(IM.BOX_PER_PALET,100)) BOX_PER_PALET,
+                'N'  PLT_FLAG
+        FROM    ITEM_MST IM
+        WHERE   IM.ITEM_STATUS = 'ST' 
+        AND     IM.ITYPE IN ('FERT','HAWA')
+        AND     SUBSTR(IM.CAT03, 1, 1) NOT IN ('O')
+        AND		  IM.SALES_CAT02 &lt;&gt; '128'
+        AND 	  IM.CAT03 IS NOT NULL
+        [AND		(IM.ITEM_ID		LIKE '%'||'$!{serch_word}'||'%'
+				OR	IM.ITEM_NAME LIKE '%'||'$!{serch_word}'||'%')]
+        AND     IM.ITEM_ID NOT IN (
+                    SELECT  TU.ITEM_ID
+                    FROM    TRANS_UNIT TU
+                    WHERE   TU.RDC_ID = '$!{tgt_loc_sel}'
+                )
+      #end
+        ORDER   BY 1, 2
+			
+	</query>
+	
+	<!-- 입고DC별 수송단위관리 : UPDATE -->
+	<query id="md_04110_transUnit_list_save_01" fix="tgt_loc_sel _user_id" 
+	       iterator="item_id box_qty"> 
+	
+		UPDATE  TRANS_UNIT
+		SET     MIN_PICK_QTY    =   '$!{box_qty}',
+		        MADE_TYPE       =   'UP',
+		        MADE_DTTM       =   SYSDATE,
+		        MADE_BY         =   '$!{_user_id}' 
+		WHERE   RDC_ID          =   '$!{tgt_loc_sel}'
+		AND     ITEM_ID         =   '$!{item_id}'
+		AND     MIN_PICK_QTY    !=  '$!{box_qty}' -- 입력한 수량이 변경된 경우에만 수정하도록 함. 
+		AND     EXISTS (
+					SELECT TU.ITEM_ID
+					FROM   TRANS_UNIT TU
+					WHERE  TU.RDC_ID = '$!{tgt_loc_sel}'
+					AND	   TU.ITEM_ID = '$!{item_id}'
+				)
+		                      
+	</query>
+	
+	
+	<!-- 입고DC별 수송단위관리 : INSERT -->
+	<query id="md_04110_transUnit_list_save_02" fix="tgt_loc_sel _user_id" 
+	       iterator="item_id box_qty"> 
+	
+		INSERT 
+		  INTO TRANS_UNIT
+		       ( RDC_ID, ITEM_ID, MIN_PICK_QTY, MADE_TYPE, MADE_DTTM, MADE_BY )
+		  SELECT    '$!{tgt_loc_sel}'   RDC_ID,
+		            '$!{item_id}'       ITEM_ID,
+		            '$!{box_qty}'       MIN_PICK_QTY,
+		            'AD'                MADE_TYPE,
+		            SYSDATE             MADE_DTTM,
+		            '$!{_user_id}'      MADE_BY
+		    FROM    DUAL
+		   WHERE    NOT EXISTS(
+		            SELECT ITEM_ID
+		            FROM   TRANS_UNIT
+		            WHERE  RDC_ID   = '$!{tgt_loc_sel}'
+		            AND    ITEM_ID  = '$!{item_id}'
+		            )
+		                      
+	</query>
+
+	<!--
+	======================================================================
+		11. 품목별 수송단위관리
+	======================================================================
+	-->
+	
+	<!-- 품목별 수송단위관리 : 조회 -->
+	<query id="md_04110_transUnit_item_list" paging="true"> 
+		
+		SELECT  TU.ITEM_ID,
+		        TU.RDC_ID, 
+		        DM.DC_SHORT_NAME, 
+		        TU.MIN_PICK_QTY, 
+		        DECODE(NVL(IM.BOX_PER_PALET,100), 0, 100, NVL(IM.BOX_PER_PALET,100)) BOX_PER_PALET,
+		        CASE    WHEN TU.MIN_PICK_QTY = DECODE(NVL(IM.BOX_PER_PALET,100), 0, 100, NVL(IM.BOX_PER_PALET,100))
+		                THEN 'Y'  --  MIN_PICK_QTY가 1PLT 인 경우
+		                ELSE 'N'  --  MIN_PICK_QTY가 BOX인 경우
+		        END PLT_FLAG
+		FROM    TRANS_UNIT TU,
+		        (
+		        SELECT	IM.ITEM_ID, IM.ITEM_NAME, IM.BOX_PER_PALET
+		        FROM	ITEM_MST IM
+		        WHERE	IM.ITEM_STATUS = 'ST' 
+		        AND		IM.ITYPE IN ('FERT','HAWA')
+		        AND		SUBSTR(IM.CAT03, 1, 1) NOT IN ('O')
+		        AND		IM.SALES_CAT02 &lt;&gt; '128'
+		        AND		IM.CAT03 IS NOT NULL
+		        ) IM,
+		        DC_MST DM
+		WHERE	IM.ITEM_ID	= '$!{item_id}'
+		AND		TU.ITEM_ID	= IM.ITEM_ID
+		AND		TU.RDC_ID	= DM.DC_ID
+		UNION ALL
+		SELECT  '$!{item_id}' ITEM_ID,
+		        DM.DC_ID,
+		        DM.DC_SHORT_NAME,
+		        0  MIN_PICK_QTY,
+		        DECODE(NVL(IM.BOX_PER_PALET,100), 0, 100, NVL(IM.BOX_PER_PALET,100)) BOX_PER_PALET,
+		        'N'  PLT_FLAG
+		FROM    (
+		        select  * 
+		        from	item_mst im
+		        where	IM.ITEM_STATUS = 'ST'
+		        AND		IM.ITYPE IN ('FERT','HAWA')
+		        AND		SUBSTR(IM.CAT03, 1, 1) NOT IN ('O')
+		        AND		IM.SALES_CAT02 &lt;&gt; '128'
+		        AND		IM.CAT03 IS NOT NULL
+		        AND		IM.ITEM_ID = '$!{item_id}'
+		        )IM, 
+		        (
+		        SELECT DC_ID, DC_SHORT_NAME
+		        FROM DC_MST
+		        WHERE DC_ID NOT IN (
+		                            SELECT  TU.RDC_ID
+		                            FROM    TRANS_UNIT TU
+		                            WHERE   TU.ITEM_ID = '$!{item_id}'
+		                            )
+		        and dc_id not in                             
+		                            (SELECT DC_ID
+		                            FROM DC_MST
+		                            WHERE   CDC_FLAG = 'N'
+		                            AND     RDC_FLAG = 'N')                                                        
+		        )DM
+		      ORDER   BY 1, 2
+			
+	</query>
+	
+	<!-- 품목별 수송단위관리 : UPDATE -->
+	<query id="md_04110_transUnit_item_list_save_01" fix="item_id _user_id" 
+	       iterator="dc_id box_qty"> 
+	
+		UPDATE  TRANS_UNIT
+		SET     MIN_PICK_QTY    =   '$!{box_qty}',
+		        MADE_TYPE       =   'UP',
+		        MADE_DTTM       =   SYSDATE,
+		        MADE_BY         =   '$!{_user_id}' 
+		WHERE   RDC_ID          =   '$!{dc_id}'
+		AND     ITEM_ID         =   '$!{item_id}'
+		AND     MIN_PICK_QTY    !=  '$!{box_qty}' -- 입력한 수량이 변경된 경우에만 수정하도록 함. 
+		AND     EXISTS (
+					SELECT TU.ITEM_ID
+					FROM   TRANS_UNIT TU
+					WHERE  TU.RDC_ID = '$!{dc_id}'
+					AND	   TU.ITEM_ID = '$!{item_id}'
+				)
+		                      
+	</query>
+	
+	
+	<!-- 품목별 수송단위관리 : INSERT -->
+	<query id="md_04110_transUnit_item_list_save_02" fix="item_id _user_id" 
+	       iterator="dc_id box_qty"> 
+	
+		INSERT INTO TRANS_UNIT
+		       ( RDC_ID, ITEM_ID, MIN_PICK_QTY, MADE_TYPE, MADE_DTTM, MADE_BY )
+		  SELECT    '$!{dc_id}'   		RDC_ID,
+		            '$!{item_id}'       ITEM_ID,
+		            '$!{box_qty}'       MIN_PICK_QTY,
+		            'AD'                MADE_TYPE,
+		            SYSDATE             MADE_DTTM,
+		            '$!{_user_id}'      MADE_BY
+		    FROM    DUAL
+		   WHERE    NOT EXISTS(
+		            SELECT ITEM_ID
+		            FROM   TRANS_UNIT
+		            WHERE  RDC_ID   = '$!{dc_id}'
+		            AND    ITEM_ID  = '$!{item_id}'
+		            )
+		                      
+	</query>
+
+
+	 
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</queries>
+	

@@ -1,0 +1,409 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize3('142', '280', '180','$!{sel_date_term}')" )
+##set( $resizeFuncCallCode = "setGridAutoResizeIframe('10')" )
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/replenishPlan.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<input type="hidden" name="work_date" value="$!{work_date}">
+<input type="hidden" name="to_date" value="$!{to_date}">
+<input type="hidden" name="item_name" value="$!{item_name}">
+
+<input type="hidden" name="user_id" value="$!{_user_id}">
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역 
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr> 
+                	<td align="right">
+						#button("search")
+						<input type="button" name="btnSave" value="  저장" onClick="GoSave('ip_02030_SP_IP_SaveAllocationQty_comp')" class="btn_sav_on" >
+						<input type="button" name="btnDel" value="  삭제" onClick="GoDelete('ip_02030_deleteDC_ALLOC_comp',$ip_02030headerDate.size())" class="btn_del_on" >
+						<input type="button" name="btnAllocCreate" value=" 공급할당생성" onClick="createAllocQty($ip_02030headerDate.size()); "
+							class="btn3_on" >
+						&nbsp;&nbsp;&nbsp;&nbsp;
+						<input type="button" name="btnAllocConf" value=" NFOS 전송" onClick="confirmAllocPlan($ip_02030headerDate.size());"
+							class="btn3_on">
+						##<input type="button" name="btnAddAlloc" value=" 추가할당전송" onClick="addAllocPlan($ip_02030headerDate.size());"
+						##	class="btn3_on">
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" 
+							id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr>
+            					<td width="15%" align="right">
+									작업일자 : 
+								</td>
+								<td width="14%" align="left"> 
+									#date_sole_no_title( "in_work_date" "10" "normal" "work_dateBtn" $date.get('yyyy-MM-dd') )
+            					</td>
+								<td width="15%" align="right">
+									품목 :
+								</td>
+            					<td width="66%" colspan="3" align="left">
+									<input	type="text" name="in_alloc_item" class="normal" size="100" value="$!{in_alloc_item}"
+										onKeyDown="moveNextBox(this); " onChange="dwClear();"
+										style="width:73PX; padding-right:5px; text-align:cneter; ">
+									<img name="imgItemId" tabindex="-1" 
+										src="sinc/template/basic/skin/nongshim/images/common/icon_search.gif" align="absmiddle" 
+										border="0" onClick="openDCAllocationItemPopup(this); " style="cursor:pointer;"/>
+									<input	type="text" name="in_alloc_item_name" class="normal" size="100" value="$!{item_name}"
+										onKeyDown="moveNextBox(this); " 
+										style="width:300PX; padding-right:5px; text-align:cneter; " disabled >	
+									<input type="hidden" name="old_alloc_item" 	value="$!{in_alloc_item}" >
+								</td>
+							</tr>
+            				<tr>
+								<td width="15%" align="right">
+									공급할당기준 :
+								</td> 
+								<td width="14%" align="left">
+									<select name="insel_allocQoutaType" >
+										##<option value="%" #if( "$!{sel_allocQuotaType}" == "%" || "$!{sel_cal_grp}" == "") selected #end >전체</option>
+										#foreach( $condition in $ip_02030combo_allocQuotaType )
+											<option value="$condition.get(0)" #if( "$!{sel_allocQuotaType}" == "$condition.get(0)" ) selected #end>$condition.get(1)</option>
+										#end
+									</select>
+            					</td>
+								<td width="15%" align="right"> 
+									공급할당사유 :
+								</td> 
+            					<td width="50%" colspan="2" align="left">
+									<select name="insel_allocReason" >
+										##<option value="%" #if( "$!{sel_cal_grp}" == "%" || "$!{sel_cal_grp}" == "") selected #end >전체</option>
+										#foreach( $condition in $ip_02030combo_allocReason )
+											<option value="$condition.get(0)" #if( "$!{sel_allocReason}" == "$condition.get(0)" ) selected #end>$condition.get(1)</option>
+										#end
+									</select>
+									##&nbsp;&nbsp; 판매계획 없어도 조회 :
+									##<input name="export_priority" type="checkbox" class="normal" onClick="doCheckPlanYN(this);"
+									##	style="background-color:#f2f2f2; border:0;">
+									<input type="hidden" name="chk_plan_yn" value="N">
+								</td> 
+							</tr>
+            				<tr>
+								<td width="15%" align="right">
+									조회기간 :
+								</td> 
+								<td width="14%" align="left">
+									<select name="sel_date_term" onChange="dwClear();" >
+										#foreach($i in[3..12])
+										<option value= "$i" #if("$!{sel_date_term}"== "$i")selected #end >$i일간</option>
+										#end
+									</select>
+								</td>
+								<td width="15%" align="right">
+									Comment :
+								</td> 
+            					<td width="14%" colspan="2"align="left">
+									<input	type="text" name="in_alloc_reason_comment" class="normal" size="100" 
+										#if("${in_alloc_reason_comment}" == "")
+											value=""
+										#else
+											value="$!{in_alloc_reason_comment}"
+										#end
+										onKeyDown="moveNextBox(this); " 
+										style="width:400PX; padding-right:5px; text-align:cneter; " >	
+								</td> 
+							</tr>
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="47"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td width="100%" valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table id="tbMainTop" border="0" width="100%" cellpadding="0" cellspacing="0">
+						<tr>
+							<td>
+								<div id="topLineTop" style="height:60px; width:500px; overflow:hidden;">
+									<table id="tb_header_dw1" width="8640px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+        								<thead>
+        									<tr align="center" height="24px">
+        										#foreach( $tr in $ip_02030headerDate )
+            										<td align="center" colspan="12" >
+														<input name="chk_alloc" type="checkbox" class="normal" onClick="doCheckAlloc(this,$math.sub($velocityCount,1));"
+															style="height:20px; background-color:#f2f2f2; border:0;" >
+														$tr.get(0).substring(4,6)/$tr.get(0).substring(6,8)
+														#if("$tr.get(1)" == "2")(관리)#else(안전)#end
+														#if("$tr.get(1)" == "2" && "$tr.get(2)" == "Y" && "$tr.get(3)" == "N")_공급할당 추가확정 진행#end
+														#if("$tr.get(1)" == "2" && "$tr.get(2)" == "Y" && "$tr.get(3)" == "Y")_공급할당 마감#end
+														#if("$tr.get(1)" == "2" && "$tr.get(2)" == "N")_공급할당 작업가능#end
+													</td>
+													<input type="hidden" name="chk_alloc_request" 	value="N" 			>
+													<input type="hidden" name="chk_add_alloc_request" 	value="N" 		>
+													<input type="hidden" name="sel_work_date" 		value="$tr.get(0)" 	>
+													<input type="hidden" name="sel_alloc_gubn" 		value="$tr.get(1)" 	>
+													<input type="hidden" name="sel_alloc_flag" 		value="$tr.get(2)" 	>
+													<input type="hidden" name="add_sel_work_date" 	value="$tr.get(0)" 	>
+													<input type="hidden" name="sel_add_alloc_flag" 	value="$tr.get(3)"  >
+												#end
+        									</tr>
+        									<tr align="center" height="36px">
+        										#foreach( $i in[1..$ip_02030headerDate.size()])
+            										<td align="center" width="60px">기초<br>재고</td>
+            										<td align="center" width="60px">재고<br>일수</td>
+            										<td align="center" width="60px">생산<br>매입</td>
+            										<td align="center" width="60px">판매<br>계획</td>
+            										<td align="center" width="60px">판촉<br>계획</td>
+            										<td align="center" width="60px">할당<br>가능율</td>
+            										<td align="center" width="60px"><br>할당율</td>
+            										<td align="center" width="60px"><br>할당량</td>
+            										<td align="center" width="60px">실제<br>할당율</td>
+            										<td align="center" width="60px">실제<br>할당량</td>
+            										<td align="center" width="60px">수송<br>가능량</td>
+            										#if($i == 1) <td align="center" width="60px"><br>출고</td>
+													#else <td align="center" width="60px">출고<br>예정</td>
+													#end
+        										#end
+        									</tr>
+        			   					 </thead>
+			   						</table>
+			   					</div>
+							</td>
+						</tr>	
+						<tr>
+    						<td valign="top">
+        						<div id="mainDisplayTop" class="ns_scroll" style="border:0; height:40px; width:500px; overflow-x:scroll; " onscroll="scrollTopX();">
+        							<table id="tb_body_dw1" width="8640px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+        								<tbody id="main_tbodyTop">
+        									#set($dw1 = $ip_02030_dayAllocationItemCreateQty_dw1.get(0))
+											#set($dw1_size = $math.sub($ip_02030headerDate.size(),1))
+											#foreach($i in[0..$dw1_size]) ##총 12개 일자!
+												#set($dw1_col = $math.mul($i,12)) ## 반복 컬럼갯수 12
+												<td align="right" 		width="60px">							##기초재고
+    												<div id="div_base_stock"	 	>$number.format($dw1.get($math.add($dw1_col,0)))</div><input type="hidden" name="sel_base_stock"
+                                        													 value="$dw1.get($math.add($dw1_col,0))"></td>  		
+            									<td align="right" 		width="60px">							##재고일수
+    												<div id="div_stock_day"	 		>$number.format($dw1.get($math.add($dw1_col,1)))</div><input type="hidden" name="sel_stock_day"
+                                        						                             value="$dw1.get($math.add($dw1_col,1))"></td>  		
+    											<td align="right" 		width="60px">	 						##입고
+                    								<div id="div_receipt_box"		>$number.format($dw1.get($math.add($dw1_col,2)))</div><input type="hidden" name="sel_receipt_box"
+                                											                 value="$dw1.get($math.add($dw1_col,2))"></td>  
+    											<td align="right" 		width="60px">				 			##판매계획
+    												<div id="div_sales_plan"		>$number.format($dw1.get($math.add($dw1_col,3)))</div><input type="hidden" name="sel_sales_plan"
+                                											                 value="$dw1.get($math.add($dw1_col,3))"></td> 
+    											<td align="right" 		width="60px">				 			##판촉계획
+            										<div id="div_promo_plan"		>$number.format($dw1.get($math.add($dw1_col,4)))</div><input type="hidden" name="sel_promo_plan"
+                                											                 value="$dw1.get($math.add($dw1_col,4))"></td>	
+    											<td align="right" 		width="60px">							##할당가능율
+    												<div id="div_can_alloc_rate"	>$number.format($dw1.get($math.add($dw1_col,5)))%</div><input type="hidden" name="sel_can_alloc_rate"
+                                											                 value="$dw1.get($math.add($dw1_col,5))"></td>  		
+            									<td align="right" 		width="60px">							##할당율
+    												<input type="text" name="sel_tot_alloc_rate" class="normal" size="100" align="right"
+                        													  value="$number.format($dw1.get($math.add($dw1_col,6)))" onChange="doChange_dw1(this,0,$i,$ip_02030headerDate.size());" onKeyDown="moveNextBox_DW1(this,0,$i,$ip_02030headerDate.size());"
+                										style="width:45px; padding-right:5px; text-align:right; " >%</td>
+													<input type="hidden" name="old_tot_alloc_rate" 
+																                             value="$dw1.get($math.add($dw1_col,6))" >
+            									<td align="right"		width="60px">				 			##할당량
+    												<input type="text" name="sel_tot_alloc_box" class="normal" size="100" 
+                        													  value="$number.format($dw1.get($math.add($dw1_col,7)))" onChange="doChange_dw1(this,1,$i,$ip_02030headerDate.size());" onKeyDown="moveNextBox_DW1(this,0,$i,$ip_02030headerDate.size());"
+                										style="width:100%; padding-right:5px; text-align:right; " ></td>  		
+													<input type="hidden" name="old_tot_alloc_box" 
+																                             value="$dw1.get($math.add($dw1_col,7)) " >
+            									<td align="right"		width="60px">							##실제할당율
+    												<div id="div_real_alloc_rate"	>$number.format($dw1.get($math.add($dw1_col,8)))%</div><input type="hidden" name="sel_real_alloc_rate"
+                                											                 value="$dw1.get($math.add($dw1_col,8))"></td>  		
+            									<td align="right" 		width="60px">							##실제할당량
+    												<div id="div_real_alloc_box"	>$number.format($dw1.get($math.add($dw1_col,9)))</div><input type="hidden" name="sel_real_alloc_box"
+                                											                 value="$dw1.get($math.add($dw1_col,9))"></td>  		
+            									<td align="right" 		width="60px">							##수송가능량
+    												<div id="div_remn_tran_box"		>$number.format($dw1.get($math.add($dw1_col,10)))</div><input type="hidden" name="sel_remn_tran_box"
+                                											                 value="$dw1.get($math.add($dw1_col,10))"></td>  		
+    											<td align="right" 		width="60px">							##출고
+    												<div id="div_issue_box"			>$number.format($dw1.get($math.add($dw1_col,11)))</div><input type="hidden" name="sel_issue_box"
+                                											                 value="$dw1.get($math.add($dw1_col,11))"></td> 
+											#end											
+										</tbody>
+        							</table>
+        						</div>
+							</td>
+						</tr>
+					</table>
+					
+					<table border="0" width="100%" cellpadding="0" cellspacing="0" height="5px"><tr><td></td></tr></table>
+					
+					<table id="tbMain" border="0" width="100%" cellpadding="0" cellspacing="0" >
+						<tr>
+							<td>
+        						<div id="topLeft" style="height:54px; width:150px; overflow:hidden; ">
+        							<table width="150px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+        								<thead>
+        									<tr align="center" height="54px"> 
+        										<td align="center" width="50px">CODE</td>
+        										<td align="center" width="100px">배송지점명</td>										
+        									</tr> 
+        			   					 </thead>
+    								</table>
+        			   			</div>
+							</td>
+							<td>
+        						<div id="topLine" style="height:54px; width:645px;overflow:hidden;">
+        							<table id="tb_header_dw2" width="6480px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+        								<thead>
+        									<tr align="center" height="18px">
+        										#foreach( $tr in $ip_02030headerDate )
+            										<td align="center" colspan="9" >$tr.get(0).substring(4,6)/$tr.get(0).substring(6,8)
+													#if("$tr.get(1)" == "2")(관리)#else(안전)#end
+													#if("$tr.get(1)" == "2" && "$tr.get(2)" == "Y" && "$tr.get(3)" == "N")_공급할당 추가확정 진행#end
+													#if("$tr.get(1)" == "2" && "$tr.get(2)" == "Y" && "$tr.get(3)" == "Y")_공급할당 마감#end
+													#if("$tr.get(1)" == "2" && "$tr.get(2)" == "N")_공급할당 작업가능#end
+													</td>
+        										#end 
+        									</tr>
+        									<tr align="center" height="36px">
+        										#foreach( $i in[1..$ip_02030headerDate.size()])
+            										<td align="center" width="60px">기초<br>재고</td>
+            										<td align="center" width="60px">재고<br>일수</td>
+            										<td align="center" width="60px">입고<br>예정</td>
+													<td align="center" width="60px">판매<br>계획</td>
+            										<td align="center" width="60px">판촉<br>계획</td>
+            										<td align="center" width="60px">할당<br>가능율</td>
+            										<td align="center" width="60px"><br>할당율</td>
+            										<td align="center" width="60px"><br>할당량</td>
+            										#if($i == 1) <td align="center" width="60px"><br>출고</td>
+													#else <td align="center" width="60px">출고<br>예정</td>
+													#end
+        										#end
+        									</tr>
+        			   					 </thead>
+        			   				</table>
+        			   			</div>
+							</td>
+						</tr>	
+						<tr>
+							<td valign="top">
+        						<div id="leftDisplay" style="width:150px; overflow:hidden; ">
+        							<table width="150px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+            							<tbody id="left_tbody">
+											#foreach($tr in $ip_02030_dayAllocationItemCreateQty_dw2)
+												<tr style="height:22px;">
+													<td align="center" width="50px">$tr.get(0)<input type="hidden" name="sel_dw2_dc_id"
+														                     value="$tr.get(0)"></td> 
+													<td align="left" width="100px">&nbsp;$tr.get(1)</td>
+												</tr>
+											#end
+										</tbody>
+        							</table>
+        						</div>
+        					</td> 
+        					<td valign="top"> 
+        						<div id="mainDisplay" class="ns_scroll" style="height:60px; border:0; width:645px; overflow-y:scroll; overflow-x:scroll; " onscroll="scrollX(); scrollY(); ">
+        							<table id="tb_body_dw2" width="6480px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+        								<tbody id="main_tbody">
+        									#foreach($dw2 in $ip_02030_dayAllocationItemCreateQty_dw2)
+												#set($dw2_row = $math.sub($velocityCount,1))
+            									<tr style="height:22px;">
+    											#foreach($i in[0..$math.sub($ip_02030headerDate.size(),1)]) ##날짜 갯수
+													#set($dw2_col = $math.mul($i,9)) ##반복컬럼 갯수
+													<td align="right" width="60px">					## DC 기초재고	
+														<div id="div_dc_base_stock"		>$number.format($dw2.get($math.add($dw2_col,2)))</div><input type="hidden" name="sel_dc_base_stock"
+                                																 value="$dw2.get($math.add($dw2_col,2))"></td>  
+													<td align="right" width="60px">					## DC 재고일수	
+														<div id="div_dc_stock_day"		>$number.format($dw2.get($math.add($dw2_col,3)))</div><input type="hidden" name="sel_dc_stock_day"
+                                    															 value="$dw2.get($math.add($dw2_col,3))"></td>  
+													<td align="right" width="60px">					## DC 입고OR보충필요량	
+														<div id="div_dc_receipt_box"	>$number.format($dw2.get($math.add($dw2_col,4)))</div><input type="hidden" name="sel_dc_receipt_box"
+                                    															 value="$dw2.get($math.add($dw2_col,4))"></td>  
+													<td align="right" width="60px">					## DC 판매계획	
+														<div id="div_dc_sales_plan"		>$number.format($dw2.get($math.add($dw2_col,5)))</div><input type="hidden" name="sel_dc_sales_plan"
+                                    															 value="$dw2.get($math.add($dw2_col,5))"></td>  
+													<td align="right" width="60px">					## DC 판촉계획	
+														<div id="div_dc_promo_plan"		>$number.format($dw2.get($math.add($dw2_col,6)))</div><input type="hidden" name="sel_dc_promo_plan"
+                                    															 value="$dw2.get($math.add($dw2_col,6))"></td>  
+													<td align="right" width="60px">					## DC 할당가능율	
+														<div id="div_dc_can_alloc_rate"	>$number.format($dw2.get($math.add($dw2_col,7)))%</div><input type="hidden" name="sel_dc_can_alloc_rate"
+                                    															 value="$dw2.get($math.add($dw2_col,7))"></td>  
+													<td align="right" width="60px">					## DC 할당율	
+														<input type="text" name="sel_dc_alloc_rate" class="normal" size="100" align="right" 
+                                                                                  value="$number.format($dw2.get($math.add($dw2_col,8)))" onChange="doChange_dw2(this,0,$i,$dw2_row,$ip_02030headerDate.size());" onKeyDown="moveNextBox(this,$i,$dw2_row,$ip_02030headerDate.size());" 
+                                                        style="width:45px; padding-right:5px; text-align:right; " #if("$ip_02030headerDate.get($i).get(1)" == "1")disabled #end>%</td>
+														<input type="hidden" name="old_dc_alloc_rate" 
+																                                 value="$dw2.get($math.add($dw2_col,8))">
+													<td align="right" width="60px">					## DC 할당량	
+														<input type="text" name="sel_dc_alloc_box" class="normal" size="100" align="right" 
+                                                                                  value="$number.format($dw2.get($math.add($dw2_col,9)))" onChange="doChange_dw2(this,1,$i,$dw2_row,$ip_02030headerDate.size());" onKeyDown="moveNextBox(this,$i,$dw2_row,$ip_02030headerDate.size());" 
+                                                        style="width:100%; padding-right:5px; text-align:right; " #if("$ip_02030headerDate.get($i).get(1)" == "1")disabled #end></td>
+														<input type="hidden" name="old_dc_alloc_box" 
+															                                     value="$dw2.get($math.add($dw2_col,9))">
+													<td align="right" width="60px">					## DC 출고	
+														<div id="div_dc_issue_box"		>$number.format($dw2.get($math.add($dw2_col,10)))</div><input type="hidden" name="sel_dc_issue_box"
+                    															                 value="$dw2.get($math.add($dw2_col,10))"></td>  
+													<input type="hidden" name="save_dw2_alloc_date" value="$ip_02030headerDate.get($i).get(0)">
+													<input type="hidden" name="save_dw2_dc_id"		value="$dw2.get(0)" >	
+													<input type="hidden" name="dw2_modi_flag"		value="N" >	
+												#end
+    											</tr>
+											#end
+
+        								</tbody>
+        							</table>
+        						</div>
+        					</td>
+						</tr>
+					</table>
+					
+					</td></tr></table> ## gridArea
+					
+					## waiting 표시영역
+					#waitingArea()
+						
+					<input type="hidden" name="_moon_service">
+					<input type="hidden" name="_moon_pagenumber" value="-1">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 생성일자, 입고장, 계획버전을 반드시 입력하고 조회해야 합니다.";
+	helpStr += "<br>◈ 각 항목을 입력한 후 상단의 저장 버튼을 클릭하여 수정 내용을 저장합니다.";
+	helpStr += "<br>◈ 번호를 클릭하면 해당 라인의 판매정보와 공장예상재고가 조회됩니다.";
+	helpStr += "<br>◈ 추가/삭제의 테이블 헤더부분을 클릭하면 새로운 라인이 생성됩니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+</script>

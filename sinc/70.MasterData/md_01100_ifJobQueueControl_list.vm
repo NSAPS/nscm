@@ -1,0 +1,287 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('125', '155')" )
+
+
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						#button("search")						
+						#toolbar_nscm($_moon_toolbar "" "" "md_01100_ifJobQueueControl_list_save_comp" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; ">
+            				<tr id="search_menu" style="display:block; ">
+            					<td width="10%" align="right">
+            						SP상태 :
+            					</td>
+            					<td width="90%" align="left">
+									<select name="status" style="width:120px; ">
+									<option value="">전체</option>
+									#foreach( $tr in $jobqueue_status_list )
+										<option value="${tr.get(0)}" 
+											#if ( "$!{status}" == "${tr.get(0)}" ) selected #end>${tr.get(1)}</option>
+									#end
+									</select>									
+            					</td>
+            				</tr> 
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="23"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					## 데이터 갯수 출력			
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+								<img src="/nscm/sinc/template/basic/skin/nongshim/images/common/dot_sub6.gif" width="16" height="13">Total :
+								<span id="areaTot" class="f_color_o b">$!{_moon_service_count}</span>
+							</td>
+						</tr>
+					</table>
+					<table id="tbMain" border="0" width="715" cellpadding="0" cellspacing="0" >
+						<tr>
+							<td> 
+								<div id="topLeft" style="height:35px; width:385px; overflow:hidden; "> 
+									<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>
+											<tr align="center" height="35px">
+												<td width="30px">번호</td>
+												<td width="45px">Job ID</td>
+												<td width="135px">SP Name</td>
+												<td width="175px">항목</td>												
+											</tr> 
+					   					 </thead>
+					   				</table>
+					   			</div>
+							</td>
+							<td> 
+								<div id="topLine" style="height:35px; width:626px; overflow:hidden;"> 
+									<table width="800px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>
+											<tr height="35px">
+												<td width="60px">SP 상태</td>
+												<td width="70px">I/F실행<br>주기</td>
+												<td width="80px">I/F실행<br>시간</td>
+												<td width="130px">I/F마지막 실행시간</td>
+												<td width="130px">I/F다음 실행시간</td>
+												<td width="65px">소스</td>
+												<td width="70px">타겟</td>
+												<td width="70px">I/F방식</td>												
+												<td width="60px" class="right">전송건수</td>
+											</tr>
+					   					 </thead>
+					   				</table>
+					   			</div>
+							</td>
+						</tr>
+						<tr>
+							<td valign="top"> 
+								<div id="leftDisplay" style="width:385px; overflow:hidden; ">
+									<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="left_tbody">
+										#foreach( $tr in $md_01100_ifJobQueueControl_list )
+											<tr id="left_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+												<td width="30px" align="center" style="background-color:${search_bgcolor}; "> ## 번호
+													<a id="divRowNo">$velocityCount</a>
+												</td>
+												<td width="45px" align="center"> ## JOB ID
+													<a id="div_jobid" align="center">
+														$tr.get(0)
+													</a><input type="hidden" name="dc_id"  value="$tr.get(0)">													
+												</td>
+												<td width="135px" align="left"> ## SP NAME
+													<a id="div_spname" align="center">
+														$tr.get(1)
+													</a>
+												</td><input type="hidden" name="sp_nam"  value="$tr.get(1)">
+												<td width="175px" align="center"> ## 항목
+													<a id="div_type" align="center">
+														$tr.get(2)
+													</a>
+												</td>												
+											</tr>
+										#end
+										</tbody> 
+									</table> 
+								</div> 	
+							</td>
+							<td valign="top"> 
+								<div id="mainDisplay" class="ns_scroll" style="border:0; width:626px; overflow-y:scroll; overflow-x:scroll; " onscroll="scrollX(); scrollY(); ">
+									<table width="800px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="main_tbody">
+										#foreach( $tr in $md_01100_ifJobQueueControl_list )
+											<tr id="main_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">												
+												<td width="60px" align="center" onClick="setEditMode(this); "> ## SP 상태
+													<a>
+														#if ("$tr.get(3)" == "Y")
+															실행
+														#elseif ("$tr.get(3)" == "N")
+															중지
+														#elseif ("$tr.get(3)" == "X")
+															Job삭제
+														#end
+													</a><select name="s_status" style="width:106%; display:none; " onFocusOut="setViewMode(this); "
+														onKeyDown="moveNextBox(this); " tabindex="1">														
+														#foreach( $tr2 in $jobqueue_status_list )                										
+														<option value="${tr2.get(0)}" 
+															#if( "$!{tr.get(3)}" == "$!{tr2.get(0)}" ) selected #end>$tr2.get(1)</option>              										
+														#end														
+                									</select>													
+												</td>												
+												<td width="70px" align="center" onClick="setEditMode(this); "> ## I/F실행주기
+													<a>
+														#if ("$tr.get(4)" == "0")
+															일간
+														#elseif ("$tr.get(4)" == "1") 
+															주간-일
+														#elseif ("$tr.get(4)" == "2") 
+															주간-월
+														#elseif ("$tr.get(4)" == "3") 
+															주간-화
+														#elseif ("$tr.get(4)" == "4") 
+															주간-수
+														#elseif ("$tr.get(4)" == "5") 
+															주간-목
+														#elseif ("$tr.get(4)" == "6") 
+															주간-금
+														#elseif ("$tr.get(4)" == "7") 
+															주간-토
+														#end
+													</a><select name="r_cycle" style="width:106%; display:none; " onFocusOut="setViewMode(this); "
+														onKeyDown="moveNextBox(this); " tabindex="1">
+														#foreach( $tr2 in $jobqueue_cycle_list )                										
+														<option value="${tr2.get(0)}" 
+															#if( "$!{tr.get(4)}" == "$!{tr2.get(0)}" ) selected #end>$tr2.get(1)</option>              										
+														#end														
+                									</select>													
+												</td>
+												
+												<td width="80px" align="center" onClick="setEditMode(this); ">
+        											<a id="divRunTime">$tr.get(7)</a><a id="divRunTimeSel" style="display:none; " ><select 
+        												name="run_time_h" style="width:49% ; " onKeyDown="moveNextBox(this); " onFocusOut="setViewMode(this); "
+        												onMouseOver="setRunTimeFlag(this); " onMouseOut="unsetRunTimeFlag(this); ">
+        												#foreach( $num in [0 .. 23] )
+        													#if( $math.max($num, 9) == 9 )
+        														<option value="0${num}" #if( "$tr.get(5)" == "0${num}" ) selected #end>0${num}</option>
+        													#else
+        														<option value="${num}" #if( "$tr.get(5)" == "${num}" ) selected #end>${num}</option>
+        													#end
+        												#end
+        											</select><select name="run_time_m" style="width:49% ; " onKeyDown="moveNextBox(this); " onFocusOut="setViewMode(this); "
+        												onMouseOver="setRunTimeFlag(this); " onMouseOut="unsetRunTimeFlag(this); ">
+        												#foreach( $num in [0 .. 59] )
+        													#if( $math.max($num, 9) == 9 )
+        														<option value="0${num}" #if( "$tr.get(6)" == "0${num}" ) selected #end>0${num}</option>
+        													#else
+        														<option value="${num}" #if( "$tr.get(6)" == "${num}" ) selected #end>${num}</option>
+        													#end
+        												#end
+        											</select></a>
+        										</td>										
+												
+												<td width="130px" align="center"> ## I/F마지삭 실행시간
+													<a id="div_iflast" align="center">
+														$tr.get(8)
+													</a>													
+                            					</td>																								
+												<td width="130px" align="center"> ## I/F다음 실행시간
+													<a id="div_ifnext" align="center">
+														$tr.get(9)
+													</a>
+												</td>
+												<td width="65px" align="center"> ## 소스
+													<a id="div_source" align="center">
+														$tr.get(10)
+													</a>
+												</td>
+												<td width="70px" align="center"> ## 타겟
+													<a id="div_target" align="center">
+														$tr.get(11)
+													</a>
+												</td>
+												<td width="70px" align="center"> ## I/F방식
+													<a id="div_ifmethod" align="center">
+														$tr.get(12)
+													</a>
+												</td>
+												<td width="60px" align="right"> ## 전송건수
+													<a id="div_ifqty" align="right">
+														#if ("$tr.get(13)" == "")
+															
+														#else
+															$number.format($tr.get(13))&nbsp;
+														#end
+													</a>
+												</td>
+											</tr>
+										#end
+										</tbody>
+									</table>
+								</div>								
+							</td></tr></table>
+							
+					</td></tr></table>	
+							
+					## waiting 표시영역
+					#waitingArea()
+					
+					<input type="hidden" name="_moon_service">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ SP상태, I/F실행주기,  I/F실행시간을 선택하고 저장 버튼을 클릭하여 JOB를 실행,중지,삭제합니다.";
+		
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+	// 최초 화면 로드 시, 5 LINE DISPLAY
+	//addRows(5);
+	
+</script>

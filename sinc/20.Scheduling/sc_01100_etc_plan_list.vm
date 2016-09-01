@@ -1,0 +1,718 @@
+############################################################
+## 프로그램ID : sc_01100_etc_plan_list.vm 
+## 프로그램명 : 유통가공품 관리
+## 개발자  : 김규철
+## 개발일자 : 2008-12-22 월요일
+##
+##관련 job file : job_sinc_20_scheduling_05.xml
+##
+##관련 query file : query_sinc_20_scheduling_05.xml
+## 
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2008-12-22  김규철           sc_01100_etc_plan_list.vm 개발
+## 
+##
+############################################################
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/scheduling.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+  
+## 비정상적 접근 방지 
+#loginCheck()
+     
+## 화면 resizing 을 위한 size 변수    
+                
+##setHtmlGridAutoResize(divHight, tableHight)  130, 400                                              
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('130', '400')" )         
+                       
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역 start
+	<tr> 
+		<td height="25" align="right"> 
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>    
+                	<td align="right"> 
+						##button("search")    
+						<input type="button" name="btnSearch" value=" 조회" onClick="searchIFrameData(document.frm.checked_etc.value);" class="btn_search_on">
+						<input type="button" name="btnExcelDown" value=" Excel"  onClick="excelDownloadPopUp(); " class="btn1_on"/>
+						#toolbar_nscm($_moon_toolbar "" "" "sc_01100_etc_plan_list_save_comp" "")
+					</td> 
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 기능 버튼 영역 end
+	
+	## 조회 영역 start
+	<tr>
+		<td width="100%" valign="top">  
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%"> 
+            			<table  border="0" width="100%" cellpading="0" cellspacing="0" id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr>
+            					<td width="10%" align="right">계획버전 :</td>  
+            					<td width="25%">   
+                					<select name="selected_version" style="width:125px; " onChange="setVersions(this.value); ">
+										<option value="">선택</option>
+									#foreach( $condition in $plant_alloc_combo_version_list ) 
+										<option value="$condition.get(0)!%!$condition.get(1)" 
+											#if($!{selected_version} == "$condition.get(0)!%!$condition.get(1)") selected 
+											#end 
+											#if("$condition.get(3)" =="23" || "$condition.get(3)" =="27") ## 확정 or ERP 전송 완료
+												style="background-color:#ffffaa; "
+											#end 
+										>$condition.get(0) - $condition.get(1)</option>											
+									#end
+                					</select>   
+									<input type="hidden" name="version" value="$!{version}">
+									<input type="hidden" name="seq" value="$!{seq}">
+            					</td>
+										 	 			 
+								<td width="10%" align="right">조회 일자 :</td> 
+								<td width="25%">  																	    
+            						#date_sole_no_title( "sdate" "10" "normal" "searchBtn" $date.get('yyyy-MM-dd'))
+            					</td> 
+     
+    							<td width="29%" align="left">    
+    								<input type="radio" name="checked_p" value="" 
+            							onClick="changeCheckRadio(this)" #if($!{checked_p} == "Y") checked #else #end>유통가공품</input>&nbsp;
+            						<input type="radio" name="checked_c" value="" 
+            							onClick="changeCheckRadio(this)" #if($!{checked_c} == "Y") checked #else #end>유통가공 구성품</input>	
+									<input type="hidden" name="checked_etc"  value="${checked_etc}"> ##유통가공/구성품 구분
+ 								</td>		       
+							</tr>       				
+            			</table>
+					</td>  
+					<td width="2" style="background-color:#d0d0d0; " onClick=""></td>
+				</tr>
+				<tr height="2">  
+					<td colspan="3" style="background-color:#d0d0d0; " onClick=""></td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+	  
+	<input name="search_h" type="hidden" value="0"> ## search 조건 부분 높이 
+	## 조회 영역 end
+	   
+	<tr><td height="5"></td></tr>
+	
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>  
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>#page_info2()</td>
+						</tr>
+					</table>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0">
+						<tr height= "150px">
+							<td>         
+    							##Main Table start 
+            					<table id="tbMain" border="0" height="100%" width="100%" cellpadding="0" cellspacing="0" >
+            						<tr> 
+            							<td>    
+                    					#set( $headHeight = 60 ) ##헤더 높이 
+                    					#set( $topLeft1   = 30 ) ##번호
+                    					#set( $topLeft2   = 80 ) ##제품코드
+                    					#set( $topLeft3   = 180 )##제품 명   
+				      					#set( $topLeft4   = 80 ) ##SPEC    
+										  
+                    					#set( $leftWidth  = $topLeft1 + $topLeft2 + $topLeft3 + $topLeft4) ## 
+    										<div id="topLeft" style="height:$!{headHeight}; width:$!{leftWidth}px; overflow:hidden; ">
+                    							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+                    								<thead> 
+                    									<tr height="${headHeight}px">  
+                    										<td width="$!{topLeft1}px">번호</td>			## 1
+                                                            ##<td width="40px">선택<input type="checkbox" name="all_check_flag" value="" class="normal" style="text-align:center; border-width:0; " onclick="allCheckFlag();"></td>
+                    										<td width="$!{topLeft2}px">제품<br>코드</td>	## 2
+                    										<td width="$!{topLeft3}px">제품 명</td>		## 3
+                    										<td width="$!{topLeft4}px">단위</td>		    ## 4														
+                    									</tr> 
+                    			   					 </thead>
+                    			   				</table>
+                    			   			</div>
+                    					</td>  
+                    					<td> 
+                						#set( $topLine1 = 70 )  ##기초재고
+                						#set( $topLine2 = 70 )  ##금주생산계획
+                						#set( $topLine3 = 70 )  ##금주판매계획
+                						#set( $topLine4 = 70 )  ##예상재고(차주초)
+                						
+                						#set( $topLine5 = 70 )  ##차주 생산필요량
+                						#set( $topLine6 = 70 )  ##차주 생산계획계
+                						#set( $topLine7 = 70 )  ##차주 생산위치
+    									#set( $topLine8 = 70 )  ##차주(월)
+    									#set( $topLine9 = 70 )  ##차주(화)
+    									#set( $topLine10 = 70 ) ##차주(수)
+    									#set( $topLine11 = 70 ) ##차주(목) 
+    									#set( $topLine12 = 70 ) ##차주(금)
+    									#set( $topLine13 = 70 ) ##차주(토)
+    									#set( $topLine14 = 70 ) ##차주(일)									
+                						#set( $topLine15 = 70 ) ##차주 판매계획
+                						#set( $topLine16 = 70 ) ##예상재고(차차주초)
+                						
+                						#set( $topLine17 = 70 ) ##차차주 생산필요량 
+                						#set( $topLine18 = 70 ) ##차차주 생산계획계	
+                						#set( $topLine19 = 70 ) ##차차주 생산위치
+    									#set( $topLine20 = 70 ) ##차주(월)
+    									#set( $topLine21 = 70 ) ##차주(화)
+    									#set( $topLine22 = 70 ) ##차주(수)
+    									#set( $topLine23 = 70 ) ##차주(목)
+    									#set( $topLine24 = 70 ) ##차주(금)
+    									#set( $topLine25 = 70 ) ##차주(토)
+    									#set( $topLine26 = 70 ) ##차주(일)
+                						#set( $topLine27 = 70 ) ##차차주 판매계획 
+                						#set( $topLine28 = 70 ) ##차차주 예상재고 
+    									
+                						#set( $topHead1 = $topLine1 + $topLine2 + $topLine3 + $topLine4 )##금주(W)
+                						#set( $topHead2 = $topLine5 + $topLine6 + $topLine7 + $topLine8 + $topLine9 + $topLine10 + $topLine11 + $topLine12 + $topLine13 + $topLine14 + $topLine15 + $topLine16   )##차주(W+1)
+                						#set( $topHead3 = $topLine17 + $topLine18 + $topLine19 + $topLine20 + $topLine21 + $topLine22 + $topLine23 + $topLine24 + $topLine25 + $topLine26 + $topLine27 +  $topLine28 )##차차주(W+2)
+                						#set( $rightWidth = $topLine1 + $topLine2 + $topLine3 + $topLine4 + $topLine5 + $topLine6 + $topLine7 + $topLine8 + $topLine9 + $topLine10 + $topLine11 + $topLine12 + $topLine13 + $topLine14  ) ##
+    									#set( $rightWidth = $rightWidth + $topLine15 + $topLine16 + $topLine17 + $topLine18 + $topLine19 + $topLine20 + $topLine21  + $topLine22 + $topLine23 + $topLine24 + $topLine25 + $topLine26  )
+    									#set( $rightWidth = $rightWidth + $topLine27 + $topLine28 )
+    									#set( $topLineWidth = $topHead1 + $topHead2 + $topHead3  ) 
+    									
+										#set( $dd = $!etc_day_list.get(0)) 
+										
+                						<div id="topLine" style="height:${headHeight}; width:${topLineWidth};overflow:hidden;">  
+                							<table width="$!{rightWidth}px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+                								<thead>  
+                									<tr height="30px">  
+                										<td width="$!{topHead1}px" colspan="4">금주(W)</td>
+                										<td width="$!{topHead2}px" colspan="12">차주(W+1)</td>
+                										<td width="$!{topHead3}px" colspan="12">차차주(W+2)</td>
+                									</tr> 
+                									<tr height="30px">	 
+                										<td width="$!{topLine1}px" class="mid">기초재고</td>					##1
+                										<td width="$!{topLine2}px" class="mid">금주<br>생산계획</td>			##2
+                										<td width="$!{topLine3}px" class="mid">금주<br>판매계획</td>			##3
+                										<td width="$!{topLine4}px" class="mid">예상재고<br>(차주초)</td>		##4
+                										#******************************************************************#
+                										<td width="$!{topLine5}px" class="mid">생산<br>필요량</td>		    ##5
+                										<td width="$!{topLine6}px" class="mid">생산<br>계획계</td>			##6
+                										<td width="$!{topLine7}px" class="mid">생산<br>위치</td>			    ##7 
+                										<td width="$!{topLine8}px" class="mid">$!dd.get(0)</td>			    ##8
+                										<td width="$!{topLine9}px" class="mid">$!dd.get(1)</td>				##9
+                										<td width="$!{topLine10}px" class="mid">$!dd.get(2)</td>	        ##10
+                										<td width="$!{topLine11}px" class="mid">$!dd.get(3)</td>			##11
+                										<td width="$!{topLine12}px" class="mid">$!dd.get(4)</td>			##12
+                										<td width="$!{topLine13}px" class="mid">$!dd.get(5)</td>			##13
+                										<td width="$!{topLine14}px" class="mid">$!dd.get(6)</td>			##14																												
+                										<td width="$!{topLine15}px" class="mid">판매계획</td>					##15
+                										<td width="$!{topLine16}px" class="mid">예상<br>재고</td>	 		    ##16
+                										#******************************************************************# 
+                										<td width="$!{topLine17}px" class="mid">생산<br>필요량</td>			##17
+                										<td width="$!{topLine18}px" class="mid">생산<br>계획계</td>		    ##18
+                										<td width="$!{topLine19}px" class="midright">생산위치</td>			##19
+                										<td width="$!{topLine20}px" class="mid">$!dd.get(7)</td>			##20
+                										<td width="$!{topLine21}px" class="mid">$!dd.get(8)</td>			##21
+                										<td width="$!{topLine22}px" class="mid">$!dd.get(9)</td>			##22
+                										<td width="$!{topLine23}px" class="mid">$!dd.get(10)</td>			##23
+                										<td width="$!{topLine24}px" class="mid">$!dd.get(11)</td>			##24
+                										<td width="$!{topLine25}px" class="mid">$!dd.get(12)</td>			##25
+                										<td width="$!{topLine26}px" class="mid">$!dd.get(13)</td>			##26																												                										
+    													<td width="$!{topLine27}px" class="mid">판매계획</td>					##27
+                										<td width="$!{topLine28}px" class="mid">예상<br>재고</td>			    ##28
+                									</tr>									
+                			   					 </thead> 
+                			   				</table> 
+                			   			</div>
+                						 </td>
+                					</tr>	
+    								<tr>  
+                						<td valign="top">
+                    						<div id="leftDisplay" style="width:$!{leftWidth}px; overflow:hidden; ">
+                    							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+                    								<tbody id="left_tbody"> ## 30/40/100/270/90
+                										## 날짜 조회  
+    													#set( $dd = $!etc_day_list.get(1))   
+                                                        ##------------------------------------------------------------
+                                                        <input type="hidden" name="p_w1_MondayD" value= "$!dd.get(0)">
+                                                        <input type="hidden" name="p_w1_TuedayD" value= "$!dd.get(1)">
+                                                        <input type="hidden" name="p_w1_WeddayD" value= "$!dd.get(2)">
+                                                        <input type="hidden" name="p_w1_ThudayD" value= "$!dd.get(3)">
+                                                        <input type="hidden" name="p_w1_FridayD" value= "$!dd.get(4)">
+                                                        <input type="hidden" name="p_w1_SatdayD" value= "$!dd.get(5)">
+                                                        <input type="hidden" name="p_w1_SundayD" value= "$!dd.get(6)">									
+                                                        ##------------------------------------------------------------
+                                                        <input type="hidden" name="p_w2_MondayD" value= "$!dd.get(7)">
+                                                        <input type="hidden" name="p_w2_TuedayD" value= "$!dd.get(8)">
+                                                        <input type="hidden" name="p_w2_WeddayD" value= "$!dd.get(9)">
+                                                        <input type="hidden" name="p_w2_ThudayD" value= "$!dd.get(10)">
+                                                        <input type="hidden" name="p_w2_FridayD" value= "$!dd.get(11)">
+                                                        <input type="hidden" name="p_w2_SatdayD" value= "$!dd.get(12)">
+                                                        <input type="hidden" name="p_w2_SundayD" value= "$!dd.get(13)">									
+    														
+    													#foreach( $tr in $sc_01100_etc_plan_list )
+                    									<tr id="left_tr" height="30px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+    														## 번호
+                    										<td width="$!{topLeft1}px" align="center" style="background-color:${search_bgcolor}; ">
+                    											<a id="divRowNo">$velocityCount</a>
+                    										</td> 
+    														## check box 
+                    										##<td width="40px" align="center"><input type="checkbox" name="check_flag" value="" class="normal" style="text-align:center; border-width:0; " onKeyDown="moveNextBox(this); "></input></td>									
+    														   
+    														## 품목 코드           
+                    										<td width="$!{topLeft2}px" align="center" onClick = "goEtcDtl(this);">  
+                    											<a id="divPItemId">$tr.get(2)</a>   															 
+            													##version, seq 
+                                                                <input type="hidden" name="p_version"  value= "$tr.get(0)">
+                                                                <input type="hidden" name="p_seq"      value= "$tr.get(1)">
+    															<input type="hidden" name="p_item_id"  value= "$tr.get(2)"> 
+                    										</td>  
+                    										## 품목 명  
+                    										<td width="$!{topLeft3}px" align="left" >
+                    											<a id="divItemName">&nbsp;$tr.get(3)</a>
+                    											<input type="hidden" name="p_item_name" value="$tr.get(3)">
+                    										</td>
+                    										## SPEC  
+                    										<td width="$!{topLeft4}px" align="center" >
+                    											<a id="divItemSpec">&nbsp;$tr.get(4)</a>
+                    											<input type="hidden" name="p_item_spec" value="$tr.get(4)">
+                    										</td> 															
+                    									</tr>
+    													#end  
+                    								</tbody> 
+                    							</table>  
+                    						</div> 
+                    					</td>  
+                    					<td valign="top">  
+    										
+                    						<div id="mainDisplay" class="ns_scroll" style="border:0; height:400px; width:645px; overflow-y:scroll; overflow-x:scroll; " onscroll="scrollX(); scrollY(); ">
+                    							<table width="$!{rightWidth}px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+                    								<tbody id="main_tbody"> 
+                										 
+    													#foreach( $tr in $sc_01100_etc_plan_list )							
+                    									<tr id="main_tr" height="30px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+                    										## 기초재고
+                    										<td width="$!{topLine1}px" align="right" >
+                    											<a id="divP_base_stock">$tr.get(5)&nbsp;</a>
+                    											<input type="hidden" name="p_base_stock"  value="$tr.get(5)">
+                    										</td>
+                    										## 생산계획(W0)
+                    										<td width="$!{topLine2}px" align="right" >
+                    											<a id="divP_w0_sch_plan">$tr.get(6)&nbsp;</a>
+                    											<input type="hidden" name="p_sch_plan_w0Q" value="$tr.get(6)">						 					
+                    										</td>
+                    										## 판매계획
+                    										<td width="$!{topLine3}px" align="right" >
+                    											<a id="divP_w0_sales_plan">$tr.get(7)&nbsp;</a>
+                    											<input type="hidden" name="p_w0_sales_plan"  value="$tr.get(7)">
+                    										</td> 
+                    										## 예상재고(차주초)
+                    										<td width="$!{topLine4}px" align="right" >
+                    											<a id="divP_estInv_w0Q">$tr.get(8)&nbsp;</a>
+                    											<input type="hidden" name="p_estInv_w0Q"  value="$tr.get(8)">											
+                    										</td> 					 									
+    														##---------------------------------------------------------------------------------------    
+                    										## 생산필요량
+                    										<td width="$!{topLine5}px" align="right" >
+                    											<a id="divPsch_NeedQ">$tr.get(9)&nbsp;</a> 
+                    											<input type="hidden" name="p_sch_w1Q"     value="$tr.get(9)"> ##차주생산필요량 
+                    										</td>														
+                                    						## 생산계획계
+                    										<td width="$!{topLine6}px" align="right" >
+																<a id="divP_sch_plan_w1Q"></a>  
+																<input type="hidden" name="p_sch_plan_w1Q"  value="">                                 									
+                    										</td>  
+    				                						## 생산위치        
+                    										<td width="$!{topLine7}px" align="right" onClick="setEditMode(this); "> 
+                											<a id="divP_locId_w1">$tr.get(11)</a><a id="divP_locId_w1Sel" style="width:100%; display:none;" onFocusOut="setViewMode(this);" ><select name="p_locId_w1" style="width:100%; padding-left:5px;" onFocusOut="doChangeGridLoc(this);">
+                											#foreach( $condition in $grid_p_loc_list )      
+                        										<option value="$condition.get(0)" #if( "$tr.get(10)" == "$condition.get(0)") selected #else #end >$condition.get(1)</option>																						
+                        									#end        
+                											</select></a> 
+                    										</td>
+    				                						## W1(월)		
+                                                            #if( "$tr.get(12)" == "" ) 
+                                                            	#set( $p_w1_MondayQ = "0" ) 
+                                                            #else
+                                                            	#set( $p_w1_MondayQ = "$number.format('##0',$tr.get(12))" )
+                                                            #end																														
+                    										<td width="$!{topLine8}px" align="right" >
+                   											<input type="text" name="p_w1_MondayQ" class="normal" value="$p_w1_MondayQ"	
+                        											onFocusIn="saveValues(this); " onChange="calculate(this); "  onDblClick="this.select(); " onKeyDown="moveNextBox(this); " 
+                        											style="width:100%;  text-align:right; ">##<input type="text" name="p_w1_MondayD" value= "$!dd.get(0)">
+    														</td>     
+    				                						## W1(화) 
+                                                            #if( "$tr.get(13)" == "" ) 
+                                                            	#set( $p_w1_TuedayQ = "0" )
+                                                            #else
+                                                            	#set( $p_w1_TuedayQ = "$number.format('##0',$tr.get(13))" )
+                                                            #end																
+                    										<td width="$!{topLine9}px" align="right" >
+                   											<input type="text" name="p_w1_TuedayQ" class="normal" value="$p_w1_TuedayQ"	
+                        											onFocusIn="saveValues(this); " onChange="calculate(this); "  onDblClick="this.select(); " onKeyDown="moveNextBox(this); ">##<input type="text" name="p_w1_TuedayD" value= "$!dd.get(1)">															
+                    										</td>    
+    				                						## W1(수)
+                                                            #if( "$tr.get(14)" == "" ) 
+                                                            	#set( $p_w1_WeddayQ = "0" )
+                                                            #else
+                                                            	#set( $p_w1_WeddayQ = "$number.format('##0',$tr.get(14))" )
+                                                            #end																
+                    										<td width="$!{topLine10}px" align="right" >
+                 											<input type="text" name="p_w1_WeddayQ" class="normal" value="$p_w1_WeddayQ"	
+                        											onFocusIn="saveValues(this); " onChange="calculate(this); "  onDblClick="this.select(); " onKeyDown="moveNextBox(this); ">##<input type="text" name="p_w1_WeddayD" value= "$!dd.get(2)">															
+                    										</td>
+    				                						## W1(목)
+                                                            #if( "$tr.get(15)" == "" ) 
+                                                            	#set( $p_w1_ThudayQ = "0" )
+                                                            #else
+                                                            	#set( $p_w1_ThudayQ = "$number.format('##0',$tr.get(15))" )
+                                                            #end																
+                    										<td width="$!{topLine11}px" align="right" >
+                 											<input type="text" name="p_w1_ThudayQ" class="normal" value="$p_w1_ThudayQ"	
+                        											onFocusIn="saveValues(this); " onChange="calculate(this); "  onDblClick="this.select(); " onKeyDown="moveNextBox(this); ">##<input type="text" name="p_w1_ThudayD" value= "$!dd.get(3)">															
+                    										</td>
+    				                						## W1(금)
+                                                            #if( "$tr.get(16)" == "" ) 
+                                                            	#set( $p_w1_FridayQ = "0" )
+                                                            #else
+                                                            	#set( $p_w1_FridayQ = "$number.format('##0',$tr.get(16))" )
+                                                            #end																
+                    										<td width="$!{topLine12}px" align="right" >
+                 											<input type="text" name="p_w1_FridayQ" class="normal" value="$p_w1_FridayQ"	
+                        											onFocusIn="saveValues(this); " onChange="calculate(this); "  onDblClick="this.select(); " onKeyDown="moveNextBox(this); ">##<input type="text" name="p_w1_FridayD" value= "$!dd.get(4)">															
+                    										</td>
+    				                						## W1(토) 
+                                                            #if( "$tr.get(17)" == "" ) 
+                                                            	#set( $p_w1_SatdayQ = "0" )
+                                                            #else
+                                                            	#set( $p_w1_SatdayQ = "$number.format('##0',$tr.get(17))" )
+                                                            #end																
+                    										<td width="$!{topLine13}px" align="right" >
+                 											<input type="text" name="p_w1_SatdayQ" class="normal" value="$p_w1_SatdayQ"	
+                        											onFocusIn="saveValues(this); " onChange="calculate(this); "  onDblClick="this.select(); " onKeyDown="moveNextBox(this); ">##<input type="text" name="p_w1_SatdayD" value= "$!dd.get(5)">															
+                    										</td>
+    				                						## W1(일) 
+                                                            #if( "$tr.get(18)" == "" ) 
+                                                            	#set( $p_w1_SundayQ = "0" )
+                                                            #else
+                                                            	#set( $p_w1_SundayQ = "$number.format('##0',$tr.get(18))" )
+                                                            #end	 															
+                    										<td width="$!{topLine14}px" align="right" >
+                											<input type="text" name="p_w1_SundayQ" class="normal" value="$p_w1_SundayQ"	
+                            											onFocusIn="saveValues(this); " onChange="calculate(this); "  onDblClick="this.select(); " onKeyDown="moveNextBox(this); ">##<input type="text" name="p_w1_SundayD" value= "$!dd.get(6)">															
+                         										</td>  
+                    										## 판매계획
+                    										<td width="$!{topLine15}px" align="right" >
+                    											<a id="divP_nf_sal_w1Q">$tr.get(19)&nbsp;</a>
+                    											<input type="hidden" name="p_nf_sal_w1Q" class="normal" size="20" value="$tr.get(19)">
+                    										</td>    
+                    										## 예상재고(W1)
+                    										<td width="$!{topLine16}px" align="right" > 
+                            									<a id="divP_estInv_w1Q"></a>
+                            									<input type="hidden" name="p_estInv_w1Q"  value="">											
+                     										</td> 								 																				
+    														##---------------------------------------------------------------------------------------
+                                    						## 차차주 생산필요량
+                    										<td width="$!{topLine17}px" align="right" >
+                    											<a id="divNwkSchPlan">$tr.get(20)&nbsp;</a>
+                    											<input type="hidden" name="p_sch_w2Q" class="normal" size="20" value="$tr.get(20)"> 
+                    										</td>
+                                    						## 차차주 생산 계획계
+                      										<td width="$!{topLine18}px" align="right" >  
+																<a id="divP_sch_plan_w2Q"></a>  
+																<input type="hidden" name="p_sch_plan_w2Q"  value="">                                 									
+                    										</td> 														 
+                                    						## 차차주 생산위치 
+                    										<td width="$!{topLine19}px" align="right"  onClick="setEditMode(this); ">
+                											<a id="divP_locId_w2">$tr.get(22)</a><a id="divP_locId_w2Sel" style="width:100%; display:none;" onFocusOut="setViewMode(this);" ><select name="p_locId_w2" onFocusOut="doChangeGridLoc(this);" style="width:100%; padding-left:5px;"> 
+                        									#foreach( $condition in $grid_p_loc_list )  
+                        										<option value="$condition.get(0)" #if( "$tr.get(21)" == "$condition.get(0)") selected #else #end >$condition.get(1)</option>											
+                        									#end     
+                											</select></a>  
+                    										</td>
+    				                						## W2(월)
+                                                            #if( "$tr.get(23)" == "" ) 
+                                                            	#set( $p_w2_MondayQ = "0" )
+                                                            #else
+                                                            	#set( $p_w2_MondayQ = "$number.format('##0',$tr.get(23))" )
+                                                            #end	 																														
+                    										<td width="$!{topLine20}px" align="right" >
+                                                        		<input type="text" name="p_w2_MondayQ" class="normal" value="$p_w2_MondayQ"	
+                            									 onFocusIn="saveValues(this); " onChange="calculate2(this); "  onDblClick="this.select(); " ##onKeyDown="moveNextBox(this); " 
+                            									 style="width:100%;  text-align:right; "><input 
+                        										 type="hidden" name="modify_flag" value="N">##수정 플래그 
+                    								        </td>
+    				                						## W2(화)
+							                                #if( "$tr.get(24)" == "" ) 
+                                                            	#set( $p_w2_TuedayQ = "0" )
+                                                            #else
+                                                            	#set( $p_w2_TuedayQ = "$number.format('##0',$tr.get(24))" )
+                                                            #end	 																							
+                    										<td width="$!{topLine21}px" align="right" >
+                                                           		<input type="text" name="p_w2_TuedayQ" class="normal" value="$p_w2_TuedayQ"	
+                                        						 onFocusIn="saveValues(this); " onChange="calculate2(this); "  onDblClick="this.select(); " ##onKeyDown="moveNextBox(this); " 
+                                        						 style="width:100%;  text-align:right; "><input 
+                                        						 type="hidden" name="modify_flag" value="N">##수정 플래그 
+                    										</td>
+    				                						## W2(수)
+                                                            #if( "$tr.get(25)" == "" ) 
+                                                            	#set( $p_w2_WeddayQ = "0" )
+                                                            #else
+                                                            	#set( $p_w2_WeddayQ = "$number.format('##0',$tr.get(25))" )
+                                                            #end	 																														
+                    										<td width="$!{topLine22}px" align="right" >
+                                                           		<input type="text" name="p_w2_WeddayQ" class="normal" value="$p_w2_WeddayQ"	
+                                        						 onFocusIn="saveValues(this); " onChange="calculate2(this); "  onDblClick="this.select(); " ##onKeyDown="moveNextBox(this); " 
+                                        						 style="width:100%;  text-align:right; "><input 
+                                        						 type="hidden" name="modify_flag" value="N">##수정 플래그 
+                    										</td>
+    				                						## W2(목)
+                                                            #if( "$tr.get(26)" == "" ) 
+                                                            	#set( $p_w2_ThudayQ = "0" )
+                                                            #else
+                                                            	#set( $p_w2_ThudayQ = "$number.format('##0',$tr.get(26))" )
+                                                            #end	 																														
+                    										<td width="$!{topLine23}px" align="right" >
+                                                           		<input type="text" name="p_w2_ThudayQ" class="normal" value="$p_w2_ThudayQ"	
+                                        						 onFocusIn="saveValues(this); " onChange="calculate2(this); "  onDblClick="this.select(); " ##onKeyDown="moveNextBox(this); " 
+                                        						 style="width:100%;  text-align:right; "><input 
+                                        						 type="hidden" name="modify_flag" value="N">##수정 플래그 
+                    										</td>
+    				                						## W2(금)
+                                                            #if( "$tr.get(27)" == "" ) 
+                                                            	#set( $p_w2_FridayQ = "0" )
+                                                            #else
+                                                            	#set( $p_w2_FridayQ = "$number.format('##0',$tr.get(27))" )
+                                                            #end	 																														
+                    										<td width="$!{topLine24}px" align="right" >
+                                                           		<input type="text" name="p_w2_FridayQ" class="normal" value="$p_w2_FridayQ"	
+                                        						 onFocusIn="saveValues(this); " onChange="calculate2(this); "  onDblClick="this.select(); " ##onKeyDown="moveNextBox(this); " 
+                                        						 style="width:100%;  text-align:right; "><input 
+                                        						 type="hidden" name="modify_flag" value="N">##수정 플래그 
+                    										</td>
+    				                						## W2(토)
+                                                            #if( "$tr.get(28)" == "" ) 
+                                                            	#set( $p_w2_SatdayQ = "0" )
+                                                            #else
+                                                            	#set( $p_w2_SatdayQ = "$number.format('##0',$tr.get(28))" )
+                                                            #end	 																														
+                    										<td width="$!{topLine25}px" align="right" >
+                                                           		<input type="text" name="p_w2_SatdayQ" class="normal" value="$p_w2_SatdayQ"	
+                                        						 onFocusIn="saveValues(this); " onChange="calculate2(this); "  onDblClick="this.select(); " ##onKeyDown="moveNextBox(this); " 
+                                        						 style="width:100%;  text-align:right; "><input 
+                                        						 type="hidden" name="modify_flag" value="N">##수정 플래그 
+                    										</td>
+    				                						## W2(일)
+                                                            #if( "$tr.get(29)" == "" ) 
+                                                            	#set( $p_w2_SundayQ = "0" )
+                                                            #else
+                                                            	#set( $p_w2_SundayQ = "$number.format('##0',$tr.get(29))" )
+                                                            #end	 														 																
+                    										<td width="$!{topLine26}px" align="right" >
+                                                           		<input type="text" name="p_w2_SundayQ" class="normal" value="$p_w2_SundayQ"	
+                                        						 onFocusIn="saveValues(this); " onChange="calculate2(this); "  onDblClick="this.select(); " ##onKeyDown="moveNextBox(this); " 
+                                        						 style="width:100%;  text-align:right; "><input 
+                                        						 type="hidden" name="modify_flag" value="N">##수정 플래그 
+                    										</td>
+     														
+                                    						## W2주 판매계획
+                    										<td width="$!{topLine27}px" align="right" >
+                    											<a id="divP_nf_sal_w2Q">$tr.get(30)&nbsp;</a><input 
+                    												type="hidden" name="p_nf_sal_w2Q" class="normal" size="20" value="$tr.get(30)"> 
+                    										</td>  
+															## 예상재고(W2주)
+                    										<td width="$!{topLine28}px" align="right" > 
+																<a id="divP_estInv_w2Q"></a>
+                            									<input type="hidden" name="p_estInv_w2Q"  value="">											
+                    										</td> 		 																										
+                    								    </tr>   
+    											     #end  													
+    												</tbody>
+                    							</table>
+                    						</div>
+                						</td>
+                					</tr>
+                				</table>
+                				##Main Table end  
+							</td>  
+					    </tr>		              	 			  										
+						<tr height= "250px"> ##org 280px  
+							<td>	     
+							##iframe Table start                         
+            				<table border="0" width="100%" height="100%" cellpadding="0" cellspacing="0" >
+            					<tr>                   
+            						<td align="center" height="100%" width="100%"> ## 유통가공구성품                                                            
+            							<iframe name="iframe01" border="0" frameSpacing="0" frameBorder="0" height="100%" width="100%" scrolling="no"  
+            								src="service.do?_moon_service=sc_01100_etc_plan_detail_list&amp;_moon_perpage=100&amp;_moon_pagenumber=1" 
+            								class="iframe">      
+            							</iframe>    
+            						</td>  
+            					</tr>  
+            				</table>  
+							##iframe Table end    
+								 
+        				</td>
+                     </tr>
+                 </table>
+
+				## waiting 표시영역
+				#waitingArea()
+						
+				<input type="hidden" name="_moon_service">
+				<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+				<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+				## 번호 배경색
+				<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">															
+			</div>
+	    </div> 
+	  </td>
+   </tr>
+</table> 
+ 
+<script>	  
+	// 화면 resize 
+	$!{resizeFuncCallCode};  
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+    // window start시 초기화
+	function window.onload(){ 
+
+		//유통가공품/구성품
+	    var etcgb1 = "$!{checked_p}";
+	    var etcgb2 = "$!{checked_c}";
+		
+	    if(etcgb1 == ""){					  
+			if(etcgb2 == ""){
+	    		document.frm.checked_p.checked = true;
+	    		document.frm.checked_p.value   = "Y";	
+	  	        document.frm.checked_etc.value = "etc_mst"; 		        				
+			}else{     
+	    		document.frm.checked_c.value   = ""; 
+	    		document.frm.checked_c.checked = false;
+	  	        document.frm.checked_etc.value = "etc_dtl"; 		        				
+			} 		    
+		}     
+    			 
+	    var tableLen = left_tbody.rows.length;
+	    
+        /* 
+		 * 1. p_estInv_w0Q : 예상재고(W0)
+		*/
+    	if(tableLen == 0){		
+		}
+		else if(tableLen < 2){
+  		 
+       		var w1_sum = 0;         
+    		var p_estInv_w0Q = Number(delComma(document.frm.p_estInv_w0Q.value));			     
+            var p_nf_sal_w1Q = Number(delComma(document.frm.p_nf_sal_w1Q.value));
+        
+            w1_sum = Number(delComma(document.frm.p_w1_MondayQ.value));           //W1 월
+            w1_sum = w1_sum + Number(delComma(document.frm.p_w1_TuedayQ.value));  //W1 화
+            w1_sum = w1_sum + Number(delComma(document.frm.p_w1_WeddayQ.value));  //W1 수
+            w1_sum = w1_sum + Number(delComma(document.frm.p_w1_ThudayQ.value));  //W1 목
+            w1_sum = w1_sum + Number(delComma(document.frm.p_w1_FridayQ.value));  //W1 금
+            w1_sum = w1_sum + Number(delComma(document.frm.p_w1_SatdayQ.value));  //W1 토
+            w1_sum = w1_sum + Number(delComma(document.frm.p_w1_SundayQ.value));  //W1 일
+            
+            //생산계획계_W1
+			divP_sch_plan_w1Q.innerHTML = w1_sum;
+         	document.frm.p_sch_plan_w1Q.value = w1_sum;
+			
+         	//예상재고_W1
+            divP_estInv_w1Q.innerHTML = p_estInv_w0Q + w1_sum - p_nf_sal_w1Q; 
+         	document.frm.p_estInv_w1Q.value = p_estInv_w0Q + w1_sum - p_nf_sal_w1Q;
+
+    		var w2_sum = 0;         //1. 생산계획계(W0)
+                                    //2. 예상재고(차주초) W1
+            var p_estInv_w1Q = Number(delComma(document.frm.p_estInv_w1Q.value));
+                                    //3. 판매계획 W1
+			var p_nf_sal_w2Q = Number(delComma(document.frm.p_nf_sal_w2Q.value));
+        
+            w2_sum = Number(delComma(document.frm.p_w2_MondayQ.value));           //W1 월
+            w2_sum = w2_sum + Number(delComma(document.frm.p_w2_TuedayQ.value));  //W1 화
+            w2_sum = w2_sum + Number(delComma(document.frm.p_w2_WeddayQ.value));  //W1 수
+            w2_sum = w2_sum + Number(delComma(document.frm.p_w2_ThudayQ.value));  //W1 목
+            w2_sum = w2_sum + Number(delComma(document.frm.p_w2_FridayQ.value));  //W1 금
+            w2_sum = w2_sum + Number(delComma(document.frm.p_w2_SatdayQ.value));  //W1 토
+            w2_sum = w2_sum + Number(delComma(document.frm.p_w2_SundayQ.value));  //W1 일
+            
+			//생산계획계_W2     
+			divP_sch_plan_w2Q.innerHTML = w2_sum;
+         	document.frm.p_sch_plan_w2Q.value = w2_sum;
+         	    
+         	//예상재고_W2  
+            divP_estInv_w2Q.innerHTML = p_estInv_w1Q + w2_sum - p_nf_sal_w2Q;  
+         	document.frm.p_estInv_w2Q.value = p_estInv_w1Q + w2_sum - p_nf_sal_w2Q;
+			
+		}else if(tableLen >= 2){
+		
+    	    for( var i = 0 ; i < tableLen ; ++i ) {
+                
+        		var w1_sum = 0;         //1. 생산계획계(W0)
+                                        //2. 예상재고(차주초) W0
+                var p_estInv_w0Q = Number(delComma(document.frm.p_estInv_w0Q[i].value));			     
+                                        //3. 판매계획 W1   
+                var p_nf_sal_w1Q = Number(delComma(document.frm.p_nf_sal_w1Q[i].value));
+            
+                w1_sum = Number(delComma(document.frm.p_w1_MondayQ[i].value));           //W1 월
+                w1_sum = w1_sum + Number(delComma(document.frm.p_w1_TuedayQ[i].value));  //W1 화
+                w1_sum = w1_sum + Number(delComma(document.frm.p_w1_WeddayQ[i].value));  //W1 수
+                w1_sum = w1_sum + Number(delComma(document.frm.p_w1_ThudayQ[i].value));  //W1 목
+                w1_sum = w1_sum + Number(delComma(document.frm.p_w1_FridayQ[i].value));  //W1 금
+                w1_sum = w1_sum + Number(delComma(document.frm.p_w1_SatdayQ[i].value));  //W1 토
+                w1_sum = w1_sum + Number(delComma(document.frm.p_w1_SundayQ[i].value));  //W1 일
+                
+                //생산계획계_W1
+    			divP_sch_plan_w1Q[i].innerHTML = w1_sum;
+             	document.frm.p_sch_plan_w1Q[i].value = w1_sum;
+    			
+             	//예상재고_W1
+                divP_estInv_w1Q[i].innerHTML = p_estInv_w0Q + w1_sum - p_nf_sal_w1Q; 
+             	document.frm.p_estInv_w1Q[i].value = p_estInv_w0Q + w1_sum - p_nf_sal_w1Q;
+    
+        		var w2_sum = 0;         //1. 생산계획계(W0)
+                                        //2. 예상재고(차주초) W1
+                var p_estInv_w1Q = Number(delComma(document.frm.p_estInv_w1Q[i].value));
+                                        //3. 판매계획 W1
+    			var p_nf_sal_w2Q = Number(delComma(document.frm.p_nf_sal_w2Q[i].value));
+            
+                w2_sum = Number(delComma(document.frm.p_w2_MondayQ[i].value));           //W1 월
+                w2_sum = w2_sum + Number(delComma(document.frm.p_w2_TuedayQ[i].value));  //W1 화
+                w2_sum = w2_sum + Number(delComma(document.frm.p_w2_WeddayQ[i].value));  //W1 수
+                w2_sum = w2_sum + Number(delComma(document.frm.p_w2_ThudayQ[i].value));  //W1 목
+                w2_sum = w2_sum + Number(delComma(document.frm.p_w2_FridayQ[i].value));  //W1 금
+                w2_sum = w2_sum + Number(delComma(document.frm.p_w2_SatdayQ[i].value));  //W1 토
+                w2_sum = w2_sum + Number(delComma(document.frm.p_w2_SundayQ[i].value));  //W1 일
+                 
+                //생산계획계_W2
+    			divP_sch_plan_w2Q[i].innerHTML = w2_sum;  
+             	document.frm.p_sch_plan_w2Q[i].value = w2_sum;
+    			
+             	//예상재고_W2
+                divP_estInv_w2Q[i].innerHTML = p_estInv_w1Q + w2_sum - p_nf_sal_w2Q; 
+             	document.frm.p_estInv_w2Q[i].value = p_estInv_w1Q + w2_sum - p_nf_sal_w2Q;
+    		}  
+	     }
+    }
+	
+	// 도움말 내용 입력   
+	var helpStr =  "◈ 유통가공품과 유통가공 구성품을 조정하는 화면입니다.";		
+	helpStr += "<br>◈ 계획버전은 공장할당계획 최종 확정버전 기준으로 조회됩니다.";
+	helpStr += "<br>◈ 상단은 유통가공품 하단은 유통 구성품에 관한 정보를 화면에 나타냅니다.";
+	helpStr += "<br>◈ 상단 및 하단 화면에 대해 차주, 차차주에 대한 일자별 계획량을 입력하면, 관련 데이터가 자동으로 변환됩니다. ";
+	helpStr += "<br>◈ 가공품(上)에 대한 생산위치는 기준정보(code_mst)에 정의한 생산가능 위치입니다. ";
+	helpStr += "<br>◈ (ex. 102000461, 농심스낵모음, 7100 - 032  이외는 변경 불가) "; 
+	helpStr += "<br>◈ 구성품(下)에 대한 생산위치는 기준정보(item_capa)에 정의한 생산가능 위치입니다. ";
+	
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0; 
+</script>
+ 

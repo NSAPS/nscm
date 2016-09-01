@@ -1,0 +1,324 @@
+#############################################################################################################################################
+## ÇÁ·Î±×·¥ID : sc_11020_dailyProductionPlanAnalysisNew_popup.vm
+## ÇÁ·Î±×·¥¸í : ÀÏ°£»ý»ê°èÈ¹ ºÐ¼®(Àç±¸¼º) - ¼öÁ¤È­¸é(POPUP)
+## °³¹ßÀÚ  : Á¤Àç±³
+## °³¹ßÀÏÀÚ : 2008-11-27 ¸ñ¿äÀÏ
+##
+##°ü·Ã job file : job_sinc_20_scheduling_00.xml
+##
+##°ü·Ã query file : query_sinc_20_scheduling_00.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2008-11-27  Á¤Àç±³          sc_11020_dailyProductionPlanAnalysisNew_popup.vm °³¹ß
+##
+##
+#############################################################################################################################################
+## ºñÁ¤»óÀû Á¢±Ù ¹æÁö 
+#loginCheck() 
+## È­¸é resizing À» À§ÇÑ function È£Ãâ ÄÚµå
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize2('107', '432')" ) 
+
+## Àü´Þ ¹ÞÀº º¯¼ö ÀúÀå
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/scheduling.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>    
+
+
+
+<body onUnLoad="exit('-1');">
+    <table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+        ## ±â´É ¹öÆ° ¿µ¿ª
+        <script> 
+            var buttonString = "";
+            buttonString = "<input type=\"button\" name=\"btnExecIF\" id=\"btnExecIF\" value=\" Á¶È¸\" onClick=\"GoSearch('xx'); \" class=\"btn_search_on\">";
+            buttonString+= "<input type=\"button\" name=\"btnExecIF\" id=\"btnExecIF\" value=\" ÀúÀå\" onClick=\"GoSave('xx'); \" class=\"btn_sav_on\">";
+            areaBtn.innerHTML = " &nbsp;" + buttonString;
+        </script>
+        
+        ## Á¶È¸ ¿µ¿ª
+        <tr>
+            <td width="100%" valign="top">
+                <table border="0" width="100%" cellpading="0" cellspacing="0">
+                    <tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+                    <tr>
+                        <td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+                        <td width="100%">
+                            <table id="search_menu" border="0" width="100%" cellpading="0" cellspacing="0" 
+                            style="background-color:#f2f2f2; display:block; ">
+                                <tr>
+                                    <td width="7%" align="right">
+                                        °øÀå ($!plant_id) :
+                                    </td> 
+                                    <td width="7%" align="left" >
+                                        <input type="text" name="txt_plant_name" size="100"  style="width:80px; text-align:left; " class="normal" value="$plant_name" readOnly >
+                                    </td>
+                                    <td width="10%" align="right">
+                                        ¶óÀÎ ($line_id) :
+                                    </td>
+                                    <td width="20%" align="left" >
+                                        <input type="text" name="txt_line_name" size="100"  style="width:155px; text-align:left; " class="normal" value="$line_name" readOnly>
+                                    </td>                                                                
+                                    <td width="10%" align="right">
+                                        ÀÛ¾÷Àå ($proc_id) :
+                                    </td>
+                                    <td width="20%" align="left">
+                                        <input type="text" name="txt_proc_name" size="100"  style="width:155px; text-align:left; " class="normal" value="$proc_name" readOnly>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+                    </tr>
+                    <tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+                </table>
+            </td>
+        </tr>
+        
+        <tr><td height="5"></td></tr>
+        ## TAB ¿µ¿ª
+        <tr>
+            <td valign="top">
+                ## tab ÁÂÃø ¿©¹é
+                <table name="grid" width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+                    <tr>
+                        <td align="left">
+                            <script>initWiseGrid("WiseGrid", "100%", "400");</script>
+                        </td>
+                    </tr>
+                </table> 
+                
+                <input type="hidden" name="_moon_service">
+                <input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+                <input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+    			<input type="hidden" name="_user_id" value="$!{_user_id}">
+                
+                ## ¹øÈ£ ¹è°æ»ö
+                <input name="searchBgcolor" type="hidden" value="${search_bgcolor}">                    
+            </td>
+        </tr>
+    </table>
+</body>
+
+
+<script>
+    // µµ¿ò¸» ³»¿ë ÀÔ·Â
+    var helpStr = "¢Â Job Change Ãß°¡ È­¸é";
+    helpStr += "<br>¢Â J/C°¡ µÉ ¼ö ÀÖ´Â Á¶°ÇÀÇ ¸ðµç µ¥ÀÌÅÍ¸¦ È­¸é¿¡ Ãâ·Â ÇÏ°í";
+    helpStr += "<br>¢Â ÇØ´ç °Ç¿¡ ´ëÇÑ J/C Time(ºÐ) ÀÌ³ª Box¼ö·®À» ÀÔ·Â ÇÕ´Ï´Ù.";
+    helpStr += "<br>¢Â ¼öÁ¤ ÈÄ¿¡´Â 'ÀúÀå' ¹öÆ°À» ´©¸¨´Ï´Ù.";
+    helpStr += "<br>¢Â 'X'·Î Ã¢À» ´ÝÀ¸¸é JobChange ½Ã°£°ü¸® Á¶È¸È­¸é¿¡ Ãß°¡µÈ °á°ú°¡ Ãâ·Â µË´Ï´Ù.";
+    helpCont.innerHTML = helpStr;
+    hDynamicHeight = 0;
+
+   var pageID = "sc_01090_jobChangeMgmt_list_pop";
+   var pageID_Save = "sc_01090_jobChangeMgmt_lst";
+   var GridObj = document.WiseGrid;
+   var GridHeaderString = "";
+
+
+
+
+
+
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢WiseGrid ¿ÀºêÁ§Æ®°¡ »ý¼ºµÇ°í ÃÊ±âÈ­µÈ ÈÄ ¹ß»ýÇÏ´Â 
+  ¦¢JavaScript EventÀÎ Initialize()¸¦ ¹Þ¾Æ ±×¸®µåÀÇ Çì´õ¸¦ ¼ÂÆÃÇÑ´Ù.
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+   function init() {
+       setProperty(GridObj);//WiseGrid Default¼³Á¤ ºÎºÐ (WiseGrid_Property.jsÆÄÀÏ ³»¿¡ ¼±¾ðµÇ¾î ÀÖ´Ù.)
+       setDefault();        //È­¸é ±âº» ¼³Á¤ 
+       setHeader(GridObj);  //ÇØ´õ»ý¼º 
+       
+       doQuery();
+   }
+   
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢È­¸é ±âº» ¼³Á¤ ºÎºÐ.
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+   function setDefault()
+   {
+
+
+   }
+
+
+
+
+   	
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢ÇØ´õ»ý¼º
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+   function setHeader(GridObj) 
+   {		
+       GridObj.AddHeader("CRUD"          ,"±¸ºÐ"       ,"t_text" ,10  ,55  ,false);                                                                                 
+       GridObj.AddHeader("PLANT"         ,"Code"       ,"t_text" ,20  ,40  ,false); //0                                                                               
+       GridObj.AddHeader("PLANT_NM"      ,"Name"       ,"t_text" ,20  ,80  ,false); //1                                                                               
+       GridObj.AddHeader("LINE_ID"       ,"Code"       ,"t_text" ,18  ,40  ,false); //2                                                                               
+       GridObj.AddHeader("LINE_NM"       ,"Name"       ,"t_text" ,200 ,160 ,false); //3                                                                               
+       GridObj.AddHeader("PROC_ID"       ,"Code"       ,"t_text" ,18  ,45  ,false); //4                                                                               
+       GridObj.AddHeader("PROC_NM"       ,"Name"       ,"t_text" ,200 ,160 ,false); //5                                                                               
+       GridObj.AddHeader("FROM_GROUP"    ,"Code"       ,"t_text" ,18  ,70  ,false); //6                                                                               
+       GridObj.AddHeader("FROM_GROUP_NM" ,"Name"       ,"t_text" ,200 ,160 ,false); //7                                                                               
+       GridObj.AddHeader("TO_GROUP"      ,"ID"         ,"t_text" ,18  ,70  ,false); //8                                                                               
+       GridObj.AddHeader("TO_GROUP_NM"   ,"Name"       ,"t_text" ,200 ,160 ,false); //9                                                                               
+       GridObj.AddHeader("JC_TIME"       ,"J/C Time"   ,"t_text" ,10  ,60  ,true ); //10                                                                              
+       GridObj.AddHeader("BOX_QTY"       ,"BOX"        ,"t_text" ,10  ,60  ,true ); //11 
+       
+                                                                                   
+       
+       //ÇØ´õ ±×·ì»ý¼º
+       GridObj.AddGroup("PLANTGROUP","°øÀå");
+       GridObj.AppendHeader("PLANTGROUP","PLANT");
+       GridObj.AppendHeader("PLANTGROUP","PLANT_NM");
+
+       GridObj.AddGroup("LINEGROUP","¶óÀÎ");
+       GridObj.AppendHeader("LINEGROUP","LINE_ID");
+       GridObj.AppendHeader("LINEGROUP","LINE_NM");
+
+       GridObj.AddGroup("PROCGROUP","ÀÛ¾÷Àå");
+       GridObj.AppendHeader("PROCGROUP","PROC_ID");
+       GridObj.AppendHeader("PROCGROUP","PROC_NM");
+
+       GridObj.AddGroup("FROMGROUP","From ±×·ì");
+       GridObj.AppendHeader("FROMGROUP","FROM_GROUP");
+       GridObj.AppendHeader("FROMGROUP","FROM_GROUP_NM");
+       
+       GridObj.AddGroup("TOGROUP","To ±×·ì");
+       GridObj.AppendHeader("TOGROUP","TO_GROUP");
+       GridObj.AppendHeader("TOGROUP","TO_GROUP_NM");
+
+   	   GridObj.BoundHeader();	
+   	   
+   	   //ÇØ´õ Hidden
+   	   GridObj.SetColHide("CRUD"     , true);
+       GridObj.SetColHide("PLANT"    , true);   
+       GridObj.SetColHide("PLANT_NM" , true);   
+       GridObj.SetColHide("LINE_ID"  , true);   
+       GridObj.SetColHide("LINE_NM"  , true);   
+       GridObj.SetColHide("PROC_ID"  , true);   
+       GridObj.SetColHide("PROC_NM"  , true);   
+   	   
+   	   GridObj.SetCRUDMode("CRUD", "Ãß°¡", "¼öÁ¤", "»èÁ¦"); //¼öÁ¤,»èÁ¦,Ãß°¡ ±¸ºÐ ºÎºÐ.
+   }
+   	
+
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢È­¸é¿¡ 'Á¶È¸'¸¦ ´©¸£¸é È£Ãâ Fnc
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+   function GoSearch(service) 
+   {
+       doQuery();
+   }
+  
+  
+  
+  
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢È­¸é¿¡ 'ÀúÀå'¸¦ ´©¸£¸é È£Ãâ Fnc
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+   function GoSave  (service)
+   {
+	    var servlet_url = Project_name+"/servlet/com.wisegrid.admin."+pageID_Save;
+    
+    	//WiseGrid°¡ ¼­¹ö¿¡ Àü¼ÛÇÒ mode¸¦ ¼ÂÆÃÇÑ´Ù.
+    	GridObj.SetParam("mode", "save");
+    	GridObj.SetParam("_user_id",document.all._user_id.value);
+    
+    	//WiseGrid°¡ ¼­¹ö¿Í Åë½Å½Ã¿¡ µ¥ÀÌÅÍ¸¦ Àü´ÞÇÑ
+    	GridObj.DoQuery(servlet_url, "CRUD");
+    	
+   }
+      
+   
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢Á¶È¸ Äõ¸®¸¦ È£Ãâ Fnc
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+   function doQuery() 
+   {
+       var plant_id = "$plant_id";           
+       var line_id  = "$line_id";  
+       var proc_id  = "$proc_id";
+       
+       var servlet_url = Project_name+"/servlet/com.wisegrid.admin."+pageID;
+
+       //³Ñ°ÜÁÙ °ªµéÀ»¸¸µç´Ù.( ÆÄ¶ó¹ÌÅÍ Á¤ÀÇ ºÎºÐ )
+       GridObj.SetParam("mode", "search");
+       GridObj.SetParam("plant_id", plant_id);
+       GridObj.SetParam("line_id", line_id);
+       GridObj.SetParam("proc_id", proc_id);
+       GridObj.DoQuery(servlet_url);
+       
+       GridObj.ClearGrid() 
+       setHeader(GridObj);  //ÇØ´õ»ý¼º 
+   }
+
+
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢µ¥ÀÌÅÍ Á¶È¸°¡ Á¤»óÀûÀ¸·Î ¿Ï·áµÇ¸é ¹ß»ýµÇ´Â Event¿¡ ´ëÇÑ Fnc
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+    function GridEndQuery() 
+    {
+        var mode = GridObj.GetParam("mode");
+        var error_msg = '';
+        if(mode == "search") //Á¶È¸°¡ ¿Ï·áµÈ °æ¿ì
+        {
+            if(GridObj.GetStatus() == "true") 
+            {                                                    
+                //µ¥ÀÌÅÍ¸¦ ±×·ìÇÎ ÇÑ´Ù.                                                     
+                GridObj.SetGroupMerge("PLANT,PLANT_NM,LINE_ID,LINE_NM,PROC_ID,PROC_NM,FROM_GROUP,FROM_GROUP_NM");                                                    
+                GridObj.SetColCellAlign('JC_TIME','right') 
+                GridObj.SetColCellAlign('BOX_QTY','right') 
+            } else	
+            { 
+                error_msg = GridObj.GetMessage(); 
+                alert(error_msg);			
+            }
+        } else if(mode=='save') { //ÀúÀåÀÌ ¿Ï·áµÈ °æ¿ì 
+            if(GridObj.GetStatus() == "true") 
+        	{
+        	    doQuery() ;
+            } else	{
+                error_msg = GridObj.GetMessage();
+                alert(error_msg);			
+            }
+        }
+    }
+     
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢±×¸®µåÀÇ µ¥ÀÌÅÍ°¡ º¯°æ µÇ¾úÀ» °æ¿ì Ã³¸®µÇ´Â Fnc
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+   function GridChangeCell(strColumnKey, nRow) 
+   {
+   	/*
+   	if(strColumnKey != "SELECTED") {
+   		//??? ? SELECTED ?? ??? ??? ?? ???. 
+   		GridObj.SetCellValue("SELECTED", nRow, "1");
+   	}
+   	*/
+   }   
+   
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢±×¸®µåÀÇ ¿ø Å¬¸¯ ÀÌº¥Æ®
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+   function GridCellClick(strColumnKey, nRow){
+   }		
+        
+        
+        
+        
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢Ã¢À» ´ÝÀ»¶§ ¹ß»ýµÇ´Â Fnc
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+   function exit(returnValue)
+   {
+        window.returnValue = returnValue;
+        window.close();
+   }        
+        
+</script> 
+
+
+

@@ -1,0 +1,308 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+###set( $resizeFuncCallCode = "setGridAutoResize('117', '177')" )     
+#set( $resizeFuncCallCode = "setGridAutoResize('147', '187')" )            
+ 
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">  
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right" >
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+				<tr>					
+					<td align="right">
+						#button("search")
+						#toolbar($_moon_toolbar "" "" "" "")
+					</td>
+				</tr>
+			</table> 
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" 
+							id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr>            					
+            					<td width="11%" align="right">계획버전 :</td>
+            					<td width="20%">         					 				 
+                					<select name="selected_version" style="width:185px; " onChange="doChangeVersion(this); ">
+                						<option value="">선택</option>
+									#foreach( $condition in $semi_combo_version_list ) 
+										<option value="$condition.get(0)!%!$condition.get(1)" 
+											#if($!{selected_version} == "$condition.get(0)!%!$condition.get(1)") selected 
+											#end 
+											#if("$condition.get(3)" =="23" || "$condition.get(3)" =="27") ## 확정 or ERP 전송 완료
+												style="background-color:#ffffaa; "
+											#end  
+										>$condition.get(0) - $condition.get(1)</option>											
+									#end
+                					</select>									
+									<input type="hidden" name="version" value="$!{version}">
+									<input type="hidden" name="seq" value="$!{seq}">
+            					</td>
+								<td width="13%" align="right">공장 :</td>
+            					<td width="16%">	
+									<a id="divPlant">
+                						<select name="selected_plant" style="width:100px; ">
+                							<option value="">선택</option>            										
+                						</select>
+									</a>
+            					</td>
+								<td width="10%" align="right">원가부문 :</td>
+            					<td width="32%">
+            						<a id="divWon">    
+            							<select name="selected_won" style="width:195px; ">
+            								<option value="">전체</option>										
+            							</select>
+            						</a>
+            					</td>
+            				</tr>
+							<tr>
+								<td width="11%" align="right">작업장 :</td>
+            					<td width="20%">
+            						<a id="divProc">    
+            							<select name="selected_proc" style="width:185px; ">
+            								<option value="">전체</option>										
+            							</select>
+            						</a>
+            					</td>								
+								<td width="13%" align="right">반제품 종류 :</td> 
+            					<td width="16%"> 
+            						<select name="selected_type" style="width:100px; " > ##onChange="doChangeType(this); "										
+            							<option value="">전체</option>
+            						#foreach( $condition in $semi_combo_type )
+            							<option value="$condition.get(0)" #if($!{selected_type} == "$condition.get(0)") selected #else #end>$condition.get(0)</option>											
+            						#end
+            						</select>
+            					</td>
+								<td width="10%" align="right">기간 :</td>         
+            					<td width="32%">  		 															    
+            						#date_sole_no_title( "sdate" "10" "normal" "startBtn" $date.get('yyyy-MM-dd'))~
+            						<input type="text" name="edate" size="10" class="normal" value="" disabled>            							  
+            						<script> 
+										sumDate(document.frm.sdate);
+            							document.frm.sdate.onchange = function(){ sumDate(this); };            							
+            						</script>
+            					</td>	
+            				</tr>             														
+            			</table>
+					</td> 		
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	
+	<input name="search_h" type="hidden" value="46"> ## search 조건 부분 높이 
+	<tr><td height="5"></td></tr> 
+	## TAB 영역
+	<tr>						
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>	
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>#page_info2()</td>
+						</tr>
+					</table>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>   
+							<td>	     
+								
+								#set( $header = "공장코드!%!공장!%!원가부문!%!작업장\n코드!%!작업장!%!제품 코드!%!제품 명!%!규격!%!개입!%!line_id!%!합계!%!조!%!주!%!야!%!조!%!주!%!야!%!조!%!주!%!야!%!조!%!주!%!야!%!조!%!주!%!야!%!조!%!주!%!야!%!조!%!주!%!야!%!조!%!주!%!야!%!조!%!주!%!야!%!조!%!주!%!야!%!조!%!주!%!야!%!조!%!주!%!야!%!조!%!주!%!야!%!조!%!주!%!야!%!조!%!주!%!야!%!조!%!주!%!야!%!조!%!주!%!야!%!조!%!주!%!야!%!조!%!주!%!야!%!조!%!주!%!야!%!조!%!주!%!야" )
+								#set( $headerType = "TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER" )
+								#set( $colwidth = "0!%!60!%!80!%!50!%!120!%!70!%!200!%!80!%!50!%!0!%!65!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50" )
+    							#set( $colalign = "CENTER!%!CENTER!%!LEFT!%!CENTER!%!LEFT!%!CENTER!%!LEFT!%!CENTER!%!RIGHT!%!CENTER!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT" )
+								
+    							#set( $data = $zlattice.getBody($!{sc_12020_dailySemifinishedProductPlanAnalysis_list},"!%!", "/%/") )
+								
+								#set( $topHearders = "$grid_dates.get(0).get(0)/%/$grid_dates.get(0).get(1)/%/$grid_dates.get(0).get(2)/%/$grid_dates.get(0).get(3)/%/$grid_dates.get(0).get(4)/%/$grid_dates.get(0).get(5)/%/$grid_dates.get(0).get(6)/%/$grid_dates.get(0).get(7)/%/$grid_dates.get(0).get(8)/%/$grid_dates.get(0).get(9)/%/$grid_dates.get(0).get(10)/%/$grid_dates.get(0).get(11)/%/$grid_dates.get(0).get(12)/%/$grid_dates.get(0).get(13)/%/$grid_dates.get(0).get(14)/%/$grid_dates.get(0).get(15)/%/$grid_dates.get(0).get(16)/%/$grid_dates.get(0).get(17)/%/$grid_dates.get(0).get(18)/%/$grid_dates.get(0).get(19)/%/$grid_dates.get(0).get(20)" )
+								#set( $topHearderPosition = "X!%!X!%!X!%!X!%!X!%!X!%!X!%!X!%!X!%!X!%!X!%!O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O" )
+								
+								<textarea id="txt1" style="display:none;" rows="0" cols="0"> 
+        							<object name='grid'
+        								classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93" width="100%" height="375"
+        								codebase="http://java.sun.com/update/1.5.0/jinstall-1_5_0_03-windows-i586.cab#Version=1,5,3,0">
+            							##codebase="http://javadl.sun.com/webapps/download/AutoDL?BundleId=19588#Version=6,0,050,13">
+        								<!--Necessary-->     
+                                        <param name="code" value="com.zionex.t3sinc.ui.ZLattice">
+                                        <param name="archive" value="zLattice.jar">
+                                        <param name="headertypes" value= "$headerType">
+                                        <param name="headers"  value= "$header">
+                                        <param name="data" value= "$data">
+										<param name="hasnestedsubheader" value="true"> <!-- default -false -->
+										<param name="topheaderposition" value="$topHearderPosition">
+										<param name="topheaders" value="$topHearders"> <!-- default -false --> 
+                                        <!--Necessary for Modification Grid -->
+                                        <param name="names" value= "" >
+                                        <!--Necessary for Cookie -->
+                                        <param name="identity" value="sc_12020_dailySemifinishedProductPlanAnalysis_list">
+                                        <!--Necessary in TYPE COMBO 
+                                        <param name="combo9" value="DATA1!%!DATA2!%!DATA3">-->
+                                        <!--optional - Default Value 있음-->
+                                        <param name="columndelimeter" value="!%!"> <!-- defalut : !%! -->
+                                        <param name="rowdelimeter" value="/%/"> <!-- defalut : /%/ -->
+                                        <param name="showgroupingfunction" value="false">  <!-- defalut : true -->
+                                        <param name="showprintingfunction" value="false">   <!-- defalut : true -->
+                                        <param name="showlockingfunction" value="false"> <!-- defalut : true -->
+                                        <param name="showpagingfunction" value="false"> <!-- defalut : true -->
+                                        <param name="enablesorting" value="true">   <!-- defalut : true -->
+										<param name="enabledragging" value="true"/> <!-- defalut : false -->
+                                        <param name="groupingcolumn" value="5"> <!-- defalut : 그루핑 없음 -->
+                                        <param name="groupsumcolumn" value="0"> <!-- defalut : 그루핑 없음 --> 
+                                        <param name="lockedcolumn" value="6"> <!-- defalut : 락킹 없음 --> 
+                                        <param name="presentpage" value="$_moon_pagenumber">   <!-- defalut : 1 -->
+                                        <param name="listinpage" value="$_moon_perpage">   <!-- defalut : 40 -->
+                                        <param name="bordertype" value="PLANE"> <!-- default - PLANE -->
+                                        <param name="indateformat" value="yyyy-MM-dd"> <!-- default - yyyyMMdd -->
+                                        <param name="outdateformat" value="yyyy-MM-dd">  <!-- default - yyyyMMdd -->									
+										<param name="outnumberformat" value="&#035;,&#035;&#035;0"> 									 
+                                        <param name="columnwidth" value="$colwidth"> <!-- default -80 -->
+                                        <param name="hasverticaltotal" value="false"> <!-- default -true -->
+                                        <param name="hashorizontaltotal" value="false"> <!-- default -true -->
+                                        <param name="totalrowcolor" value="909090"> <!-- default ? E6E6FA -->
+                                        <param name="totalverticalrowcolor" value="909090"> <!-- default ? E6E6FF -->
+                                        <param name="totalhorizontalrowcolor" value="a1a1a1"> <!-- default ? E6E6FF -->
+                                        <param name="hascookie" value="false"> <!-- default -false -->
+                                        <param name="enableinserting" value="false"> <!-- default -false -->
+                                        <param name="enabledeleting" value="false"> <!-- default -false -->
+                                        <param name="enableediting" value="false"> <!-- default -false -->										
+                                        <!--optional - Default Value 없음-->
+                                        ##set( $colCor = "12=dfdfdf&13=dfdfdf&14=dfdfdf&18=dfdfdf&19=dfdfdf&20=dfdfdf" ) 
+										<param name="columncolor" value="$!{colCor}">
+										<param name="rowcolor" value="$!{rowCol}">
+                                        <param name="onclickrowfunc" value="onclickfunc">
+										<param name="callingfunction" value="DOUBLECLICKED_CALLING">
+                                        <param name="disablecolumns" value="">
+                                        <param name="columnalign" value="$colalign">
+                                        <param name="font" value="굴림">
+                                        <param name="fontsize" value="12">
+										<param name="columnheight" value="40"> 
+										<param name="headertype" value="HORIZONTAL_HEADER">
+        							</object>
+        						</textarea> 
+								<script language="javascript" src="${project}/object_activity.jsp?txtID=txt1"></script>
+							</td>
+						</tr>
+					</table> 
+					
+					<table height="5px"><tr><td></td></tr></table>
+										
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+						##$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+						<input type="hidden" name="_moon_service" value="${_moon_service}">
+						<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+						<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+						##<input type="hidden" name="_user_id" value="$!{_user_id}">
+					</td></tr></table> 
+					
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+					
+				</div> 
+			</div>
+		</td>
+	</tr>
+</table>
+ 
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 공장, 계획버전을 반드시 입력하고 조회해야 합니다.";
+	helpStr += "<br>◈ 각 항목을 선택후 상단의 조회 버튼을 클릭하여 일간 반제품 생산 계획량을 조회합니다.";
+	helpStr += "<br>◈ 제품 명(또는 제품 코드)을 더블클릭하면 워크 오더 번호별 작업장, 생산일, SHIFT를 수정 할 수 있는 팝업 창이 실행됩니다."; 
+	helpStr += "<br>◈ 제품명 (또는 제품 코드)을 더블클릭하면 해당 제품 전체에 대한 워크 오더가 조회가 되고, 수량을 더블클릭하면 해당 수량에 대한<br>&nbsp;&nbsp;&nbsp;&nbsp;워크 오더가 조회됩니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+	// combo box:VERSION 선택시 공장 리스트 채움
+	function doChangeVersion(obj){
+	
+		var verArr = obj.value.split("!%!");
+    	if( verArr.length == 2 ) {
+    		document.frm.version.value = verArr[0].trim();
+    		document.frm.seq.value = verArr[1].trim();
+    	}
+		
+		var div_plant = "<select name=\"selected_plant\" style=\"width:100px; \" onChange=\"doChangePlant(this); \"> "; 
+		div_plant += "<option  value=\"\">전체</option> ";   
+	#foreach( $condition in $semi_combo_plant_list )
+		if ( obj.value == "$condition.get(0)!%!$condition.get(1)" ) { 
+			div_plant += "<option value=\"$condition.get(2)\""
+				if("$condition.get(2)" == "$!{selected_plant}")
+					div_plant += " selected ";
+			div_plant += ">$condition.get(3)</option>"; 
+		}
+	#end 
+		div_plant += "</select>"; 
+		divPlant.innerHTML = div_plant;		
+	}
+	doChangeVersion(document.frm.selected_version)
+	
+	// combo box:공장 선택시 원가부문, 작업장 리스트 채움
+	function doChangePlant(obj){
+		doChangeWon(obj);
+		doChangeProc(obj);
+	}
+	doChangePlant(document.frm.selected_plant);
+	
+	// combo box:원가부문 리스트 채움
+	function doChangeWon(obj){ 
+		var div_won = "<select name=\"selected_won\" style=\"width:195px; \" onChange=\"doChangeProc(this)\"> "; 
+		div_won += "<option  value=\"\">전체</option> ";    
+	#foreach( $condition in $combo_won_list )
+		if ( obj.value == "$condition.get(0)" ) { 
+			div_won += "<option value=\"$condition.get(1)\"" 
+				if("$condition.get(1)" == "$!{selected_won}") 
+					div_won += " selected ";
+			div_won += ">$condition.get(2)</option>"; 
+		}
+	#end 
+		div_won += "</select>"; 
+		divWon.innerHTML = div_won;		
+	}	
+	
+	// combo box:작업장 리스트 채움
+	function doChangeProc(obj){
+		var div_proc = "<select name=\"selected_proc\" style=\"width:185px; \"> "; 
+		div_proc += "<option  value=\"\">전체</option> ";   
+	#foreach( $condition in $combo_proc_list )
+		if ( document.frm.selected_plant.value == "$condition.get(0)" ){
+    		if ( obj.value == "$condition.get(1)" ) { 
+    			div_proc += "<option value=\"$condition.get(2)\""
+    				if("$condition.get(2)" == "$!{selected_proc}")
+    					div_proc += " selected ";
+    			div_proc += ">$condition.get(3)</option>"; 
+    		}
+		}
+	#end 
+		div_proc += "</select>"; 
+		divProc.innerHTML = div_proc;		
+	}	 
+	doChangeProc(document.frm.selected_won);	
+					
+	//새 버전 생성시 버전 적용이 안되는 경우를 위해 화면 refresh시 함수 실행
+	setVersions(document.frm.selected_version.value);
+	
+</script> 

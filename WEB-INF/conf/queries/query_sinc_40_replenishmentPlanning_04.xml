@@ -1,0 +1,685 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>
+
+<!--
+=====================================================================================================
+	수송계획 >> 분석정보
+=====================================================================================================
+-->
+	
+	<!--
+	======================================================================
+		배송지점 물동량 현황
+	======================================================================
+	-->
+
+	<!-- 배송지점 list -->
+	<query id="rp_08010_dc_list">
+			
+			SELECT 	DM.DC_ID, DM.DC_SHORT_NAME
+			  FROM 	DC_MST DM
+					, ( SELECT 'TMP' TMP FROM DUAL ) TP <!-- 비정상멈춤 현상 방지 TMP 테이블 조인 -->
+			 WHERE 	DM.MADE_TYPE != 'DE' -- 삭제 필드가 아닌 데이터만 조회
+			 AND	DC_LOC_TYPE	= '사내'
+			 ORDER 	BY DM.DC_ID
+
+	</query>
+	
+	<!-- 배송지점 물동량 현황_header -->
+	<query id="rp_08010_HEADER_DATE">
+			
+	#if("$!{insel_fr_yyyy}" != "")
+		
+		SELECT	TO_CHAR(T1.CAL_DATE,'YYYY.MM')	CAL_DATE,
+				NVL2(T2.CAL_DATE,100,0)			SHOW_FLAG
+		FROM	(								
+				SELECT	TRUNC(ADD_MONTHS(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01'),ROWNUM-1),'MM')	CAL_DATE
+				FROM	CODE_MST
+				WHERE	ROWNUM &lt;= 12		
+				)	T1,
+				(
+				SELECT	TRUNC(ADD_MONTHS(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01'),ROWNUM-1),'MM')	CAL_DATE
+				FROM	CODE_MST
+				WHERE	ROWNUM &lt;= 12						
+				)	T2
+		WHERE	T1.CAL_DATE = T2.CAL_DATE(+)
+		AND		T2.CAL_DATE(+) BETWEEN TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01'),'MM') 
+								AND TRUNC(TO_DATE('$!{insel_to_yyyy}'||'$!{insel_to_mm}'||'01'),'MM')
+		ORDER
+		BY		CAL_DATE
+		
+	#else
+		
+		SELECT	TO_CHAR(T1.CAL_DATE,'YYYY.MM')	CAL_DATE,
+				NVL2(T2.CAL_DATE,100,0)			SHOW_FLAG
+		FROM	(								
+				SELECT	TRUNC(ADD_MONTHS(SYSDATE,ROWNUM-1),'MM')	CAL_DATE
+				FROM	CODE_MST
+				WHERE	ROWNUM &lt;= 12		
+				)	T1,
+				(
+				SELECT	TRUNC(ADD_MONTHS(SYSDATE,ROWNUM-1),'MM')	CAL_DATE
+				FROM	CODE_MST
+				WHERE	ROWNUM &lt;= 12						
+				)	T2
+		WHERE	T1.CAL_DATE = T2.CAL_DATE(+)
+		AND		T2.CAL_DATE(+) BETWEEN TRUNC(SYSDATE,'MM') 
+								AND TRUNC(SYSDATE,'MM')
+		ORDER
+		BY		CAL_DATE
+	
+	#end
+	
+	</query>
+
+	
+	<!-- 배송지점 물동량 현황 조회 -->
+	<query id="rp_08010_DC_InOut_Volumn_list">
+			
+		#if("$!{insel_sel_unit}" == "BOX") 
+			/* BOX */
+			#if("$!{insel_sel_gubn}" == "10") 
+				
+				/* 수송현황 */
+				SELECT	TGT_LOC,
+						F_GETDCNAME(TGT_LOC)	NAME,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 0),CHGO_QTY)),0)	M01,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 1),CHGO_QTY)),0)	M02,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 2),CHGO_QTY)),0)	M03,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 3),CHGO_QTY)),0)	M04,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 4),CHGO_QTY)),0)	M05,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 5),CHGO_QTY)),0)	M06,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 6),CHGO_QTY)),0)	M07,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 7),CHGO_QTY)),0)	M08,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 8),CHGO_QTY)),0)	M09,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 9),CHGO_QTY)),0)	M10,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'),10),CHGO_QTY)),0)	M11,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'),11),CHGO_QTY)),0)	M12
+				FROM	IF_TRANS_PLAN, DUAL
+				WHERE	TRANS_DATE	BETWEEN TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM') 
+										AND LAST_DAY(TO_DATE('$!{insel_to_yyyy}'||'$!{insel_to_mm}'||'01','YYYY-MM-DD'))
+				AND		SRC_LOC		= '$!{insel_dc_id}'
+				HAVING	SUM(CHGO_QTY) > 0
+				GROUP
+				BY		TGT_LOC
+				ORDER
+				BY		TGT_LOC
+		
+			#elseif("$!{insel_sel_gubn}" == "20") 
+		
+				/* 거래처 배송 */
+				SELECT	SUBSTR(T3.POST_NO,1,3)								ADRS,
+						T3.ADRS_SIDO||' '||T3.ADRS_GUGUN					ADRS_NAME,
+						SUBSTR(T3.POST_NO,5,3)								ADRS_DONG,
+						T3.ADRS_DONG										ADRS_DONG_NAME,
+						T2.CUST_CODE,
+						T2.CUST_NAME,
+						NVL2(T4.DC_ID,F_GETDCNAME(T4.DC_ID),'없슴')			MAIN_DC_NAME,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 0),CHGO_QTY)),0)	M01,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 1),CHGO_QTY)),0)	M02,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 2),CHGO_QTY)),0)	M03,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 3),CHGO_QTY)),0)	M04,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 4),CHGO_QTY)),0)	M05,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 5),CHGO_QTY)),0)	M06,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 6),CHGO_QTY)),0)	M07,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 7),CHGO_QTY)),0)	M08,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 8),CHGO_QTY)),0)	M09,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 9),CHGO_QTY)),0)	M10,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'),10),CHGO_QTY)),0)	M11,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'),11),CHGO_QTY)),0)	M12
+				FROM	(
+						SELECT  TO_DATE(A.CNFM_DATE,'YYYY-MM-DD')	TRANS_DATE,
+								A.SHIP_PART			CUST_ID,
+								SUM(B.REQT_BOX)		CHGO_QTY
+						FROM    SDORT101    A,
+								SDORT102    B,
+								ITEM_MST	C
+						WHERE   A.SLIP_NO						=	B.SLIP_NO
+						AND     A.CNFM_DATE						BETWEEN '$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01'
+																AND '$!{insel_to_yyyy}'||'$!{insel_to_mm}'||'31'
+						AND		SUBSTR(A.SLIP_GUBN_CODE,1,2)	= 'YO' /* 정상오더만 가져온다 */
+						AND		LENGTH(A.CNFM_DATE) 			= 8 
+						AND		B.PROD_CODE						= C.ITEM_ID
+						AND		B.UPDT_GUBN						!= '00'
+						AND		HR_TY1 NOT LIKE '606006%' 	/* 수산물 제외 */
+						AND		STOR_CODE	= '$!{insel_dc_id}'
+						GROUP
+						BY		TO_DATE(A.CNFM_DATE,'YYYY-MM-DD'),
+								A.SHIP_PART
+						)			T1,
+						SDSTT101	T2,
+						SDSTT002	T3,
+						(
+						SELECT	CUST_CODE,
+								MIN(STOR_CODE)	DC_ID
+						FROM	SDSTT103
+						WHERE	SALE_ORG	= '1000'
+						AND		TRIM(STOR_CODE)	IS NOT NULL
+						GROUP
+						BY		CUST_CODE
+						)			T4
+				WHERE	T1.CUST_ID	= T2.CUST_CODE
+				AND		T2.CUST_POST_NO	= 	T3.POST_NO	
+				AND		T1.CUST_ID	= T4.CUST_CODE(+)
+				GROUP
+				BY		SUBSTR(T3.POST_NO,1,3),
+						T3.ADRS_SIDO||' '||T3.ADRS_GUGUN,
+						SUBSTR(T3.POST_NO,5,3),
+						T3.ADRS_DONG,
+						T2.CUST_CODE,
+						T2.CUST_NAME,
+						T4.DC_ID
+				ORDER
+				BY		ADRS, ADRS_DONG, T2.CUST_NAME	
+		
+			#elseif("$!{insel_sel_gubn}" == "30") 
+		
+				/* 이고현황 */
+				SELECT	SRC_LOC,
+						F_GETDCNAME(SRC_LOC)	NAME,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 0),CHGO_QTY)),0)	M01,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 1),CHGO_QTY)),0)	M02,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 2),CHGO_QTY)),0)	M03,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 3),CHGO_QTY)),0)	M04,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 4),CHGO_QTY)),0)	M05,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 5),CHGO_QTY)),0)	M06,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 6),CHGO_QTY)),0)	M07,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 7),CHGO_QTY)),0)	M08,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 8),CHGO_QTY)),0)	M09,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 9),CHGO_QTY)),0)	M10,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'),10),CHGO_QTY)),0)	M11,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'),11),CHGO_QTY)),0)	M12
+				FROM	IF_TRANS_PLAN, DUAL
+				WHERE	TRANS_DATE	BETWEEN TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM') 
+										AND LAST_DAY(TO_DATE('$!{insel_to_yyyy}'||'$!{insel_to_mm}'||'01','YYYY-MM-DD'))
+				AND		TGT_LOC		= '$!{insel_dc_id}'
+				HAVING	SUM(CHGO_QTY) > 0
+				GROUP
+				BY		SRC_LOC
+				ORDER
+				BY		SRC_LOC
+			
+			#else
+				
+				SELECT	1
+				FROM	DUAL
+				WHERE	1=0
+			
+			#end
+
+		#else 
+			/* PALLET */
+
+			#if("$!{insel_sel_gubn}" == "10") 
+				
+				/* 수송현황 */
+				SELECT	TGT_LOC,
+						F_GETDCNAME(TGT_LOC)	NAME,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 0),CHGO_PAL)),0)	M01,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 1),CHGO_PAL)),0)	M02,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 2),CHGO_PAL)),0)	M03,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 3),CHGO_PAL)),0)	M04,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 4),CHGO_PAL)),0)	M05,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 5),CHGO_PAL)),0)	M06,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 6),CHGO_PAL)),0)	M07,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 7),CHGO_PAL)),0)	M08,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 8),CHGO_PAL)),0)	M09,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 9),CHGO_PAL)),0)	M10,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'),10),CHGO_PAL)),0)	M11,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'),11),CHGO_PAL)),0)	M12
+				FROM	(
+						SELECT	T1.TRANS_DATE,
+								T1.TGT_LOC,
+								T1.ITEM_ID,
+								DECODE(T2.BOX_PER_PALET,0,0,SUM(CHGO_QTY)/T2.BOX_PER_PALET) CHGO_PAL
+						FROM	IF_TRANS_PLAN	T1, 
+								(
+								SELECT	DISTINCT	
+										S1.ITEM_ID,
+										NVL(S2.BOX_PER_PALET,S1.BOX_PER_PALET)	BOX_PER_PALET
+								FROM	ITEM_MST	S1,
+										ITEM_DTL	S2
+								WHERE	S1.ITEM_ID	= S2.ITEM_ID(+)
+								AND		PLANT_ID(+)	= '$!{insel_dc_id}'
+								AND		S1.ITYPE	IN ('HAWA','FERT')
+								)				T2
+						WHERE	TRANS_DATE	BETWEEN TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM') 
+												AND LAST_DAY(TO_DATE('$!{insel_to_yyyy}'||'$!{insel_to_mm}'||'01','YYYY-MM-DD'))
+						AND		SRC_LOC		= '$!{insel_dc_id}'
+						AND		T1.ITEM_ID	= T2.ITEM_ID
+						GROUP
+						BY		T1.TRANS_DATE,
+								T1.TGT_LOC,
+								T1.ITEM_ID,
+								T2.BOX_PER_PALET
+						)				
+				HAVING	SUM(CHGO_PAL) > 0
+				GROUP
+				BY		TGT_LOC
+				ORDER
+				BY		TGT_LOC
+		
+			#elseif("$!{insel_sel_gubn}" == "20") 
+		
+				/* 거래처 배송 */
+				SELECT	SUBSTR(T3.POST_NO,1,3)								ADRS,
+						T3.ADRS_SIDO||' '||T3.ADRS_GUGUN					ADRS_NAME,
+						SUBSTR(T3.POST_NO,5,3)								ADRS_DONG,
+						T3.ADRS_DONG										ADRS_DONG_NAME,
+						T2.CUST_CODE,
+						T2.CUST_NAME,
+						NVL2(T4.DC_ID,F_GETDCNAME(T4.DC_ID),'없슴')			MAIN_DC_NAME,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 0),CHGO_PAL)),0)	M01,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 1),CHGO_PAL)),0)	M02,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 2),CHGO_PAL)),0)	M03,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 3),CHGO_PAL)),0)	M04,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 4),CHGO_PAL)),0)	M05,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 5),CHGO_PAL)),0)	M06,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 6),CHGO_PAL)),0)	M07,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 7),CHGO_PAL)),0)	M08,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 8),CHGO_PAL)),0)	M09,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 9),CHGO_PAL)),0)	M10,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'),10),CHGO_PAL)),0)	M11,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'),11),CHGO_PAL)),0)	M12
+				FROM	(
+						SELECT  TO_DATE(A.CNFM_DATE,'YYYY-MM-DD')	TRANS_DATE,
+								A.SHIP_PART			CUST_ID,
+								B.PROD_CODE,
+								DECODE(C.BOX_PER_PALET,0,0,SUM(B.REQT_BOX)/C.BOX_PER_PALET)		CHGO_PAL
+						FROM    SDORT101    A,
+								SDORT102    B,
+								(
+								SELECT	DISTINCT	
+										S1.ITEM_ID,
+										NVL(S2.BOX_PER_PALET,S1.BOX_PER_PALET)	BOX_PER_PALET,
+										S1.HR_TY1
+								FROM	ITEM_MST	S1,
+										ITEM_DTL	S2
+								WHERE	S1.ITEM_ID	= S2.ITEM_ID(+)
+								AND		PLANT_ID(+)	= '$!{insel_dc_id}'
+								AND		S1.ITYPE	IN ('HAWA','FERT')
+								)			C
+						WHERE   A.SLIP_NO						=	B.SLIP_NO
+						AND     A.CNFM_DATE						BETWEEN '$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01'
+																AND '$!{insel_to_yyyy}'||'$!{insel_to_mm}'||'31'
+						AND		SUBSTR(A.SLIP_GUBN_CODE,1,2)	= 'YO' /* 정상오더만 가져온다 */
+						AND		LENGTH(A.CNFM_DATE) 			= 8 
+						AND		B.PROD_CODE						= C.ITEM_ID
+						AND		B.UPDT_GUBN						!= '00'
+						AND		HR_TY1 NOT LIKE '606006%' 	/* 수산물 제외 */
+						AND		STOR_CODE	= '$!{insel_dc_id}'
+						GROUP
+						BY		TO_DATE(A.CNFM_DATE,'YYYY-MM-DD'),
+								A.SHIP_PART,
+								B.PROD_CODE,
+								C.BOX_PER_PALET
+						)			T1,
+						SDSTT101	T2,
+						SDSTT002	T3
+				WHERE	T1.CUST_ID	= T2.CUST_CODE
+				AND		T2.CUST_POST_NO	= 	T3.POST_NO	
+				GROUP
+				BY		SUBSTR(T3.POST_NO,1,3),
+						T3.ADRS_SIDO||' '||T3.ADRS_GUGUN,
+						SUBSTR(T3.POST_NO,5,3),
+						T3.ADRS_DONG,
+						T2.CUST_CODE,
+						T2.CUST_NAME,
+						T4.DC_ID	
+				ORDER
+				BY		ADRS, ADRS_DONG, T2.CUST_NAME	
+		
+			#elseif("$!{insel_sel_gubn}" == "30") 
+		
+				/* 이고현황 */
+				SELECT	SRC_LOC,
+						F_GETDCNAME(SRC_LOC)	NAME,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 0),CHGO_PAL)),0)	M01,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 1),CHGO_PAL)),0)	M02,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 2),CHGO_PAL)),0)	M03,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 3),CHGO_PAL)),0)	M04,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 4),CHGO_PAL)),0)	M05,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 5),CHGO_PAL)),0)	M06,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 6),CHGO_PAL)),0)	M07,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 7),CHGO_PAL)),0)	M08,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 8),CHGO_PAL)),0)	M09,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'), 9),CHGO_PAL)),0)	M10,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'),10),CHGO_PAL)),0)	M11,
+						NVL(SUM(DECODE(TRUNC(TRANS_DATE,'MM'),ADD_MONTHS(TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM'),11),CHGO_PAL)),0)	M12
+				FROM	(
+						SELECT	T1.TRANS_DATE,
+								T1.SRC_LOC,
+								T1.ITEM_ID,
+								DECODE(T2.BOX_PER_PALET,0,0,SUM(CHGO_QTY)/T2.BOX_PER_PALET) CHGO_PAL
+						FROM	IF_TRANS_PLAN	T1, 
+								(
+								SELECT	DISTINCT	
+										S1.ITEM_ID,
+										NVL(S2.BOX_PER_PALET,S1.BOX_PER_PALET)	BOX_PER_PALET
+								FROM	ITEM_MST	S1,
+										ITEM_DTL	S2
+								WHERE	S1.ITEM_ID	= S2.ITEM_ID(+)
+								AND		PLANT_ID(+)	= '$!{insel_dc_id}'
+								AND		S1.ITYPE	IN ('HAWA','FERT')
+								)				T2
+						WHERE	TRANS_DATE	BETWEEN TRUNC(TO_DATE('$!{insel_fr_yyyy}'||'$!{insel_fr_mm}'||'01','YYYY-MM-DD'),'MM') 
+												AND LAST_DAY(TO_DATE('$!{insel_to_yyyy}'||'$!{insel_to_mm}'||'01','YYYY-MM-DD'))
+						AND		TGT_LOC		= '$!{insel_dc_id}'
+						AND		T1.ITEM_ID	= T2.ITEM_ID
+						GROUP
+						BY		T1.TRANS_DATE,
+								T1.SRC_LOC,
+								T1.ITEM_ID,
+								T2.BOX_PER_PALET
+						)
+				HAVING	SUM(CHGO_PAL) > 0
+				GROUP
+				BY		SRC_LOC
+				ORDER
+				BY		SRC_LOC
+			
+			#else
+				
+				SELECT	1
+				FROM	DUAL
+				WHERE	1=0
+			
+			#end		
+		
+		#end	
+			
+	</query>
+
+	<!--
+	======================================================================
+		생산입고WMS반영조회
+	======================================================================
+	-->
+
+	<!-- 생산입고WMS반영조회 -->
+	<query id="rp_08020_MESvsWMS_list">
+			
+		SELECT	K1.DC_ID,
+				f_getdcname(K1.DC_ID),
+				K1.ITEM_ID,
+				K2.ITEM_NAME,
+				SUM(SCM_PLAN)		"SCM생산계획",
+				SUM(MES_RES)		"MES생산실적",
+				SUM(WMS_IPGO)		"WMS생산입고",
+				SUM(MES_RES)-SUM(WMS_IPGO) "MES-WMS차이"
+		FROM	(		
+				/* 생산계획 */
+				SELECT	T3.DC_ID	DC_ID,
+						T1.ITEM_ID,
+						SUM(T1.PLAN_QTY)	SCM_PLAN,
+						0					MES_RES,
+						0					WMS_IPGO
+				FROM	(
+						SELECT	K1.PLANT		PLANT_ID,
+								K2.WC			PROC_ID,
+								K1.MATR_CODE	ITEM_ID,
+								CASE
+								-- 원래는 야간조 끝시간이 055959이지만 사용자 입력시 실수가 있을수 있으므로 060000도 인정
+								WHEN K2.PTO_TIME &lt;= '060000' THEN TO_CHAR(TO_DATE(K2.PTO_DATE)-1,'YYYYMMDD')
+								ELSE K2.PTO_DATE	
+								END				PLAN_DATE,
+								K2.PFROM_DATE	PFROM_DATE,
+								K2.PFROM_TIME	PFROM_TIME,
+								K2.PTO_DATE		PTO_DATE,
+								K2.PTO_TIME		PTO_TIME,
+								K2.PLAN_QTY		PLAN_QTY
+						FROM	PP20T110	K1,
+								PP20T120	K2
+						WHERE	K1.ORDER_NO		= K2.ORDER_NO
+						AND		K2.PSTAT !='F'
+						AND		K1.ORDER_NUM	= K2.ORDER_NUM	
+						AND		K1.ORDER_STAT	NOT IN ('TECO','DLFL')
+						)			T1,
+						(
+						/* 마지막 공정정보 */
+						SELECT	S1.PLANT_ID,
+								S1.ITEM_ID,
+								S1.PROD_VER,
+								MAX(S1.PROC_ID)	PROC_ID
+						FROM	ITEM_CAPA	S1,
+								(
+								SELECT	PLANT_ID, ITEM_ID, PROD_VER, MAX(OPER_ID) OPER_ID
+								FROM	ITEM_CAPA
+								WHERE	MADE_TYPE	!= 'DE'
+								GROUP
+								BY		PLANT_ID, ITEM_ID, PROD_VER
+								)		S2
+						WHERE	S1.PLANT_ID	= S2.PLANT_ID
+						AND		S1.ITEM_ID	= S2.ITEM_ID
+						AND		S1.PROD_VER = S2.PROD_VER
+						AND		S1.OPER_ID	= S2.OPER_ID
+						AND		S1.MADE_TYPE	!= 'DE'
+						GROUP
+						BY		S1.PLANT_ID,S1.ITEM_ID,	S1.PROD_VER
+						)			T2,
+						DC_MST		T3
+				WHERE	T1.PLANT_ID		= T2.PLANT_ID
+				AND		T1.ITEM_ID		= T2.ITEM_ID
+				AND		T1.PROC_ID		= T2.PROC_ID
+				AND		PLAN_DATE 		= TO_CHAR(TO_DATE('$!{in_work_date}'),'YYYYMMDD')
+				AND		T1.PLANT_ID	= T3.PLANT_ID
+				GROUP
+				BY		T1.PLAN_DATE,
+						T3.DC_ID,
+						T1.ITEM_ID
+				UNION	ALL
+				/* MES생산실적 */
+				SELECT	T2.DC_ID,
+						T1.ITEM_ID,
+						0					SCM_PLAN,
+						SUM(COMPL_QTY)		MES_RES,
+						0					WMS_IPGO
+				FROM	V_ERP_PO_MES	T1,
+						DC_MST			T2,
+						ITEM_MST		T3
+				WHERE	T1.PLANT_ID	= T2.PLANT_ID
+				AND		T1.START_DTTM	= '$!{in_work_date}'
+				AND		T1.ITEM_ID		= T3.ITEM_ID
+				AND		T3.ITYPE		= 'FERT'
+				GROUP
+				BY		T2.DC_ID,
+						T1.ITEM_ID
+				UNION	ALL
+				SELECT	DC_ID,
+						ITEM_CD	ITEM_ID,
+						0				SCM_PLAN,
+						0				MES_RES,
+						SUM(BOX)		WMS_IPGO
+				FROM	(
+						/* WMS 통합 입고 */
+						SELECT  SUBSTR(OH.CENTER_CD,5,4)	DC_ID,
+								OD.ITEM_CD,
+								ROUND(SUM(OD.CONFIRM_QTY/NVL(DECODE(ITM.MIN_UNIT_UOM,'EA',ITM.BOX_UNIT_QTY,1),1)),0)	BOX
+						FROM    LI020NM        OH,
+								LI020ND        OD,
+								CMITEM    ITM
+						WHERE	OH.INBOUND_DATE		= '$!{in_work_date}'
+						AND		OH.INBOUND_NO		=    OD.INBOUND_NO
+						AND		OH.CENTER_CD		=    OD.CENTER_CD
+						AND		OH.BRAND_CD			=    OD.BRAND_CD
+						AND		OH.INBOUND_DATE		=    OD.INBOUND_DATE
+						AND		OD.ITEM_CD			=    ITM.ITEM_CD
+						AND		OH.INOUT_CD			= 'E11' --생산입고
+						GROUP
+						BY		SUBSTR(OH.CENTER_CD,5,4),
+								OD.ITEM_CD
+						UNION	ALL
+						/* WMS 구미 입고 */
+						SELECT  SUBSTR(OH.CENTER_CD,5,4)	DC_ID,
+								OD.ITEM_CD,
+								ROUND(SUM(OD.CONFIRM_QTY/NVL(DECODE(ITM.MIN_UNIT_UOM,'EA',ITM.BOX_UNIT_QTY,1),1)),0)	BOX
+						FROM    LI020NM_G        OH,
+								LI020ND_G        OD,
+								CMITEM    ITM
+						WHERE	OH.INBOUND_DATE		= '$!{in_work_date}'
+						AND		OH.INBOUND_NO		=    OD.INBOUND_NO
+						AND		OH.CENTER_CD		=    OD.CENTER_CD
+						AND		OH.BRAND_CD			=    OD.BRAND_CD
+						AND		OH.INBOUND_DATE		=    OD.INBOUND_DATE
+						AND		OD.ITEM_CD			=    ITM.ITEM_CD
+						AND		OH.INOUT_CD			= 'E11' --생산입고
+						GROUP
+						BY		SUBSTR(OH.CENTER_CD,5,4),
+								OD.ITEM_CD
+						UNION	ALL
+						/* WMS 포승 입고 */
+						SELECT  SUBSTR(OH.CENTER_CD,5,4)	DC_ID,
+								OD.ITEM_CD,
+								ROUND(SUM(OD.CONFIRM_QTY/NVL(DECODE(ITM.MIN_UNIT_UOM,'EA',ITM.BOX_UNIT_QTY,1),1)),0)	BOX
+						FROM    LI020NM_P        OH,
+								LI020ND_P        OD,
+								CMITEM    ITM
+						WHERE	OH.INBOUND_DATE		= '$!{in_work_date}'
+						AND		OH.INBOUND_NO		=    OD.INBOUND_NO
+						AND		OH.CENTER_CD		=    OD.CENTER_CD
+						AND		OH.BRAND_CD			=    OD.BRAND_CD
+						AND		OH.INBOUND_DATE		=    OD.INBOUND_DATE
+						AND		OD.ITEM_CD			=    ITM.ITEM_CD
+						AND		OH.INOUT_CD			= 'E11' --생산입고
+						GROUP
+						BY		SUBSTR(OH.CENTER_CD,5,4),
+								OD.ITEM_CD
+						)
+				GROUP
+				BY			DC_ID,
+							ITEM_CD		
+				)			K1,
+				ITEM_MST	K2
+		WHERE	K1.ITEM_ID	= K2.ITEM_ID
+		AND		K2.ITYPE	= 'FERT'		
+		GROUP
+		BY		DC_ID,
+				K1.ITEM_ID,
+				K2.ITEM_NAME
+		ORDER
+		BY		DC_ID, K1.ITEM_ID	
+
+	</query>	
+
+	<!--
+	======================================================================
+		배송지점 결품예상 조회
+	======================================================================
+	-->
+
+	<!-- 배송지점 결품예상 조회 -->
+	<query id="rp_08030_DC_ShortageExpect_list">
+			
+		SELECT	T1.DC_ID,
+				F_GETDCNAME(T1.DC_ID),
+				T1.ITEM_ID,
+				T2.ITEM_NAME,
+				T1.BASE_STOCK,
+				T1.RECEIPT + T1.RECEIPT_EXPT	IPGO,
+				T1.ISSUE + T1.TRANS_BOX 		CHGO,
+				T1.STOCK_EXPT
+		FROM	DC_DATAWAREHOUSE	T1,
+				ITEM_MST			T2
+		WHERE	T1.CNFM_DATE	= REPLACE('$!{in_work_date}','-','')
+		AND		T1.ITEM_ID		= T2.ITEM_ID
+		AND		T1.STOCK_EXPT	&lt; 0
+		AND		NVL(CAT03,0)	NOT LIKE 'O%'
+
+	</query>	
+
+	<!--
+	======================================================================
+		보류재고 현황조회
+	======================================================================
+	-->
+
+	<!-- 보류재고 현황조회 -->
+	<query id="rp_08040_DC_Pending_Stock_list">
+			
+		SELECT	LOC_ID,
+				F_GET_DC_NAME(LOC_ID)	DC_NAME,
+				ITEM_ID,
+				F_GET_ITEM_NAME(ITEM_ID),
+				QTY
+		FROM	(
+				--    보류재고(통합)
+				 SELECT   SUBSTR (DTL.CENTER_CD, 5, 4) LOC_ID,
+						  DTL.ITEM_CD ITEM_ID,
+							SUM (DTL.HOLD_QTY)
+						  / (DECODE (ITM.MIN_UNIT_UOM, 'EA', ITM.BOX_UNIT_QTY, 1)
+							)
+						  QTY
+					 FROM LC060NM DTL, CMITEM ITM, LS010NM LS0
+					WHERE DTL.BRAND_CD = '100001'
+					  AND DTL.ITEM_STATE = 'A'
+					  AND DTL.ITEM_CD = ITM.ITEM_CD
+					  AND ITM.ITEM_DIV IN ('FERT', 'HAWA')
+					  AND DTL.HOLD_QTY != 0
+					  AND   HOLD_STATE    = '0'
+					  AND   DTL.CENTER_CD  =  LS0.CENTER_CD
+	                  AND   DTL.ITEM_CD  =    LS0.ITEM_CD
+	                  AND   DTL.INBOUND_SEQ  =  LS0.INBOUND_SEQ
+				 GROUP BY SUBSTR (DTL.CENTER_CD, 5, 4),
+						  DTL.ITEM_CD,
+						  ITM.MIN_UNIT_UOM,
+						  ITM.BOX_UNIT_QTY
+				 UNION ALL
+				 --    보류재고(구미)
+				 SELECT   SUBSTR (DTL.CENTER_CD, 5, 4) LOC_ID,
+						  DTL.ITEM_CD ITEM_ID,
+							SUM (DTL.HOLD_QTY)
+						  / (DECODE (ITM.MIN_UNIT_UOM, 'EA', ITM.BOX_UNIT_QTY, 1)
+							)
+						  QTY
+					 FROM LC060NM_G DTL, CMITEM ITM, LS010NM_G LS0
+					WHERE DTL.BRAND_CD = '100001'
+					  AND DTL.ITEM_STATE = 'A'
+					  AND DTL.ITEM_CD = ITM.ITEM_CD
+					  AND ITM.ITEM_DIV IN ('FERT', 'HAWA')
+					  AND DTL.HOLD_QTY != 0
+					  AND   HOLD_STATE    = '0'
+					  AND   DTL.CENTER_CD  =  LS0.CENTER_CD
+	                  AND   DTL.ITEM_CD  =    LS0.ITEM_CD
+	                  AND   DTL.INBOUND_SEQ  =  LS0.INBOUND_SEQ
+				 GROUP BY SUBSTR (DTL.CENTER_CD, 5, 4),
+						  DTL.ITEM_CD,
+						  ITM.MIN_UNIT_UOM,
+						  ITM.BOX_UNIT_QTY
+				 UNION ALL
+				 --    보류재고(포승)
+				 SELECT   SUBSTR (DTL.CENTER_CD, 5, 4) LOC_ID,
+						  DTL.ITEM_CD ITEM_ID,
+							SUM (DTL.HOLD_QTY)
+						  / (DECODE (ITM.MIN_UNIT_UOM, 'EA', ITM.BOX_UNIT_QTY, 1)
+							)
+						  QTY
+					 FROM LC060NM_P DTL, CMITEM ITM, LS010NM_P LS0
+					WHERE DTL.BRAND_CD = '100001'
+					  AND DTL.ITEM_STATE = 'A'
+					  AND DTL.ITEM_CD = ITM.ITEM_CD
+					  AND ITM.ITEM_DIV IN ('FERT', 'HAWA')
+					  AND DTL.HOLD_QTY != 0
+					  AND   HOLD_STATE    = '0'
+					  AND   DTL.CENTER_CD  =  LS0.CENTER_CD
+	                  AND   DTL.ITEM_CD  =    LS0.ITEM_CD
+	                  AND   DTL.INBOUND_SEQ  =  LS0.INBOUND_SEQ
+				 GROUP BY SUBSTR (DTL.CENTER_CD, 5, 4),
+						  DTL.ITEM_CD,
+						  ITM.MIN_UNIT_UOM,
+						  ITM.BOX_UNIT_QTY
+				)
+		#if("$!{insel_dc_id}" != "0000") 
+			WHERE	LOC_ID = '$!{insel_dc_id}'
+		#end
+		ORDER
+		BY		1,3
+
+	</query>		
+		
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</queries>

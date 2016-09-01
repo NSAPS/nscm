@@ -1,0 +1,2628 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>
+
+<!--
+=====================================================================================================
+	수송계획 >> 운영정보
+=====================================================================================================
+-->
+	
+	<!--
+	======================================================================
+		자동공급계획 
+	======================================================================
+	-->
+	
+	<!-- 출고장 리스트  -->
+	<!-- 이강욱 임시수정 : 2014/09/11 켈로그공장 추가 리스트 -->
+	<query id="rp_01160_DC_list">
+		
+		SELECT	DM.DC_ID, SUBSTR(DM.DC_SHORT_NAME,1,2)
+		FROM	DC_MST DM
+		WHERE	DM.CDC_FLAG = 'Y'
+		AND		DM.DC_LOC_TYPE != '사외'
+		UNION	ALL
+		/* 기초재고 있는 사외CDC */
+		SELECT	DISTINCT	LOC_ID,SUBSTR(T2.DC_SHORT_NAME,1,4)
+		FROM	WMS_STOCK	T1,
+				DC_MST		T2
+		WHERE	IF_DTTM		= TRUNC(SYSDATE)
+		AND		T1.LOC_ID	= T2.DC_ID
+		AND		CDC_FLAG	= 'Y'
+		AND		DC_LOC_TYPE	= '사외'
+		AND		ITEM_ID		= '$!{item_id}'
+	
+   		 
+	</query>
+
+	<!-- 자동공급계획_DW1_HEADER -->
+	<query id="rp_01160_replenishmentNiceLikePlan_DW2_HEADER" paging="false">
+
+		#if("$!{itype}" == "HAWA")
+		
+			/* HAWA */
+			SELECT	TO_CHAR(AVAIL_DATE,'YYYY-MM-DD') 					CNFM_DATE,
+					LPAD(ROW_NUMBER() OVER(ORDER BY AVAIL_DATE),2,'0') 	SEQ,
+					80													WIDTH
+			FROM	(		
+					SELECT	DISTINCT	T1.AVAIL_DATE
+					FROM	MAT_STORE_PLAN	T1,
+							ITEM_MST		T2
+					WHERE	IF_DTTM	= (SELECT	MAX(IF_DTTM) FROM MAT_STORE_PLAN)
+					AND		T1.ITEM_ID	= T2.ITEM_ID
+					AND		T2.ITYPE	= 'HAWA'
+					AND		AVAIL_DATE	&gt;= TO_DATE('$!{trans_start}')
+					AND		T1.ITEM_ID	= '$!{item_id}'
+					)
+			ORDER
+			BY		AVAIL_DATE
+			
+		#else
+		
+			/* FERT */		
+			SELECT	K1.CNFM_DATE,
+					LPAD(K1.SEQ,2,'0')	SEQ,
+					WIDTH
+			FROM	(		
+					SELECT	TO_CHAR(TO_DATE('$!{trans_start}'),'MM/DD')||'(야)'		CNFM_DATE,
+							1														SEQ,
+							60														WIDTH
+					FROM	DUAL
+					UNION	ALL
+					SELECT	TO_CHAR(TO_DATE('$!{trans_start}')+1,'MM/DD')||'(조)'	CNFM_DATE,
+							2														SEQ,
+							60														WIDTH
+					FROM	DUAL
+					UNION	ALL
+					SELECT	TO_CHAR(TO_DATE('$!{trans_start}')+1,'MM/DD')||'(주)'	CNFM_DATE,
+							3														SEQ,
+							60														WIDTH
+					FROM	DUAL
+					UNION	ALL
+					SELECT	TO_CHAR(TO_DATE('$!{trans_start}')+1,'MM/DD')||'(야)'	CNFM_DATE,
+							4														SEQ,
+							60														WIDTH
+					FROM	DUAL
+					UNION	ALL
+					SELECT	TO_CHAR(TO_DATE('$!{trans_start}')+2,'MM/DD')||'(조)'	CNFM_DATE,
+							5														SEQ,
+							60														WIDTH
+					FROM	DUAL
+					UNION	ALL
+					SELECT	TO_CHAR(TO_DATE('$!{trans_start}')+2,'MM/DD')||'(주)'	CNFM_DATE,
+							6														SEQ,
+							60														WIDTH
+					FROM	DUAL
+					UNION	ALL
+					SELECT	TO_CHAR(TO_DATE('$!{trans_start}')+2,'MM/DD')||'(야)'	CNFM_DATE,
+							7														SEQ,
+							60														WIDTH
+					FROM	DUAL
+					UNION	ALL
+					SELECT	TO_CHAR(CAL_DATE,'MM/DD')								CNFM_DATE,
+							ROW_NUMBER() OVER(ORDER BY CAL_DATE)+7					SEQ,
+							47														WIDTH
+					FROM	CAL_MST
+					WHERE	CAL_DATE 	&gt;= TO_DATE('$!{trans_start}') + 3
+					AND		ROWNUM 		&lt;= 13
+					)	K1
+			ORDER
+			BY		K1.SEQ
+	
+		#end
+		
+	</query>
+	
+	<!-- 담당 리스트  -->
+	<query id="rp_01160_SCM_CHARGE_list">
+		
+		SELECT	CD, CD_NAME, DECODE(CD,'00',CD,NULL) PERS_NO
+		FROM	CODE_MST
+		WHERE	CD_GRP	= 'SCM_CHARGE'
+		UNION	ALL
+		SELECT	EMP_NO		CD, 
+				HAN_NAME	CD_NAME,
+				PERS_NO
+		FROM	NCOMT005
+		WHERE	EMP_NO	IN (
+				SELECT	DISTINCT	SCM_CHARGE
+				FROM	ITEM_MST	T1
+				WHERE	SCM_CHARGE IS NOT NULL
+				AND	(SELL_STOP_DATE >= TO_CHAR(SYSDATE,'YYYYMMDD') OR SELL_STOP_DATE = '00000000' )	
+				)
+		ORDER
+		BY		3	
+   		 
+	</query>
+
+	<!-- 품목담당지정 -->
+	<query id="rp_01160_UPDATE_SCM_CHARGE">
+
+		UPDATE	ITEM_MST
+		SET		SCM_CHARGE	= '$!{user_id}'
+		WHERE	ITEM_ID		= '$!{item_id}'
+   		 
+	</query>
+	
+	<!-- 자동공급계획_품목리스트 -->
+	<query id="rp_01160_replenishmentNiceLikePlan_ITEM_LIST" paging="false">
+
+		SELECT	ITEM_ID,
+				ITEM_ID||' '||ITEM_NAME,
+				TO_CHAR(RANK() OVER (ORDER BY ITEM_ID))||'/'||TO_CHAR(T2.CNT)	RANK,
+				BOX_PER_PALET,
+				ITYPE,
+				(SELECT	NVL(MAX('C/D'), '일반')	CD_GUBN
+				FROM	STOCK_POLICY_QTY
+				WHERE	WORK_DATE	= (SELECT	MAX(WORK_DATE) FROM	STOCK_POLICY_QTY)
+				AND		SAFETY_STOCK_FLAG	= '01'
+				AND		ITEM_ID		= T1.ITEM_ID
+				)	CD_GUBN,
+				IS_WORK
+		FROM	(		
+				SELECT	K1.ITEM_ID,
+						ITEM_NAME,
+						DIVISION,
+						HR_TY1,
+						NVL(BOX_PER_PALET,1) BOX_PER_PALET,
+						ITYPE,
+						NVL(IS_WORK,0)	IS_WORK  
+				FROM	ITEM_MST	K1,
+						(
+						SELECT	ITEM_ID,
+								MAX(
+									CASE 
+										WHEN SUBSTR(MADE_BY,1,1) IN ('2','7','8','9','0') THEN 1
+										ELSE 0
+									END
+									) 	IS_WORK
+						FROM	TRANS_PLAN
+						#if("$!{version}" == "" )
+							WHERE	VERSION	= 	(
+											SELECT	MAX(VERSION)
+											FROM	PLAN_VERSION_LOG
+											WHERE	TRUNC(RUN_DATE)	= TRUNC(SYSDATE)
+											AND		CAT_ID	= 'RP'
+											)
+						#else
+							WHERE	VERSION	= 	'$!{version}'
+						#end
+						#if("$!{trans_date}" == "" )
+							AND	TRANS_DATE	= 	TRUNC(SYSDATE)
+						#else
+							AND	TRANS_DATE	= 	TO_DATE('$!{trans_date}','YYYY-MM-DD')
+						#end							
+						GROUP
+						BY		ITEM_ID	
+						)			K2
+				WHERE	NVL(CAT03,'XX')	NOT LIKE 'O%'		/* 수출전용품목 제외 */
+				AND		MATERIAL_GROUP	NOT LIKE '62%'		/* 수출상품 제외 */
+				AND		HR_TY1 NOT LIKE '606006%' 			/* 수산물 제외 */	
+				AND   	HR_TY1 NOT LIKE '9090029%'			/* 임가공 제외 */
+				AND		ITYPE	IN ('FERT','HAWA')
+				AND		K1.ITEM_ID = K2.ITEM_ID(+)
+				#if("$!{scm_charge}" == "00" )
+					AND	(SELL_STOP_DATE >= TO_CHAR(SYSDATE,'YYYYMMDD') OR SELL_STOP_DATE = '00000000' )	
+				#elseif("$!{scm_charge}" != "XX" )
+					AND SCM_CHARGE =  '$!{scm_charge}' -- SCM담당
+					AND	(SELL_STOP_DATE >= TO_CHAR(SYSDATE,'YYYYMMDD') OR SELL_STOP_DATE = '00000000' )
+				#end
+				)	T1,
+				(		
+				SELECT	COUNT(ITEM_ID)	CNT
+				FROM	ITEM_MST
+				WHERE	NVL(CAT03,'XX')	NOT LIKE 'O%'		/* 수출전용품목 제외 */
+				AND		MATERIAL_GROUP	NOT LIKE '62%'		/* 수출상품 제외 */
+				AND		HR_TY1 NOT LIKE '606006%' 			/* 수산물 제외 */	
+				AND   	HR_TY1 NOT LIKE '9090029%'			/* 임가공 제외 */
+				AND		ITYPE	IN ('FERT','HAWA')	
+				#if("$!{scm_charge}" == "00" )
+					AND	(SELL_STOP_DATE >= TO_CHAR(SYSDATE,'YYYYMMDD') OR SELL_STOP_DATE = '00000000' )	
+				#elseif("$!{scm_charge}" != "XX" )
+					AND SCM_CHARGE =  '$!{scm_charge}' -- SCM담당
+					AND	(SELL_STOP_DATE >= TO_CHAR(SYSDATE,'YYYYMMDD') OR SELL_STOP_DATE = '00000000' )
+				#end
+				)	T2
+
+	</query>
+
+	<!-- 자동공급계획_DW1 -->
+	<query id="rp_01160_replenishmentNiceLikePlan_DW1" paging="false">
+
+	#if("$!{check_day}" == "TODAY" )
+		
+		/* 당일계획 */
+		SELECT	K1.DC_ID,
+				K1.DC_NAME,
+				PRE_MONTH_SELL,	     
+				PRE_MONTH_SELL_01,	 
+				PRE_MONTH_SELL_02,	 
+				PRE_MONTH_SELL_03,	 
+				PRE_MONTH_SELL_04,
+				PRE_MONTH_SELL_05,	 
+				PRE_MONTH_SELL_06,
+				SALES_PRE,	         
+				SALES_PRE_01,	     
+				SALES_PRE_02,	 
+				SALES_PRE_03,	     
+				SALES_PRE_04,
+				SALES_PRE_05,	     
+				SALES_PRE_06,
+				SALES_PRE_CUM,	     
+				SALES_PRE_CUM_01,	 
+				SALES_PRE_CUM_02,	 
+				SALES_PRE_CUM_03,	 
+				SALES_PRE_CUM_04,	
+				SALES_PRE_CUM_05,	 
+				SALES_PRE_CUM_06,	
+				SALES_PLAN,
+				ISSUE,	             
+				ISSUE_YO,	         
+				ISSUE_YS,	         
+				ISSUE_TA,	         
+				ISSUE_WMS,
+				ISSUE_EX,	  
+				ISSUE_CUST_TOT,
+				ISSUE_CUST_10,
+				ISSUE_CUST_11,
+				ISSUE_CUST_16,
+				ISSUE_CUST_14,
+				ISSUE_CUST_19,
+				ISSUE_CUST_18,
+				ISSUE_CUST_99,
+				SALES_MEAN_1WEEK_ETC,
+				SALES_MEAN_1WEEK,	 
+				SALES_MEAN_3WEEK_ETC,
+				SALES_MEAN_3WEEK,	 
+				BASE_STOCK,	         
+				RECEIPT,	         
+				CHGO_QTY,	         
+				DELV,	             
+				TRAN,                
+				STOCK_DAY_1W_ETC,
+				STOCK_DAY_1W,
+                STOCK_DAY_3W_ETC,
+                STOCK_DAY_3W,
+				STOCK_TERM,
+				SAFETY_STOCK,	
+				SALES_PLAN_D1,
+				DC_ALLOC_BOX_D1,	  
+				ISSUE_D1,	  
+				ISSUE_YO_D1,  
+				ISSUE_YS_D1,  
+				ISSUE_TA_D1,  
+				ISSUE_WMS_D1, 
+				ISSUE_EX_D1,
+				EDI_22_D+EDI_21_D+EDI_23_D+EDI_ETC_D 	EDI_TOT_D,
+				EDI_22_D,	  
+				EDI_21_D,	  
+				EDI_23_D,	  
+				EDI_ETC_D,
+				EDI_22_D1+EDI_21_D1+EDI_23_D1+EDI_ETC_D1 	EDI_TOT_D1,
+				EDI_22_D1,	  
+				EDI_21_D1,	  
+				EDI_23_D1,	  
+				EDI_ETC_D1,
+				EDI_22_D2+EDI_21_D2+EDI_23_D2+EDI_ETC_D2	EDI_TOT_D2,	    
+				EDI_22_D2,	  
+				EDI_21_D2,	  
+				EDI_23_D2,	  
+				EDI_ETC_D2,   
+				STOCK_EXPT,	    
+				REP_QTY,	    
+				MIN_PICK_QTY,
+				ROUND(NVL(TRANS_PLAN_QTY,0),0)	TRANS_PLAN_QTY,
+				ROUND(NVL(TRANS_PLAN_PLT,0),2)	TRANS_PLAN_PLT,
+				K2.SRC_LOC,
+				NVL(K2.CDC_CNT,1)	CDC_CNT,
+				K1.ORD,
+				ROW_NUMBER() OVER(ORDER BY ORD)	ORD2,
+				f_getBoxPerPallet(K2.SRC_LOC,'$!{item_id}')	BOX_PER_PLT,
+				SAFETY_STOCK_FLAG,
+				K1.CD_SRC_LOC,
+				GOAL_11, 
+				GOAL_13,
+				GOAL_14,
+				GOAL_17,
+				GOAL_18,
+				GOAL_21,
+				GOAL_23,
+				RATE_11,
+				RATE_13,
+				RATE_14,
+				RATE_17,
+				RATE_18,
+				RATE_21,
+				RATE_23,
+				NVL(REMN_CAPA_BOX,0)	REMN_CAPA_BOX,
+				K4.ZONE,
+				CUST_TOT,
+				CUST_10,
+				CUST_11,
+				CUST_16,
+				CUST_14,
+				CUST_19,
+				CUST_18,
+				CUST_99,
+				MAP_STOCK_BOX 
+		FROM	(
+				SELECT	CASE
+							WHEN GROUPING(CDC_FLAG) = 0 AND GROUPING(DC_ID) = 0 AND CDC_FLAG = 'Y' THEN 2
+							WHEN GROUPING(CDC_FLAG) = 0 AND GROUPING(DC_ID) = 0 AND CDC_FLAG = 'N' THEN 4
+							WHEN GROUPING(DC_ID) = 1 AND CDC_FLAG = 'Y' THEN 3
+							WHEN GROUPING(DC_ID) = 1 AND CDC_FLAG = 'N' THEN 5
+							WHEN GROUPING(CDC_FLAG) = 1 AND GROUPING(DC_ID) = 1 THEN 1
+						END	ORD,
+						CASE
+							WHEN GROUPING(CDC_FLAG) = 0 AND GROUPING(DC_ID) = 0 THEN F_GETDCNAME(DC_ID)
+							WHEN GROUPING(DC_ID) = 1 AND CDC_FLAG = 'Y' THEN 'CDC합계'
+							WHEN GROUPING(DC_ID) = 1 AND CDC_FLAG = 'N' THEN 'RDC합계'
+							WHEN GROUPING(CDC_FLAG) = 1 AND GROUPING(DC_ID) = 1 THEN '전체합계'
+						END	DC_NAME,
+						DC_ID,
+						NVL(SUM(PRE_MONTH_SELL),0)		PRE_MONTH_SELL,	     
+						NVL(SUM(PRE_MONTH_SELL_01),0)   PRE_MONTH_SELL_01,	 
+						NVL(SUM(PRE_MONTH_SELL_02),0)   PRE_MONTH_SELL_02,	 
+						NVL(SUM(PRE_MONTH_SELL_03),0)   PRE_MONTH_SELL_03,	 
+						NVL(SUM(PRE_MONTH_SELL_04),0)   PRE_MONTH_SELL_04,	
+						NVL(SUM(PRE_MONTH_SELL_05),0)   PRE_MONTH_SELL_05,	 
+						NVL(SUM(PRE_MONTH_SELL_06),0)   PRE_MONTH_SELL_06,	
+						SUM(SALES_PRE)	                SALES_PRE,	         
+						SUM(SALES_PRE_01)	            SALES_PRE_01,	     
+						SUM(SALES_PRE_02)	            SALES_PRE_02,	     
+						SUM(SALES_PRE_03)	            SALES_PRE_03,
+						SUM(SALES_PRE_04)	            SALES_PRE_04,
+						SUM(SALES_PRE_05)	            SALES_PRE_05,
+						SUM(SALES_PRE_06)	            SALES_PRE_06,
+						SUM(SALES_PRE_CUM) + NVL(SUM(ISSUE),0)	            												SALES_PRE_CUM,	     
+						SUM(SALES_PRE_CUM_01) + NVL(SUM(ISSUE_YO),0) - NVL(SUM(ISSUE_YS),0) + NVL(SUM(ISSUE_EX),0)	        SALES_PRE_CUM_01,	 
+						SUM(SALES_PRE_CUM_02) + NVL(SUM(ISSUE_SI),0) 	        											SALES_PRE_CUM_02,	 
+                        SUM(SALES_PRE_CUM_03) + NVL(SUM(ISSUE_YU),0) 	        											SALES_PRE_CUM_03,
+						SUM(SALES_PRE_CUM_04) + NVL(SUM(ISSUE_TA),0) + NVL(SUM(ISSUE_WMS),0)						        SALES_PRE_CUM_04,	 
+						SUM(SALES_PRE_CUM_05) + NVL(SUM(ISSUE_SI_TA),0) 						        					SALES_PRE_CUM_05,	 
+						SUM(SALES_PRE_CUM_06) + NVL(SUM(ISSUE_YU_TA),0) 						        					SALES_PRE_CUM_06,
+						SUM(SALES_PLAN)	            	SALES_PLAN,	     
+						NVL(SUM(ISSUE),0)               ISSUE,	             
+						NVL(SUM(ISSUE_YO),0)            ISSUE_YO,	         
+						NVL(SUM(ISSUE_YS),0)            ISSUE_YS,	         
+						NVL(SUM(ISSUE_TA),0)            ISSUE_TA,	         
+						NVL(SUM(ISSUE_WMS),0)           ISSUE_WMS,	         
+						NVL(SUM(ISSUE_EX),0)           	ISSUE_EX,
+						SUM(ISSUE_CUST_TOT)	 			ISSUE_CUST_TOT, 
+                        SUM(ISSUE_CUST_10)	 			ISSUE_CUST_10,  
+                        SUM(ISSUE_CUST_11)	 			ISSUE_CUST_11,  
+                        SUM(ISSUE_CUST_16)	 			ISSUE_CUST_16,  
+                        SUM(ISSUE_CUST_14)	 			ISSUE_CUST_14,  
+                        SUM(ISSUE_CUST_19)	 			ISSUE_CUST_19,  
+                        SUM(ISSUE_CUST_18)	 			ISSUE_CUST_18,  
+                        SUM(ISSUE_CUST_99)	 			ISSUE_CUST_99, 
+						SUM(SALES_MEAN_1WEEK_ETC)	    SALES_MEAN_1WEEK_ETC,
+						SUM(SALES_MEAN_1WEEK)	        SALES_MEAN_1WEEK,	 
+						SUM(SALES_MEAN_3WEEK_ETC)	    SALES_MEAN_3WEEK_ETC,
+						SUM(SALES_MEAN_3WEEK)	        SALES_MEAN_3WEEK,	 
+						SUM(BASE_STOCK)	            	BASE_STOCK,	         
+						SUM(RECEIPT)	                RECEIPT,	         
+						SUM(CHGO_QTY)	                CHGO_QTY,	         
+						SUM(DELV)	                    DELV,	             
+						SUM(TRAN)	                    TRAN,
+						DECODE(SUM(SALES_MEAN_1WEEK_ETC)	,0	,0,	ROUND(SUM(STOCK_EXPT)/SUM(SALES_MEAN_1WEEK_ETC),1))	STOCK_DAY_1W_ETC,	--2013-06-19 SCM팀 이승용 대리 요청 추가
+						DECODE(SUM(SALES_MEAN_1WEEK)		,0	,0,	ROUND(SUM(STOCK_EXPT)/SUM(SALES_MEAN_1WEEK),1))		STOCK_DAY_1W,
+						DECODE(SUM(SALES_MEAN_3WEEK_ETC)	,0	,0,	ROUND(SUM(STOCK_EXPT)/SUM(SALES_MEAN_3WEEK_ETC),1))	STOCK_DAY_3W_ETC,
+						DECODE(SUM(SALES_MEAN_3WEEK)		,0	,0,	ROUND(SUM(STOCK_EXPT)/SUM(SALES_MEAN_3WEEK),1))		STOCK_DAY_3W,
+						CASE
+							WHEN GROUPING(CDC_FLAG) = 0 AND GROUPING(DC_ID) = 0 THEN SUM(STOCK_TERM)
+							ELSE ROUND(AVG(STOCK_TERM),0)
+						END								STOCK_TERM,
+						SUM(SAFETY_STOCK)	            SAFETY_STOCK,	     
+						SUM(SALES_PLAN_D1)	            SALES_PLAN_D1,	     
+						SUM(DC_ALLOC_BOX_D1)	        DC_ALLOC_BOX_D1,	     
+						SUM(ISSUE_D1)	 				ISSUE_D1,	
+						SUM(ISSUE_YO_D1) 				ISSUE_YO_D1,
+						SUM(ISSUE_YS_D1) 				ISSUE_YS_D1,
+						SUM(ISSUE_TA_D1) 				ISSUE_TA_D1,
+						SUM(ISSUE_WMS_D1)				ISSUE_WMS_D1,
+						SUM(ISSUE_EX_D1) 				ISSUE_EX_D1,
+						SUM(EDI_21_D)	 				EDI_21_D,	    
+						SUM(EDI_22_D)	 				EDI_22_D,	 	
+						SUM(EDI_23_D)	 				EDI_23_D,	 	
+						SUM(EDI_ETC_D)	 				EDI_ETC_D,
+						SUM(EDI_21_D1)	 				EDI_21_D1,	 
+						SUM(EDI_22_D1)	 				EDI_22_D1,	 
+						SUM(EDI_23_D1)	 				EDI_23_D1,	 
+						SUM(EDI_ETC_D1)	 				EDI_ETC_D1,	 
+						SUM(EDI_21_D2)	 				EDI_21_D2,	 
+						SUM(EDI_22_D2)	 				EDI_22_D2,	 
+						SUM(EDI_23_D2)	 				EDI_23_D2,	 
+						SUM(EDI_ETC_D2)  				EDI_ETC_D2,   
+						SUM(STOCK_EXPT)	                STOCK_EXPT,	         
+						SUM(REP_QTY)	                REP_QTY,	         
+						SUM(MIN_PICK_QTY)	            MIN_PICK_QTY,
+						CASE
+							WHEN GROUPING(CDC_FLAG) = 0 AND GROUPING(DC_ID) = 0 THEN MAX(SAFETY_STOCK_FLAG)
+							ELSE null
+						END								SAFETY_STOCK_FLAG,
+						CASE
+							WHEN GROUPING(CDC_FLAG) = 0 AND GROUPING(DC_ID) = 0 THEN MAX(CD_SRC_LOC)
+							ELSE null
+						END								CD_SRC_LOC,
+						SUM(GOAL_11)					GOAL_11, 
+						SUM(GOAL_13)					GOAL_13,
+						SUM(GOAL_14)					GOAL_14,
+						SUM(GOAL_17)					GOAL_17,
+						SUM(GOAL_18)					GOAL_18,
+						SUM(GOAL_21)					GOAL_21,
+						SUM(GOAL_23)					GOAL_23,
+						NVL(ROUND(DECODE(SUM(GOAL_11),0,0,SUM(CUM_SELL)/SUM(GOAL_11)*100),1),0)	RATE_11,
+						NVL(ROUND(DECODE(SUM(GOAL_13),0,0,SUM(CUM_SELL)/SUM(GOAL_13)*100),1),0)	RATE_13,
+						NVL(ROUND(DECODE(SUM(GOAL_14),0,0,SUM(CUM_SELL)/SUM(GOAL_14)*100),1),0)	RATE_14,
+						NVL(ROUND(DECODE(SUM(GOAL_17),0,0,SUM(CUM_SELL)/SUM(GOAL_17)*100),1),0)	RATE_17,
+						NVL(ROUND(DECODE(SUM(GOAL_18),0,0,SUM(CUM_SELL)/SUM(GOAL_18)*100),1),0)	RATE_18,
+						NVL(ROUND(DECODE(SUM(GOAL_21),0,0,SUM(CUM_SELL)/SUM(GOAL_21)*100),1),0)	RATE_21,
+						NVL(ROUND(DECODE(SUM(GOAL_23),0,0,SUM(CUM_SELL)/SUM(GOAL_23)*100),1),0)	RATE_23,
+						SUM(MAP_STOCK_BOX)				MAP_STOCK_BOX
+				FROM	(
+						SELECT	T2.CDC_FLAG,
+								T1.DC_ID,
+								NVL(PRE_MONTH_SELL,0)									PRE_MONTH_SELL,
+								NVL(PRE_MONTH_SELL,0)-NVL(PRE_MONTH_SELL_TA,0)			PRE_MONTH_SELL_01,
+								NVL(PRE_MONTH_SELL_SI,0) - NVL(PRE_MONTH_SELL_SI_TA,0)	PRE_MONTH_SELL_02, 
+                                NVL(PRE_MONTH_SELL_YU,0) - NVL(PRE_MONTH_SELL_YU_TA,0)	PRE_MONTH_SELL_03,
+								NVL(PRE_MONTH_SELL_TA,0)								PRE_MONTH_SELL_04,
+								NVL(PRE_MONTH_SELL_SI_TA,0)								PRE_MONTH_SELL_05, 
+                                NVL(PRE_MONTH_SELL_YU_TA,0)								PRE_MONTH_SELL_06,
+								NVL(SALES_PRE,0)										SALES_PRE,
+								NVL(SALES_PRE,0) - NVL(SALES_PRE_TA,0)					SALES_PRE_01,
+								NVL(SALES_PRE_SI,0) - NVL(SALES_PRE_SI_TA,0)			SALES_PRE_02,      
+                                NVL(SALES_PRE_YU,0) - NVL(SALES_PRE_YU_TA,0)			SALES_PRE_03,
+								NVL(SALES_PRE_TA,0)										SALES_PRE_04,
+								NVL(SALES_PRE_SI_TA,0)									SALES_PRE_05,      
+                                NVL(SALES_PRE_YU_TA,0)									SALES_PRE_06,
+								NVL(SALES_PRE_CUM,0) + NVL(SALES_PRE_CUM_TA,0)			SALES_PRE_CUM,
+								NVL(SALES_PRE_CUM,0) 									SALES_PRE_CUM_01,
+								NVL(SALES_PRE_CUM_SI,0)									SALES_PRE_CUM_02,  
+                                NVL(SALES_PRE_CUM_YU,0)									SALES_PRE_CUM_03,
+								NVL(SALES_PRE_CUM_TA,0)									SALES_PRE_CUM_04,
+								NVL(SALES_PRE_CUM_SI_TA,0)								SALES_PRE_CUM_05,  
+                                NVL(SALES_PRE_CUM_YU_TA,0)								SALES_PRE_CUM_06,
+								SALES_PLAN	+ PROM_PLAN								SALES_PLAN,
+								ISSUE,	
+								ISSUE_YO,
+								ISSUE_YS,
+								ISSUE_TA,
+								ISSUE_SI,
+                                ISSUE_YU,
+                                ISSUE_SI_TA,
+                                ISSUE_YU_TA,
+								ISSUE_WMS,
+								ISSUE_EX,
+								NVL(ISSUE_CUST_10,0)+NVL(ISSUE_CUST_11,0)+NVL(ISSUE_CUST_16,0)+NVL(ISSUE_CUST_14,0)+ NVL(ISSUE_CUST_19,0)+NVL(ISSUE_CUST_18,0)+NVL(ISSUE_CUST_99,0) ISSUE_CUST_TOT,
+                                NVL(ISSUE_CUST_10,0)			ISSUE_CUST_10,    
+                                NVL(ISSUE_CUST_11,0)			ISSUE_CUST_11, 
+                                NVL(ISSUE_CUST_16,0)			ISSUE_CUST_16, 
+                                NVL(ISSUE_CUST_14,0)			ISSUE_CUST_14, 
+                                NVL(ISSUE_CUST_19,0)			ISSUE_CUST_19, 
+                                NVL(ISSUE_CUST_18,0)			ISSUE_CUST_18, 
+                                NVL(ISSUE_CUST_99,0)			ISSUE_CUST_99, 
+								SALES_MEAN_1WEEK_ETC, 
+								SALES_MEAN_1WEEK,
+								SALES_MEAN_3WEEK_ETC,
+								SALES_MEAN_3WEEK,
+								BASE_STOCK,	
+								RECEIPT + RECEIPT_EXPT RECEIPT,
+								ISSUE+TRANS_BOX					CHGO_QTY,
+								ISSUE							DELV,
+								TRANS_BOX						TRAN,
+								DECODE(SALES_MEAN_1WEEK_ETC		,0	,0	,	ROUND(STOCK_EXPT/SALES_MEAN_1WEEK_ETC,1))	STOCK_DAY_1W_ETC, --2013-06-19 
+								DECODE(SALES_MEAN_1WEEK			,0	,0	,	ROUND(STOCK_EXPT/SALES_MEAN_1WEEK,1)) 		STOCK_DAY_1W,
+								DECODE(SALES_MEAN_3WEEK_ETC		,0	,0	,	ROUND(STOCK_EXPT/SALES_MEAN_3WEEK_ETC,1))	STOCK_DAY_3W_ETC, --2013-06-19
+								DECODE(SALES_MEAN_3WEEK			,0	,0	,	ROUND(STOCK_EXPT/SALES_MEAN_3WEEK,1)) 		STOCK_DAY_3W,
+								STOCK_TERM,
+								NVL(T3.SAFETY_STOCK,0)			SAFETY_STOCK, 	
+								NVL(SALES_PLAN_D1,0)			SALES_PLAN_D1,
+								NVL(DC_ALLOC_BOX_D1,0)			DC_ALLOC_BOX_D1,
+								NVL(ISSUE_D1,	 0)				ISSUE_D1,	
+								NVL(ISSUE_YO_D1, 0)				ISSUE_YO_D1,
+								NVL(ISSUE_YS_D1, 0)				ISSUE_YS_D1,
+								NVL(ISSUE_TA_D1, 0)				ISSUE_TA_D1,
+								NVL(ISSUE_WMS_D1,0)				ISSUE_WMS_D1,
+								NVL(ISSUE_EX_D1, 0)				ISSUE_EX_D1,
+								NVL(EDI_21,	 0)					EDI_21_D,		    
+								NVL(EDI_22,	 0)					EDI_22_D,		   
+								NVL(EDI_23,	 0)					EDI_23_D,		   
+								NVL(EDI_ETC, 0)					EDI_ETC_D,	
+								NVL(EDI_21_D1,	 0)				EDI_21_D1,	 
+								NVL(EDI_22_D1,	 0)				EDI_22_D1,	 
+								NVL(EDI_23_D1,	 0)				EDI_23_D1,	 
+								NVL(EDI_ETC_D1,	 0)				EDI_ETC_D1,	 
+								NVL(EDI_21_D2,	 0)				EDI_21_D2,	 
+								NVL(EDI_22_D2,	 0)				EDI_22_D2,	 
+								NVL(EDI_23_D2,	 0)				EDI_23_D2,	 
+								NVL(EDI_ETC_D2,  0)				EDI_ETC_D2,   
+								STOCK_EXPT						STOCK_EXPT,
+								NVL(T5.REP_QTY,0)				REP_QTY,
+								NVL(T4.MIN_PICK_QTY,0)			MIN_PICK_QTY,
+								NVL(T3.SAFETY_STOCK_FLAG,00)	SAFETY_STOCK_FLAG,
+								NVL(T2.CD_SRC_LOC,T2.DC_ID)		CD_SRC_LOC,
+								NVL(GOAL_11,0)					GOAL_11, 
+								NVL(GOAL_13,0)					GOAL_13,
+								NVL(GOAL_14,0)					GOAL_14,
+								NVL(GOAL_17,0)					GOAL_17,
+								NVL(GOAL_18,0)					GOAL_18,
+								NVL(GOAL_21,0)					GOAL_21,
+								NVL(GOAL_23,0)					GOAL_23,
+								NVL(CUM_SELL,0)					CUM_SELL,
+								NVL(MAP_STOCK_BOX,0)			MAP_STOCK_BOX
+						FROM	DC_DATAWAREHOUSE	T1,
+								DC_MST				T2,
+								(
+								/* 안전재고 */
+								SELECT	PY.LOC_ID DC_ID,
+										PY.ITEM_ID,
+										SUM(PY.SAFETY_STOCK+PY.CAMP_STOC+PY.SAVE_STOC) SAFETY_STOCK2,
+										CASE	WHEN SUBSTR('$!{version}',1,8) 
+														BETWEEN NVL(PY.START_DATE, '00000000') AND NVL(PY.END_DATE, '00000000')
+													THEN SUM(PY.SAFETY_STOCK+PY.CAMP_STOC+PY.SAVE_STOC)
+												ELSE SUM(PY.SAFETY_STOCK+PY.CAMP_STOC)
+										END SAFETY_STOCK,
+										PY.SAFETY_STOCK_FLAG
+								FROM	STOCK_POLICY_QTY PY,
+										(
+										SELECT	MAX(WORK_DATE) WORK_DATE
+										FROM	STOCK_POLICY_QTY
+										WHERE	LOC_TYPE = 'DC'
+										) MV
+								WHERE	PY.WORK_DATE = MV.WORK_DATE
+								AND		PY.ITEM_ID	 = '$!{item_id}'
+								GROUP
+								BY		PY.WORK_DATE, PY.LOC_ID, PY.ITEM_ID, NVL(PY.START_DATE, '00000000'), NVL(PY.END_DATE, '00000000'),
+										PY.SAFETY_STOCK_FLAG
+								)					T3,
+								TRANS_UNIT			T4,
+								(
+								/* 보충요구량 */
+								-- 보충요구량 : 자기 CDC 에서 보충받는 물량에 대한 부분을 제외하기 위해
+								--            REPLENISHMENTPLAN 에서 ORIGIN 과 DESTINATION 이 같은 물량을 빼줌
+								SELECT  PP.VERSIONID,
+										PP.DC_ID,
+										PP.ITEM_ID,
+										SUM(PP.REP_QTY)-SUM(PP.REP_QTY2) REP_QTY
+								FROM	(
+										SELECT  PP.VERSIONID,
+												SUBSTR(PP.ITEMID, 4, 4)		DC_ID,
+												SUBSTR(PP.ITEMID, 9, 18)	ITEM_ID,
+												SUM(PP.QTY)  				REP_QTY,
+												0							REP_QTY2
+										FROM    SCM_RP.PRODUCTIONORDERPLAN PP,
+												( 
+												-- 수송달력
+												SELECT  CAL_DATE,
+												RANK() OVER (ORDER BY CAL_DATE) IDX
+												FROM    CAL_MST
+												WHERE   TRIM(HOLIDAY_FLAG)  IS NULL
+												AND     YYYYMMDD    &gt;= SUBSTR('$!{version}',1,8)
+												)	AN
+										WHERE   PP.VERSIONID 				= '$!{version}'
+										AND     PP.DUEDATE 					= AN.CAL_DATE
+										AND     SUBSTR(PP.ITEMID, 9, 18)	= '$!{item_id}'
+										AND     AN.IDX 						= 2 -- 영업일 다음날을 찾는다!
+										GROUP   BY PP.VERSIONID, SUBSTR(PP.ITEMID, 4, 4), SUBSTR(PP.ITEMID, 9, 18)
+										UNION   ALL
+										SELECT  RP.VERSIONID,
+												SUBSTR(RP.PRODUCTDESC, 4, 4)	DC_ID,
+												SUBSTR(RP.PRODUCTDESC, 9, 18)	ITEM_ID, 
+												0 								REP_QTY,
+												SUM(RP.REPLENISHQTY) 			REP_QTY2
+										FROM    SCM_RP.REPLENISHMENTPLAN RP,
+												( -- 수송달력
+												SELECT  CAL_DATE,
+												RANK() OVER (ORDER BY CAL_DATE) IDX
+												FROM    CAL_MST
+												WHERE   TRIM(HOLIDAY_FLAG)  IS NULL
+												AND     YYYYMMDD    &gt;= SUBSTR('$!{version}',1,8)
+												) AN
+										WHERE   RP.VERSIONID 					= '$!{version}'
+										AND     RP.REPLENISHDATE 				= AN.CAL_DATE
+										AND     SUBSTR(RP.PRODUCTDESC, 9, 18) 	= '$!{item_id}'
+										AND     SUBSTR(RP.ORIGIN, 2) 			= SUBSTR(RP.DESTINATION, 2)
+										AND     SUBSTR(RP.PRODUCTDESC, 4, 4) 	= SUBSTR(RP.DESTINATION, 2)
+										AND     AN.IDX 							= 2 -- 영업일 다음날을 찾는다!
+										GROUP   BY RP.VERSIONID, SUBSTR(RP.PRODUCTDESC, 4, 4), SUBSTR(RP.PRODUCTDESC, 9, 18)
+										) PP
+								GROUP   BY PP.VERSIONID, PP.DC_ID, PP.ITEM_ID		
+								)					T5,
+								(
+								/* D+1, D+2 주문정보 */
+								SELECT	S1.DC_ID,
+										S1.ITEM_ID,
+										MAX(DECODE(S2.RANK,1,SALES_PLAN	+ PROM_PLAN))	SALES_PLAN_D1,
+										MAX(DECODE(S2.RANK,1,DC_ALLOC_BOX))	DC_ALLOC_BOX_D1,
+										MAX(DECODE(S2.RANK,1,ISSUE))		ISSUE_D1,	
+										MAX(DECODE(S2.RANK,1,ISSUE_YO))		ISSUE_YO_D1,	
+										MAX(DECODE(S2.RANK,1,ISSUE_YS))		ISSUE_YS_D1,	
+										MAX(DECODE(S2.RANK,1,ISSUE_TA))		ISSUE_TA_D1,	
+										MAX(DECODE(S2.RANK,1,ISSUE_WMS))	ISSUE_WMS_D1,	
+										MAX(DECODE(S2.RANK,1,ISSUE_EX))		ISSUE_EX_D1,	
+										MAX(DECODE(S2.RANK,1,EDI_21))		EDI_21_D1,	
+										MAX(DECODE(S2.RANK,1,EDI_22))		EDI_22_D1,	
+										MAX(DECODE(S2.RANK,1,EDI_23))		EDI_23_D1,	
+										MAX(DECODE(S2.RANK,1,EDI_ETC))		EDI_ETC_D1,	
+										MAX(DECODE(S2.RANK,2,EDI_21))		EDI_21_D2,	
+										MAX(DECODE(S2.RANK,2,EDI_22))		EDI_22_D2,	
+										MAX(DECODE(S2.RANK,2,EDI_23))		EDI_23_D2,	
+										MAX(DECODE(S2.RANK,2,EDI_ETC))		EDI_ETC_D2
+								FROM	DC_DATAWAREHOUSE	S1,
+										(
+										SELECT	YYYYMMDD, RANK
+										FROM	(
+												SELECT	CAL_DATE, YYYYMMDD, RANK() OVER (ORDER BY CAL_DATE) RANK
+												FROM	CAL_MST
+												WHERE	HOLIDAY_FLAG 	IS NULL
+												AND		YYYYMMDD		&gt; SUBSTR('$!{version}',1,8)
+												)
+										WHERE	RANK &lt;= 2
+										)					S2
+								WHERE	S1.CNFM_DATE	= S2.YYYYMMDD
+								AND		S1.ITEM_ID		= '$!{item_id}'
+								GROUP
+								BY		S1.DC_ID,
+										S1.ITEM_ID
+								)					T6,
+								(
+								SELECT	DC_ID,
+										ITEM_ID,
+										SUM(DECODE(USE_QUOTA_TYPE,'11',GOAL_BOX))	GOAL_11,	-- 판매목표
+										SUM(DECODE(USE_QUOTA_TYPE,'13',GOAL_BOX))	GOAL_13,	-- 전월실적
+										SUM(DECODE(USE_QUOTA_TYPE,'14',GOAL_BOX))	GOAL_14,	-- 과거3개월 평균
+										SUM(DECODE(USE_QUOTA_TYPE,'17',GOAL_BOX))	GOAL_17,	-- 과거3개월 가중치
+										SUM(DECODE(USE_QUOTA_TYPE,'18',GOAL_BOX))	GOAL_18,	-- 전년동월
+										SUM(DECODE(USE_QUOTA_TYPE,'21',GOAL_BOX))	GOAL_21,	-- 실적참조품목
+										SUM(DECODE(USE_QUOTA_TYPE,'23',GOAL_BOX))	GOAL_23,	-- 사용자
+										SUM(DECODE(USE_QUOTA_TYPE,'13',NVL(CUM_SELL_BOX,0)+NVL(SELL_BOX,0)))	CUM_SELL	-- 누적판매		 
+								FROM	DC_ALLOC_GOAL
+								WHERE	VERSION	= SUBSTR('$!{version}',1,6)
+								AND		ITEM_ID	= '$!{item_id}'
+								GROUP
+								BY		DC_ID,
+										ITEM_ID	
+								)					T7,
+								(
+								/* 해당품목에 MAPPING된 품목들의 재고정보 */
+								SELECT	DC_ID,
+										SUM(MAP_STOCK_BOX)	MAP_STOCK_BOX
+								FROM	(
+										SELECT	T1.DC_ID,
+					                     		ROUND(SUM(T1.STOCK_EXPT),0)		MAP_STOCK_BOX
+										FROM	(
+												SELECT	T1.DC_ID, T1.ITEM_ID, SUM(T1.STOCK_EXPT)	STOCK_EXPT
+												FROM	DC_DATAWAREHOUSE	T1
+												WHERE	CNFM_DATE	= SUBSTR('$!{version}',1,8)
+												AND		T1.ITEM_ID  IN 	(
+												                    	select CAT01
+													                    from  code_mst
+													                    where cd_grp 	= 'MAP_ITEM_STOCK'
+													                    AND CD_NAME 	= '$!{item_id}'
+													                    )
+												HAVING	SUM(T1.STOCK_EXPT) > 0
+												GROUP
+												BY		T1.DC_ID, T1.ITEM_ID
+												)		T1,
+												DC_MST	T2
+										WHERE	T1.DC_ID	= T2.DC_ID
+										GROUP
+										BY		T1.DC_ID
+										UNION	ALL
+										SELECT	SRC_LOC	DC_ID,
+												-1 * ROUND(SUM(BASE_STK_QTY+ADD_STK_QTY+PROD_QTY),0)	MAP_STOCK_BOX
+										FROM	TRANS_PLAN	T1
+										WHERE	VERSION		= '$!{version}'
+										AND		TRANS_DATE	= TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD')
+										AND		BRAND_NO	IS NULL		-- 수송전표 발행전 것만 감안
+										AND		T1.ITEM_ID  IN 	(
+											                    select CAT01
+											                    from  code_mst
+											                    where cd_grp 	= 'MAP_ITEM_STOCK'
+											                    AND CD_NAME 	= '$!{item_id}'
+											                    )
+										GROUP
+										BY		SRC_LOC
+										)
+								GROUP
+								BY		DC_ID
+								)					T8
+						WHERE	T1.CNFM_DATE	= SUBSTR('$!{version}',1,8)
+						AND		T1.DC_ID		= T2.DC_ID
+						AND		T1.ITEM_ID		= '$!{item_id}'
+						AND		T1.DC_ID		= T3.DC_ID(+)
+						AND		T1.ITEM_ID		= T3.ITEM_ID(+)
+						AND		T1.DC_ID		= T4.RDC_ID(+)
+						AND		T1.ITEM_ID		= T4.ITEM_ID(+)
+						AND		T1.DC_ID		= T5.DC_ID(+)
+						AND		T1.ITEM_ID		= T5.ITEM_ID(+)
+						AND		T1.DC_ID		= T6.DC_ID(+)
+						AND		T1.ITEM_ID		= T6.ITEM_ID(+)
+						AND		T1.DC_ID		= T7.DC_ID(+)
+						AND		T1.ITEM_ID		= T7.ITEM_ID(+)
+						AND		T1.DC_ID		= T8.DC_ID(+)
+						AND		T2.EXPORT_FLAG 	IS NULL
+						AND		(T2.CDC_FLAG = 'Y' OR T2.RDC_FLAG = 'Y')
+						AND		T2.MADE_TYPE	!= 'DE'
+						AND		(
+									(
+										(
+										SELECT	NVL(CAT03,'XX')
+										FROM	ITEM_MST
+										WHERE	ITEM_ID	= '$!{item_id}'
+										) NOT IN ('F10','F30') -- 냉동품목 제외
+										#if("$!{item_id}" == "901001572" )			--2015-09-07 이승용대리 요청 농심가락업소용우동(S) 강제로 냉동창고 보이기
+										--AND T2.DC_LOC_TYPE	= '사내'
+										#else
+										AND T2.DC_LOC_TYPE	= '사내'
+										#end										
+									)
+								OR
+									(
+										(
+											(
+											SELECT	NVL(CAT03,'XX')
+											FROM	ITEM_MST
+											WHERE	ITEM_ID	= '$!{item_id}'
+											) IN ('F10','F30') -- 냉동품목 OR ITEM_ID ='901001572'
+										)
+										AND T2.SL_CAT IN ('일반/냉동','냉동창고')
+									)
+								)
+						)
+				GROUP
+				BY		ROLLUP(CDC_FLAG, DC_ID)		
+				)	K1,
+				(
+				/* 수송계획 */
+				SELECT	TP.VERSION,
+						TP.TGT_LOC DC_ID,
+						TP.ITEM_ID,
+						TP.TRANS_DATE,
+						TP.SRC_LOC,
+						DC.DC_SHORT_NAME SRC_LOC_NAME,
+						SUM(NVL(TP.BASE_STK_QTY,0)+NVL(TP.ADD_STK_QTY,0)+NVL(TP.PROD_QTY,0)) 	TRANS_PLAN_QTY,
+						SUM(NVL(TP.BASE_STK_PLT,0)+NVL(TP.ADD_STK_PLT,0)+NVL(TP.PROD_PLT,0)) 	TRANS_PLAN_PLT,
+						ROW_NUMBER() OVER(PARTITION BY TGT_LOC ORDER BY TGT_LOC) 				CDC_CNT  -- 복수의 CDC로부터 공급받는여부 판단
+				FROM	TRANS_PLAN TP,
+						DC_MST DC
+				WHERE	TP.VERSION      = '$!{version}'
+				AND		TP.SEQ          = '1' 
+				AND		TP.ITEM_ID		= '$!{item_id}'
+				AND		TP.TRANS_DATE   = TO_DATE('$!{trans_start}','YYYY-MM-DD')
+				AND		TP.BRAND_NO		IS NULL  -- 발행된 수송전표는 제외한다. 왜냐하면 입고예정에 감안되었을거니깐!
+				-- ZM3 반품수송 제외
+				AND		TP.PLAN_TYPE NOT IN ('ZM3')
+				AND		TP.SRC_LOC      = DC.DC_ID(+)
+				GROUP
+				BY 		TP.VERSION, TP.TGT_LOC, TP.ITEM_ID, TP.TRANS_DATE, TP.SRC_LOC, DC.DC_NAME, DC.DC_SHORT_NAME
+				)	K2,
+				(
+				/* CDC 전체 사용 CAPA */
+				SELECT	DC_ID,
+						--SUM(USE_CAPA)		USE_CAPA,
+						SUM(USE_CAPA_BOX)	REMN_CAPA_BOX
+				FROM	(
+						SELECT	T1.DC_ID,
+								--ROUND(SUM(T1.STOCK_EXPT/f_getBoxPerPallet(T2.PLANT_ID,T1.ITEM_ID)),0)		USE_CAPA,
+								NVL(T2.KEEPING_CAPA1,0) - ROUND(SUM(T1.STOCK_EXPT),0)						USE_CAPA_BOX
+						FROM	(
+								SELECT	T1.DC_ID, T1.ITEM_ID, SUM(T1.STOCK_EXPT)	STOCK_EXPT
+								FROM	DC_DATAWAREHOUSE	T1
+								WHERE	CNFM_DATE	= SUBSTR('$!{version}',1,8)
+								AND		NOT EXISTS (  /* 삼다수 제거 */
+													SELECT	T2.ITEM_ID
+														FROM	ITEM_MST	T2
+														WHERE	HR_TY1	LIKE '303001%'
+														AND		T1.ITEM_ID	= T2.ITEM_ID
+													)
+								HAVING	SUM(T1.STOCK_EXPT) > 0
+								GROUP
+								BY		T1.DC_ID, T1.ITEM_ID
+								)		T1,
+								DC_MST	T2
+						WHERE	T1.DC_ID	= T2.DC_ID
+						GROUP
+						BY		T1.DC_ID, NVL(T2.KEEPING_CAPA1,0)
+						UNION	ALL
+						SELECT	TGT_LOC	DC_ID,
+								-- -1 * ROUND(SUM(BASE_STK_PLT+ADD_STK_PLT+PROD_PLT),0)	USE_CAPA,
+								-1 * ROUND(SUM(BASE_STK_QTY+ADD_STK_QTY+PROD_QTY),0)	USE_CAPA_BOX
+						FROM	TRANS_PLAN	T1
+						WHERE	VERSION		= '$!{version}'
+						AND		TRANS_DATE	= TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD')
+						AND		BRAND_NO	IS NULL		-- 수송전표 발행전 것만 감안
+						AND		NOT EXISTS (  /* 삼다수 제거 */
+											SELECT	T2.ITEM_ID
+												FROM	ITEM_MST	T2
+												WHERE	HR_TY1	LIKE '303001%'
+												AND		T1.ITEM_ID	= T2.ITEM_ID
+											)
+						GROUP
+						BY		TGT_LOC
+						)
+				GROUP
+				BY		DC_ID
+				)		K3,
+				DC_MST	K4,
+				(
+				SELECT	T1.STOR_CODE								DC_ID,
+						COUNT(T1.CUST_CODE)							CUST_TOT,
+						NVL(SUM(DECODE(T1.GRUP_CODE1,'10',1)),0)	CUST_10,	-- 특약점
+						NVL(SUM(DECODE(T1.GRUP_CODE1,'11',1)),0)	CUST_11,	-- 직거래
+						NVL(SUM(DECODE(T1.GRUP_CODE1,'16',1)),0)	CUST_16,	-- 대형마트
+						NVL(SUM(DECODE(T1.GRUP_CODE1,'14',1)),0)	CUST_14,	-- 슈퍼체인
+						NVL(SUM(DECODE(T1.GRUP_CODE1,'19',1)),0)	CUST_19,	-- 농협
+						NVL(SUM(DECODE(T1.GRUP_CODE1,'18',1)),0)	CUST_18,	-- CVS
+						NVL(SUM(												
+							CASE
+								WHEN T1.GRUP_CODE1 IN ('10','11','16','14','19','18') THEN 0
+								ELSE 1
+							END
+							),0)	CUST_99										-- 기타
+				FROM	SDSTT103	T1,
+						(
+						SELECT	DISTINCT	OLD_CUST_CODE	CUST_CODE
+						FROM	SDSTT101
+						)			T2
+				WHERE	T1.CUST_CODE	= T2.CUST_CODE
+				AND		T1.TRAD_STOP_DATE	= '99991231'
+				AND		T1.STOR_CODE		IS NOT NULL
+				GROUP
+				BY		T1.STOR_CODE
+				)		K5
+		WHERE	K1.DC_ID	= K2.DC_ID(+)
+		AND		K1.DC_ID	= K3.DC_ID(+)
+		AND		K1.DC_ID	= K4.DC_ID(+)
+		AND		K1.DC_ID	= K5.DC_ID(+)
+		ORDER
+		BY		K1.ORD, K1.DC_ID, K2.SRC_LOC
+
+	#else
+	
+		/* 익일계획 (영업일 기준)  */
+		SELECT	K1.DC_ID,
+				K1.DC_NAME,
+				PRE_MONTH_SELL,	     
+				PRE_MONTH_SELL_01,	 
+				PRE_MONTH_SELL_02,	 
+				PRE_MONTH_SELL_03,	 
+				PRE_MONTH_SELL_04,
+				PRE_MONTH_SELL_05,	 
+				PRE_MONTH_SELL_06,
+				SALES_PRE,	         
+				SALES_PRE_01,	     
+				SALES_PRE_02,	     
+				SALES_PRE_03,	     
+				SALES_PRE_04,
+				SALES_PRE_05,	     
+				SALES_PRE_06,
+				SALES_PRE_CUM,	     
+				SALES_PRE_CUM_01,	 
+				SALES_PRE_CUM_02,	 
+				SALES_PRE_CUM_03,	 
+				SALES_PRE_CUM_04,	
+				SALES_PRE_CUM_05,	 
+				SALES_PRE_CUM_06,	
+				SALES_PLAN,
+				ISSUE,	             
+				ISSUE_YO,	         
+				ISSUE_YS,	         
+				ISSUE_TA,	         
+				ISSUE_WMS,
+				ISSUE_EX,	   
+				ISSUE_CUST_TOT,  
+				ISSUE_CUST_10,   
+				ISSUE_CUST_11,   
+				ISSUE_CUST_16,   
+				ISSUE_CUST_14,   
+				ISSUE_CUST_19,   
+				ISSUE_CUST_18,   
+				ISSUE_CUST_99,     
+				SALES_MEAN_1WEEK_ETC,
+				SALES_MEAN_1WEEK,	 
+				SALES_MEAN_3WEEK_ETC,
+				SALES_MEAN_3WEEK,	 
+				BASE_STOCK,	         
+				RECEIPT,	         
+				CHGO_QTY,	         
+				DELV,	             
+				TRAN,                
+				STOCK_DAY_1W_ETC,	--2013-06-19 추가
+				STOCK_DAY_1W,
+				STOCK_DAY_3W_ETC,	--2013-06-19 추가
+				STOCK_DAY_3W,
+				STOCK_TERM,
+				SAFETY_STOCK,	
+				SALES_PLAN_D1,
+				DC_ALLOC_BOX_D1,	  
+				ISSUE_D1,	  
+				ISSUE_YO_D1,  
+				ISSUE_YS_D1,  
+				ISSUE_TA_D1,  
+				ISSUE_WMS_D1, 
+				ISSUE_EX_D1,  
+				EDI_22_D+EDI_21_D+EDI_23_D+EDI_ETC_D 	EDI_TOT_D,  
+				EDI_22_D,	  
+				EDI_21_D,	  
+				EDI_23_D,	  
+				EDI_ETC_D,
+				EDI_22_D1+EDI_21_D1+EDI_23_D1+EDI_ETC_D1 	EDI_TOT_D1,
+				EDI_22_D1,	  
+				EDI_21_D1,	  
+				EDI_23_D1,	  
+				EDI_ETC_D1,
+				EDI_22_D2+EDI_21_D2+EDI_23_D2+EDI_ETC_D2	EDI_TOT_D2,	  
+				EDI_22_D2,	  
+				EDI_21_D2,	  
+				EDI_23_D2,	  
+				EDI_ETC_D2,   
+				STOCK_EXPT,	    
+				REP_QTY,	    
+				MIN_PICK_QTY,
+				ROUND(NVL(TRANS_PLAN_QTY,0),0)	TRANS_PLAN_QTY,
+				ROUND(NVL(TRANS_PLAN_PLT,0),2)	TRANS_PLAN_PLT,
+				K2.SRC_LOC,
+				NVL(K2.CDC_CNT,1)	CDC_CNT,
+				K1.ORD,
+				ROW_NUMBER() OVER(ORDER BY ORD)	ORD2,
+				f_getBoxPerPallet(K2.SRC_LOC,'$!{item_id}')	BOX_PER_PLT,
+				SAFETY_STOCK_FLAG,
+				K1.CD_SRC_LOC,
+				GOAL_11, 
+				GOAL_13,
+				GOAL_14,
+				GOAL_17,
+				GOAL_18,
+				GOAL_21,
+				GOAL_23,
+				RATE_11,
+				RATE_13,
+				RATE_14,
+				RATE_17,
+				RATE_18,
+				RATE_21,
+				RATE_23,
+				NVL(REMN_CAPA_BOX,0)	REMN_CAPA_BOX,
+				K4.ZONE,
+				CUST_TOT,
+				CUST_10,
+				CUST_11,
+				CUST_16,
+				CUST_14,
+				CUST_19,
+				CUST_18,
+				CUST_99,
+				MAP_STOCK_BOX 
+		FROM	(
+				SELECT	CASE
+							WHEN GROUPING(CDC_FLAG) = 0 AND GROUPING(DC_ID) = 0 AND CDC_FLAG = 'Y' THEN 2
+							WHEN GROUPING(CDC_FLAG) = 0 AND GROUPING(DC_ID) = 0 AND CDC_FLAG = 'N' THEN 4
+							WHEN GROUPING(DC_ID) = 1 AND CDC_FLAG = 'Y' THEN 3
+							WHEN GROUPING(DC_ID) = 1 AND CDC_FLAG = 'N' THEN 5
+							WHEN GROUPING(CDC_FLAG) = 1 AND GROUPING(DC_ID) = 1 THEN 1
+						END	ORD,
+						CASE
+							WHEN GROUPING(CDC_FLAG) = 0 AND GROUPING(DC_ID) = 0 THEN F_GETDCNAME(DC_ID)
+							WHEN GROUPING(DC_ID) = 1 AND CDC_FLAG = 'Y' THEN 'CDC합계'
+							WHEN GROUPING(DC_ID) = 1 AND CDC_FLAG = 'N' THEN 'RDC합계'
+							WHEN GROUPING(CDC_FLAG) = 1 AND GROUPING(DC_ID) = 1 THEN '전체합계'
+						END	DC_NAME,
+						DC_ID,
+						NVL(SUM(PRE_MONTH_SELL),0)		PRE_MONTH_SELL,	     
+						NVL(SUM(PRE_MONTH_SELL_01),0)   PRE_MONTH_SELL_01,	 
+						NVL(SUM(PRE_MONTH_SELL_02),0)   PRE_MONTH_SELL_02,	 
+						NVL(SUM(PRE_MONTH_SELL_03),0)   PRE_MONTH_SELL_03,  
+                        NVL(SUM(PRE_MONTH_SELL_04),0)   PRE_MONTH_SELL_04,  
+                        NVL(SUM(PRE_MONTH_SELL_05),0)   PRE_MONTH_SELL_05,  
+                        NVL(SUM(PRE_MONTH_SELL_06),0)   PRE_MONTH_SELL_06,						
+						SUM(SALES_PRE)	                SALES_PRE,	         
+						SUM(SALES_PRE_01)	            SALES_PRE_01,	     
+						SUM(SALES_PRE_02)	            SALES_PRE_02,	     
+						SUM(SALES_PRE_03)	            SALES_PRE_03,  
+                        SUM(SALES_PRE_04)	            SALES_PRE_04,  
+                        SUM(SALES_PRE_05)	            SALES_PRE_05,  
+                        SUM(SALES_PRE_06)	            SALES_PRE_06, 
+						SUM(SALES_PRE_CUM) + NVL(SUM(ISSUE),0)	            										SALES_PRE_CUM,	     
+						SUM(SALES_PRE_CUM_01) + NVL(SUM(ISSUE_YO),0) - NVL(SUM(ISSUE_YS),0) + NVL(SUM(ISSUE_EX),0)	SALES_PRE_CUM_01,	 
+						SUM(SALES_PRE_CUM_02) + NVL(SUM(ISSUE_SI),0) 	        									SALES_PRE_CUM_02,	  
+                        SUM(SALES_PRE_CUM_03) + NVL(SUM(ISSUE_YU),0) 	        									SALES_PRE_CUM_03,	
+						SUM(SALES_PRE_CUM_04) + NVL(SUM(ISSUE_TA),0) + NVL(SUM(ISSUE_WMS),0)						SALES_PRE_CUM_04,	 
+						SUM(SALES_PRE_CUM_05) + NVL(SUM(ISSUE_SI_TA),0) 						        			SALES_PRE_CUM_05,	
+						SUM(SALES_PRE_CUM_06) + NVL(SUM(ISSUE_YU_TA),0) 						        			SALES_PRE_CUM_06,							
+						SUM(SALES_PLAN)	            	SALES_PLAN,	     
+						NVL(SUM(ISSUE),0)               ISSUE,	             
+						NVL(SUM(ISSUE_YO),0)            ISSUE_YO,	         
+						NVL(SUM(ISSUE_YS),0)            ISSUE_YS,	         
+						NVL(SUM(ISSUE_TA),0)            ISSUE_TA,	         
+						NVL(SUM(ISSUE_WMS),0)           ISSUE_WMS,	         
+						NVL(SUM(ISSUE_EX),0)           	ISSUE_EX,
+						SUM(ISSUE_CUST_TOT)	 			ISSUE_CUST_TOT,  
+                        SUM(ISSUE_CUST_10)	 			ISSUE_CUST_10,   
+                        SUM(ISSUE_CUST_11)	 			ISSUE_CUST_11,   
+                        SUM(ISSUE_CUST_16)	 			ISSUE_CUST_16,   
+                        SUM(ISSUE_CUST_14)	 			ISSUE_CUST_14,   
+                        SUM(ISSUE_CUST_19)	 			ISSUE_CUST_19,   
+                        SUM(ISSUE_CUST_18)	 			ISSUE_CUST_18,   
+                        SUM(ISSUE_CUST_99)	 			ISSUE_CUST_99,           
+						SUM(SALES_MEAN_1WEEK_ETC)	    SALES_MEAN_1WEEK_ETC,
+						SUM(SALES_MEAN_1WEEK)	        SALES_MEAN_1WEEK,	 
+						SUM(SALES_MEAN_3WEEK_ETC)	    SALES_MEAN_3WEEK_ETC,
+						SUM(SALES_MEAN_3WEEK)	        SALES_MEAN_3WEEK,	 
+						SUM(BASE_STOCK)	            	BASE_STOCK,	         
+						SUM(RECEIPT)	                RECEIPT,	         
+						SUM(CHGO_QTY)	                CHGO_QTY,	         
+						SUM(DELV)	                    DELV,	             
+						SUM(TRAN)	                    TRAN,
+						DECODE(SUM(SALES_MEAN_1WEEK_ETC)	,0	,0	,ROUND(SUM(STOCK_EXPT)/SUM(SALES_MEAN_1WEEK_ETC),1))	STOCK_DAY_1W_ETC,	--2013-06-19 추가
+						DECODE(SUM(SALES_MEAN_1WEEK)		,0	,0	,ROUND(SUM(STOCK_EXPT)/SUM(SALES_MEAN_1WEEK),1))		STOCK_DAY_1W,
+						DECODE(SUM(SALES_MEAN_3WEEK_ETC)	,0	,0	,ROUND(SUM(STOCK_EXPT)/SUM(SALES_MEAN_3WEEK_ETC),1))	STOCK_DAY_3W_ETC,	--2013-06-19 추가             
+						DECODE(SUM(SALES_MEAN_3WEEK)		,0	,0	,ROUND(SUM(STOCK_EXPT)/SUM(SALES_MEAN_3WEEK),1))		STOCK_DAY_3W,
+						CASE
+							WHEN GROUPING(CDC_FLAG) = 0 AND GROUPING(DC_ID) = 0 THEN SUM(STOCK_TERM)
+							ELSE ROUND(AVG(STOCK_TERM),0)
+						END								STOCK_TERM,
+						SUM(SAFETY_STOCK)	            SAFETY_STOCK,	     
+						SUM(SALES_PLAN_D1)	            SALES_PLAN_D1,	     
+						SUM(DC_ALLOC_BOX_D1)	        DC_ALLOC_BOX_D1,	     
+						SUM(ISSUE_D1)	 				ISSUE_D1,	
+						SUM(ISSUE_YO_D1) 				ISSUE_YO_D1,
+						SUM(ISSUE_YS_D1) 				ISSUE_YS_D1,
+						SUM(ISSUE_TA_D1) 				ISSUE_TA_D1,
+						SUM(ISSUE_SI_D1)				ISSUE_SI,		
+                        SUM(ISSUE_SI_TA_D1)				ISSUE_SI_TA,	
+                        SUM(ISSUE_YU_D1)				ISSUE_YU,		
+                        SUM(ISSUE_YU_TA_D1)				ISSUE_YU_TA,	
+						SUM(ISSUE_WMS_D1)				ISSUE_WMS_D1,
+						SUM(ISSUE_EX_D1) 				ISSUE_EX_D1,
+						SUM(EDI_21_D)	 				EDI_21_D, 	    
+						SUM(EDI_22_D)	 				EDI_22_D,	 	
+						SUM(EDI_23_D)	 				EDI_23_D,	 	
+						SUM(EDI_ETC_D)	 				EDI_ETC_D,
+						SUM(EDI_21_D1)	 				EDI_21_D1,	 
+						SUM(EDI_22_D1)	 				EDI_22_D1,	 
+						SUM(EDI_23_D1)	 				EDI_23_D1,	 
+						SUM(EDI_ETC_D1)	 				EDI_ETC_D1,	 
+						SUM(EDI_21_D2)	 				EDI_21_D2,	 
+						SUM(EDI_22_D2)	 				EDI_22_D2,	 
+						SUM(EDI_23_D2)	 				EDI_23_D2,	 
+						SUM(EDI_ETC_D2)  				EDI_ETC_D2,   
+						SUM(STOCK_EXPT)	                STOCK_EXPT,	         
+						SUM(REP_QTY)	                REP_QTY,	         
+						SUM(MIN_PICK_QTY)	            MIN_PICK_QTY,
+						CASE
+							WHEN GROUPING(CDC_FLAG) = 0 AND GROUPING(DC_ID) = 0 THEN MAX(SAFETY_STOCK_FLAG)
+							ELSE null
+						END								SAFETY_STOCK_FLAG,
+						CASE
+							WHEN GROUPING(CDC_FLAG) = 0 AND GROUPING(DC_ID) = 0 THEN MAX(CD_SRC_LOC)
+							ELSE null
+						END								CD_SRC_LOC,
+						SUM(GOAL_11)					GOAL_11, 
+						SUM(GOAL_13)					GOAL_13,
+						SUM(GOAL_14)					GOAL_14,
+						SUM(GOAL_17)					GOAL_17,
+						SUM(GOAL_18)					GOAL_18,
+						SUM(GOAL_21)					GOAL_21,
+						SUM(GOAL_23)					GOAL_23,
+						NVL(ROUND(DECODE(SUM(GOAL_11),0,0,SUM(CUM_SELL)/SUM(GOAL_11)*100),1),0)	RATE_11,
+						NVL(ROUND(DECODE(SUM(GOAL_13),0,0,SUM(CUM_SELL)/SUM(GOAL_13)*100),1),0)	RATE_13,
+						NVL(ROUND(DECODE(SUM(GOAL_14),0,0,SUM(CUM_SELL)/SUM(GOAL_14)*100),1),0)	RATE_14,
+						NVL(ROUND(DECODE(SUM(GOAL_17),0,0,SUM(CUM_SELL)/SUM(GOAL_17)*100),1),0)	RATE_17,
+						NVL(ROUND(DECODE(SUM(GOAL_18),0,0,SUM(CUM_SELL)/SUM(GOAL_18)*100),1),0)	RATE_18,
+						NVL(ROUND(DECODE(SUM(GOAL_21),0,0,SUM(CUM_SELL)/SUM(GOAL_21)*100),1),0)	RATE_21,
+						NVL(ROUND(DECODE(SUM(GOAL_23),0,0,SUM(CUM_SELL)/SUM(GOAL_23)*100),1),0)	RATE_23,
+						SUM(MAP_STOCK_BOX)				MAP_STOCK_BOX				     
+				FROM	(
+						SELECT	T2.CDC_FLAG,
+								T1.DC_ID,
+								NVL(PRE_MONTH_SELL,0)									PRE_MONTH_SELL,
+								NVL(PRE_MONTH_SELL,0)-NVL(PRE_MONTH_SELL_TA,0)			PRE_MONTH_SELL_01,
+								NVL(PRE_MONTH_SELL_SI,0) - NVL(PRE_MONTH_SELL_SI_TA,0)	PRE_MONTH_SELL_02, 
+                                NVL(PRE_MONTH_SELL_YU,0) - NVL(PRE_MONTH_SELL_YU_TA,0)	PRE_MONTH_SELL_03,
+								NVL(PRE_MONTH_SELL_TA,0)								PRE_MONTH_SELL_04,
+								NVL(PRE_MONTH_SELL_SI_TA,0)								PRE_MONTH_SELL_05, 
+                                NVL(PRE_MONTH_SELL_YU_TA,0)								PRE_MONTH_SELL_06,
+								NVL(ISSUE,0)										SALES_PRE,
+								NVL(ISSUE_YO,0) + NVL(ISSUE_EX,0) - NVL(ISSUE_YS,0)	SALES_PRE_01,
+								NVL(ISSUE_SI,0) - NVL(ISSUE_SI_TA,0)				SALES_PRE_02,      
+                                NVL(ISSUE_YU,0) - NVL(ISSUE_YU_TA,0)				SALES_PRE_03,
+								NVL(ISSUE_TA,0) + NVL(ISSUE_WMS,0)					SALES_PRE_04,
+								NVL(ISSUE_SI_TA,0)									SALES_PRE_05,      
+                                NVL(ISSUE_YU_TA,0)									SALES_PRE_06,
+								NVL(SALES_PRE_CUM,0) + NVL(SALES_PRE_CUM_TA,0) + NVL(ISSUE,0) 					SALES_PRE_CUM,
+								NVL(SALES_PRE_CUM,0) + NVL(ISSUE_YO,0) + NVL(ISSUE_EX,0) - NVL(ISSUE_YS,0)		SALES_PRE_CUM_01,
+								NVL(SALES_PRE_CUM_SI,0) 														SALES_PRE_CUM_02,  
+                                NVL(SALES_PRE_CUM_YU,0) 														SALES_PRE_CUM_03, 
+								NVL(SALES_PRE_CUM_TA,0) + NVL(ISSUE_TA,0) + NVL(ISSUE_WMS,0)					SALES_PRE_CUM_04,
+								NVL(SALES_PRE_CUM_SI_TA,0)														SALES_PRE_CUM_05,  
+                                NVL(SALES_PRE_CUM_YU_TA,0)														SALES_PRE_CUM_06,
+								NVL(SALES_PLAN_D1,0)								SALES_PLAN,
+								NVL(ISSUE_D1,	 0)									ISSUE,	
+								NVL(ISSUE_YO_D1, 0)									ISSUE_YO,
+								NVL(ISSUE_YS_D1, 0)									ISSUE_YS,
+								NVL(ISSUE_TA_D1, 0)									ISSUE_TA,
+								NVL(ISSUE_SI_D1, 0)									ISSUE_SI,	   
+                                NVL(ISSUE_YU_D1, 0)									ISSUE_YU,      
+                                NVL(ISSUE_SI_TA_D1, 0)								ISSUE_SI_TA,   
+                                NVL(ISSUE_YU_TA_D1, 0)								ISSUE_YU_TA,   
+								NVL(ISSUE_WMS_D1,0)									ISSUE_WMS,
+								NVL(ISSUE_EX_D1, 0)									ISSUE_EX,
+								NVL(ISSUE_CUST_10,0)+NVL(ISSUE_CUST_11,0)+NVL(ISSUE_CUST_16,0)+NVL(ISSUE_CUST_14,0)+ NVL(ISSUE_CUST_19,0)+NVL(ISSUE_CUST_18,0)+NVL(ISSUE_CUST_99,0) ISSUE_CUST_TOT,
+                                NVL(ISSUE_CUST_10,0)			ISSUE_CUST_10,    
+                                NVL(ISSUE_CUST_11,0)			ISSUE_CUST_11,    
+                                NVL(ISSUE_CUST_16,0)			ISSUE_CUST_16,    
+                                NVL(ISSUE_CUST_14,0)			ISSUE_CUST_14,    
+                                NVL(ISSUE_CUST_19,0)			ISSUE_CUST_19,    
+                                NVL(ISSUE_CUST_18,0)			ISSUE_CUST_18,    
+                                NVL(ISSUE_CUST_99,0)			ISSUE_CUST_99,
+								SALES_MEAN_1WEEK_ETC, 
+								SALES_MEAN_1WEEK,
+								SALES_MEAN_3WEEK_ETC,
+								SALES_MEAN_3WEEK,
+								STOCK_EXPT + NVL(T7.TRANS_IPGO,0) - NVL(T8.TRANS_CHGO,0)	BASE_STOCK,	
+								NVL(RECEIPT_D1,0) + NVL(RECEIPT_EXPT_D1,0) 			RECEIPT,
+								NVL(ISSUE_D1,0)+NVL(TRANS_BOX_D1,0)					CHGO_QTY,
+								NVL(ISSUE_D1,0)										DELV,
+								NVL(TRANS_BOX_D1,0)									TRAN,
+								DECODE(SALES_MEAN_1WEEK_ETC		,0	,0	,ROUND((STOCK_EXPT + NVL(T7.TRANS_IPGO,0) - NVL(T8.TRANS_CHGO,0))/SALES_MEAN_1WEEK_ETC,1)) STOCK_DAY_1W_ETC, --2013-06-19 추가
+								DECODE(SALES_MEAN_1WEEK			,0	,0	,ROUND((STOCK_EXPT + NVL(T7.TRANS_IPGO,0) - NVL(T8.TRANS_CHGO,0))/SALES_MEAN_1WEEK,1)) STOCK_DAY_1W,
+								DECODE(SALES_MEAN_3WEEK_ETC		,0	,0,	ROUND((STOCK_EXPT + NVL(T7.TRANS_IPGO,0) - NVL(T8.TRANS_CHGO,0))/SALES_MEAN_3WEEK_ETC,1)) STOCK_DAY_3W_ETC,	--2013-06-19 추가
+								DECODE(SALES_MEAN_3WEEK			,0	,0	,ROUND((STOCK_EXPT + NVL(T7.TRANS_IPGO,0) - NVL(T8.TRANS_CHGO,0))/SALES_MEAN_3WEEK,1)) STOCK_DAY_3W,
+								STOCK_TERM,
+								NVL(T3.SAFETY_STOCK,0)			SAFETY_STOCK, 	
+								NVL(SALES_PLAN_D2,0)			SALES_PLAN_D1,
+								NVL(DC_ALLOC_BOX_D2,0)			DC_ALLOC_BOX_D1,
+								NVL(ISSUE_D2,	 0)				ISSUE_D1,	
+								NVL(ISSUE_YO_D2, 0)				ISSUE_YO_D1,
+								NVL(ISSUE_YS_D2, 0)				ISSUE_YS_D1,
+								NVL(ISSUE_TA_D2, 0)				ISSUE_TA_D1,
+								NVL(ISSUE_SI_D2, 0)				ISSUE_SI_D1,	
+                                NVL(ISSUE_SI_TA_D2, 0)			ISSUE_SI_TA_D1, 
+                                NVL(ISSUE_YU_D2, 0)				ISSUE_YU_D1,    
+                                NVL(ISSUE_YU_TA_D2, 0)			ISSUE_YU_TA_D1, 
+								NVL(ISSUE_WMS_D2,0)				ISSUE_WMS_D1,
+								NVL(ISSUE_EX_D2, 0)				ISSUE_EX_D1,
+								NVL(EDI_21_D1,	 0)				EDI_21_D,  		    
+								NVL(EDI_22_D1,	 0)				EDI_22_D,		   
+								NVL(EDI_23_D1,	 0)				EDI_23_D,		   
+								NVL(EDI_ETC_D1, 0)				EDI_ETC_D,
+								NVL(EDI_21_D2,	 0)				EDI_21_D1,	 
+								NVL(EDI_22_D2,	 0)				EDI_22_D1,	 
+								NVL(EDI_23_D2,	 0)				EDI_23_D1,	 
+								NVL(EDI_ETC_D2,	 0)				EDI_ETC_D1,	 
+								NVL(EDI_21_D3,	 0)				EDI_21_D2,	 
+								NVL(EDI_22_D3,	 0)				EDI_22_D2,	 
+								NVL(EDI_23_D3,	 0)				EDI_23_D2,	 
+								NVL(EDI_ETC_D3,  0)				EDI_ETC_D2,   
+								STOCK_EXPT + NVL(T7.TRANS_IPGO,0) - NVL(T8.TRANS_CHGO,0) + NVL(RECEIPT_D1,0) + NVL(RECEIPT_EXPT_D1,0)
+								- NVL(ISSUE_D1,0) - NVL(TRANS_BOX_D1,0)			STOCK_EXPT,
+								NVL(T5.REP_QTY,0)				REP_QTY,
+								NVL(T4.MIN_PICK_QTY,0)			MIN_PICK_QTY,
+								NVL(T3.SAFETY_STOCK_FLAG,00)	SAFETY_STOCK_FLAG,
+								NVL(T2.CD_SRC_LOC,T2.DC_ID)		CD_SRC_LOC,
+								NVL(GOAL_11,0)					GOAL_11, 
+								NVL(GOAL_13,0)					GOAL_13,
+								NVL(GOAL_14,0)					GOAL_14,
+								NVL(GOAL_17,0)					GOAL_17,
+								NVL(GOAL_18,0)					GOAL_18,
+								NVL(GOAL_21,0)					GOAL_21,
+								NVL(GOAL_23,0)					GOAL_23,
+								NVL(CUM_SELL,0)					CUM_SELL,
+								NVL(MAP_STOCK_BOX,0)			MAP_STOCK_BOX
+						FROM	DC_DATAWAREHOUSE	T1,
+								DC_MST				T2,
+								(
+								/* 안전재고 */
+								SELECT	PY.LOC_ID DC_ID,
+										PY.ITEM_ID,
+										SUM(PY.SAFETY_STOCK+PY.CAMP_STOC+PY.SAVE_STOC) SAFETY_STOCK2,
+										CASE	WHEN SUBSTR('$!{version}',1,8) 
+														BETWEEN NVL(PY.START_DATE, '00000000') AND NVL(PY.END_DATE, '00000000')
+													THEN SUM(PY.SAFETY_STOCK+PY.CAMP_STOC+PY.SAVE_STOC)
+												ELSE SUM(PY.SAFETY_STOCK+PY.CAMP_STOC)
+										END SAFETY_STOCK,
+										PY.SAFETY_STOCK_FLAG
+								FROM	STOCK_POLICY_QTY PY,
+										(
+										SELECT	MAX(WORK_DATE) WORK_DATE
+										FROM	STOCK_POLICY_QTY
+										WHERE	LOC_TYPE = 'DC'
+										) MV
+								WHERE	PY.WORK_DATE = MV.WORK_DATE
+								AND		PY.ITEM_ID	 = '$!{item_id}'
+								GROUP
+								BY		PY.WORK_DATE, PY.LOC_ID, PY.ITEM_ID, NVL(PY.START_DATE, '00000000'), NVL(PY.END_DATE, '00000000'),
+										PY.SAFETY_STOCK_FLAG
+								)					T3,
+								TRANS_UNIT			T4,
+								(
+								/* 보충요구량 */
+								-- 보충요구량 : 자기 CDC 에서 보충받는 물량에 대한 부분을 제외하기 위해
+								--            REPLENISHMENTPLAN 에서 ORIGIN 과 DESTINATION 이 같은 물량을 빼줌
+								SELECT  PP.VERSIONID,
+										PP.DC_ID,
+										PP.ITEM_ID,
+										SUM(PP.REP_QTY)-SUM(PP.REP_QTY2) REP_QTY
+								FROM	(
+										SELECT  PP.VERSIONID,
+												SUBSTR(PP.ITEMID, 4, 4)		DC_ID,
+												SUBSTR(PP.ITEMID, 9, 18)	ITEM_ID,
+												SUM(PP.QTY)  				REP_QTY,
+												0							REP_QTY2
+										FROM    SCM_RP.PRODUCTIONORDERPLAN PP,
+												( 
+												-- 수송달력
+												SELECT  CAL_DATE,
+												RANK() OVER (ORDER BY CAL_DATE) IDX
+												FROM    CAL_MST
+												WHERE   TRIM(HOLIDAY_FLAG)  IS NULL
+												AND     CAL_DATE    &gt;= TO_DATE('$!{trans_start}','YYYY-MM-DD')
+												)	AN
+										WHERE   PP.VERSIONID 				= '$!{version}'
+										AND     PP.DUEDATE 					= AN.CAL_DATE
+										AND     SUBSTR(PP.ITEMID, 9, 18)	= '$!{item_id}'
+										AND     AN.IDX 						= 2 -- 영업일 다음날을 찾는다!
+										GROUP   BY PP.VERSIONID, SUBSTR(PP.ITEMID, 4, 4), SUBSTR(PP.ITEMID, 9, 18)
+										UNION   ALL
+										SELECT  RP.VERSIONID,
+												SUBSTR(RP.PRODUCTDESC, 4, 4)	DC_ID,
+												SUBSTR(RP.PRODUCTDESC, 9, 18)	ITEM_ID, 
+												0 								REP_QTY,
+												SUM(RP.REPLENISHQTY) 			REP_QTY2
+										FROM    SCM_RP.REPLENISHMENTPLAN RP,
+												( -- 수송달력
+												SELECT  CAL_DATE,
+												RANK() OVER (ORDER BY CAL_DATE) IDX
+												FROM    CAL_MST
+												WHERE   TRIM(HOLIDAY_FLAG)  IS NULL
+												AND     CAL_DATE    &gt;= TO_DATE('$!{trans_start}','YYYY-MM-DD')
+												) AN
+										WHERE   RP.VERSIONID 					= '$!{version}'
+										AND     RP.REPLENISHDATE 				= AN.CAL_DATE
+										AND     SUBSTR(RP.PRODUCTDESC, 9, 18) 	= '$!{item_id}'
+										AND     SUBSTR(RP.ORIGIN, 2) 			= SUBSTR(RP.DESTINATION, 2)
+										AND     SUBSTR(RP.PRODUCTDESC, 4, 4) 	= SUBSTR(RP.DESTINATION, 2)
+										AND     AN.IDX 							= 2 -- 영업일 다음날을 찾는다!
+										GROUP   BY RP.VERSIONID, SUBSTR(RP.PRODUCTDESC, 4, 4), SUBSTR(RP.PRODUCTDESC, 9, 18)
+										) PP
+								GROUP   BY PP.VERSIONID, PP.DC_ID, PP.ITEM_ID		
+								)					T5,
+								(
+								/* D+1, D+2 주문정보 */
+								SELECT	S1.DC_ID,
+										S1.ITEM_ID,
+										MAX(DECODE(S2.RANK,1,STOCK_EXPT))	STOCK_EXPT_D1,
+										MAX(DECODE(S2.RANK,1,SALES_PLAN	+ PROM_PLAN))	SALES_PLAN_D1,
+										MAX(DECODE(S2.RANK,1,DC_ALLOC_BOX))	DC_ALLOC_BOX_D1,
+										MAX(DECODE(S2.RANK,1,ISSUE))		ISSUE_D1,	
+										MAX(DECODE(S2.RANK,1,ISSUE_YO))		ISSUE_YO_D1,	
+										MAX(DECODE(S2.RANK,1,ISSUE_YS))		ISSUE_YS_D1,	
+										MAX(DECODE(S2.RANK,1,ISSUE_TA))		ISSUE_TA_D1,	
+										MAX(DECODE(S2.RANK,1,ISSUE_SI))		ISSUE_SI_D1,	
+                                        MAX(DECODE(S2.RANK,1,ISSUE_SI_TA))	ISSUE_SI_TA_D1,  
+                                        MAX(DECODE(S2.RANK,1,ISSUE_YU))		ISSUE_YU_D1,    
+                                        MAX(DECODE(S2.RANK,1,ISSUE_YU_TA))	ISSUE_YU_TA_D1, 	
+										MAX(DECODE(S2.RANK,1,ISSUE_WMS))	ISSUE_WMS_D1,	
+										MAX(DECODE(S2.RANK,1,ISSUE_EX))		ISSUE_EX_D1,	
+										MAX(DECODE(S2.RANK,1,RECEIPT))		RECEIPT_D1,	
+										MAX(DECODE(S2.RANK,1,RECEIPT_EXPT))	RECEIPT_EXPT_D1,	
+										MAX(DECODE(S2.RANK,1,TRANS_BOX))	TRANS_BOX_D1,	
+										MAX(DECODE(S2.RANK,2,SALES_PLAN	+ PROM_PLAN))	SALES_PLAN_D2,
+										MAX(DECODE(S2.RANK,2,DC_ALLOC_BOX))	DC_ALLOC_BOX_D2,
+										MAX(DECODE(S2.RANK,2,ISSUE))		ISSUE_D2,	
+										MAX(DECODE(S2.RANK,2,ISSUE_YO))		ISSUE_YO_D2,	
+										MAX(DECODE(S2.RANK,2,ISSUE_YS))		ISSUE_YS_D2,	
+										MAX(DECODE(S2.RANK,2,ISSUE_TA))		ISSUE_TA_D2,
+										MAX(DECODE(S2.RANK,1,ISSUE_SI))		ISSUE_SI_D2,	
+                                        MAX(DECODE(S2.RANK,1,ISSUE_SI_TA))	ISSUE_SI_TA_D2, 
+                                        MAX(DECODE(S2.RANK,1,ISSUE_YU))		ISSUE_YU_D2,    
+                                        MAX(DECODE(S2.RANK,1,ISSUE_YU_TA))	ISSUE_YU_TA_D2,	
+										MAX(DECODE(S2.RANK,2,ISSUE_WMS))	ISSUE_WMS_D2,	
+										MAX(DECODE(S2.RANK,2,ISSUE_EX))		ISSUE_EX_D2,	
+										MAX(DECODE(S2.RANK,2,RECEIPT))		RECEIPT_D2,	
+										MAX(DECODE(S2.RANK,2,RECEIPT_EXPT))	RECEIPT_EXPT_D2,	
+										MAX(DECODE(S2.RANK,2,TRANS_BOX))	TRANS_BOX_D2,	
+										MAX(DECODE(S2.RANK,1,EDI_21))		EDI_21_D1,	
+										MAX(DECODE(S2.RANK,1,EDI_22))		EDI_22_D1,	
+										MAX(DECODE(S2.RANK,1,EDI_23))		EDI_23_D1,	
+										MAX(DECODE(S2.RANK,1,EDI_ETC))		EDI_ETC_D1,	
+										MAX(DECODE(S2.RANK,2,EDI_21))		EDI_21_D2,	
+										MAX(DECODE(S2.RANK,2,EDI_22))		EDI_22_D2,	
+										MAX(DECODE(S2.RANK,2,EDI_23))		EDI_23_D2,	
+										MAX(DECODE(S2.RANK,2,EDI_ETC))		EDI_ETC_D2,
+										MAX(DECODE(S2.RANK,3,EDI_21))		EDI_21_D3,	
+										MAX(DECODE(S2.RANK,3,EDI_22))		EDI_22_D3,	
+										MAX(DECODE(S2.RANK,3,EDI_23))		EDI_23_D3,	
+										MAX(DECODE(S2.RANK,3,EDI_ETC))		EDI_ETC_D3
+								FROM	DC_DATAWAREHOUSE	S1,
+										(
+										SELECT	YYYYMMDD, RANK
+										FROM	(
+												SELECT	CAL_DATE, YYYYMMDD, RANK() OVER (ORDER BY CAL_DATE) RANK
+												FROM	CAL_MST
+												WHERE	HOLIDAY_FLAG 	IS NULL
+												AND		YYYYMMDD		&gt; SUBSTR('$!{version}',1,8)
+												)
+										WHERE	RANK &lt;= 3
+										)					S2
+								WHERE	S1.CNFM_DATE	= S2.YYYYMMDD
+								AND		S1.ITEM_ID		= '$!{item_id}'
+								GROUP
+								BY		S1.DC_ID,
+										S1.ITEM_ID
+								)					T6,
+								(
+								/* 수송계획(발행전) */
+								SELECT	TP.TGT_LOC DC_ID,
+										TP.ITEM_ID,
+										SUM(NVL(TP.BASE_STK_QTY,0)+NVL(TP.ADD_STK_QTY,0)+NVL(TP.PROD_QTY,0)) 	TRANS_IPGO
+								FROM	TRANS_PLAN TP,
+										DC_MST DC
+								WHERE	TP.VERSION      = '$!{version}'
+								AND		TP.SEQ          = '1' 
+								AND		TP.ITEM_ID		= '$!{item_id}'
+								AND		TP.TRANS_DATE   = TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD')
+								AND		TP.BRAND_NO		IS NULL  -- 발행된 수송전표는 제외한다. 왜냐하면 입고예정에 감안되었을거니깐!
+								-- ZM3 반품수송 제외
+								AND		TP.PLAN_TYPE NOT IN ('ZM3')
+								AND		TP.SRC_LOC      = DC.DC_ID(+)
+								GROUP
+								BY 		TP.TGT_LOC, TP.ITEM_ID
+								)					T7,
+								(
+								/* 수송계획(발행전) */
+								SELECT	TP.SRC_LOC DC_ID,
+										TP.ITEM_ID,
+										SUM(NVL(TP.BASE_STK_QTY,0)+NVL(TP.ADD_STK_QTY,0)+NVL(TP.PROD_QTY,0)) 	TRANS_CHGO
+								FROM	TRANS_PLAN TP,
+										DC_MST DC
+								WHERE	TP.VERSION      = '$!{version}'
+								AND		TP.SEQ          = '1' 
+								AND		TP.ITEM_ID		= '$!{item_id}'
+								AND		TP.TRANS_DATE   = TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD')
+								AND		TP.BRAND_NO		IS NULL  -- 발행된 수송전표는 제외한다. 왜냐하면 입고예정에 감안되었을거니깐!
+								-- ZM3 반품수송 제외
+								AND		TP.PLAN_TYPE NOT IN ('ZM3')
+								AND		TP.SRC_LOC      = DC.DC_ID(+)
+								GROUP
+								BY 		TP.SRC_LOC, TP.ITEM_ID
+								)					T8,
+								(
+								SELECT	DC_ID,
+										ITEM_ID,
+										SUM(DECODE(USE_QUOTA_TYPE,'11',GOAL_BOX))	GOAL_11,	-- 판매목표
+										SUM(DECODE(USE_QUOTA_TYPE,'13',GOAL_BOX))	GOAL_13,	-- 전월실적
+										SUM(DECODE(USE_QUOTA_TYPE,'14',GOAL_BOX))	GOAL_14,	-- 과거3개월 평균
+										SUM(DECODE(USE_QUOTA_TYPE,'17',GOAL_BOX))	GOAL_17,	-- 과거3개월 가중치
+										SUM(DECODE(USE_QUOTA_TYPE,'18',GOAL_BOX))	GOAL_18,	-- 전년동월
+										SUM(DECODE(USE_QUOTA_TYPE,'21',GOAL_BOX))	GOAL_21,	-- 실적참조품목
+										SUM(DECODE(USE_QUOTA_TYPE,'23',GOAL_BOX))	GOAL_23,	-- 사용자
+										SUM(DECODE(USE_QUOTA_TYPE,'13',NVL(CUM_SELL_BOX,0)+NVL(SELL_BOX,0)))	CUM_SELL	-- 누적판매		 
+								FROM	DC_ALLOC_GOAL
+								WHERE	VERSION	= SUBSTR('$!{version}',1,6)
+								AND		ITEM_ID	= '$!{item_id}'
+								GROUP
+								BY		DC_ID,
+										ITEM_ID	
+								)					T9,
+								(
+								/* 해당품목에 MAPPING된 품목들의 재고정보 */
+								SELECT	DC_ID,
+										SUM(MAP_STOCK_BOX)	MAP_STOCK_BOX
+								FROM	(
+										SELECT	T1.DC_ID,
+					                     		ROUND(SUM(T1.STOCK_EXPT),0)		MAP_STOCK_BOX
+										FROM	(
+												SELECT	T1.DC_ID, T1.ITEM_ID, SUM(T1.STOCK_EXPT)	STOCK_EXPT
+												FROM	DC_DATAWAREHOUSE	T1
+												WHERE	CNFM_DATE	= TO_CHAR(TO_DATE('$!{trans_start}','YYYY-MM-DD'),'YYYYMMDD')
+												AND		T1.ITEM_ID  IN 	(
+												                    	select CAT01
+													                    from  code_mst
+													                    where cd_grp 	= 'MAP_ITEM_STOCK'
+													                    AND CD_NAME 	= '$!{item_id}'
+													                    )
+												HAVING	SUM(T1.STOCK_EXPT) > 0
+												GROUP
+												BY		T1.DC_ID, T1.ITEM_ID
+												)		T1,
+												DC_MST	T2
+										WHERE	T1.DC_ID	= T2.DC_ID
+										GROUP
+										BY		T1.DC_ID
+										UNION	ALL
+										SELECT	SRC_LOC	DC_ID,
+												-1 * ROUND(SUM(BASE_STK_QTY+ADD_STK_QTY+PROD_QTY),0)	MAP_STOCK_BOX
+										FROM	TRANS_PLAN	T1
+										WHERE	VERSION		= '$!{version}'
+										AND		TRANS_DATE	BETWEEN TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD') 
+															AND		TO_DATE('$!{trans_start}','YYYY-MM-DD') 
+										AND		BRAND_NO	IS NULL		-- 수송전표 발행전 것만 감안
+										AND		T1.ITEM_ID  IN 	(
+											                    select CAT01
+											                    from  code_mst
+											                    where cd_grp 	= 'MAP_ITEM_STOCK'
+											                    AND CD_NAME 	= '$!{item_id}'
+											                    )
+										GROUP
+										BY		SRC_LOC
+										)
+								GROUP
+								BY		DC_ID
+								)					T10
+						WHERE	T1.CNFM_DATE	= SUBSTR('$!{version}',1,8)
+						AND		T1.DC_ID		= T2.DC_ID
+						AND		T1.ITEM_ID		= '$!{item_id}'
+						AND		T1.DC_ID		= T3.DC_ID(+)
+						AND		T1.ITEM_ID		= T3.ITEM_ID(+)
+						AND		T1.DC_ID		= T4.RDC_ID(+)
+						AND		T1.ITEM_ID		= T4.ITEM_ID(+)
+						AND		T1.DC_ID		= T5.DC_ID(+)
+						AND		T1.ITEM_ID		= T5.ITEM_ID(+)
+						AND		T1.DC_ID		= T6.DC_ID(+)
+						AND		T1.ITEM_ID		= T6.ITEM_ID(+)
+						AND		T1.DC_ID		= T7.DC_ID(+)
+						AND		T1.ITEM_ID		= T7.ITEM_ID(+)
+						AND		T1.DC_ID		= T8.DC_ID(+)
+						AND		T1.ITEM_ID		= T8.ITEM_ID(+)
+						AND		T1.DC_ID		= T9.DC_ID(+)
+						AND		T1.ITEM_ID		= T9.ITEM_ID(+)
+						AND		T1.DC_ID		= T10.DC_ID(+)
+						AND		T2.EXPORT_FLAG 	IS NULL
+						AND		(T2.CDC_FLAG = 'Y' OR T2.RDC_FLAG = 'Y')
+						AND		T2.MADE_TYPE	!= 'DE'
+						AND		(
+									(
+										(
+										SELECT	NVL(CAT03,'XX')
+										FROM	ITEM_MST
+										WHERE	ITEM_ID	= '$!{item_id}'
+										) NOT IN ('F10','F30') -- 냉동품목 제외
+										AND T2.DC_LOC_TYPE	= '사내'
+									)
+								OR
+									(
+										(
+										SELECT	NVL(CAT03,'XX')
+										FROM	ITEM_MST
+										WHERE	ITEM_ID	= '$!{item_id}'
+										) IN ('F10','F30') -- 냉동품목
+										AND T2.SL_CAT IN ('일반/냉동','냉동창고')
+									)
+								)
+						)
+				GROUP
+				BY		ROLLUP(CDC_FLAG, DC_ID)		
+				)	K1,
+				(
+				/* 수송계획 */
+				SELECT	TP.VERSION,
+						TP.TGT_LOC DC_ID,
+						TP.ITEM_ID,
+						TP.TRANS_DATE,
+						TP.SRC_LOC,
+						DC.DC_SHORT_NAME SRC_LOC_NAME,
+						SUM(NVL(TP.BASE_STK_QTY,0)+NVL(TP.ADD_STK_QTY,0)+NVL(TP.PROD_QTY,0)) 	TRANS_PLAN_QTY,
+						SUM(NVL(TP.BASE_STK_PLT,0)+NVL(TP.ADD_STK_PLT,0)+NVL(TP.PROD_PLT,0)) 	TRANS_PLAN_PLT,
+						ROW_NUMBER() OVER(PARTITION BY TGT_LOC ORDER BY TGT_LOC) 				CDC_CNT  -- 복수의 CDC로부터 공급받는여부 판단
+				FROM	TRANS_PLAN TP,
+						DC_MST DC
+				WHERE	TP.VERSION      = '$!{version}'
+				AND		TP.SEQ          = '1' 
+				AND		TP.ITEM_ID		= '$!{item_id}'
+				AND		TP.TRANS_DATE   = TO_DATE('$!{trans_start}','YYYY-MM-DD')
+				AND		TP.BRAND_NO		IS NULL  -- 발행된 수송전표는 제외한다. 왜냐하면 입고예정에 감안되었을거니깐!
+				-- ZM3 반품수송 제외
+				AND		TP.PLAN_TYPE NOT IN ('ZM3')
+				AND		TP.SRC_LOC      = DC.DC_ID(+)
+				GROUP
+				BY 		TP.VERSION, TP.TGT_LOC, TP.ITEM_ID, TP.TRANS_DATE, TP.SRC_LOC, DC.DC_NAME, DC.DC_SHORT_NAME
+				)	K2,
+				(
+				/* CDC 전체 사용 CAPA */
+				SELECT	DC_ID,
+						--SUM(USE_CAPA)		USE_CAPA,
+						SUM(USE_CAPA_BOX)	REMN_CAPA_BOX
+				FROM	(
+						SELECT	T1.DC_ID,
+								--ROUND(SUM(T1.STOCK_EXPT/f_getBoxPerPallet(T2.PLANT_ID,T1.ITEM_ID)),0)		USE_CAPA,
+								NVL(T2.KEEPING_CAPA1,0) - ROUND(SUM(T1.STOCK_EXPT),0)						USE_CAPA_BOX
+						FROM	(
+								SELECT	T1.DC_ID, T1.ITEM_ID, SUM(T1.STOCK_EXPT)	STOCK_EXPT
+								FROM	DC_DATAWAREHOUSE	T1
+								WHERE	CNFM_DATE	= REPLACE('$!{trans_start}','-','')
+								AND		NOT EXISTS (  /* 삼다수 제거 */
+													SELECT	T2.ITEM_ID
+														FROM	ITEM_MST	T2
+														WHERE	HR_TY1	LIKE '303001%'
+														AND		T1.ITEM_ID	= T2.ITEM_ID
+													)
+								HAVING	SUM(T1.STOCK_EXPT) > 0
+								GROUP
+								BY		T1.DC_ID, T1.ITEM_ID
+								)		T1,
+								DC_MST	T2
+						WHERE	T1.DC_ID	= T2.DC_ID
+						GROUP
+						BY		T1.DC_ID, NVL(T2.KEEPING_CAPA1,0)
+						UNION	ALL
+						SELECT	TGT_LOC	DC_ID,
+								-- -1 * ROUND(SUM(BASE_STK_PLT+ADD_STK_PLT+PROD_PLT),0)	USE_CAPA,
+								-1 * ROUND(SUM(BASE_STK_QTY+ADD_STK_QTY+PROD_QTY),0)	USE_CAPA_BOX
+						FROM	TRANS_PLAN	T1
+						WHERE	VERSION		= '$!{version}'
+						-- 당일수송계획과 익일수송계획 모두를 감안한다.
+						AND		TRANS_DATE	BETWEEN TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD')
+											AND TO_DATE('$!{trans_start}','YYYY-MM-DD')
+						AND		BRAND_NO	IS NULL		-- 수송전표 발행전 것만 감안
+						AND		NOT EXISTS (  /* 삼다수 제거 */
+											SELECT	T2.ITEM_ID
+												FROM	ITEM_MST	T2
+												WHERE	HR_TY1	LIKE '303001%'
+												AND		T1.ITEM_ID	= T2.ITEM_ID
+											)
+						GROUP
+						BY		TGT_LOC
+						)
+				GROUP
+				BY		DC_ID
+				)		K3,
+				DC_MST	K4,
+				(
+				SELECT	T1.STOR_CODE								DC_ID,
+						COUNT(T1.CUST_CODE)							CUST_TOT,
+						NVL(SUM(DECODE(T1.GRUP_CODE1,'10',1)),0)	CUST_10,	-- 특약점
+						NVL(SUM(DECODE(T1.GRUP_CODE1,'11',1)),0)	CUST_11,	-- 직거래
+						NVL(SUM(DECODE(T1.GRUP_CODE1,'16',1)),0)	CUST_16,	-- 대형마트
+						NVL(SUM(DECODE(T1.GRUP_CODE1,'14',1)),0)	CUST_14,	-- 슈퍼체인
+						NVL(SUM(DECODE(T1.GRUP_CODE1,'19',1)),0)	CUST_19,	-- 농협
+						NVL(SUM(DECODE(T1.GRUP_CODE1,'18',1)),0)	CUST_18,	-- CVS
+						NVL(SUM(												
+							CASE
+								WHEN T1.GRUP_CODE1 IN ('10','11','16','14','19','18') THEN 0
+								ELSE 1
+							END
+							),0)	CUST_99										-- 기타
+				FROM	SDSTT103	T1,
+						(
+						SELECT	DISTINCT	OLD_CUST_CODE	CUST_CODE
+						FROM	SDSTT101
+						)			T2
+				WHERE	T1.CUST_CODE	= T2.CUST_CODE
+				AND		T1.TRAD_STOP_DATE	= '99991231'
+				AND		T1.STOR_CODE		IS NOT NULL
+				GROUP
+				BY		T1.STOR_CODE
+				)		K5
+		WHERE	K1.DC_ID	= K2.DC_ID(+)
+		AND		K1.DC_ID	= K3.DC_ID(+)
+		AND		K1.DC_ID	= K4.DC_ID(+)
+		AND		K1.DC_ID	= K5.DC_ID(+)
+		ORDER
+		BY		K1.ORD, K1.DC_ID, K2.SRC_LOC
+
+	#end
+
+	</query>
+
+
+	
+	<!-- IP_02060_Sales_AllocationNiceLikePlan.js 전용 쿼리 -->
+	<query id ="rp_01160_replenishmentNiceLikePlan_DW2_Trans_Version" paging="false">
+		SELECT	MAX(VERSION)
+		FROM	PLAN_VERSION_LOG
+		WHERE	TRUNC(RUN_DATE)	= TRUNC(SYSDATE)
+		AND		CAT_ID	= 'RP'		
+	</query>
+	
+	<!-- 자동공급계획_DW2 -->
+	<query id="rp_01160_replenishmentNiceLikePlan_DW2" paging="false">
+
+	#if("$!{check_day}" == "TODAY" )
+		
+		/* 당일계획 */
+		SELECT	S1.DC_ID,
+				SUBSTR(S2.DC_SHORT_NAME,1,2),
+				SUM(BASE_STOCK),			-- 기초재고
+				SUM(CHGO_QTY),				-- 출고량
+				SUM(PROD01_1),				-- 조간
+				SUM(PROD01_3),				-- 주간
+				CASE
+					WHEN '$!{itype}' = 'FERT' THEN
+						SUM(STOCK_EXPT)-SUM(PROD01_5)
+					ELSE	SUM(STOCK_EXPT)
+				END		CONF_STOCK,			-- 출고가능 -> 야간생산량 제외!
+				SUM(TRANS_QTY),				-- 확정량
+				SUM(NEXT_CHGO_QTY),			-- 익일출고
+				SUM(NEXT_TRANS_QTY),		-- 익일계획
+				SUM(PROD01_5),				-- 야간
+				SUM(PROD02_1),				-- 조간
+				SUM(PROD02_3),				-- 주간
+				SUM(PROD02_5),				-- 야간
+				SUM(PROD03_1),				-- D+2조간
+				SUM(PROD03_3),				-- D+2주간
+				SUM(PROD03_5),				-- D+2야간
+				SUM(PROD04),
+				SUM(PROD05),
+				SUM(PROD06),
+				SUM(PROD07),
+				SUM(PROD08),
+				SUM(PROD09),
+				SUM(PROD10),
+				SUM(PROD11),
+				SUM(PROD12),
+				SUM(PROD13),
+				SUM(PROD14),
+				SUM(PROD15),
+				SUM(PROD16),
+				NVL2(S3.DC_ID,'Y','N')		PROD_AVAILABLE, -- 생산가능여부
+				NVL(S4.USE_CAPA,0)			USE_CAPA,
+				NVL(S4.USE_CAPA_BOX,0)		USE_CAPA_BOX
+		FROM	(
+				SELECT	T1.DC_ID,
+						BASE_STOCK						BASE_STOCK,	-- 기초재고
+						ISSUE+ISSUE_EXPT+TRANS_BOX		CHGO_QTY,	-- 출고량
+						STOCK_EXPT						STOCK_EXPT,  -- 출고가능
+						0								NEXT_CHGO_QTY,
+						0								TRANS_QTY,
+						0								NEXT_TRANS_QTY,
+						0								PROD01_1,
+						0								PROD01_3,
+						0								PROD01_5,
+						0								PROD02_1,
+						0								PROD02_3,
+						0								PROD02_5,
+						0								PROD03_1,
+						0								PROD03_3,
+						0								PROD03_5,
+						0								PROD04,
+						0								PROD05,
+						0								PROD06,
+						0								PROD07,
+						0								PROD08,
+						0								PROD09,
+						0								PROD10,
+						0								PROD11,
+						0								PROD12,
+						0								PROD13,
+						0								PROD14,
+						0								PROD15,
+						0								PROD16
+				FROM	DC_DATAWAREHOUSE	T1,
+						DC_MST				T2
+				WHERE	T1.CNFM_DATE	= SUBSTR('$!{version}',1,8)
+				AND		T1.DC_ID		= T2.DC_ID
+				AND		T1.ITEM_ID		= '$!{item_id}'
+				AND		T2.CDC_FLAG		= 'Y'
+				UNION	ALL
+				SELECT	T1.DC_ID,
+						0								BASE_STOCK,
+						0								CHGO_QTY,
+						0								STOCK_EXPT,
+						ISSUE+ISSUE_EXPT+TRANS_BOX		NEXT_CHGO_QTY,	-- 익일출고예정
+						0								TRANS_QTY,
+						0								NEXT_TRANS_QTY,
+						0								PROD01_1,
+						0								PROD01_3,
+						0								PROD01_5,
+						0								PROD02_1,
+						0								PROD02_3,
+						0								PROD02_5,
+						0								PROD03_1,
+						0								PROD03_3,
+						0								PROD03_5,
+						0								PROD04,
+						0								PROD05,
+						0								PROD06,
+						0								PROD07,
+						0								PROD08,
+						0								PROD09,
+						0								PROD10,
+						0								PROD11,
+						0								PROD12,
+						0								PROD13,
+						0								PROD14,
+						0								PROD15,
+						0								PROD16
+				FROM	DC_DATAWAREHOUSE	T1,
+						DC_MST				T2,
+						(
+						/* 계획일자의 다음 영업일을 찾는다 */
+						SELECT	MIN(YYYYMMDD)	NEXT_DATE
+						FROM	CAL_MST
+						WHERE	HOLIDAY_FLAG IS NULL
+						AND		YYYYMMDD &gt; SUBSTR('$!{version}',1,8)
+						)					T3
+				WHERE	T1.CNFM_DATE	= T3.NEXT_DATE
+				AND		T1.DC_ID		= T2.DC_ID
+				AND		T1.ITEM_ID		= '$!{item_id}'
+				AND		T2.CDC_FLAG		= 'Y'
+				UNION	ALL
+				/* 수송계획정보 당일, 익일 */
+				SELECT	SRC_LOC	DC_ID,
+						0								BASE_STOCK,
+						0								CHGO_QTY,
+						0								STOCK_EXPT,
+						0								NEXT_CHGO_QTY,
+						NVL(SUM(DECODE(TRANS_DATE,TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD'),TP.BASE_STK_QTY+TP.ADD_STK_QTY+TP.PROD_QTY)),0) TRAN_QTY, -- 확정량
+						NVL(SUM(DECODE(TRANS_DATE,NEXT_DATE,TP.BASE_STK_QTY+TP.ADD_STK_QTY+TP.PROD_QTY)),0) NEXT_TRAN_QTY,					 -- 익일확정
+						0								PROD01_1,
+						0								PROD01_3,
+						0								PROD01_5,
+						0								PROD02_1,
+						0								PROD02_3,
+						0								PROD02_5,
+						0								PROD03_1,
+						0								PROD03_3,
+						0								PROD03_5,
+						0								PROD04,
+						0								PROD05,
+						0								PROD06,
+						0								PROD07,
+						0								PROD08,
+						0								PROD09,
+						0								PROD10,
+						0								PROD11,
+						0								PROD12,
+						0								PROD13,
+						0								PROD14,
+						0								PROD15,
+						0								PROD16
+				FROM	TRANS_PLAN	TP,
+						DC_MST		T2,
+						(
+						/* 계획일자의 다음 영업일을 찾는다 */
+						SELECT	MIN(CAL_DATE)	NEXT_DATE
+						FROM	CAL_MST
+						WHERE	HOLIDAY_FLAG IS NULL
+						AND		YYYYMMDD &gt; SUBSTR('$!{version}',1,8)
+						)					T3
+				WHERE	VERSION	= '$!{version}'
+				AND		ITEM_ID	= '$!{item_id}'
+				AND		TP.SRC_LOC	= T2.DC_ID
+				AND		TP.BRAND_NO		IS NULL  -- 발행된 수송전표는 제외한다. 왜냐하면 입고예정에 감안되었을거니깐!
+				AND		T2.CDC_FLAG		= 'Y'
+				AND		TRANS_DATE	BETWEEN TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD') AND NEXT_DATE
+				GROUP
+				BY		SRC_LOC
+				UNION	ALL
+				/* 생산계획 정보 */
+				SELECT	T4.DC_ID,
+						0								BASE_STOCK,
+						0								CHGO_QTY,
+						0								STOCK_EXPT,
+						0								NEXT_CHGO_QTY,
+						0								TRANS_QTY,
+						0								NEXT_TRANS_QTY,
+						SUM(
+							CASE 	WHEN TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD') = TO_DATE(T1.PROD_DATES,'YYYY-MM-DD') AND SHIFT_TYPE = 1 THEN SHIFT_QTY
+									ELSE 0 
+							END
+							)	PROD01_1, -- 당일 조간
+						SUM(
+							CASE 	WHEN TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD') = TO_DATE(T1.PROD_DATES,'YYYY-MM-DD') AND SHIFT_TYPE = 3 THEN SHIFT_QTY
+									ELSE 0 
+							END
+							)	PROD01_3, -- 당일 주간
+						SUM(
+							CASE 	WHEN TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD') = TO_DATE(T1.PROD_DATES,'YYYY-MM-DD') AND SHIFT_TYPE = 5 THEN SHIFT_QTY
+									ELSE 0 
+							END
+							)	PROD01_5, -- 당일 야간
+						SUM(
+							CASE 	WHEN TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD')+1 = TO_DATE(T1.PROD_DATES,'YYYY-MM-DD') AND SHIFT_TYPE = 1 THEN SHIFT_QTY
+									ELSE 0 
+							END
+							)	PROD02_1, -- 익일 조간
+						SUM(
+							CASE 	WHEN TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD')+1 = TO_DATE(T1.PROD_DATES,'YYYY-MM-DD') AND SHIFT_TYPE = 3 THEN SHIFT_QTY
+									ELSE 0 
+							END
+							)	PROD02_3, -- 익일 주간
+						SUM(
+							CASE 	WHEN TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD')+1 = TO_DATE(T1.PROD_DATES,'YYYY-MM-DD') AND SHIFT_TYPE = 5 THEN SHIFT_QTY
+									ELSE 0 
+							END
+							)	PROD02_5, -- 익일 야간
+						SUM(
+							CASE 	WHEN TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD')+2 = TO_DATE(T1.PROD_DATES,'YYYY-MM-DD') AND SHIFT_TYPE = 1 THEN SHIFT_QTY
+									ELSE 0 
+							END
+							)	PROD03_1, -- D+2 조간
+						SUM(
+							CASE 	WHEN TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD')+2 = TO_DATE(T1.PROD_DATES,'YYYY-MM-DD') AND SHIFT_TYPE = 3 THEN SHIFT_QTY
+									ELSE 0 
+							END
+							)	PROD03_3, -- D+2 주간
+						SUM(
+							CASE 	WHEN TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD')+2 = TO_DATE(T1.PROD_DATES,'YYYY-MM-DD') AND SHIFT_TYPE = 5 THEN SHIFT_QTY
+									ELSE 0 
+							END
+							)	PROD03_5, -- D+2 야간							
+						NVL(SUM(DECODE(TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD')+ 3,TO_DATE(T1.PROD_DATES,'YYYY-MM-DD'),SHIFT_QTY)),0)	PROD04,						
+						NVL(SUM(DECODE(TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD')+ 4,TO_DATE(T1.PROD_DATES,'YYYY-MM-DD'),SHIFT_QTY)),0)	PROD05,						
+						NVL(SUM(DECODE(TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD')+ 5,TO_DATE(T1.PROD_DATES,'YYYY-MM-DD'),SHIFT_QTY)),0)	PROD06,						
+						NVL(SUM(DECODE(TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD')+ 6,TO_DATE(T1.PROD_DATES,'YYYY-MM-DD'),SHIFT_QTY)),0)	PROD07,						
+						NVL(SUM(DECODE(TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD')+ 7,TO_DATE(T1.PROD_DATES,'YYYY-MM-DD'),SHIFT_QTY)),0)	PROD08,						
+						NVL(SUM(DECODE(TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD')+ 8,TO_DATE(T1.PROD_DATES,'YYYY-MM-DD'),SHIFT_QTY)),0)	PROD09,						
+						NVL(SUM(DECODE(TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD')+ 9,TO_DATE(T1.PROD_DATES,'YYYY-MM-DD'),SHIFT_QTY)),0)	PROD10,
+						NVL(SUM(DECODE(TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD')+10,TO_DATE(T1.PROD_DATES,'YYYY-MM-DD'),SHIFT_QTY)),0)	PROD11,
+						NVL(SUM(DECODE(TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD')+11,TO_DATE(T1.PROD_DATES,'YYYY-MM-DD'),SHIFT_QTY)),0)	PROD12,
+						NVL(SUM(DECODE(TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD')+12,TO_DATE(T1.PROD_DATES,'YYYY-MM-DD'),SHIFT_QTY)),0)	PROD13,
+						NVL(SUM(DECODE(TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD')+13,TO_DATE(T1.PROD_DATES,'YYYY-MM-DD'),SHIFT_QTY)),0)	PROD14,
+						NVL(SUM(DECODE(TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD')+14,TO_DATE(T1.PROD_DATES,'YYYY-MM-DD'),SHIFT_QTY)),0)	PROD15,
+						NVL(SUM(DECODE(TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD')+15,TO_DATE(T1.PROD_DATES,'YYYY-MM-DD'),SHIFT_QTY)),0)	PROD16
+				FROM	DAILY_SCH_PLAN_SHIFT	T1,
+						(
+						/* 조회일 2주전부터 생산계획 확정 VERSION정보(완제품)*/
+						SELECT  K1.CAT_ID, K2.PLANT_ID, K1.VERSION,
+								TO_CHAR(TRUNC(TO_DATE(SUBSTR(K1.VERSION,1,8),'YYYY-MM-DD')+ 7,'D')+1,'YYYYMMDD')    S_DATE,
+								TO_CHAR(TRUNC(TO_DATE(SUBSTR(K1.VERSION,1,8),'YYYY-MM-DD')+DECODE(K1.TWO_WEEK_FLAG,'N',14,21),'D'),'YYYYMMDD')      E_DATE
+						FROM    PLAN_VERSION_LOG    K1,
+								(
+								SELECT  CAT_ID, SUB_CAT, PLANT_ID
+								FROM    ENGN_BAT_MST
+								WHERE   PERIOD_TYPE = 'DAILY' AND CAT_ID = 'PS'
+								)                   K2
+						WHERE   K1.PERIOD_TYPE = 'DAILY'
+						AND     K1.CAT_ID = 'PS'
+						AND     K1.RUN_DATE &gt;= trunc(TO_DATE('2014-08-13','YYYY-MM-DD') - DECODE(K1.TWO_WEEK_FLAG,'N',7,14),'D') 
+						AND     TRIM (VERSION) IS NOT NULL
+						AND     K1.STATUS &gt;= '23' -- 상태가 계획확정 이상인 것 중에서 찾는다
+						AND     K1.CAT_ID = K2.CAT_ID
+						AND     K1.SUB_CAT = K2.SUB_CAT
+						)                   T2,
+						V_LAST_PROC_PRODVER	T3,         --마지막 공정정보
+						DC_MST				T4
+				WHERE   T1.CAT_ID = T2.CAT_ID
+				AND     T1.PLANT_ID = T2.PLANT_ID
+				AND     T1.VERSION = T2.VERSION
+				AND     T1.PROD_DATES BETWEEN T2.S_DATE AND T2.E_DATE
+				-- 오늘이후 계획만
+				AND     T1.PROD_DATES &gt;= SUBSTR('$!{version}',1,8)
+				AND     T1.PLANT_ID = T3.PLANT_ID
+				AND     T1.PROC_ID = T3.PROC_ID
+				AND     T1.ITEM_ID = T3.ITEM_ID
+				AND		T1.PLANT_ID	= T4.PLANT_ID
+				AND		T1.ITEM_ID	= '$!{item_id}'
+				GROUP
+				BY		T4.DC_ID
+				/* 매입정보(PR,PO) */
+				UNION	ALL
+				SELECT	K1.LOC_ID	DC_ID,
+						0								BASE_STOCK,
+						0								CHGO_QTY,
+						0								STOCK_EXPT,
+						0								NEXT_CHGO_QTY,
+						0								TRANS_QTY,
+						0								NEXT_TRANS_QTY,
+						0												PROD01_1,   
+						0												PROD01_3,   
+						NVL(SUM(DECODE(K2.ROW_NUM, 1,K1.QTY)),0)		PROD01_5,   
+						NVL(SUM(DECODE(K2.ROW_NUM, 2,K1.QTY)),0)		PROD02_1,   
+						NVL(SUM(DECODE(K2.ROW_NUM, 3,K1.QTY)),0)		PROD02_3,   
+						NVL(SUM(DECODE(K2.ROW_NUM, 4,K1.QTY)),0)		PROD02_5,   
+						NVL(SUM(DECODE(K2.ROW_NUM, 5,K1.QTY)),0)		PROD03_1,   
+						NVL(SUM(DECODE(K2.ROW_NUM, 6,K1.QTY)),0)		PROD03_3,   
+						NVL(SUM(DECODE(K2.ROW_NUM, 7,K1.QTY)),0)		PROD03_5,   
+						NVL(SUM(DECODE(K2.ROW_NUM, 8,K1.QTY)),0)		PROD04,     
+						NVL(SUM(DECODE(K2.ROW_NUM, 9,K1.QTY)),0)		PROD05,     
+						NVL(SUM(DECODE(K2.ROW_NUM,10,K1.QTY)),0)		PROD06,     
+						NVL(SUM(DECODE(K2.ROW_NUM,11,K1.QTY)),0)		PROD07,     
+						NVL(SUM(DECODE(K2.ROW_NUM,12,K1.QTY)),0)		PROD08,     
+						NVL(SUM(DECODE(K2.ROW_NUM,13,K1.QTY)),0)		PROD09,     
+						NVL(SUM(DECODE(K2.ROW_NUM,14,K1.QTY)),0)		PROD10,		
+						NVL(SUM(DECODE(K2.ROW_NUM,15,K1.QTY)),0)		PROD11,		
+						NVL(SUM(DECODE(K2.ROW_NUM,16,K1.QTY)),0)		PROD12,		
+						NVL(SUM(DECODE(K2.ROW_NUM,17,K1.QTY)),0)		PROD13,		
+						NVL(SUM(DECODE(K2.ROW_NUM,18,K1.QTY)),0)		PROD14,		
+						NVL(SUM(DECODE(K2.ROW_NUM,19,K1.QTY)),0)		PROD15,		
+						NVL(SUM(DECODE(K2.ROW_NUM,20,K1.QTY)),0)		PROD16		
+				FROM	(
+						SELECT	T1.LOC_ID, T1.AVAIL_DATE, SUM(F_GETCONVBOX(T1.ITEM_ID,T1.QTY_UOM,T1.QTY)) QTY
+						FROM	MAT_STORE_PLAN	T1,
+								ITEM_MST		T2
+						WHERE	IF_DTTM	= (SELECT	MAX(IF_DTTM) FROM MAT_STORE_PLAN)
+						AND		T1.ITEM_ID	= T2.ITEM_ID
+						AND		T2.ITYPE	= 'HAWA'
+						AND		AVAIL_DATE	>= TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD')
+						AND		T1.ITEM_ID	= '$!{item_id}'
+						GROUP
+						BY		T1.LOC_ID, T1.AVAIL_DATE
+						)	K1,
+						(
+						SELECT	AVAIL_DATE, ROW_NUMBER() OVER(ORDER BY AVAIL_DATE) ROW_NUM
+						FROM	(
+								SELECT	DISTINCT	AVAIL_DATE
+								FROM	MAT_STORE_PLAN	T1,
+										ITEM_MST		T2
+								WHERE	IF_DTTM	= (SELECT	MAX(IF_DTTM) FROM MAT_STORE_PLAN)
+								AND		T1.ITEM_ID	= T2.ITEM_ID
+								AND		T2.ITYPE	= 'HAWA'
+								AND		AVAIL_DATE	>= TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD')
+								AND		T1.ITEM_ID	= '$!{item_id}'
+								)
+						)	K2
+				WHERE	K1.AVAIL_DATE	= K2.AVAIL_DATE	
+				GROUP
+				BY		K1.LOC_ID					
+				)		S1,
+				DC_MST	S2,
+				(
+				SELECT	DISTINCT	DM.DC_ID
+				FROM	ITEM_CAPA	IC, DC_MST	DM
+				WHERE	IC.PLANT_ID	= DM.PLANT_ID
+				AND		NOT EXISTS
+						(
+						SELECT	PLANT_ID, ITEM_ID, PROD_VER
+						FROM	ITEM_CAPA	
+						WHERE	(ITEM_ID, PLANT_ID, LINE_ID) IN 
+								(						 
+								SELECT	ITEM_ID, PLANT_ID, LINE_ID
+								FROM	ITEM_PLANT_LINE_CTL
+								WHERE	USE_FLAG	= 'N'
+								AND		MADE_TYPE	!= 'DE'
+								)
+						AND		PLANT_ID = IC.PLANT_ID
+						AND		ITEM_ID		= IC.ITEM_ID
+						AND		PROD_VER	= IC.PROD_VER
+						)
+				AND		IC.ITEM_ID	= '$!{item_id}'
+				)		S3,
+				(
+				/* CDC 전체 사용 CAPA */
+				SELECT	DC_ID,
+						SUM(USE_CAPA)		USE_CAPA,
+						SUM(USE_CAPA_BOX)	USE_CAPA_BOX
+				FROM	(
+						SELECT	T1.DC_ID,
+								ROUND(SUM(T1.STOCK_EXPT/f_getBoxPerPallet(T2.PLANT_ID,T1.ITEM_ID)),0)	USE_CAPA,
+								ROUND(SUM(T1.STOCK_EXPT),0)										USE_CAPA_BOX
+						FROM	(
+								SELECT	T1.DC_ID, T1.ITEM_ID, SUM(T1.STOCK_EXPT)	STOCK_EXPT
+								FROM	DC_DATAWAREHOUSE	T1
+								WHERE	CNFM_DATE	= SUBSTR('$!{version}',1,8)
+								AND		NOT EXISTS (  /* 삼다수 제거 */
+													SELECT	T2.ITEM_ID
+														FROM	ITEM_MST	T2
+														WHERE	HR_TY1	LIKE '303001%'
+														AND		T1.ITEM_ID	= T2.ITEM_ID
+													)
+								HAVING	SUM(T1.STOCK_EXPT) > 0
+								GROUP
+								BY		T1.DC_ID, T1.ITEM_ID
+								)		T1,
+								DC_MST	T2
+						WHERE	T1.DC_ID	= T2.DC_ID
+						GROUP
+						BY		T1.DC_ID
+						UNION	ALL
+						SELECT	SRC_LOC	DC_ID,
+								-1 * ROUND(SUM(BASE_STK_PLT+ADD_STK_PLT+PROD_PLT),0)	USE_CAPA,
+								-1 * ROUND(SUM(BASE_STK_QTY+ADD_STK_QTY+PROD_QTY),0)	USE_CAPA_BOX
+						FROM	TRANS_PLAN	T1
+						WHERE	VERSION		= '$!{version}'
+						AND		TRANS_DATE	= TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD')
+						AND		BRAND_NO	IS NULL		-- 수송전표 발행전 것만 감안
+						AND		NOT EXISTS (  /* 삼다수 제거 */
+											SELECT	T2.ITEM_ID
+												FROM	ITEM_MST	T2
+												WHERE	HR_TY1	LIKE '303001%'
+												AND		T1.ITEM_ID	= T2.ITEM_ID
+											)
+						GROUP
+						BY		SRC_LOC
+						)
+				GROUP
+				BY		DC_ID
+				)		S4
+		WHERE	S1.DC_ID	= S2.DC_ID
+		AND		S2.CDC_FLAG	= 'Y'
+		AND		S1.DC_ID	= S3.DC_ID(+)	
+		AND		S1.DC_ID	= S4.DC_ID(+)	
+		HAVING	SUM(BASE_STOCK)+
+				SUM(CHGO_QTY)+	
+				SUM(PROD01_1)+	
+				SUM(PROD01_3)+	
+				SUM(STOCK_EXPT)+	
+				SUM(TRANS_QTY)+		
+				SUM(NEXT_CHGO_QTY)+	
+				SUM(NEXT_TRANS_QTY)+
+				SUM(PROD01_5)+		
+				SUM(PROD02_1)+		
+				SUM(PROD02_3)+		
+				SUM(PROD02_5)+		
+				SUM(PROD03_1)+		
+				SUM(PROD03_3)+		
+				SUM(PROD03_5)+		
+				SUM(PROD04)+
+				SUM(PROD05)+
+				SUM(PROD06)+
+				SUM(PROD07)+
+				SUM(PROD08)+
+				SUM(PROD09)+
+				SUM(PROD10)+
+				SUM(PROD11)+
+				SUM(PROD12)+
+				SUM(PROD13)+
+				SUM(PROD14)+
+				SUM(PROD15)+
+				SUM(PROD16) &gt; 0	
+				OR
+				S1.DC_ID	IN ('7100','7500','7600') -- 안양, 포승, 구미는 무조건 표시
+		GROUP
+		BY		S1.DC_ID,
+				S2.DC_SHORT_NAME,
+				NVL2(S3.DC_ID,'Y','N'),
+				NVL(S4.USE_CAPA,0),
+				NVL(S4.USE_CAPA_BOX,0)
+	     ORDER BY DC_ID
+	#else
+	
+		/* 익일계획 (영업일 기준)  */
+		SELECT	S1.DC_ID,
+				SUBSTR(S2.DC_SHORT_NAME,1,2),
+				SUM(BASE_STOCK)-SUM(TRANS_QTY),		-- 기초재고
+				SUM(CHGO_QTY),						-- 출고량
+				SUM(PROD01_1),						-- 조간
+				SUM(PROD01_3),						-- 주간
+				CASE
+					WHEN 'FERT' = 'FERT' THEN
+						SUM(STOCK_EXPT)-SUM(PROD01_5) - SUM(TRANS_QTY)
+					ELSE	SUM(STOCK_EXPT) -SUM(TRANS_QTY)
+				END		CONF_STOCK,			-- 출고가능 -> 야간생산량 제외!
+				SUM(NEXT_TRANS_QTY),		-- 확정량
+				SUM(NEXT_CHGO_QTY),			-- 익일출고
+				0,							-- 익일계획
+				SUM(PROD01_5),				-- 야간
+				SUM(PROD02_1),				-- 조간
+				SUM(PROD02_3),				-- 주간
+				SUM(PROD02_5),				-- 야간
+				SUM(PROD03_1),				-- D+2조간
+				SUM(PROD03_3),				-- D+2주간
+				SUM(PROD03_5),				-- D+2야간
+				SUM(PROD04),
+				SUM(PROD05),
+				SUM(PROD06),
+				SUM(PROD07),
+				SUM(PROD08),
+				SUM(PROD09),
+				SUM(PROD10),
+				SUM(PROD11),
+				SUM(PROD12),
+				SUM(PROD13),
+				SUM(PROD14),
+				SUM(PROD15),
+				SUM(PROD16),
+				NVL2(S3.DC_ID,'Y','N')		PROD_AVAILABLE, -- 생산가능여부
+				NVL(S4.USE_CAPA,0)			USE_CAPA,
+				NVL(S4.USE_CAPA_BOX,0)		USE_CAPA_BOX
+		FROM	(
+				SELECT	T1.DC_ID,
+						BASE_STOCK						BASE_STOCK,	-- 기초재고
+						ISSUE+ISSUE_EXPT+TRANS_BOX		CHGO_QTY,	-- 출고량
+						STOCK_EXPT						STOCK_EXPT,  -- 출고가능
+						0								NEXT_CHGO_QTY,
+						0								TRANS_QTY,
+						0								NEXT_TRANS_QTY,
+						0								PROD01_1,
+						0								PROD01_3,
+						0								PROD01_5,
+						0								PROD02_1,
+						0								PROD02_3,
+						0								PROD02_5,
+						0								PROD03_1,
+						0								PROD03_3,
+						0								PROD03_5,
+						0								PROD04,
+						0								PROD05,
+						0								PROD06,
+						0								PROD07,
+						0								PROD08,
+						0								PROD09,
+						0								PROD10,
+						0								PROD11,
+						0								PROD12,
+						0								PROD13,
+						0								PROD14,
+						0								PROD15,
+						0								PROD16
+				FROM	DC_DATAWAREHOUSE	T1,
+						DC_MST				T2
+				WHERE	T1.CNFM_DATE	= REPLACE('$!{trans_start}','-','')
+				AND		T1.DC_ID		= T2.DC_ID
+				AND		T1.ITEM_ID		= '$!{item_id}'
+				AND		T2.CDC_FLAG		= 'Y'
+				UNION	ALL
+				SELECT	T1.DC_ID,
+						0								BASE_STOCK,
+						0								CHGO_QTY,
+						0								STOCK_EXPT,
+						ISSUE+ISSUE_EXPT+TRANS_BOX		NEXT_CHGO_QTY,	-- 익일출고예정
+						0								TRANS_QTY,
+						0								NEXT_TRANS_QTY,
+						0								PROD01_1,
+						0								PROD01_3,
+						0								PROD01_5,
+						0								PROD02_1,
+						0								PROD02_3,
+						0								PROD02_5,
+						0								PROD03_1,
+						0								PROD03_3,
+						0								PROD03_5,
+						0								PROD04,
+						0								PROD05,
+						0								PROD06,
+						0								PROD07,
+						0								PROD08,
+						0								PROD09,
+						0								PROD10,
+						0								PROD11,
+						0								PROD12,
+						0								PROD13,
+						0								PROD14,
+						0								PROD15,
+						0								PROD16
+				FROM	DC_DATAWAREHOUSE	T1,
+						DC_MST				T2,
+						(
+						/* 계획일자의 다음 영업일을 찾는다 */
+						SELECT	MIN(YYYYMMDD)	NEXT_DATE
+						FROM	CAL_MST
+						WHERE	HOLIDAY_FLAG IS NULL
+						AND		YYYYMMDD > REPLACE('$!{trans_start}','-','')
+						)					T3
+				WHERE	T1.CNFM_DATE	= T3.NEXT_DATE
+				AND		T1.DC_ID		= T2.DC_ID
+				AND		T1.ITEM_ID		= '$!{item_id}'
+				AND		T2.CDC_FLAG		= 'Y'
+				UNION	ALL
+				/* 수송계획정보 당일, 익일(출고) */
+				SELECT	SRC_LOC	DC_ID,
+						0								BASE_STOCK,
+						0								CHGO_QTY,
+						0								STOCK_EXPT,
+						0								NEXT_CHGO_QTY,
+						NVL(SUM(DECODE(TRANS_DATE,TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD'),TP.BASE_STK_QTY+TP.ADD_STK_QTY+TP.PROD_QTY)),0) 	TRAN_QTY, 		-- 확정량
+						NVL(SUM(DECODE(TRANS_DATE,NEXT_DATE,TP.BASE_STK_QTY+TP.ADD_STK_QTY+TP.PROD_QTY)),0) 										NEXT_TRAN_QTY,	-- 익일확정
+						0								PROD01_1,
+						0								PROD01_3,
+						0								PROD01_5,
+						0								PROD02_1,
+						0								PROD02_3,
+						0								PROD02_5,
+						0								PROD03_1,
+						0								PROD03_3,
+						0								PROD03_5,
+						0								PROD04,
+						0								PROD05,
+						0								PROD06,
+						0								PROD07,
+						0								PROD08,
+						0								PROD09,
+						0								PROD10,
+						0								PROD11,
+						0								PROD12,
+						0								PROD13,
+						0								PROD14,
+						0								PROD15,
+						0								PROD16
+				FROM	TRANS_PLAN	TP,
+						DC_MST		T2,
+						(
+						/* 계획일자의 다음 영업일을 찾는다 */
+						SELECT	MIN(CAL_DATE)	NEXT_DATE
+						FROM	CAL_MST
+						WHERE	HOLIDAY_FLAG IS NULL
+						AND		YYYYMMDD > SUBSTR('$!{version}',1,8)
+						)					T3
+				WHERE	VERSION	= '$!{version}'
+				AND		ITEM_ID	= '$!{item_id}'
+				AND		TP.SRC_LOC	= T2.DC_ID
+				AND		TP.BRAND_NO		IS NULL  -- 발행된 수송전표는 제외한다. 왜냐하면 입고예정에 감안되었을거니깐!
+				AND		T2.CDC_FLAG		= 'Y'
+				AND		TRANS_DATE	BETWEEN TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD') AND NEXT_DATE
+				GROUP
+				BY		SRC_LOC
+				UNION	ALL
+				/* 수송계획정보 당일(입고) */
+				SELECT	TGT_LOC							DC_ID,
+						0								BASE_STOCK,
+						0								CHGO_QTY,
+						0								STOCK_EXPT,
+						0								NEXT_CHGO_QTY,
+						-1 * NVL(SUM(DECODE(TRANS_DATE,TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD'),TP.BASE_STK_QTY+TP.ADD_STK_QTY+TP.PROD_QTY)),0) 	TRAN_QTY,
+						0								NEXT_TRAN_QTY,
+						0								PROD01_1,
+						0								PROD01_3,
+						0								PROD01_5,
+						0								PROD02_1,
+						0								PROD02_3,
+						0								PROD02_5,
+						0								PROD03_1,
+						0								PROD03_3,
+						0								PROD03_5,
+						0								PROD04,
+						0								PROD05,
+						0								PROD06,
+						0								PROD07,
+						0								PROD08,
+						0								PROD09,
+						0								PROD10,
+						0								PROD11,
+						0								PROD12,
+						0								PROD13,
+						0								PROD14,
+						0								PROD15,
+						0								PROD16
+				FROM	TRANS_PLAN	TP,
+						DC_MST		T2,
+						(
+						/* 계획일자의 다음 영업일을 찾는다 */
+						SELECT	MIN(CAL_DATE)	NEXT_DATE
+						FROM	CAL_MST
+						WHERE	HOLIDAY_FLAG IS NULL
+						AND		YYYYMMDD > SUBSTR('$!{version}',1,8)
+						)					T3
+				WHERE	VERSION	= '$!{version}'
+				AND		ITEM_ID	= '$!{item_id}'
+				AND		TP.SRC_LOC	= T2.DC_ID
+				AND		TP.BRAND_NO		IS NULL  -- 발행된 수송전표는 제외한다. 왜냐하면 입고예정에 감안되었을거니깐!
+				AND		T2.CDC_FLAG		= 'Y'
+				AND		TRANS_DATE	BETWEEN TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD') AND NEXT_DATE
+				GROUP
+				BY		TGT_LOC
+				UNION	ALL
+				/* 생산계획 정보 */
+				SELECT	T4.DC_ID,
+						0								BASE_STOCK,
+						0								CHGO_QTY,
+						0								STOCK_EXPT,
+						0								NEXT_CHGO_QTY,
+						0								TRANS_QTY,
+						0								NEXT_TRANS_QTY,
+						SUM(
+							CASE 	WHEN TO_DATE('$!{trans_start}','YYYY-MM-DD') = TO_DATE(T1.PROD_DATES,'YYYY-MM-DD') AND SHIFT_TYPE = 1 THEN SHIFT_QTY
+									ELSE 0 
+							END
+							)	PROD01_1, -- 당일 조간
+						SUM(
+							CASE 	WHEN TO_DATE('$!{trans_start}','YYYY-MM-DD') = TO_DATE(T1.PROD_DATES,'YYYY-MM-DD') AND SHIFT_TYPE = 3 THEN SHIFT_QTY
+									ELSE 0 
+							END
+							)	PROD01_3, -- 당일 주간
+						SUM(
+							CASE 	WHEN TO_DATE('$!{trans_start}','YYYY-MM-DD') = TO_DATE(T1.PROD_DATES,'YYYY-MM-DD') AND SHIFT_TYPE = 5 THEN SHIFT_QTY
+									ELSE 0 
+							END
+							)	PROD01_5, -- 당일 야간
+						SUM(
+							CASE 	WHEN TO_DATE('$!{trans_start}','YYYY-MM-DD')+1 = TO_DATE(T1.PROD_DATES,'YYYY-MM-DD') AND SHIFT_TYPE = 1 THEN SHIFT_QTY
+									ELSE 0 
+							END
+							)	PROD02_1, -- 익일 조간
+						SUM(
+							CASE 	WHEN TO_DATE('$!{trans_start}','YYYY-MM-DD')+1 = TO_DATE(T1.PROD_DATES,'YYYY-MM-DD') AND SHIFT_TYPE = 3 THEN SHIFT_QTY
+									ELSE 0 
+							END
+							)	PROD02_3, -- 익일 주간
+						SUM(
+							CASE 	WHEN TO_DATE('$!{trans_start}','YYYY-MM-DD')+1 = TO_DATE(T1.PROD_DATES,'YYYY-MM-DD') AND SHIFT_TYPE = 5 THEN SHIFT_QTY
+									ELSE 0 
+							END
+							)	PROD02_5, -- 익일 야간
+						SUM(
+							CASE 	WHEN TO_DATE('$!{trans_start}','YYYY-MM-DD')+2 = TO_DATE(T1.PROD_DATES,'YYYY-MM-DD') AND SHIFT_TYPE = 1 THEN SHIFT_QTY
+									ELSE 0 
+							END
+							)	PROD03_1, -- D+2 조간
+						SUM(
+							CASE 	WHEN TO_DATE('$!{trans_start}','YYYY-MM-DD')+2 = TO_DATE(T1.PROD_DATES,'YYYY-MM-DD') AND SHIFT_TYPE = 3 THEN SHIFT_QTY
+									ELSE 0 
+							END
+							)	PROD03_3, -- D+2 주간
+						SUM(
+							CASE 	WHEN TO_DATE('$!{trans_start}','YYYY-MM-DD')+2 = TO_DATE(T1.PROD_DATES,'YYYY-MM-DD') AND SHIFT_TYPE = 5 THEN SHIFT_QTY
+									ELSE 0 
+							END
+							)	PROD03_5, -- D+2 야간							
+						NVL(SUM(DECODE(TO_DATE('$!{trans_start}','YYYY-MM-DD')+ 3,TO_DATE(T1.PROD_DATES,'YYYY-MM-DD'),SHIFT_QTY)),0)	PROD04,						
+						NVL(SUM(DECODE(TO_DATE('$!{trans_start}','YYYY-MM-DD')+ 4,TO_DATE(T1.PROD_DATES,'YYYY-MM-DD'),SHIFT_QTY)),0)	PROD05,						
+						NVL(SUM(DECODE(TO_DATE('$!{trans_start}','YYYY-MM-DD')+ 5,TO_DATE(T1.PROD_DATES,'YYYY-MM-DD'),SHIFT_QTY)),0)	PROD06,						
+						NVL(SUM(DECODE(TO_DATE('$!{trans_start}','YYYY-MM-DD')+ 6,TO_DATE(T1.PROD_DATES,'YYYY-MM-DD'),SHIFT_QTY)),0)	PROD07,						
+						NVL(SUM(DECODE(TO_DATE('$!{trans_start}','YYYY-MM-DD')+ 7,TO_DATE(T1.PROD_DATES,'YYYY-MM-DD'),SHIFT_QTY)),0)	PROD08,						
+						NVL(SUM(DECODE(TO_DATE('$!{trans_start}','YYYY-MM-DD')+ 8,TO_DATE(T1.PROD_DATES,'YYYY-MM-DD'),SHIFT_QTY)),0)	PROD09,						
+						NVL(SUM(DECODE(TO_DATE('$!{trans_start}','YYYY-MM-DD')+ 9,TO_DATE(T1.PROD_DATES,'YYYY-MM-DD'),SHIFT_QTY)),0)	PROD10,
+						NVL(SUM(DECODE(TO_DATE('$!{trans_start}','YYYY-MM-DD')+10,TO_DATE(T1.PROD_DATES,'YYYY-MM-DD'),SHIFT_QTY)),0)	PROD11,
+						NVL(SUM(DECODE(TO_DATE('$!{trans_start}','YYYY-MM-DD')+11,TO_DATE(T1.PROD_DATES,'YYYY-MM-DD'),SHIFT_QTY)),0)	PROD12,
+						NVL(SUM(DECODE(TO_DATE('$!{trans_start}','YYYY-MM-DD')+12,TO_DATE(T1.PROD_DATES,'YYYY-MM-DD'),SHIFT_QTY)),0)	PROD13,
+						NVL(SUM(DECODE(TO_DATE('$!{trans_start}','YYYY-MM-DD')+13,TO_DATE(T1.PROD_DATES,'YYYY-MM-DD'),SHIFT_QTY)),0)	PROD14,
+						NVL(SUM(DECODE(TO_DATE('$!{trans_start}','YYYY-MM-DD')+14,TO_DATE(T1.PROD_DATES,'YYYY-MM-DD'),SHIFT_QTY)),0)	PROD15,
+						NVL(SUM(DECODE(TO_DATE('$!{trans_start}','YYYY-MM-DD')+15,TO_DATE(T1.PROD_DATES,'YYYY-MM-DD'),SHIFT_QTY)),0)	PROD16
+				FROM	DAILY_SCH_PLAN_SHIFT	T1,
+						(
+						/* 조회일 2주전부터 생산계획 확정 VERSION정보(완제품)*/
+						SELECT  K1.CAT_ID, K2.PLANT_ID, K1.VERSION,
+								TO_CHAR(TRUNC(TO_DATE(SUBSTR(K1.VERSION,1,8),'YYYY-MM-DD')+ 7,'D')+1,'YYYYMMDD')    S_DATE,
+								TO_CHAR(TRUNC(TO_DATE(SUBSTR(K1.VERSION,1,8),'YYYY-MM-DD')+DECODE(K1.TWO_WEEK_FLAG,'N',14,21),'D'),'YYYYMMDD')      E_DATE
+						FROM    PLAN_VERSION_LOG    K1,
+								(
+								SELECT  CAT_ID, SUB_CAT, PLANT_ID
+								FROM    ENGN_BAT_MST
+								WHERE   PERIOD_TYPE = 'DAILY' AND CAT_ID = 'PS'
+								)                   K2
+						WHERE   K1.PERIOD_TYPE = 'DAILY'
+						AND     K1.CAT_ID = 'PS'
+						AND     K1.RUN_DATE &gt;= trunc(TO_DATE('2014-08-13','YYYY-MM-DD') - DECODE(K1.TWO_WEEK_FLAG,'N',7,14),'D') 
+						AND     TRIM (VERSION) IS NOT NULL
+						AND     K1.STATUS >= '23' -- 상태가 계획확정 이상인 것 중에서 찾는다
+						AND     K1.CAT_ID = K2.CAT_ID
+						AND     K1.SUB_CAT = K2.SUB_CAT
+						)                   T2,
+						V_LAST_PROC_PRODVER	T3,         --마지막 공정정보
+						DC_MST				T4
+				WHERE   T1.CAT_ID = T2.CAT_ID
+				AND     T1.PLANT_ID = T2.PLANT_ID
+				AND     T1.VERSION = T2.VERSION
+				AND     T1.PROD_DATES BETWEEN T2.S_DATE AND T2.E_DATE
+				-- 오늘이후 계획만
+				AND     T1.PROD_DATES >= REPLACE('$!{trans_start}','-','')
+				AND     T1.PLANT_ID = T3.PLANT_ID
+				AND     T1.PROC_ID = T3.PROC_ID
+				AND     T1.ITEM_ID = T3.ITEM_ID
+				AND		T1.PLANT_ID	= T4.PLANT_ID
+				AND		T1.ITEM_ID	= '$!{item_id}'
+				GROUP
+				BY		T4.DC_ID
+				/* 매입정보(PR,PO) */
+				UNION	ALL
+				SELECT	K1.LOC_ID	DC_ID,
+						0								BASE_STOCK,
+						0								CHGO_QTY,
+						0								STOCK_EXPT,
+						0								NEXT_CHGO_QTY,
+						0								TRANS_QTY,
+						0								NEXT_TRANS_QTY,
+						0												PROD01_1,   
+						0												PROD01_3,   
+						NVL(SUM(DECODE(K2.ROW_NUM, 1,K1.QTY)),0)		PROD01_5,   
+						NVL(SUM(DECODE(K2.ROW_NUM, 2,K1.QTY)),0)		PROD02_1,   
+						NVL(SUM(DECODE(K2.ROW_NUM, 3,K1.QTY)),0)		PROD02_3,   
+						NVL(SUM(DECODE(K2.ROW_NUM, 4,K1.QTY)),0)		PROD02_5,   
+						NVL(SUM(DECODE(K2.ROW_NUM, 5,K1.QTY)),0)		PROD03_1,   
+						NVL(SUM(DECODE(K2.ROW_NUM, 6,K1.QTY)),0)		PROD03_3,   
+						NVL(SUM(DECODE(K2.ROW_NUM, 7,K1.QTY)),0)		PROD03_5,   
+						NVL(SUM(DECODE(K2.ROW_NUM, 8,K1.QTY)),0)		PROD04,     
+						NVL(SUM(DECODE(K2.ROW_NUM, 9,K1.QTY)),0)		PROD05,     
+						NVL(SUM(DECODE(K2.ROW_NUM,10,K1.QTY)),0)		PROD06,     
+						NVL(SUM(DECODE(K2.ROW_NUM,11,K1.QTY)),0)		PROD07,     
+						NVL(SUM(DECODE(K2.ROW_NUM,12,K1.QTY)),0)		PROD08,     
+						NVL(SUM(DECODE(K2.ROW_NUM,13,K1.QTY)),0)		PROD09,     
+						NVL(SUM(DECODE(K2.ROW_NUM,14,K1.QTY)),0)		PROD10,		
+						NVL(SUM(DECODE(K2.ROW_NUM,15,K1.QTY)),0)		PROD11,		
+						NVL(SUM(DECODE(K2.ROW_NUM,16,K1.QTY)),0)		PROD12,		
+						NVL(SUM(DECODE(K2.ROW_NUM,17,K1.QTY)),0)		PROD13,		
+						NVL(SUM(DECODE(K2.ROW_NUM,18,K1.QTY)),0)		PROD14,		
+						NVL(SUM(DECODE(K2.ROW_NUM,19,K1.QTY)),0)		PROD15,		
+						NVL(SUM(DECODE(K2.ROW_NUM,20,K1.QTY)),0)		PROD16		
+				FROM	(
+						SELECT	T1.LOC_ID, T1.AVAIL_DATE, SUM(F_GETCONVBOX(T1.ITEM_ID,T1.QTY_UOM,T1.QTY))QTY
+						FROM	MAT_STORE_PLAN	T1,
+								ITEM_MST		T2
+						WHERE	IF_DTTM	= (SELECT	MAX(IF_DTTM) FROM MAT_STORE_PLAN)
+						AND		T1.ITEM_ID	= T2.ITEM_ID
+						AND		T2.ITYPE	= 'HAWA'
+						AND		AVAIL_DATE	>= TO_DATE('$!{trans_start}','YYYY-MM-DD')
+						AND		T1.ITEM_ID	= '$!{item_id}'
+						GROUP
+						BY		T1.LOC_ID, T1.AVAIL_DATE
+						)	K1,
+						(
+						SELECT	AVAIL_DATE, ROW_NUMBER() OVER(ORDER BY AVAIL_DATE) ROW_NUM
+						FROM	(
+								SELECT	DISTINCT	AVAIL_DATE
+								FROM	MAT_STORE_PLAN	T1,
+										ITEM_MST		T2
+								WHERE	IF_DTTM	= (SELECT	MAX(IF_DTTM) FROM MAT_STORE_PLAN)
+								AND		T1.ITEM_ID	= T2.ITEM_ID
+								AND		T2.ITYPE	= 'HAWA'
+								AND		AVAIL_DATE	>= TO_DATE('$!{trans_start}','YYYY-MM-DD')
+								AND		T1.ITEM_ID	= '$!{item_id}'
+								)
+						)	K2
+				WHERE	K1.AVAIL_DATE	= K2.AVAIL_DATE	
+				GROUP
+				BY		K1.LOC_ID					
+				)		S1,
+				DC_MST	S2,
+				(
+				SELECT	DISTINCT	DM.DC_ID
+				FROM	ITEM_CAPA	IC, DC_MST	DM
+				WHERE	IC.PLANT_ID	= DM.PLANT_ID
+				AND		NOT EXISTS
+						(
+						SELECT	PLANT_ID, ITEM_ID, PROD_VER
+						FROM	ITEM_CAPA	
+						WHERE	(ITEM_ID, PLANT_ID, LINE_ID) IN 
+								(						 
+								SELECT	ITEM_ID, PLANT_ID, LINE_ID
+								FROM	ITEM_PLANT_LINE_CTL
+								WHERE	USE_FLAG	= 'N'
+								AND		MADE_TYPE	!= 'DE'
+								)
+						AND		PLANT_ID = IC.PLANT_ID
+						AND		ITEM_ID		= IC.ITEM_ID
+						AND		PROD_VER	= IC.PROD_VER
+						)
+				AND		IC.ITEM_ID	= '$!{item_id}'
+				)		S3,
+				(
+				/* CDC 전체 사용 CAPA */
+				SELECT	DC_ID,
+						SUM(USE_CAPA)		USE_CAPA,
+						SUM(USE_CAPA_BOX)	USE_CAPA_BOX
+				FROM	(
+						SELECT	T1.DC_ID,
+								ROUND(SUM(T1.STOCK_EXPT/f_getBoxPerPallet(T2.PLANT_ID,T1.ITEM_ID)),0)	USE_CAPA,
+								ROUND(SUM(T1.STOCK_EXPT),0)												USE_CAPA_BOX
+						FROM	(
+								SELECT	T1.DC_ID, T1.ITEM_ID, SUM(T1.STOCK_EXPT)	STOCK_EXPT
+								FROM	DC_DATAWAREHOUSE	T1
+								WHERE	CNFM_DATE	= TO_CHAR(TO_DATE('$!{trans_start}','YYYY-MM-DD'),'YYYYMMDD')
+								AND		NOT EXISTS (  /* 삼다수 제거 */
+													SELECT	T2.ITEM_ID
+														FROM	ITEM_MST	T2
+														WHERE	HR_TY1	LIKE '303001%'
+														AND		T1.ITEM_ID	= T2.ITEM_ID
+													)
+								HAVING	SUM(T1.STOCK_EXPT) > 0
+								GROUP
+								BY		T1.DC_ID, T1.ITEM_ID
+								)		T1,
+								DC_MST	T2
+						WHERE	T1.DC_ID	= T2.DC_ID
+						GROUP
+						BY		T1.DC_ID
+						UNION	ALL
+						SELECT	SRC_LOC	DC_ID,
+								-1 * ROUND(SUM(BASE_STK_PLT+ADD_STK_PLT+PROD_PLT),0)	USE_CAPA,
+								-1 * ROUND(SUM(BASE_STK_QTY+ADD_STK_QTY+PROD_QTY),0)	USE_CAPA_BOX
+						FROM	TRANS_PLAN	T1
+						WHERE	VERSION		= '$!{version}'
+						AND		TRANS_DATE	BETWEEN TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD') 
+											AND		TO_DATE('$!{trans_start}','YYYY-MM-DD') 
+						AND		BRAND_NO	IS NULL	-- 수송전표 발행전 것만 감안
+						AND		NOT EXISTS (  /* 삼다수 제거 */
+										SELECT	T2.ITEM_ID
+											FROM	ITEM_MST	T2
+											WHERE	HR_TY1	LIKE '303001%'
+											AND		T1.ITEM_ID	= T2.ITEM_ID
+										)
+						GROUP
+						BY		SRC_LOC
+						)
+				GROUP
+				BY		DC_ID
+				)		S4
+		WHERE	S1.DC_ID	= S2.DC_ID
+		AND		S2.CDC_FLAG	= 'Y'	
+		AND		S1.DC_ID	= S3.DC_ID(+)
+		AND		S1.DC_ID	= S4.DC_ID(+)	
+		HAVING	SUM(BASE_STOCK)+
+				SUM(CHGO_QTY)+	
+				SUM(PROD01_1)+	
+				SUM(PROD01_3)+	
+				SUM(STOCK_EXPT)+	
+				SUM(TRANS_QTY)+		
+				SUM(NEXT_CHGO_QTY)+	
+				SUM(NEXT_TRANS_QTY)+
+				SUM(PROD01_5)+		
+				SUM(PROD02_1)+		
+				SUM(PROD02_3)+		
+				SUM(PROD02_5)+		
+				SUM(PROD03_1)+		
+				SUM(PROD03_3)+		
+				SUM(PROD03_5)+		
+				SUM(PROD04)+
+				SUM(PROD05)+
+				SUM(PROD06)+
+				SUM(PROD07)+
+				SUM(PROD08)+
+				SUM(PROD09)+
+				SUM(PROD10)+
+				SUM(PROD11)+
+				SUM(PROD12)+
+				SUM(PROD13)+
+				SUM(PROD14)+
+				SUM(PROD15)+
+				SUM(PROD16) &gt; 0	
+				OR
+				S1.DC_ID	IN ('7100','7500','7600') -- 안양, 포승, 구미는 무조건 표시
+		GROUP
+		BY		S1.DC_ID,
+				S2.DC_SHORT_NAME,
+				NVL2(S3.DC_ID,'Y','N'),
+				NVL(S4.USE_CAPA,0),
+				NVL(S4.USE_CAPA_BOX,0)			
+        ORDER BY DC_ID
+
+	#end
+	
+	</query>
+
+	<!-- 자동공급계획_DW3 -->
+	<query id="rp_01160_replenishmentNiceLikePlan_DW3" paging="false">
+
+		SELECT	DISTINCT
+				YYYYMMDD															CNFM_DATE,
+				TO_CHAR(T2.CAL_DATE,'MM/DD')||'('|| TO_CHAR(T2.CAL_DATE,'DY')||')'	CNFM_NAME,
+				NVL(T1.ALLOC_ZONE,'00') 											ALLOC_ZONE,
+				F_GET_CODE_NAME('CAT_ALLOC_ZONE',NVL(T1.ALLOC_ZONE,'00'))			ALLOC_ZONE_NAME
+		FROM	SDORT203		T1,
+				(
+				SELECT	CAL_DATE, YYYYMMDD
+				FROM	(
+						SELECT	CAL_DATE, YYYYMMDD, RANK() OVER (ORDER BY CAL_DATE) RANK
+						FROM	CAL_MST
+						WHERE	HOLIDAY_FLAG 	IS NULL
+						AND		YYYYMMDD		&gt;= REPLACE('$!{trans_start}','-','')
+						)
+				WHERE	RANK &lt; 14
+				)				T2
+		WHERE	T1.CNFM_DATE(+)	= T2.YYYYMMDD
+		AND		T1.PROD_CODE(+)	= '$!{item_id}'
+		ORDER
+		BY		1
+
+	</query>
+	
+	<!-- 자동공급계획_ALLOC_GUBN -->
+	<query id="rp_01160_alloc_gubn_for_combo" paging="false">
+	
+		SELECT	CD, CD_NAME
+		FROM	CODE_MST,	DUAL
+		WHERE	CD_GRP LIKE 'ALLOC_GUBN'
+		ORDER
+		BY		CD
+
+	</query>
+	
+	<!-- 자동공급계획_ALLOC_GUBN -->
+	<query id="rp_01160_Get_BOX_PER_PAL" paging="false">
+	
+		SELECT	'BOX_PER_PAL', f_getBoxPerPallet('$!{src_loc}','$!{item_id}')
+		FROM	DUAL, DUAL
+
+	</query>
+	
+	<!-- 사용자 예측량 조회  -->
+	<query id="rp_01160_get_user_forecast_qty" paging="false">
+	
+		SELECT NVL(FRC_QTY,0) FRC_QTY, WEEK_GUBN, NVL(EVENT_QTY,0) 						
+		FROM USER_FORECAST
+		WHERE ITEM_ID = '$!{item_id}'
+		AND CNFM_DATE = TRUNC(TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD'),'DY')+8
+		
+	</query>
+
+	<!-- 선행지수 조회  -->
+	<query id="rp_01160_get_Leading_Indicator_qty" paging="false">
+	
+		-- 선행지수 : 전년동일의 6주 후 3주평균
+		SELECT  SUM(SALES_MEAN_3WEEK_ETC)   SALES_MEAN_3WEEK_ETC
+		FROM    DC_DATAWAREHOUSE
+		WHERE   CNFM_DATE   = TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE(SUBSTR('$!{version}',1,8),'YYYY-MM-DD'),-12))+ 42,'YYYYMMDD')
+		AND     ITEM_ID = '$!{item_id}'
+		
+	</query>			
+
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</queries>

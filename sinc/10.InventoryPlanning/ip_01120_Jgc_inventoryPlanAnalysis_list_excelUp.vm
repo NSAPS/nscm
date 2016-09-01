@@ -1,0 +1,369 @@
+############################################################
+## 프로그램ID : ip_01120_Jgc_inventoryPlanAnalysis_list_excelUp.vm
+## 프로그램명 : 장기체화 품목 분석 엑셀 업로드
+## 개발자  : 이강욱
+## 개발일자 : 2015-01-20 목요일
+##
+##관련 job file : job_sinc_10_inventoryPlanning_03.xml
+##
+##관련 query file : query_sinc_10_inventoryPlanning_03.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2015-01-20  이강욱           ip_01120_Jgc_inventoryPlanAnalysis_list_excelUp.vm 개발
+##
+##
+############################################################
+## 비정상적 접근 방지  
+
+<SCRIPT LANGUAGE = "JavaScript">
+
+function doUpload() 
+{		
+
+		// 조회시 WAITING 이미지 보여주기
+		viewWait();
+		
+		var service = "ip_01120_Jgc_inventoryPlanAnalysis_list_excelUp";
+		frameSetService.location = "service.do?_moon_service=set_service_id&amp;user_service=" + service;
+		//document.frm._moon_service.value = "ip_01120_Jgc_inventoryPlanAnalysis_list_excelUp"; 
+		document.frm.action = "service.do";
+		document.frm.target = "_self";
+		document.frm.encoding = "multipart/form-data";
+		document.frm.submit();
+		
+} 
+
+function goBack() {
+
+    	document.frm._moon_service.value = "ip_01120_Jgc_inventoryPlanAnalysis_list"; 
+    	//document.form1._moon_perpage.value = perpage; 
+    	document.frm._moon_pagenumber.value = "1"; 
+    	document.frm.action = "service.do";
+    	document.frm.target = "_self";
+    	document.frm.submit();
+		
+}; 
+
+// 저장 버튼 클릭
+function GoSave(service) {
+	
+	if(!confirm("저장하시겠습니까?"))
+		return;
+
+	if(document.frm.row_count.length != 1) {
+
+    	var cnfm_date;
+		var item_id;
+		var item_name;
+		var division;
+		var stock;
+		var expiry_version;
+		var due_date;		
+		var sell_box_cum;		
+		var sales_pre;
+		var issue;
+		var prod_term;
+		var term_val;
+		var register_day;
+		var remain_stock;
+		
+		var start_date 		= document.frm.start_date.value.replace(/-/g,"");
+		var checked_button ;
+	
+		if(document.frm.checked_button[0].checked){
+
+			checked_button = '';
+
+		}else if(document.frm.checked_button[1].checked){
+		
+			checked_button = '10';
+		
+		}else if(document.frm.checked_button[2].checked){
+		
+			checked_button = '20'
+		
+		}else{
+		
+			checked_button = '30'
+		
+		}
+		
+		for(var i = 0 ; i < document.frm.row_count.length ; i++){
+    		
+			cnfm_date 		= document.frm.cnfm_date[i].value;
+    		item_id			= document.frm.item_id[i].value;
+			item_name 		= document.frm.item_name[i].value;
+			division 		= document.frm.division[i].value;
+			stock 			= document.frm.stock[i].value;
+			expiry_version 	= document.frm.expiry_version[i].value;
+			due_date 		= document.frm.due_date[i].value;			
+			sell_box_cum 	= document.frm.sell_box_cum[i].value;			
+			sales_pre		= document.frm.sales_pre[i].value;
+			issue			= document.frm.issue[i].value;
+			prod_term		= document.frm.prod_term[i].value;
+			term_val		= document.frm.term_val[i].value;
+			stock_remain	= document.frm.stock_remain[i].value;
+			register_day	= document.frm.register_day[i].value;
+    	}
+	}
+	
+	// 조회시 WAITING 이미지 보여주기
+	viewWait();
+	// service_id 저장
+	frameSetService.location = "service.do?_moon_service=set_service_id&amp;user_service=" + service;
+	document.frm._moon_service.value = service;
+	document.frm.action = "service.do";
+	document.frm.target = "_self";
+	document.frm.submit();
+}
+
+
+
+</SCRIPT>	
+				
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	<tr>
+		<td height="25" align="right" bgcolor="${toolbar_bgcolor}" class="line">
+			<table width="100%" height="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+				<tr>
+					<td align="right">
+						
+						#toolbar($_moon_toolbar "" "ip_01120_Jgc_inventoryPlanAnalysis_list_excel_save_comp" "" "") 
+					</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+	<tr id="search_menu"  style="DISPLAY:block">
+		<td height="20" valign="top" bgcolor="${search_bgcolor}" class="line">
+			<table border="0" width="100%" cellpading="0" cellspacing="0" class="normal-table">
+				<tr>
+					<td width="90%" align="left"> 
+						<input name="go_back" type="button" onClick="goBack();" value="이전화면"  class="button1_1" 
+							onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'" style="width:55;"> 
+					</td>	
+					<td width="10%" align="right">
+						##button("search")	
+					</td>	
+				</tr>
+			</table>
+		</td>
+	</tr>
+	<tr><td height="5" bgcolor="${open_close}" onClick="OpenClose(seach_menu)"></td></tr>
+	<tr><td height="10"></td></tr>
+	<tr>						
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				<div class="tab-page" id="tabPage1">
+					<h2 class="tab">${_moon_title}</h2>									
+					
+					<table width="100%" border="0" cellspacing=0 cellpadding=0 align="center">
+                    	<tr>
+                    		<td bgcolor=#CCCCCC>
+                    			<table width="100%" border="0" cellspacing=2 cellpadding=2 align="center">
+                    				<tr bgcolor=white>
+                    					<td align=left>
+                    						<table>
+                    							<tr>
+													<td width="15%" align="center">
+														기간 :
+														#date_sole_no_title("start_date" "10" "normal" "btnE" "$date.get('yyyy-MM-dd')")
+													</td>
+														<td width="40%" align="left">
+															
+														&nbsp;
+														저장 구분: 
+														<input type="radio" name="checked_button" value="" style="border:0px; "
+														onClick="this.checked" #if($!{checked_button} == "") checked #else #end checked>장기체(전체)</input>&nbsp;
+														<input type="radio" name="checked_button" value="10" style="border:0px; "
+														onClick="this.checked" #if($!{checked_button} == "10") checked #else #end>장기체(음료)</input>&nbsp;
+														<input type="radio" name="checked_button" value="20" style="border:0px; "
+														onClick="this.checked" #if($!{checked_button} == "20") checked #else #end>장기체(상품1팀)</input>&nbsp;
+														<input type="radio" name="checked_button" value="30" style="border:0px; "
+														onClick="this.checked" #if($!{checked_button} == "30") checked #else #end>장기체(상품2팀)</input>&nbsp;														
+														</td>	
+                    								##<td align=left valign=top><img src="sinc/template/basic/images/boe/icn_guide.gif"></td>
+                    					            <td width="45%" align="right">  
+														<font color="red">
+    													* 선택하신 Excel 파일로부터 읽어 들인 데이터로 '저장' 버튼으로 저장할 수 있습니다.<br> 
+													</td>												
+                    							</tr>
+                    						</table>
+                    					</td>
+                    				</tr>
+                    			</table>
+                    		</td>
+                    	</tr>					
+                    </table>
+					<br>
+					<input name="search_h" type="hidden" value="0"> ## search 조건 부분 높이      	
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+								Total : <b>$_moon_service_count</b> #*,
+								current page is <b>$_moon_pagenumber</b> / 
+							
+							## 리스트 항목수를 all 로 했을 경우 이상한 값이 나온다.
+							## 리스트 항목수가 all 인 경우 _moon_perpage = -1 이기 때문에
+							## _moon_perpage = -1 인 경우를 체크해서 page 수를 1로 한다.
+							#if( $math.toInteger($_moon_perpage) < 0 )
+								<b>1 </b>page
+							#else
+								## 원래 template 에는 이부분만 있음
+								<b>#allPageNumber($_moon_service_count $_moon_perpage)</b>pages
+							#end	
+								
+							</td>
+							<td align="right">
+								#table_display()*# 
+							</td>
+						</tr>
+					</table>
+					
+					
+					<table id="gridArea" width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>	
+					<!--	<div class="table_scroll">  --> 
+						
+						#set( $body = $ip_01120_Jgc_inventoryPlanAnalysis_list_excelUp ) 
+
+						#set( $data = "" )
+						
+						#set( $headertype 	= "TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!TEXT!%!NUMBER!%!TEXT!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!TEXT!%!TEXT!%!NUMBER!%!TEXT!%!TEXT!%!NUMBER!%!TEXT!%!TEXT!%!TEXT" )
+						#set( $header 		= "구분!%!자재그룹!%!품목코드!%!품목명!%!규격!%!장기체화\n발생재고!%!전일계!%!일계!%!누계!%!장기체화\n잔여재고!%!재고\n소진율!%!잔여\n일수!%!등록\n경과일!%!30%\n경과예상수량!%!50%\n경과예상수량!%!80%\n경과예상수량!%!100%\n경과예상수량!%!유통기한\n만기일!%!유통\n기한!%!유통기한\n경과일수!%!유통기한\n경과율!%!재고\n일수!%!3주\n평균!%!처리기한!%!일자!%!품목등록일" )
+						#set( $colwidth 	= "0!%!80!%!70!%!140!%!60!%!70!%!60!%!60!%!60!%!70!%!60!%!60!%!60!%!90!%!90!%!90!%!90!%!80!%!60!%!70!%!70!%!60!%!60!%!70!%!0!%!80" ) 
+						###set( $colwidth 	= "$colwidth!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50" ) 기존 colwidth 뒤에 붙일떄
+						#set( $colalign 	= "CENTER!%!CENTER!%!CENTER!%!LEFT!%!LEFT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!CENTER!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!CENTER!%!CENTER!%!TEXT" ) 
+						#set( $name 		= "division!%!sales_cat03!%!item_id!%!item_name!%!spec!%!stock!%!sales_pre!%!issue!%!sell_box_cum!%!stock_remain" ) 
+						#set( $name			= "$name!%!stock_sell_rate!%!remain_day!%!register_day_cum!%!expect_stock_30!%!expect_stock_50!%!expect_stock_80!%!expect_stock!%!expiry_version!%!term_val!%!prod_term!%!prod_rate!%!stock_day!%!sales_3week!%!due_date!%!cnfm_date!%!register_day" )
+						###set( $name = "$name!%!tot!%!plant_id!%!version!%!seq!%!team_id!%!line_id!%!proc_id!%!start_date!%!cat_id" )
+						#foreach($tr in $body)
+							
+							#if( $velocityCount == 1 ) 
+								#set( $data = "${tr.get(0)}!%!${tr.get(1)}!%!${tr.get(2)}!%!${tr.get(3)}!%!${tr.get(4)}!%!${tr.get(5)}!%!${tr.get(6)}!%!${tr.get(7)}!%!${tr.get(8)}!%!${tr.get(9)}" )
+								#set( $data = "$data!%!${tr.get(10)}!%!${tr.get(11)}!%!${tr.get(12)}!%!${tr.get(13)}!%!${tr.get(14)}!%!${tr.get(15)}!%!${tr.get(16)}!%!${tr.get(17)}!%!${tr.get(18)}!%!${tr.get(19)}!%!${tr.get(20)}!%!${tr.get(21)}!%!${tr.get(22)}!%!${tr.get(23)}!%!${tr.get(24)}!%!${tr.get(25)}" )
+							#else
+								#set( $data  = "$data/%/${tr.get(0)}!%!${tr.get(1)}!%!${tr.get(2)}!%!${tr.get(3)}!%!${tr.get(4)}!%!${tr.get(5)}!%!${tr.get(6)}!%!${tr.get(7)}!%!${tr.get(8)}!%!${tr.get(9)}" ) 
+								#set( $data = "$data!%!${tr.get(10)}!%!${tr.get(11)}!%!${tr.get(12)}!%!${tr.get(13)}!%!${tr.get(14)}!%!${tr.get(15)}!%!${tr.get(16)}!%!${tr.get(17)}!%!${tr.get(18)}!%!${tr.get(19)}!%!${tr.get(20)}!%!${tr.get(21)}!%!${tr.get(22)}!%!${tr.get(23)}!%!${tr.get(24)}!%!${tr.get(25)}" )
+							#end 
+							<input name="division" 			type="hidden" value="${tr.get(0)}"> 
+							<input name="sales_cat03" 		type="hidden" value="${tr.get(1)}"> 
+							<input name="item_id" 			type="hidden" value="${tr.get(2)}"> 
+							<input name="item_name" 		type="hidden" value="${tr.get(3)}"> 
+							<input name="spec" 				type="hidden" value="${tr.get(4)}"> 
+							<input name="stock" 			type="hidden" value="${tr.get(5)}">  ##발생재고
+							<input name="sales_pre" 		type="hidden" value="${tr.get(6)}"> ##전일계
+							<input name="issue" 			type="hidden" value="${tr.get(7)}">	##일계
+							<input name="sell_box_cum" 		type="hidden" value="${tr.get(8)}"> ##누계
+							<input name="stock_remain" 		type="hidden" value="${tr.get(9)}"> ##장기체화잔여재고
+							<input name="stock_sell_rate" 	type="hidden" value="${tr.get(10)}"> ##재고소진율
+							<input name="remain_day" 		type="hidden" value="${tr.get(11)}"> ##잔여일수
+							<input name="register_day_cum"	type="hidden" value="${tr.get(12)}"> ##등록경과일
+							<input name="expect_stock_30" 	type="hidden" value="${tr.get(13)}"> ##유통기한경과예상수량
+							<input name="expect_stock_50" 	type="hidden" value="${tr.get(14)}"> ##유통기한경과예상수량
+							<input name="expect_stock_80" 	type="hidden" value="${tr.get(15)}"> ##유통기한경과예상수량
+							<input name="expect_stock" 		type="hidden" value="${tr.get(16)}"> ##유통기한경과예상수량
+							<input name="expiry_version" 	type="hidden" value="${tr.get(17)}"> ##유통기한만기일
+							<input name="term_val" 			type="hidden" value="${tr.get(18)}"> ##유통기한
+							<input name="prod_term" 		type="hidden" value="${tr.get(19)}"> ##유통기한경과일
+							<input name="prod_rate" 		type="hidden" value="${tr.get(20)}"> ##유통기한경과율
+							<input name="stock_day" 		type="hidden" value="${tr.get(21)}"> ##재고일수
+							<input name="sales_3week" 		type="hidden" value="${tr.get(22)}"> ##3주평균판매
+							<input name="due_date" 			type="hidden" value="${tr.get(23)}"> ##처리기한
+							<input name="cnfm_date" 		type="hidden" value="${tr.get(24)}"> ##일자
+							<input name="register_day" 		type="hidden" value="${tr.get(25)}"> ##등록일
+							<input name="row_count"	 		type="hidden" value="$velocityCount">
+						#end 
+						 
+						
+						<object name='grid'
+							classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93" width="100%" height="390" 
+							codebase="http://java.sun.com/update/1.5.0/jinstall-1_5_0_03-windows-i586.cab#Version=1,5,3,0"> 
+							
+							<!--Necessary-->     
+							<param name="code" value="com.zionex.t3sinc.ui.ZLattice.class">
+							<param name="archive" value="zLattice.jar">
+							<param name="headertypes" value="$headertype">
+							<param name="headers" value="$header">
+							<param name="data" value="$data">           
+
+							<!--optional - Default Value 있음-->
+							<param name="columndelimeter" value="!%!"> <!-- defalut : !%! -->
+							<param name="rowdelimeter" value="/%/"> <!-- defalut : /%/ -->
+							<param name="showgroupingfunction" value="false">  <!-- defalut : true -->
+							<param name="showprintingfunction" value="false">   <!-- defalut : true -->
+							<param name="showlockingfunction" value="false"> <!-- defalut : true -->
+							<param name="showpagingfunction" value="false"> <!-- defalut : true -->
+							<param name="enablesorting" value="false">   <!-- defalut : true -->
+							<param name="groupingcolumn" value="-1"> <!-- defalut : 그루핑 없음 -->
+							<param name="groupsumcolumn" value="0"> <!-- defalut : 그루핑 없음 -->
+							<param name="lockedcolumn" value="0"> <!-- defalut : 락킹 없음 -->
+							<param name="presentpage" value="$_moon_pagenumber">   <!-- defalut : 1 -->
+							<param name="listinpage" value="$_moon_perpage">   <!-- defalut : 40 -->
+							<param name="bordertype" value="PLANE"> <!-- default - PLANE --> 
+							<param name="indateformat" value="yyyy-MM-dd"> <!-- default - yyyyMMdd --> 
+							<param name="outdateformat" value="yyyy-MM-dd">  <!-- default - yyyyMMdd --> 
+							<param name="columnwidth" value="$colwidth"> <!-- default -80 --> 
+							
+							<!--Necessary for Modifiability --> 
+							<param name="names" value="$name">
+							<param name="enableinserting" value="false"> <!-- default -false -->
+							<param name="enabledeleting" value="false"> <!-- default -false -->
+							<param name="enableediting" value="false"> <!-- default -false --> 
+							
+							<param name="disablecolumns" value="">
+							
+							<param name="hasverticaltotal" value="false"> <!-- default -true -->
+							<param name="hashorizontaltotal" value="false"> <!-- default -true -->
+							
+							<param name="columnalign" value="$colalign"> 
+							<param name="font" value="굴림체">
+							<param name="fontsize" value="12">
+				
+							<!--optional - Default Value 없음
+							<param name="columncolor" value="5=FFE4E1&6=FFE4E1&7=FFE4E1">
+							<param name="rowcolor" value="1,일별합계=33FFFF&1,LOT 합계=FF9966">
+							<param name="onclickrowfunc" value="onclickfunc">
+							-->
+						</object>
+				<!--		</div>  -->
+					</td></tr></table> 
+					<script>                    					
+    					setGridAutoResize('140', '265');
+    					function window.onresize() { setGridAutoResize('140', '265'); } 
+        			</script> 
+					
+					## waiting 표시영역
+					#waitingArea()
+					
+					<table height="5"><tr><td></td></tr></table>
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+						##$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+						<input type="hidden" name="_moon_service" value="${_moon_service}"> 
+						<input type="hidden" name="_moon_pagenumber"  value="${_moon_pagenumber}"> 
+						<input type="hidden" name="_moon_perpage"  value="${_moon_perpage}"> 
+						<input type="hidden" name="_user_id"  value="${_user_id}">
+					</td></tr>			
+					</table>				
+					
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr> 
+							<td width="1%"> 
+								&nbsp;&nbsp;&nbsp; 
+							</td> 
+							<td width="99%" align="right">
+								<input name="excel_upload" value="Excel Upload" style="width:'100';text-align:'center';border:'0';background-color:'#9999FF';" readOnly> 
+								<input type="file" name="excel" size="30" > 
+								<input type="button" name="do_excel" onClick="doUpload();" value="Upload" class="button1_1" 
+									onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"> 
+							</td> 
+						</tr> 
+					</table>
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+ 

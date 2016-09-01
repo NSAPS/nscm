@@ -1,0 +1,222 @@
+############################################################
+## 프로그램ID		: op_02080_fc_planVsActual_list.vm
+## 프로그램명		: 발주예시
+## 개발자			: 우종균
+## 개발일자		: 2013-09-25
+##
+## 관련 job file   : job_sinc_30_orderPlanning_03.xml
+## 관련 query file : query_sinc_30_orderPlanning_03.xml
+##        
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2013-09-25  우종균      create
+##
+## CODE_MST   실행구분  : ACT_GUBN
+##			    변경사유  : CHNG_RESN
+############################################################ 
+
+ 
+## 비정상적 접근 방지 
+#loginCheck() 
+## 화면 resizing 을 위한 size 변수    
+               
+#set( $resizeFuncCallCode = "setGridAutoResize('79', '120')" )           ## 숫자 상승          
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/scheduling.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/replenishPlan.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+
+
+<!--  	서버와의 통신이 정상적으로 완료되면 발생한다.   -->
+
+<script language="javascript" for="WiseGrid" event="Initialize()">
+	init();
+</script>
+<script language="javascript" for="WiseGrid" event="EndQuery()">
+	GridEndQuery();
+</script>
+
+
+
+##  WiseGrid의 t_combo타입의 컬럼내용이 변경되었을때 발생합니다  
+<script language=javascript for="WiseGrid" event="ChangeCombo(strColumnKey,nRow,nOldIndex,nNewIndex)">
+	GridChangeComboHandler(strColumnKey, nRow, nOldIndex, nNewIndex);
+</script>
+
+
+
+
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+    ## 기능 버튼 영역	
+	
+    <tr>
+        <td height="25" align="right">
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+                <tr>
+                    <td >
+                        <table border="0" width="85%" cellpading="0" cellspacing="0">    
+							
+							  
+                            <tr height="2"> 
+                                <td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+                            </tr>
+                            <tr>
+                                <td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+                                <td width="100%"  align="right" > 
+                                    <table border="0" width="100%" cellpading="0" cellspacing="0" id="search_menu" style="background-color:#f2f2f2; display:block; ">
+                        				<tr>  
+											
+											<td width="55px" align="left">계열사 :</td> 
+                                            	<td width="60px" >
+													<select name="com_code" > 
+														<option value=""   #if( "$!{com_code}" == "")  selected #end>전체</option>
+                            							<option value="0001000050"   #if( "$!{com_code}" == "0001000050")  selected #end>태경농산</option>
+                            							<option value="0001000021"   #if( "$!{com_code}" == "0001000021")  selected #end>율촌화학</option>
+                                            		</select>
+                                            	</td>
+											
+
+            									<td tidth="20%" align="left">
+            									<input type="radio" name="selgubn" value="MFS_FLAG" onClick="set_sel_gubn(this.value); " checked="on" style="border:0px;"
+            										#if ($!{selgubn} == "MFS_FLAG") checked #end>
+            											발주그룹</input>  
+            									<input type="radio" name="selgubn" value="PROD" onClick="set_sel_gubn(this.value); " style="border:0px;"
+            										#if ($!{selgubn} == "PROD") checked #end>
+            											품목</input>
+            									<input type="hidden" name="sel_gubn" #if("$!{sel_gubn}" != "MFS_FLAG" && "$!{sel_gubn}" != "PROD" ) value="MFS_FLAG" #else value="$!{sel_gubn}" #end></input>
+												</td>
+  
+                        					<td width="40%" align="left">
+                        						<select name="mfs_flag" 
+            										#if("$!{sel_gubn}" != "PROD" )
+            											style="display:block;"
+            										#else
+            											style="display:none;"
+            										#end
+            										> 		  						
+            										<option value="A" #if($!{mfs_flag} == "A") selected #else #end >집중관리품목</option>
+            										<option value="B" #if($!{mfs_flag} == "B") selected #else #end >주의관리품목</option>
+													<option value="C" #if($!{mfs_flag} == "C") selected #else #end >안전관리품목</option>
+            									</select> 
+            									<span id="prod" 
+            										#if("$!{sel_gubn}" == "PROD" ) 
+            											style="display:block;"
+            										#else
+            											style="display:none;"
+            										#end
+            										> 
+													
+            									<input	type="text" name="in_item_id" class="normal" size="100" value="$!{in_item_id}"
+            										onKeyDown="" onChange="getItemName(this);"
+            										style="width:73PX; padding-right:5px; text-align:center; ">
+   
+												<img name="imgItemId" tabindex="-1" 
+            										src="sinc/template/basic/skin/nongshim/images/common/icon_search.gif" align="absmiddle" 
+            										border="0" onClick="openItemPopup(); " style="cursor:pointer;"/>
+            									
+												<input	type="text"   name="in_item_name" class="normal" size="100"   value="$!{in_item_name}"
+            										onKeyDown="" 
+            										style="width:180PX; padding-right:5px; text-align:left; " readonly >	
+						
+            									
+													
+													
+													
+                        					</td>		
+											
+											<td width="70px" align="left"> 
+                        						조회일자 :
+                        					</td>								
+                        					<td width="120px" align="left" colspan="4">
+            									#date_sole_no_title("cnfm_date" "10" "normal" "btnE" "$commonUtil.toDate($date.get('yyyy-MM-dd'),'YYYY-MM-DD','DAY',0)")
+                        					</td>
+
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											
+											##<td width="60px" align="leftt">발주그룹  :</td>    
+                        					##<td width="80px">									 
+            									##<select name="mfs_flag" style="width:100px; ">
+            										##<option value="">전체</option>
+            										##<option value="A" #if($!{mfs_flag} == "A") selected #else #end >집중관리품목</option>
+            										##<option value="B" #if($!{mfs_flag} == "B") selected #else #end >주의관리품목</option>
+													##<option value="C" #if($!{mfs_flag} == "C") selected #else #end >안전관리품목</option>
+               									##</select>	 	  							  
+											##</td> 
+            							</tr>
+									</table> 
+                                </td> 
+                                <td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+                            </tr>
+                            <tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+                        </table>
+                    </td> 					 
+                    <td align="right"> 
+                        #button("search")
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>      
+    ## 조회 영역
+    <tr>
+ 
+    </tr>
+
+    
+	
+	<input name="search_h" type="hidden" value="45"> ## search 조건 부분 높이 
+    <tr><td height="1"></td></tr>
+    ## TAB 영역
+    <tr>
+        <td valign="top">
+        ## tab 좌측 여백
+        ##tabLeft()               
+            
+            <table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>                    
+
+            <table name="grid" width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+                <tr>
+                    <td align="left" width="100%" >
+                        <script>initWiseGrid("WiseGrid", "100%", "100%");</script>
+                    </td>
+				</tr>
+            </table> 
+            
+            <table height="5"><tr><td></td></tr></table>
+            <table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+                <input type="hidden" name="_moon_service" value="${_moon_service}">
+                <input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+                <input type="hidden" name="_user_id" value="$!{_user_id}">
+            </td></tr></table>
+            
+            </td></tr></table>
+            
+        </td>
+    </tr>
+</table>
+
+<script>
+    
+    // 화면 resize
+    $!{resizeFuncCallCode};
+    function window.onresize() { $!{resizeFuncCallCode}; }
+    
+    // 도움말 내용 입력
+    var helpStr = "◈ Job Change 시간 ";    
+    helpCont.innerHTML = helpStr;
+    hDynamicHeight = 0; 
+           
+</script> 

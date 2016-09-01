@@ -1,0 +1,215 @@
+############################################################
+## 프로그램ID : sc_11020_dailyProductPlan_ERP_IF_Check_popup.vm
+## 프로그램명 : 생산계획 ERP I/F 현황을 파악하고 ERP I/F 여부를 제한한다. - 주간생산계획(배포) 화면의 Popup화면으로 사용
+## 개발자  : 남웅용
+## 개발일자 : 2013-09-16 월요일
+##
+##관련 job file : job_sc_11020_dailyProductionPlan_List.xml
+##
+##관련 query file : query_sc_11020_dailyProductionPlan_List.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2013-09-16  남웅용          sc_11020_dailyProductPlan_ERP_IF_Check_popup.vm 개발
+##
+##
+############################################################
+## 비정상적 접근 방지 
+#loginCheck() 
+## 화면 resizing 을 위한 function 호출 코드  
+#set( $resizeFuncCallCode = "setGridAutoResize('50', '142')" )  
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/scheduling.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역 
+	
+	## 조회 영역
+	<tr> 
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2">
+					<td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table id="search_menu" border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; display:block; ">
+            				<tr>
+								<td width="80%" align="left" >
+									#date_sole_no_title( "cnfm_date" "10" "normal" "work_dateBtn" $commonUtil.toDate($date.get('yyyy-MM-dd'),'YYYY-MM-DD','DAY',0) )
+									&nbsp;&nbsp;&nbsp;  
+									<input type="radio" name="in_plan_kind" value=""  style="border:0px;"
+            							onClick="this.checked" #if("$!{in_plan_kind}" == "") checked #else #end>전체</input>&nbsp;
+            						<input type="radio" name="in_plan_kind" value="PROD" style="border:0px;"
+            							onClick="this.checked" #if("$!{in_plan_kind}" == "PROD" ) checked #else #end>완제품</input>&nbsp;
+            						<input type="radio" name="in_plan_kind" value="SEMI" style="border:0px;"
+            							onClick="this.checked" #if("$!{in_plan_kind}" == "SEMI") checked #else #end>반제품</input>
+									&nbsp;&nbsp;&nbsp;
+									#button("search")
+								</td>
+								<td width="20%" align="right" >
+									<input type="button" name="btnIF_STOP" value=" ERP전송 제한"  onClick="ERP_IF_status_Change();" class="btn4_on"/>
+									<input name="ERP_status" type="hidden" value="">
+								</td>
+            				</tr> 
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table> 
+		</td>
+	</tr>
+	
+	<input name="search_h" type="hidden" value="46"> ## search 조건 부분 높이 
+	<tr><td height="5"></td></tr> 
+	## TAB 영역
+	<tr>						
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>	
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td><img src="/nscm/sinc/template/basic/skin/nongshim/images/common/dot_sub6.gif" width="16" height="13">Total :
+								<span id="areaTot" class="f_color_o b">$!{_moon_service_count}</span></td>
+						</tr>
+					</table>
+					
+					<input type="hidden" name="semi_version" value="$!{semi_version}">
+					<input type="hidden" name="checked_weekly" value="$!{checked_weekly}">
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>   
+							<td>	          
+								  
+								#set( $header = 	"코드!%!공장명!%!구분!%!IF버젼!%!전송시간!%!전송상태")
+								#set( $headerType = "TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT" ) 
+								#set( $colwidth = 	"40!%!80!%!70!%!100!%!180!%!170" ) 
+    							#set( $colalign = 	"CENTER!%!CENTER!%!CENTER!%!CENTER!%!CENTER!%!CENTER" )
+								 
+    							#set( $data = $zlattice.getBody($!{sc_11020_dailyProductPlan_ERP_IF_Check_popup},"!%!", "/%/") )
+								
+								##set( $topHearders = "$grid_months.get(0).get(0) 최적생산량/%/$grid_months.get(0).get(1) 최적생산량/%/$grid_months.get(0).get(1) 생산확정량/%/$grid_months.get(0).get(1) 가능율(%)/%/$grid_months.get(0).get(2) 최적생산량/%/$grid_months.get(0).get(2) 생산확정량/%/$grid_months.get(0).get(2) 가능율(%)/%/$grid_months.get(0).get(3) 최적생산량/%/$grid_months.get(0).get(3) 생산확정량/%/$grid_months.get(0).get(3) 가능율(%)/%/$grid_months.get(0).get(4) 최적생산량/%/$grid_months.get(0).get(4) 생산확정량/%/$grid_months.get(0).get(4) 가능율(%)/%/$grid_months.get(0).get(5) 최적생산량/%/$grid_months.get(0).get(5) 생산확정량/%/$grid_months.get(0).get(5) 가능율(%)/%/$grid_months.get(0).get(6) 최적생산량/%/$grid_months.get(0).get(6) 생산확정량/%/$grid_months.get(0).get(6) 가능율(%)" )
+								##set( $topHearderPosition = "X!%!X!%!X!%!X!%!X!%!X!%!O!%!O/%/O!%!O/%/O!%!O/%/O!%!O/%/O!%!O/%/O!%!O/%/O!%!O/%/O!%!O/%/O!%!O/%/O!%!O/%/O!%!O/%/O!%!O/%/O!%!O/%/O!%!O/%/O!%!O/%/O!%!O/%/O!%!O/%/O!%!O/%/O!%!O" )
+								  
+								<textarea id="txt1" style="display:none;" rows="0" cols="0">  
+        							<object name='grid'
+        								classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93" width="100%" height="375"
+        								codebase="http://java.sun.com/update/1.5.0/jinstall-1_5_0_03-windows-i586.cab#Version=1,5,3,0">
+            							##codebase="http://javadl.sun.com/webapps/download/AutoDL?BundleId=19588#Version=6,0,050,13">
+        								<!--Necessary-->     
+                                        <param name="code" value="com.zionex.t3sinc.ui.ZLattice">
+                                        <param name="archive" value="zLattice.jar">
+                                        <param name="headertypes" value= "$headerType">
+                                        <param name="headers"  value= "$header">
+                                        <param name="data" value= "$data">
+										<param name="hasnestedsubheader" value="false"> <!-- default -false -->
+										<param name="topheaderposition" value="$topHearderPosition">
+										<param name="topheaders" value="$topHearders"> <!-- default -false --> 
+                                        <!--Necessary for Modification Grid -->
+                                        <param name="names" value= "" >
+                                        <!--Necessary for Cookie -->
+                                        <param name="identity" value="sc_11020_dailyProductPlan_ERP_IF_Check_popup">
+                                        <!--Necessary in TYPE COMBO 
+                                        <param name="combo9" value="DATA1!%!DATA2!%!DATA3">-->
+                                        <!--optional - Default Value 있음-->
+                                        <param name="columndelimeter" value="!%!"> <!-- defalut : !%! -->
+                                        <param name="rowdelimeter" value="/%/"> <!-- defalut : /%/ -->
+                                        <param name="showgroupingfunction" value="false">  <!-- defalut : true -->
+                                        <param name="showprintingfunction" value="false">   <!-- defalut : true --> 
+                                        <param name="showlockingfunction" value="false"> <!-- defalut : true -->
+                                        <param name="showpagingfunction" value="false"> <!-- defalut : true --> 
+                                        <param name="enablesorting" value="true">   <!-- defalut : true --> 
+										<param name="enabledragging" value="true"/> <!-- defalut : false -->   
+                                        <param name="groupingcolumn" value="3"> <!-- defalut : 그루핑 없음 --> 
+                                        <param name="groupsumcolumn" value="0"> <!-- defalut : 그루핑 없음 -->    
+                                        <param name="lockedcolumn" value="0"> <!-- defalut : 락킹 없음 -->    
+                                        <param name="presentpage" value="$_moon_pagenumber">   <!-- defalut : 1 -->
+                                        <param name="listinpage" value="$_moon_perpage">   <!-- defalut : 40 -->
+                                        <param name="bordertype" value="PLANE"> <!-- default - PLANE -->
+                                        <param name="indateformat" value="yyyy-MM-dd"> <!-- default - yyyyMMdd -->
+                                        <param name="outdateformat" value="yyyy-MM-dd">  <!-- default - yyyyMMdd -->									
+										<param name="outnumberformat" value="&#035;,&#035;&#035;0"> 									 
+                                        <param name="columnwidth" value="$colwidth"> <!-- default -80 -->
+                                        <param name="hasverticaltotal" value="false"> <!-- default -true -->
+                                        <param name="hashorizontaltotal" value="false"> <!-- default -true -->
+                                        <param name="totalrowcolor" value="eeeeee"> <!-- default ? E6E6FA -->
+                                        <param name="totalverticalrowcolor" value="909090"> <!-- default ? E6E6FF -->
+                                        <param name="totalhorizontalrowcolor" value="a1a1a1"> <!-- default ? E6E6FF -->
+                                        <param name="hascookie" value="false"> <!-- default -false -->
+                                        <param name="enableinserting" value="false"> <!-- default -false -->
+                                        <param name="enabledeleting" value="false"> <!-- default -false -->
+                                        <param name="enableediting" value="false"> <!-- default -false -->										
+                                        <!--optional - Default Value 없음-->
+										#set($colCor = "8=eeeeee")   
+										##set($rowCol = "1,2=ffff00&1,3=dddddd&") 
+										<param name="rowcolor" value="$!{rowCol}">
+                                        <param name="columncolor" value="$!{colCor}">										
+                                        <param name="onclickrowfunc" value="onclickfunc"> 
+										<param name="callingfunction" value="DOUBLECLICKED_CALLING">
+                                        <param name="disablecolumns" value="">
+                                        <param name="columnalign" value="$colalign">
+                                        <param name="font" value="굴림">
+                                        <param name="fontsize" value="12">
+										<param name="columnheight" value="40">   
+										<param name="headertype" value="HORIZONTAL_HEADER"> 
+        							</object>
+        						</textarea> 
+								<script language="javascript" src="${project}/object_activity.jsp?txtID=txt1"></script>
+							</td>
+						</tr>
+					</table> 
+					
+					<table height="5"><tr><td></td></tr></table>
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+						##$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+						<input type="hidden" name="_moon_service" value="${_moon_service}">
+						<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+						<input type="hidden" name="_user_id" value="$!{_user_id}">
+					</td></tr></table>
+					
+					</td></tr></table>
+					
+					## waiting 표시영역
+					##waitingArea()
+					<table width="100%" height="100%" id="waitArea" style="display:none; ">
+                    	<tr>
+                    		<td valign="middle" align="center">
+                    			<img src="sinc/template/basic/skin/nongshim/images/common/progress_waiting.gif" 
+                    				align="absmiddle" border="0" width="200px" height="60px">
+                    			<img src="sinc/template/basic/skin/nongshim/images/common/loading_icon.gif" 
+                    				align="absmiddle" border="0" width="60px" height="60px">
+                    			<br><h6>&nbsp;</h6>
+                    		</td>
+                    	</tr>
+                    </table>
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+
+	check_ERP_IF_status();
+	
+	
+	// 도움말 내용 입력
+	
+</script> 

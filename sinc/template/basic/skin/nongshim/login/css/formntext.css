@@ -1,0 +1,81 @@
+/* CSS Document */
+
+.chbx{ border:none;}
+
+.hd_scr{{scrollbar-face-color: #FFFFFF; scrollbar-highlight-color: #FFFFFF; scrollbar-3dlight-color: #FFFFFF; scrollbar-shadow-color: #FFFFFF; scrollbar-darkshadow-color: #FFFFFF; scrollbar-track-color: #FFFFFF; scrollbar-arrow-color: #ffffff; overflow:scroll; overflow-x:hidden; text-align:left;}
+
+input {
+	border: 1px solid #d6dede;
+	font-family:"µ¸¿ò";
+	font-size: 12px;
+	height:15px;
+	padding-top:2px;
+	line-height: normal;
+	color:#2c2c2c;
+}
+
+
+.input_login	{
+	font-family:"µ¸¿ò";
+	padding-left:5px;
+	width:110px;
+	height:19px;
+	color:#2c2c2c;
+	border:0px solid #ffffff;
+	background:url(../images/bg_input.png) no-repeat;
+
+}
+
+
+
+
+
+select {
+	border: 1px solid #d6dede;
+	font-family:"µ¸¿ò";
+	font-size: 12px;
+	color:#2c2c2c;
+}
+
+
+
+
+
+textarea {
+	border: 1px solid #d6d6d6;
+	font-family:"µ¸¿ò";
+	font-size: 12px;
+	color:#2c2c2c;
+
+}
+
+
+
+.b {font-weight:bold;}
+.black {color:#3d3d3d;}
+.white {color:#ffffff;}
+.f14 {text-align:left; font-size:14px; font-weight:bold;}
+.f_color_g {color:#7a9b2f;}
+.f_color_g1 {color:#7a9b2f;}
+.f_color_b {color:#248ec7;}
+.f_color_o {color:#fa7c0c;}
+.f_tab_p {color:#8161d3;}
+.f_tab_g {color:#868686;}
+
+
+
+
+.red_title {
+	color: #f26522;
+	font-weight:bold;
+	}
+
+.bar {
+	color:#c1c4ca;
+	font-size:11px;
+	padding: 0px 10px;
+	}
+
+
+
+

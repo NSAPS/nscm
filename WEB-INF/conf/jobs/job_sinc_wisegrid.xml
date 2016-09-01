@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+<!--
+=====================================================================================================
+	WISEGRID 
+=====================================================================================================
+--> 
+	
+	<!-- 
+	=======================
+		사용자 관리 
+	=======================
+	-->
+	
+	<!-- 사용자 조회 -->
+	<job id="user_list2" job_type="single" check_permission="no">
+		<!--path>/sinc/00.admin</path-->
+		<path>/sinc/wisegrid</path>
+		<navigation>사용자관리 >> 사용자관리</navigation>
+		<toolbars>1000</toolbars>
+		<title>사용자조회</title>
+		<authority>1</authority>
+		<description>사용자조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="super_user_check" datasource="t3sinc"/>
+			<!--query idref="user_list"  datasource="t3sinc"/-->
+		</queries> 
+	</job>
+	
+	<!-- 
+	=======================
+		사용자 그룹관리 
+	=======================
+	-->
+	
+	<!-- 사용자 그룹  조회 -->
+	<job id="group_list2" job_type="single" check_permission="no">
+		<!--path>/sinc/00.admin</path-->
+		<path>/sinc/wisegrid</path>
+		<navigation>사용자관리 >> 사용자그룹관리</navigation>
+		<toolbars>1111</toolbars>
+		<title>사용자그룹조회</title>
+		<authority>1</authority>
+		<description>사용자그룹조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="super_user_check" datasource="t3sinc"/>
+			<!--query idref="user_list"  datasource="t3sinc"/-->
+		</queries> 
+	</job>
+	
+	
+
+	<!-- Group 상세 -->
+	<job id="group_detail2" check_permission="no">
+		<!--path>/sinc/00.admin</path-->
+		<path>/sinc/wisegrid</path>
+		<navigation>사용자관리 >> 사용자그룹관리 >> 상세</navigation>
+		<toolbars>0011</toolbars>
+		<title>사용자그룹상세조회</title>
+		<authority>1</authority>		
+		<description>사용자그룹상세조회</description>		
+		<request_type>list_with_menu</request_type>
+		<queries>                  
+			<query idref="group_detail"  datasource="t3sinc"/>
+			<query idref="menus_group"  aliase="menus" datasource="t3sinc"/>  <!-- _moon_menus -->
+		</queries> 
+	</job>	
+	
+
+	<!-- Group 수정 : 화면 -->
+	<job id="group_modify2" job_type="single" check_permission="no">
+		<!--<path>/sinc/00.admin</path>-->
+		<path>/sinc/wisegrid</path>
+		<navigation>사용자관리 >> 사용자그룹관리 >> 수정</navigation>
+		<toolbars>0101</toolbars>
+		<title>사용자그룹정보수정</title>
+		<authority>1</authority>		
+		<description>사용자그룹정보수정</description>		
+		<request_type>list_with_menu</request_type>
+		<queries>                  
+			<query idref="group_detail"  datasource="t3sinc"/>
+			<query idref="menus"  datasource="t3sinc"/>
+			<query idref="menus_group"  datasource="t3sinc"/>
+		</queries> 
+	</job>
+	
+	<!-- Group 수정 : 저장 -->
+	<job id="group_update2" job_type="composite" check_permission="no">
+		<sub_job id="group_update_single2"/>
+		<sub_job id="group_list2"/>
+		<permission_desc>사용자그룹정보수정-저장</permission_desc>
+	</job>
+	<job id="group_update_single2"  job_type= "single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="group_menu_delete" datasource="t3sinc"/>
+			<query idref="group_menu_update" datasource="t3sinc"/>
+			<!--query idref="group_job_delete" datasource="t3sinc"/>
+			<query idref="group_job_update" datasource="t3sinc"/--> <!-- menu 와 job 을 동시에 저장하는 경우 -->
+			<query idref="group_update" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 사용자 수정 : ADMIN -->
+	<job id="super_user_modify2" job_type="single" check_permission="no">
+		<!--<path>/sinc/00.admin</path>-->
+		<path>/sinc/wisegrid</path>
+		<navigation>사용자관리 >> 사용자관리 >> 수정(관리자용)</navigation>
+		<toolbars>0100</toolbars>
+		<title>사용자정보수정(관리자용)</title>
+		<authority>1</authority>		
+		<description>사용자정보수정(관리자용)</description>		
+		<request_type>list_with_menu</request_type>
+		<queries>                  
+			<query idref="user_modify"  datasource="t3sinc"/>
+			<query idref="user_group_add"  datasource="t3sinc"/>
+			<query idref="super_menus" aliase="menus"  datasource="t3sinc"/>
+			<query idref="menus_user"  aliase="check_menu" datasource="t3sinc"/>
+			<query idref="menus_group" datasource="t3sinc"/>
+		</queries> 
+	</job>	
+	
+	
+	
+	
+	
+	<!-- 
+	====================================================================
+		사용자 그룹관리 아이프레임 구 
+	====================================================================
+	-->
+	
+	<!-- 사용자 그룹  조회 -->
+	<job id="group_list3" job_type="single" check_permission="no">
+		<!--path>/sinc/00.admin</path-->
+		<path>/sinc/wisegrid</path>
+		<navigation>사용자관리 >> 사용자그룹관리</navigation>
+		<toolbars>1000</toolbars>
+		<title>사용자그룹조회</title>
+		<authority>1</authority>
+		<description>사용자그룹조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="super_user_check" datasource="t3sinc"/>
+			<!--query idref="user_list"  datasource="t3sinc"/-->
+		</queries> 
+	</job>
+	
+		
+    <!-- 사용자 그룹  조회 222-->
+	<job id="group_list4" job_type="single" check_permission="no">
+		<!--path>/sinc/00.admin</path-->
+		<path>/sinc/wisegrid</path>
+		<navigation>사용자관리 >> 사용자그룹관리</navigation>
+		<toolbars>1000</toolbars>
+		<title>사용자그룹조회</title>
+		<authority>1</authority>
+		<description>사용자그룹조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="super_user_check" datasource="t3sinc"/>
+			<!--query idref="user_list"  datasource="t3sinc"/-->
+		</queries> 
+	</job>
+	
+	<!--
+	===============================
+		TEST
+	===============================
+	-->
+	<!-- 공장할당결과 조정 테스트 -->
+	<job id="plantAllocSysTest_list" job_type="single" check_permission="no">
+		<!--path>/sinc/00.admin</path-->
+		<path>/sinc/wisegrid</path>
+		<navigation>사용자관리 >> 사용자관리</navigation>
+		<toolbars>1000</toolbars>
+		<title>공장할당 결과 조정</title>
+		<authority>1</authority>		
+		<description>공장할당 결과 조정</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="plant_alloc_version" datasource="t3sinc"/>																
+			<query idref="sc_01060_plantAllocationPlanResultAnalysis_list" datasource="t3sinc"/>
+		</queries> 
+	</job>
+	
+	
+	<!-- 
+	==============================
+	  일간 반제품 생산계획 분석(재구성)
+	==============================
+	-->
+	
+	<!--  일간 반제품 생산계획 분석(재구성)  조회 -->
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_list_test" job_type="single" check_permission="no">
+		<path>/sinc/wisegrid</path>
+		<navigation>생산계획 >> 운영정보 >> 반제품 생산계획 조정</navigation>
+		<toolbars>1010</toolbars><!--(등록/수정/저장/삭제)-->
+		<title>반제품 생산계획 조정</title>
+		<authority>1</authority>		
+		<description>반제품 생산계획 조정</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="semi_plant_and_version_list" datasource="t3sinc"/>
+			<query idref="weekly_3_start_end_date" datasource="t3sinc"/>
+			<query idref="msg_group_code_list" datasource="t3sinc"/>
+			<query idref="msg_group_detail_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 일간 반제품 생산계획 분석(재구성) : POPUP : 공장, 버전 선택 화면 --> 
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNewSelectPlantAndVersion_popup_test" job_type="single">
+		<path>/sinc/wisegrid</path>
+		<navigation>생산계획 >> 운영정보 >> 반제품 생산계획 조정</navigation>
+		<toolbars>0000</toolbars>
+		<title>공장 및 버전 선택</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="daily_prod_analysis_new_plant_list" datasource="t3sinc"/>
+			<query idref="daily_prod_analysis_new_version_list" datasource="t3sinc"/>
+			<query idref="semi_combo_version_list" datasource="t3sinc"/>
+			<query idref="semi_new_item_reg_plant_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</jobs>	

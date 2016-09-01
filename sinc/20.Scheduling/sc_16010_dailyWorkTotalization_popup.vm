@@ -1,0 +1,124 @@
+############################################################
+## 프로그램ID      : sc_16010_dailyWorkTotalization_popup.vm
+## 프로그램명      : 일간생산계획 일별 근무 집계 - 건수(팝업)
+## 개발자          : 정재교
+## 개발일자        : 
+##
+## 관련 job file   : job_sc_16010_dailyWorkTotalization_list.xml
+## 관련 query file : query_sc_16010_dailyWorkTotalization_list.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 
+##
+############################################################
+
+
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+##set( $resizeFuncCallCode = "setGridAutoResize('117', '125')" )
+#set( $resizeFuncCallCode = "setWiseGridAutoResize('19', '30')" ) 
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/scheduling.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+## 부모창에서 넘겨 받은 변수들
+<inptut type="hidden" name="plant_id" value="$!{plant_id}"/>
+<inptut type="hidden" name="sdate" value="$!{sdate}"/>
+<inptut type="hidden" name="edate" value="$!{edate}"/>
+<inptut type="hidden" name="weekCnt" value="$!{weekCnt}"/>
+
+
+#########################################    WiseGrid Event     #####################################################			
+######################################### 기본 Event외 추가 Event #####################################################
+
+## WiseGrid의 셀을 더블클릭했을때 발생한다.
+<script language=javascript for="WiseGrid" event="CellDblClick(strColumnKey, nRow)">
+  GridCellDblClickHandler(strColumnKey, nRow);
+</script>
+
+############################################ WiseGrid Event #########################################################
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	
+	<script> 
+		//areaBtn.innerHTML = " &nbsp; <input type=\"button\" name=\"btnExecIF\" id=\"btnExecIF\" value=\" 조회\" onClick=\"GoSearch('sc_12020_dailySemifinishedProductPlanAnalysisNewStockChk_popup'); \" class=\"btn1_on\">";
+	</script>   
+	
+    ## 조회 영역
+    <tr>
+        <td width="100%" valign="top">
+            <table border="0" width="100%" cellpading="0" cellspacing="0">
+                <tr height="2">
+                    <td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+                </tr>
+                <tr>
+                    <td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+                    <td width="100%">
+                        <table border="0" width="100%" cellpading="0" cellspacing="0" id="search_menu" style="background-color:#f2f2f2; display:block; ">
+                            <tr >
+                            </tr>
+                        </table> 
+                    </td>
+                    <td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+                </tr>
+                <tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+            </table>
+        </td> 
+    </tr>
+
+    <input name="search_h" type="hidden" value="45"> ## search 조건 부분 높이 
+    <tr><td height="1"></td></tr>
+    ## TAB 영역
+    <tr>
+        <td valign="top">
+        ## tab 좌측 여백
+        #tabLeft()                
+            
+            <table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>                    
+
+            <table name="grid" width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+                <tr>
+                    <td >
+                        <script>initWiseGrid("WiseGrid", "100%", "300");</script>
+                    </td>                     
+                </tr> 
+            </table> 
+            
+            <table height="5"><tr><td></td></tr></table>
+            <table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+                <input type="hidden" name="_moon_service" value="${_moon_service}">
+                <input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+                <input type="hidden" name="_user_id" value="$!{_user_id}">
+            </td></tr></table>
+            
+            </td></tr></table>
+            
+            ## waiting 표시영역
+            #waitingArea()
+                    
+        </td>
+    </tr>
+</table>
+
+<script>
+    
+    // 화면 resize
+    $!{resizeFuncCallCode};
+    function window.onresize() { $!{resizeFuncCallCode}; }
+    
+    // 도움말 내용 입력
+    var helpStr = "◈ Job Change 시간 ";    
+    helpCont.innerHTML = helpStr;
+    hDynamicHeight = 0; 
+    
+    //document.cookie = "webfxtab_tabPane1=1";    
+	
+
+	
+</script> 

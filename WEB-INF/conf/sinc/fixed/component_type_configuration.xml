@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	<component key='data_patch'>  : Component Key Value
+		<class>com.zionex.t3sinc.tsc.db.SincDBComponent</class> : Component Class Type
+		<factory>com.zionex.t3sinc.tsc.db.SincDBComponentFactory</factory> : Component Factory Type
+	</component>
+-->
+<components>
+	<component key='SQL_FETCH'>
+		<class>com.zionex.t3sinc.tsc.db.SincQueryStringFetchComponent</class>
+		<factory>com.zionex.t3sinc.tsc.db.SincQueryStringFetchComponentFactory</factory>		
+	</component>
+	<component key='DATA_FETCH'>
+		<class>com.zionex.t3sinc.tsc.db.SincDataFetchComponent</class>
+		<factory>com.zionex.t3sinc.tsc.db.SincDataFetchComponentFactory</factory>		
+	</component>
+	<component key='DATA_CHANGE'>
+		<class>com.zionex.t3sinc.tsc.db.SincDataManipulationComponent</class>
+		<factory>com.zionex.t3sinc.tsc.db.SincDataManipulationComponentFactory</factory>		
+	</component>
+	<component key='RESULT_SET'>
+		<class>com.zionex.t3sinc.tsc.db.SincDataResultSetComponent</class>
+		<factory>com.zionex.t3sinc.tsc.db.SincDataResultSetComponentFactory</factory>				
+	</component>
+	<component key='SOYOUNG'>
+		<class>com.zionex.t3sinc.tsc.examples.Example1Component</class>
+		<factory>com.zionex.t3sinc.tsc.examples.Example1ComponentFactory</factory>		
+	</component>
+	<component key='SOPRETTY'>
+		<class>com.zionex.t3sinc.tsc.examples.Example2Component</class>
+		<factory>com.zionex.t3sinc.tsc.examples.Example2ComponentFactory</factory>				
+	</component>	
+	<component key='LAST_OPERATION'>
+		<class>com.zionex.t3sinc.tsc.common.SincResponseSetComponent</class>
+		<factory>com.zionex.t3sinc.tsc.common.SincResponseSetComponentFactory</factory>				
+	</component>
+	<component key='JOBNAME_SWITCH'>
+		<class>com.zionex.t3sinc.tsc.common.SincInformationSwitchingComponent</class>
+		<factory>com.zionex.t3sinc.tsc.common.SincInformationSwitchingComponentFactory</factory>				
+	</component>
+	<component key='DO_NOTHING'>
+		<class>com.zionex.t3sinc.tsc.common.SincDoNothingComponent</class>
+		<factory>com.zionex.t3sinc.tsc.common.SincDoNothingComponentFactory</factory>				
+	</component>
+	<component key='JOBINFO_SET'>
+		<class>com.zionex.t3sinc.tsc.common.SincJobinformationSetComponent</class>
+		<factory>com.zionex.t3sinc.tsc.common.SincJobinformationSetComponentFactory</factory>				
+	</component>
+	<component key='UPLOAD'>
+		<class>com.zionex.t3sinc.tsc.fileupload.SincFileUploadComponent</class>
+		<factory>com.zionex.t3sinc.tsc.fileupload.SincFileUploadComponentFactory</factory>				
+	</component>
+	<component key='SESSION_VALIDATION'>
+		<class>com.zionex.t3sinc.tsc.validation.SincSessionValidationComponent</class>
+		<factory>com.zionex.t3sinc.tsc.validation.SincSessionValidationComponentFactory</factory>				
+	</component>
+	<component key='CONDITION_CHECK'>
+		<class>com.zionex.t3sinc.tsc.common.SincConditionCheckComponent</class>
+		<factory>com.zionex.t3sinc.tsc.common.SincConditionCheckComponentFactory</factory>				
+	</component>
+	<component key='SEQUENTIAL_KEY_FETCH'>
+		<class>com.zionex.t3sinc.tsc.db.SincSequentialKeyFetchComponent</class>
+		<factory>com.zionex.t3sinc.tsc.db.SincSequentialKeyFetchComponentFactory</factory>				
+	</component>	
+	<component key='FILE_DOWNLOAD'>
+		<class>com.zionex.t3sinc.tsc.filedownload.SincFileDownloadComponent</class>
+		<factory>com.zionex.t3sinc.tsc.filedownload.SincFileDownloadComponentFactory</factory>				
+	</component>	
+	<component key='BASIC_MENU'>
+		<class>com.zionex.t3sinc.tsc.menus.SincBasicMenuFetchComponent</class>
+		<factory>com.zionex.t3sinc.tsc.menus.SincBasicMenuFetchComponentFactory</factory>				
+	</component>	
+	<component key='MENU_SCRIPT'>
+		<class>com.zionex.t3sinc.tsc.menus.SincMenuScriptGenerationComponent</class>
+		<factory>com.zionex.t3sinc.tsc.menus.SincMenuScriptGenerationComponentFactory</factory>				
+	</component>	
+	<component key='MENU_XML_STRING'>
+		<class>com.zionex.t3sinc.tsc.menus.SincMenuXMLStringGenerationComponent</class>
+		<factory>com.zionex.t3sinc.tsc.menus.SincMenuXMLStringGenerationComponentFactory</factory>				
+	</component>
+	<component key='CONDITIONAL_FETCH'>
+		<class>com.zionex.t3sinc.tsc.db.SincConditionalDataFetchComponent</class>
+		<factory>com.zionex.t3sinc.tsc.db.SincConditionalDataFetchComponentFactory</factory>		
+	</component>	
+	<component key='EXCEL_PRE_OPERATION'>
+		<class>com.zionex.t3sinc.tsc.excel.SincExcelDecisionPagingComponent</class>
+		<factory>com.zionex.t3sinc.tsc.excel.SincExcelDecisionPagingComponentFactory</factory>		
+	</component>	
+	<component key='EXCEL_FILE_MAKE'>
+		<class>com.zionex.t3sinc.tsc.excel.SincExcelDownloadComponent</class>
+		<factory>com.zionex.t3sinc.tsc.excel.SincExcelDownloadComponentFactory</factory>		
+	</component>	
+	<component key='EXCEL_DATA_PARSING'>
+		<class>com.zionex.t3sinc.tsc.excel.SincExcelUploadComponent</class>
+		<factory>com.zionex.t3sinc.tsc.excel.SincExcelUploadComponentFactory</factory>		
+	</component>	
+	<component key='TEXT_FILE_MAKE'>
+		<class>com.zionex.t3sinc.tsc.text.SincTextGeneratingComponent</class>
+		<factory>com.zionex.t3sinc.tsc.text.SincTextGeneratingComponentFactory</factory>		
+	</component>	
+	<component key='PLAN_SIMPLE_INTEGRATION'>
+		<class>com.zionex.t3sinc.tsc.plan.SincT3PlanOperationComponent</class>
+		<factory>com.zionex.t3sinc.tsc.plan.SincT3PlanOperationComponentFactory</factory>		
+	</component>	
+	<component key='CHART_GENERATION'>
+		<class>com.zionex.t3sinc.tsc.chart.SincChartComponent</class>
+		<factory>com.zionex.t3sinc.tsc.chart.SincChartComponentFactory</factory>		
+	</component>	
+</components>

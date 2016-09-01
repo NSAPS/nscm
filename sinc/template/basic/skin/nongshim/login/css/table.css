@@ -1,0 +1,64 @@
+/* CSS Document */
+
+
+
+/* 서브메뉴레이어 스타일 */
+.bg_sub {
+	background:url(../images/common/bg_layer_b.png) left repeat-y;
+	}
+
+.bg_sub_m {
+	background:url(../images/common/bg_layer_t.png) left top no-repeat;
+	padding: 9px 25px 30px 21px;
+	}
+
+.s_line{
+	border-bottom: 1px solid #c4dde9;
+	font-size:12px;
+	height:20px;
+	padding:3px 0 2px 0;
+	}
+
+
+
+
+
+/* 여백 */
+.pd_left5 {padding-left:5px;}
+.pd_left10 {padding-left:10px;}
+.pd_left15 {padding-left:15px;}
+.pd_left20 {padding-left:20px;}
+.pd_left25 {padding-left:25px;}
+
+.pd_right3 {padding-right:3px;}
+.pd_right5 {padding-right:5px;}
+.pd_right10 {padding-right:10px;}
+.pd_right10 {padding-right:10px;}
+.pd_right15 {padding-right:15px;}
+.pd_right20 {padding-right:20px;}
+.pd_right25 {padding-right:25px;}
+
+.pd_top2 {padding-top:2px;}
+.pd_top3 {padding-top:3px;}
+.pd_top5 {padding-top:5px;}
+.pd_top10 {padding-top:10px;}
+.pd_top15 {padding-top:15px;}
+.pd_top20 {padding-top:20px;}
+
+.pd_bot2 {padding-bottom:2px;}
+.pd_bot5 {padding-bottom:5px;}
+.pd_bot10 {padding-bottom:10px;}
+.pd_bot15 {padding-bottom:15px;}
+.pd_bot20 {padding-bottom:20px;}
+
+
+.a_left {text-align:left;}
+
+
+/* 검색스타일  */
+#div_bar {border:2px solid #d0d0d0; background-color:#f2f2f2;text-align:center;}
+
+
+#div_cell {border:1px solid #e5d4ac; background-color:#fcf0d3;padding : 5px 15px 1px 15px;}
+
+

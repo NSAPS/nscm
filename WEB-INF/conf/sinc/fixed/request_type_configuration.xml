@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<request_types>
+	<request_type key='list_with_conditionalJob'>
+		<components>
+			<component>JOBINFO_SET</component>
+			<component>CONDITIONAL_FETCH</component>			
+			<component>RESULT_SET</component>
+		</components>
+	</request_type>
+	<request_type key='list'>
+		<components>
+			<component>JOBINFO_SET</component>
+			<component>DATA_FETCH</component>
+			<component>RESULT_SET</component>
+		</components>
+	</request_type>
+	<request_type key='list_sql'>
+		<components>
+			<component>JOBINFO_SET</component>
+			<component>SQL_FETCH</component>
+			<component>RESULT_SET</component>
+		</components>
+	</request_type>
+	<request_type key='list_plan_integration'>
+		<components>
+			<component>JOBINFO_SET</component>
+			<component>PLAN_SIMPLE_INTEGRATION</component>			
+			<component>RESULT_SET</component>
+		</components>
+	</request_type>
+	<request_type key='login'>
+		<components>
+			<component>JOBINFO_SET</component>
+			<component>DATA_FETCH</component>
+			<component>BASIC_MENU</component>	
+			<component>MENU_XML_STRING</component>		
+			<!-- <component>MENU_SCRIPT</component>			-->
+			<component>RESULT_SET</component>
+		</components>
+	</request_type>
+	<request_type key='list_with_menu'>
+		<components>
+			<component>JOBINFO_SET</component>
+			<component>DATA_FETCH</component>
+			<component>BASIC_MENU</component>			
+			<component>MENU_XML_STRING</component>			
+			<component>RESULT_SET</component>
+		</components>
+	</request_type>
+	<request_type key='upload_list'>
+		<components>
+			<component>UPLOAD</component>
+			<component>JOBINFO_SET</component>
+			<component>DATA_FETCH</component>
+			<component>RESULT_SET</component>
+		</components>
+	</request_type>
+	<request_type key='insert'>
+		<components>
+			<component>DATA_CHANGE</component>
+		</components>
+	</request_type>
+	<request_type key='forward'>
+		<components>
+			<component>DO_NOTHING</component>
+			<component>JOBINFO_SET</component>
+		</components>
+	</request_type>
+	<request_type key='upload_insert'>
+		<components>
+			<component>UPLOAD</component>
+			<component>DATA_CHANGE</component>
+		</components>
+	</request_type>
+	
+	<request_type key='insert_key'>
+		<components>
+			<component>SEQUENTIAL_KEY_FETCH</component>
+			<component>DATA_CHANGE</component>
+		</components>
+	</request_type>	
+	
+	<!-- 게시판 파일 다운로드 -->
+	<request_type key='filedownload'>
+		<components>
+			<component>SEQUENTIAL_KEY_FETCH</component>
+			<component>FILE_DOWNLOAD</component>			
+		</components>
+	</request_type>	
+	<request_type key='excel_download'>
+		<components>
+			<component>EXCEL_PRE_OPERATION</component>
+			<component>DATA_FETCH</component>
+			<component>EXCEL_FILE_MAKE</component>
+			<component>FILE_DOWNLOAD</component>			
+		</components>
+	</request_type>		
+	<request_type key='excel_upload'>
+		<components>
+			<component>EXCEL_DATA_PARSING</component>
+			<component>JOBINFO_SET</component>
+			<component>RESULT_SET</component>
+		</components>
+	</request_type>
+	<request_type key='excel_upload2'>
+		<components>
+			<component>DATA_FETCH</component>
+			<component>EXCEL_DATA_PARSING</component>
+			<component>JOBINFO_SET</component>
+			<component>RESULT_SET</component>
+		</components>
+	</request_type>		
+	<request_type key='text_download'>
+		<components>
+			<component>DATA_FETCH</component>
+			<component>TEXT_FILE_MAKE</component>
+			<component>FILE_DOWNLOAD</component>			
+		</components>
+	</request_type>		
+	<request_type key='chart_generation'>
+		<components>
+			<component>DATA_FETCH</component>
+			<component>CHART_GENERATION</component>
+		</components>
+	</request_type>		
+</request_types>

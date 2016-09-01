@@ -1,0 +1,227 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setTabAutoResize2('90', '125')" )
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						#if($_board_id !='notice_board')
+							
+							#if(${moon_board_detail.get(0).get(6)} != ${_user_id}) 
+								#set($_moon_toolbar = '0000')	
+							#end
+							
+							#if( "$!{_board_id}" == "FREE_BOARD" ) 
+								#toolbar($_moon_toolbar "" "" "moon_board_modify" "moon_board_delete_free_board")
+							#else 
+								#toolbar($_moon_toolbar "" "" "moon_board_modify" "moon_board_delete")
+							#end 
+							
+						#end
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr style="display:none; ">
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; ">
+            				<tr id="search_menu" style="display:block; ">
+            					<td width="10%" align="right">
+									&nbsp;
+            					</td>
+            					<td width="90%" align="left">
+									&nbsp;
+            					</td>
+            				</tr> 
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="0"> ## search 조건 부분 높이 
+	##<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>						
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+								#if( "$!{_board_id}" == "FREE BOARD" ) 
+									#button_target("list" "moon_board_list_free_board") 
+								#else 
+									#button_target("list" "moon_board_list") 
+								#end 
+								
+								#if( "$_board_id" != "notice_board" )
+									#button_target("reply" "moon_board_reply")
+								#end 
+							</td>
+							<td align="right">
+								등록일 : $!{moon_board_detail.get(0).get(3)}&nbsp;&nbsp;&nbsp;&nbsp;
+								조회수 : $!{moon_board_detail.get(0).get(4)}																			
+							</td>
+							<td width="1%">						
+							</td>
+						</tr>
+						<tr>
+							<td height="3" colspan="3"></td>
+						</tr>
+					</table>
+					
+					<div id="divID" class="table_scroll" width="100%">
+						<table cellspacing="0" width="100%">
+							<tr>
+								<td class="td1" width="15%" align="right">제목 &nbsp;</td>
+								<td class="td2" style="border-right:0px; ">
+									&nbsp;<a href="mailto:$!{moon_board_detail.get(0).get(5)}">$!{moon_board_detail.get(0).get(0)}</a>
+								</td>
+								<input type="hidden" name="_board_subject" value="$!{moon_board_detail.get(0).get(0)}">
+							</tr>
+							<tr>
+								<td class="td1" align="right">작성자 &nbsp; </td>
+								<td class="td2" style="border-right:0px; ">&nbsp;$!{moon_board_detail.get(0).get(2)}</td>
+							</tr>									
+							#if(($moon_board_file.size() > 0) && ${moon_board_file.get(0).get(0)})
+							<input type="hidden" name="_re_step"/>
+							<input type="hidden" name="_file_seq"/>
+							<tr>
+								<td class="td1" align="right">내용 &nbsp;</td>
+								<td class="td2" style="border-right:0px; ">
+									<table  border="0" cellspacing="0" width="100%">
+										#foreach( $file in ${moon_board_file})
+											<tr>
+												<td width="70%">
+													&nbsp;${file.get(0)}( ${file.get(1)} byte) 
+												</td>
+												<td width="20%" align="left">
+													&nbsp; download : ${file.get(4)}
+												</td>
+												<td width="10%" align="right">
+													<input type="button" onClick="GoDownload('moon_board_file_download', ${file.get(2)}, ${file.get(3)})" value=" $text.get("template.button.download") "  class="button1_1"> 
+												</td>
+											</tr>
+										#end
+									</table>												
+								</td>
+							</tr>
+							#end
+							<tr>
+								<td id="contents_td" class="td2" colspan="2" valign="top" height="100" style="border-right:0px; ">
+									## 게시판 내용
+									$!{moon_board_detail.get(0).get(1)}		
+								</td>
+							</tr>
+						</table>
+						
+						##등록한 메모 리스트 
+						<table width="100%" border="0" cellpading="0" cellspacing="0">
+							<tr>
+								<td width="15%">&nbsp;</td>											
+								<td>
+									<table border="0" width="100%" cellpadding="0" cellspacing="0">
+										#foreach( $td in ${moon_board_memo_list})										
+										<tr>
+											<td width="15"><img src="$!{project}/sinc/template/${_moon_template}/images/common/memo.gif"></td>
+											<td class="td3" valign="top">											
+												작성자[$!{td.get(0)}],  등록일[$!{td.get(1)}]
+											</td>
+											<td align="right" class="td2">
+												<img src="$!{project}/sinc/template/${_moon_template}/images/common/del.gif" align="absmiddle" onClick="MemoDelete('$!{td.get(3)}')">
+											</td>
+										</tr>
+										<tr>
+											<td>&nbsp;</td>
+											<td class="td2" valign="top" height="28" colspan="2">
+												$!td.get(2)
+											</td>
+										</tr>
+										#end		
+									</table>
+								</td>
+							</tr>
+						</table>
+						
+						##메모등록
+						#if(${_memo_flag}=='1')
+							#set($memo_flag = "block")
+						#else
+							#set($memo_flag = "none")
+						#end
+						<table width="100%" border="0" cellpading="0" cellspacing="0">
+							<tr style="DISPLAY:${memo_flag}">
+								<td class="td1" width="15%" align="right" valign="middle">메모 &nbsp;</td>
+								<td>
+									&nbsp;<textarea name="_memo" style='width:99%' rows=3></textarea>
+								</td>
+							</tr>										
+							<tr style="DISPLAY:${memo_flag}">
+								<td colspan="2">
+									<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+										 <tr>
+											<td width='85%'>&nbsp;</td>
+											<td width='15%' align=right>| <a href="javascript:GoMemoRegister('moon_memo_register')">메모 등록</a> |&nbsp;</td>
+										</tr>
+									</table>
+								</td>
+							</tr>
+						</table>
+					</div>
+					
+					<input type="hidden" name="_moon_service">
+					<input type="hidden" name="_moon_pagenumber" 	value="$_moon_pagenumber"> 
+					<input type="hidden" name="_moon_perpage" 		value="$_moon_perpage"> 
+					
+					<input type="hidden" name="_board_id" 	value="${_board_id}">
+					<input type="hidden" name="_data_flag" 	value="${_data_flag}">
+					<input type="hidden" name="_memo_flag" 	value="${_memo_flag}">
+					<input type="hidden" name="_board_step" value="${_board_step}">
+					<input type="hidden" name="_board_type">
+					<input type="hidden" name="_user_id" 	value="${_user_id}">
+					<input type="hidden" name="_memoName" 	value="${_user_name}">
+					<input type="hidden" name="_memo_seq">
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 본인이 작성한 게시물인 경우 상단의 수정 버튼을 클릭하여 게시물 수정 화면으로 이동합니다.";
+	helpStr += "<br>◈ 본인이 작성한 게시물인 경우 상단의 삭제 버튼을 클릭하여 게시물을 삭제합니다.";
+	helpStr += "<br>◈ 목록 버튼을 클릭하여 게시판 목록 화면으로 이동합니다.";
+	helpStr += "<br>◈ 답글 버튼을 입력하여 답글을 등록화면으로 이동합니다.";
+	helpStr += "<br>◈ 메모란에 메모를 입력하고 메모 등록을 클릭하여 등록합니다.";
+	helpCont.innerHTML = helpStr;
+	// 도움말 zoomOut 높이 조절 변수
+	var hDynamicHeight = 0;
+	
+</script>

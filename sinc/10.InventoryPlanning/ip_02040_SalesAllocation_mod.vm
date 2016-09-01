@@ -1,0 +1,335 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('100', '170')" )
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/replenishPlan.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+## 이전 화면으로 이동할 때 조회조건을 기억하기 위한 parameter
+<input type="hidden" name="user_id" value="$!{_user_id}">	
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						<input type="button" name="btnBack" value=" 이전화면" onClick="moveBack(); "
+							class="btn1_on">
+						#button("search")
+						<input type="button" name="btnSave" value="  저장" onClick="GoSave();" class="btn_sav_on" >
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; ">
+            				<tr id="search_menu" style="display:block; ">
+            					<td width="15%" align="right">
+									조회일자 : 
+								</td>
+								<td width="15%" align="left"> 
+									#date_sole_no_title( "in_work_date" "10" "normal" "work_dateBtn" $commonUtil.toDate($date.get('yyyy-MM-dd'),'YYYY-MM-DD','DAY',1) )
+            					</td>
+								<td width="5%" align="right">
+									품목 :
+								</td>
+            					<td width="40%" colspan="3" align="left">
+									<input	type="text" name="in_alloc_item" class="normal" size="100" value="$!{in_alloc_item}"
+										onKeyDown="moveNextBox(this); " onChange="getItemName(this);"
+										style="width:73PX; padding-right:5px; text-align:cneter; ">
+									<img name="imgItemId" tabindex="-1" 
+										src="sinc/template/basic/skin/nongshim/images/common/icon_search.gif" align="absmiddle" 
+										border="0" onClick="openDCAllocationItemPopup(this); " style="cursor:pointer;"/>
+									<input	type="text" name="in_alloc_item_name" class="normal" size="100" value="$!{item_name}"
+										onKeyDown="moveNextBox(this); " 
+										style="width:200PX; padding-right:5px; text-align:cneter; " readonly >	
+									<input type="hidden" name="old_alloc_item" 	value="$!{in_alloc_item}" >
+									<input type="hidden" name="item_name" 	value="$!{item_name}" >
+									#set($sel_alloc_gubn = "$ip_02040_DC_ALLOC_ITEM_INFO.get(0).get(3)")
+									<input type="hidden" name="sel_alloc_gubn" 	value="$sel_alloc_gubn" >
+								</td>	
+								<td width="5%" align="right">
+									할당율 : 
+								</td>
+								<td width="5%" align="left"> 
+									<input type="text" name="apply_alloc_rate" class="normal" size="10"
+									onChange="alloc_rate_change(this);" onKeyDown="enter_alloc(this);" style="width:100%; padding-right:5px; text-align:right; display:block;">
+									<input type="hidden" name="old_alloc_rate" value="">
+            					</td>
+								<td width="5%" align="right">
+									추가율 : 
+								</td>
+								<td width="5%" align="left"> 
+									<input type="text" name="apply_add_alloc_rate" class="normal" size="10"
+									onChange="add_alloc_rate_change(this);" onKeyDown="enter_add_alloc(this);" style="width:100%; padding-right:5px; text-align:right; display:block;">
+									<input type="hidden" name="old_add_alloc_rate" value="">
+            					</td>
+								<td width="10%"  align="right">
+									추가요청만
+									<input name="sel_chk_reqt" type="checkbox" class="normal" onClick="doCheckReqtYN(this);"
+										style="background-color:#f2f2f2; border:0;"
+										#if("$!{chk_reqt_yn}" == "Y") checked #end>
+									<input type="hidden" name="chk_reqt_yn" value="$!{chk_reqt_yn}">
+								</td>
+            				</tr> 
+							<tr>
+								<td width="15%" align="right">
+									공급할당기준 :
+								</td> 
+								<td width="20%" colspan="2" align="left">
+									<select name="insel_allocQoutaType" >
+										##<option value="%" #if( "$!{sel_allocQuotaType}" == "%" || "$!{sel_cal_grp}" == "") selected #end >전체</option>
+										#foreach( $condition in $ip_02030combo_allocQuotaType )
+											<option value="$condition.get(0)" 
+												#if( "$!{sel_allocQuotaType}" == "$condition.get(0)" || "$ip_02040_DC_ALLOC_ITEM_INFO.get(0).get(0)" == "$condition.get(0)" ) selected #end>$condition.get(1)</option>
+										#end
+									</select>
+            					</td>
+								<td width="15%" align="right"> 
+									공급할당사유 :
+								</td> 
+            					<td width="15%" align="left">
+									<select name="insel_allocReason" >
+										#foreach( $condition in $ip_02030combo_allocReason )
+											<option value="$condition.get(0)" 
+												#if( "$!{sel_allocReason}" == "$condition.get(0)"  || "$ip_02040_DC_ALLOC_ITEM_INFO.get(0).get(1)" == "$condition.get(0)" ) selected #end>$condition.get(1)</option>
+										#end
+									</select>
+								</td> 
+								<td width="10%" align="right">
+									Comment : 
+								</td> 
+            					<td width="14%" colspan="5" align="left">
+									#set($comment = "$ip_02040_DC_ALLOC_ITEM_INFO.get(0).get(2)")
+									<input	type="text" name="in_alloc_reason_comment" class="normal" size="100" 
+										value="$!{comment}"
+										onKeyDown="moveNextBox(this); " 
+										style="width:200PX; padding-right:5px; text-align:cneter; " >	
+								</td> 
+								<input type="hidden" name="alloc_flag" value="$!{$ip_02040_DC_ALLOC_ITEM_INFO.get(0).get(4)}">
+							</tr>
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="23"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table id="tbMain" border="0" width="715" cellpadding="0" cellspacing="0" >
+						<tr>
+							<td> 
+								<div id="topLeft" style="height:35px; width:280px; overflow:hidden; "> 
+									<table width="280px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>
+											<tr align="center" height="35px"> 
+												<td align="center" width="40px">DC</td>
+												<td align="center" width="60px">출고장</td>
+												<td align="center" width="60px">예상재고</td>
+												<td align="center" width="30px">CODE</td>
+												<td align="center" width="90px">영업지점명</td>
+											</tr> 
+					   					 </thead>
+					   				</table>
+					   			</div>
+							</td>
+							<td> 
+								<div id="topLine" style="height:35px; width:720px;overflow:hidden;"> 
+									<table width="720px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>
+											<tr height="35px">
+												<td align="center" width="60px">전일<br>소화율</td>
+												<td align="center" width="60px">판매계획</td>
+												<td align="center" width="60px">판촉계획</td>
+												<td align="center" width="50px">할당율</td>
+												<td align="center" width="60px">공급<br>할당량</td>
+												<td align="center" width="60px">잔량</td>
+												<td align="center" width="50px">소화율</td>
+												<td align="center" width="60px">추가<br>요청량</td>
+												<td align="center" width="60px">추가<br>할당량</td>
+												<td align="center" width="200px">추가요청사유</td>
+											</tr>
+					   					 </thead>
+					   				</table>
+					   			</div>
+							</td>
+						</tr>	
+						
+						<tr>
+							<td valign="top"> 
+								<div id="leftDisplay" style="width:280px; overflow:hidden; ">
+									<table width="280px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="left_tbody">
+											#set($save_dc_id = "9999")
+											#foreach($tr in $ip_02040_SalesAllocation_mod)
+												<tr style="height:22px;">
+													#set($comp_dc_id = $tr.get(0))
+													<td align="center" width="40px">		## 배송지점코드
+														#if("$save_dc_id" != "$comp_dc_id")
+															$tr.get(0)
+														#end
+													</td>
+													<input type="hidden" name="sel_dc_id" value="$tr.get(0)">
+    												<input type="hidden" name="sel_dc_id_ab" value="$tr.get(0)"
+														#if("$ip_02040_DC_ALLOC_ITEM_INFO.get(0).get(4)" == "Y") disabled #end>
+    												<td align="left" width="60px">			## 배송지점명
+														#if("$save_dc_id" != "$comp_dc_id")
+															$tr.get(1)
+														#end
+													</td>
+													<td align="right" width="60px">			## 예상재고
+														#if("$save_dc_id" != "$comp_dc_id")
+															$tr.get(2)
+															#set($save_dc_id = $tr.get(0))
+														#end
+													</td>
+													<td width="30px" align="center" >		## 영업지점코드
+													<a id="divSalesLoc_id">$tr.get(3)</a>
+													</td>
+													<input type="hidden" name="sel_sales_id" value="$tr.get(3)"> 
+													<input type="hidden" name="sel_sales_id_ab" value="$tr.get(3)"
+														#if("$ip_02040_DC_ALLOC_ITEM_INFO.get(0).get(4)" == "Y") disabled #end> 
+													<td width="90px" align="left" >		## 영업지점명
+													<a id="divSalesLoc_name">$tr.get(4)</a>
+													</td>
+												</tr>
+											#end
+									</table> 
+								</div> 	
+							</td> 
+							<td valign="top"> 
+								<div id="mainDisplay" class="ns_scroll" style="border:0; width:720px; overflow-y:scroll; overflow-x:scroll; " onscroll="scrollX(); scrollY(); ">
+									<table width="720px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="main_tbody">
+										#foreach( $tr in $ip_02040_SalesAllocation_mod )
+											<tr id="main_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+												<td width="60px" align="right" > ## 전일소화율
+													<a id="divSales_plan">$number.format($tr.get(5))%</a>
+													<input type="hidden" name="sel_pre_remn_rate" value="$tr.get(5)">
+												</td>
+												<td width="60px" align="right" > ## 판매계획
+													<a id="divSales_plan">$number.format($tr.get(6))</a>
+													<input type="hidden" name="sel_sales_plan" value="$tr.get(6)">
+												</td>
+												<td width="60px" align="right" > ## 판촉계획
+													<a id="divPromo_plan">$number.format($tr.get(7))</a>
+													<input type="hidden" name="sel_promo_plan" value="$tr.get(7)">
+												</td>
+												<td width="50px" align="right" > ## 할당율
+													<a id="divAlloc_rate">$number.format($tr.get(8))%</a>
+													<input type="hidden" name="sel_alloc_rate" value="$tr.get(8)">
+												</td>
+												<td width="60px" align="right" onClick="" > 				## 공급할당량
+													##<a id="divAlloc_box" >&nbsp;$number.format($tr.get(7))</a>
+													<input
+    													type="text" name="sel_alloc_box" class="normal" size="20" value="$tr.get(9)"
+    													onChange="check_change1(obj,$velocityCount);" 
+														style="width:100%; padding-right:5px; text-align:right; display:block;" 
+														#if("$ip_02040_DC_ALLOC_ITEM_INFO.get(0).get(4)" == "Y") disabled #end>
+												</td>
+												<td width="60px" align="right" > ## 잔량
+													<a id="divRemn_box">$number.format($tr.get(10))</a>
+													<input type="hidden" name="sel_remn_box" value="$tr.get(10)">
+												</td>
+												<td width="50px" align="right" > ## 소화율
+													<a id="divRemn_rate">$number.format($tr.get(11))%</a>
+													<input type="hidden" name="sel_remn_rate" value="$tr.get(11)">
+												</td>
+												<td width="60px" align="right" > ## 추가요청량
+													<a id="divReqt_add_alloc_box">$number.format($tr.get(12))</a>
+													<input type="hidden" name="sel_reqt_add_alloc_box" value="$tr.get(12)">
+												</td>
+												<td width="60px" align="right" onClick=""> 				## 추가할당량
+													##<a id="divAdd_alloc_box" >&nbsp;$number.format($tr.get(11))</a>
+													<input
+														type="text" name="sel_add_alloc_box" class="normal" size="20" value="$tr.get(13)"
+														onChange="check_change2(obj,$velocityCount);" 
+														##if($sel_alloc_gubn != "2") disabled #end
+    													style="width:100%; padding-right:5px; text-align:right; display:block;">
+												</td>
+												<td width="200px" align="left" > ## 추가요청사유
+													<a id="divReqt_alloc_reason">&nbsp;$tr.get(14)</a>
+												</td>
+												<input type="hidden" name="idu_flag" 
+													## 만약 NFOS전송전일때 idu_flag값이 'I'이면 추가할당량 idu_flag는 'U'로 해줘야 무결성 에러가 발생하지 않는다. */ 
+													#if("$ip_02040_DC_ALLOC_ITEM_INFO.get(0).get(4)" == "Y") value="$tr.get(15)" #else value="U" #end>
+												<input type="hidden" name="idu_flag_ab" value="$tr.get(15)"
+													#if("$ip_02040_DC_ALLOC_ITEM_INFO.get(0).get(4)" == "Y") disabled #end>
+												<input type="hidden" name="save_flag" value="N">
+												<input type="hidden" name="save_flag_ab" value="N"
+													#if("$ip_02040_DC_ALLOC_ITEM_INFO.get(0).get(4)" == "Y") disabled #end>
+											</tr>
+										#end
+										</tbody>
+									</table>
+								</div>
+							</td>
+						</tr>
+					</table>
+
+					</td></tr></table>
+					## waiting 표시영역
+					#waitingArea()
+					
+					<input type="hidden" name="_moon_service">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+
+if(document.frm.in_alloc_item_name.value != "" && document.frm.in_alloc_item_name.value != null) {
+	#if($sel_alloc_gubn != "2") 
+		alert(document.frm.in_alloc_item_name.value+"은 공급할당 품목이 아닙니다!");
+	#end
+}
+	// 도움말 내용 입력
+	var helpStr = "◈ 각 항목을 입력한 후 상단의 저장 버튼을 클릭하여 정보를 수정합니다.";
+	helpStr += "<br>◈ 라인, 작업장, 시작일시가 중복된 항목이 있으면 저장되지 않습니다.";
+	helpStr += "<br>◈ 날짜는 반드시 숫자와 '-'를 이용하여 YYYY-MM-DD의 형식으로 입력합니다.";
+	helpStr += "<br>◈ 입력된 항목은 T3Schedule의 계획시에 중요하게 활용됩니다.";
+	helpStr += "<br>◈ ";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+	// 최초 화면 로드 시, 5 LINE DISPLAY
+	//addRows(5);
+	
+</script>

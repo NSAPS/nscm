@@ -1,0 +1,160 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setTabAutoResize2('90', '90')" )
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						#toolbar($_moon_toolbar "" "moon_board_mod_save" "" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr style="display:none; ">
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2">
+					<td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; ">
+            				<tr id="search_menu" style="display:block; ">
+            					<td width="10%" align="right">
+									&nbsp;
+            					</td>
+            					<td width="90%" align="left">
+									&nbsp;
+            					</td>
+            				</tr> 
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2">
+					<td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="0"> ## search 조건 부분 높이 
+	##<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>						
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+						
+					<table cellspacing="0" width="100%"> 
+						<tr> 
+							<td width="100%"> 
+								<div id="divID" width="100%"> 
+									<table cellspacing="0" width="100%"> 
+										<tr>
+											<td class="td1" width="15%" align="right">제목 &nbsp;</td>
+											<td width="85%">
+												<input type="text" name="_board_subject" size="70" class="normal" 
+													value="$!{moon_board_detail.get(0).get(0)}">
+											</td>
+										</tr>
+										<tr>
+											<td colspan="2" height="100%" width="100%">												
+												<link type="text/css" rel="stylesheet" 
+													href="$request.getContextPath()/sinc/template/${_moon_template}/skin/${_moon_skin}/board.css" />
+												<script type="text/javascript" 
+													src="$request.getContextPath()/sinc/template/${_moon_template}/script/edit.js"></script>
+												#parse("/sinc/template/${_moon_template}/component/board/board_editor.vm") 
+												
+												<script language="javascript">
+													function init_editor( value, main ){
+														if( !main ){
+															if( "NEW"==value || "REP"==value ){
+																init();
+																TextEditor.document.body.focus();
+															}else if( "MOD"== value ){
+																Edit();
+																TextEditor.document.body.focus();
+															}
+														}
+													}
+													init_editor('MOD',false );
+												</script>
+											</td>
+										</tr>
+									</table>
+								</div>
+							</td>
+						</tr>
+						
+						#if( "${_data_flag}" == "1" )
+							#set( $data_flag = "block" )
+						#else
+							#set( $data_flag = "none" )
+						#end
+						<tr> 
+							<td width="100%"> 
+								<table width="100%"> 
+									##<tr style="DISPLAY:${data_flag}">
+									## 게시물 수정시에는 파일 첨부 수정 불가 : 원 게시물에 파일첨부가 있으면 그대로 유지
+									<tr style="DISPLAY:none">
+										<td class="td1" align="right" width="15%">파일 업로드&nbsp;</td>
+										<td>
+											<a id="file01">
+												<input type="file" name="_board_file" size="50" class="normal" onChange="extChk(this, 1); "></a> 
+											<a id="file02">
+												<input type="file" name="_board_file" size="50" class="normal" onChange="extChk(this, 2); "></a> 
+											<a id="file03">
+												<input type="file" name="_board_file" size="50" class="normal" onChange="extChk(this, 3); "></a> 
+											#*<input type="file" name="_board_file" size="50" class="normal"> 
+											<input type="file" name="_board_file" size="50" class="normal"> 
+											<input type="file" name="_board_file" size="50" class="normal"> *#
+										</td>
+									</tr>
+								</table> 
+							</td>
+						</tr>
+						<input type="hidden" name="_moon_service">
+						<input type="hidden" name="_moon_pagenumber" 	value="$_moon_pagenumber"> 
+						<input type="hidden" name="_moon_perpage" 		value="$_moon_perpage">
+						<input type="hidden" name="_board_id" 			value="$!{_board_id}">
+						<input type="hidden" name="_board_step" 		value="$!{_board_step}">
+    					<input type="hidden" name="_data_flag" 			value="${_data_flag}">
+    					<input type="hidden" name="_memo_flag" 			value="${_memo_flag}">
+						
+						#foreach( $cnt in [1..39] )
+							<input name="contents_array" type="hidden" value=""> 
+						#end 
+						
+					</table>
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 제목과 내용을 입력하고 상단의 저장 버튼을 클릭하여 입력한 내용을 저장합니다.";
+	//helpStr += "<br>◈ Second Line is here...";
+	helpCont.innerHTML = helpStr;
+	// 도움말 zoomOut 높이 조절 변수
+	var hDynamicHeight = 0;
+	
+</script>

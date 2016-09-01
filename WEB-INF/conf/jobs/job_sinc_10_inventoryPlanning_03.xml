@@ -1,0 +1,689 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+<!--
+=====================================================================================================
+	재고운영계획>>공급할당관리>>공급할당 기준관리
+=====================================================================================================
+--> 
+	
+	<!-- 
+	=======================
+	 재고정책 기준정보 생성
+	=======================
+	-->
+	<!-- 표준편차 생성 화면 로드 --> 
+	<job id="ip_01010_inventoryPlan_Create_std_dev_mod" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 재고정책 기준정보관리 >> 표준편차 생성</navigation>
+		<toolbars>0010</toolbars>
+		<title>재고정책 기준정보관리</title>
+		<authority>1</authority>		
+		<description>재고정책 기준정보관리</description>
+		<request_type>list</request_type>
+		<queries> 
+			<!-- 마지막 표준편차 작업기간 --> 
+			<query idref="ip_01010_inventoryPlan_create_std_dev_list_1" datasource="t3sinc"/>
+		</queries>
+	</job> 
+
+	<!-- 표준편차생성 : SP call -->
+	<job id="ip_01010_SP_inventoryPlan_Create_std_dev_comp" job_type="composite" check_permission="no">
+		<sub_job id="ip_01010_SP_inventoryPlan_Create_std_dev"/>
+		<sub_job id="ip_01010_inventoryPlan_Create_std_dev_mod"/>
+		<permission_desc>공급할당량 생성</permission_desc>
+	</job>
+	<!-- 표준편차생성	: SP call -->
+	<!-- 농심 토탈 안전재고 생성	: SP call -->
+	<!-- 출고사업장별 안전재고 생성 : SP call -->
+	<job id="ip_01010_SP_inventoryPlan_Create_std_dev" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="ip_01010_SP_inventoryPlan_Create_std_dev_ns" datasource="t3sinc"/>
+			<query idref="ip_01010_SP_inventoryPlan_Create_std_dev" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+	<!-- 
+	=======================
+	 재고정책 품목별 기준정보 관리
+	=======================
+	-->
+
+	<!-- 재고정책 품목별 기준정보 관리 --> 
+	<job id="ip_01020_inventoryPlan_item_mod" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 재고정책 기준정보관리 >> 품목별 기초정보 생성</navigation>
+		<toolbars>0010</toolbars>
+		<title>재고정책 기준정보관리</title>
+		<authority>1</authority>
+		<description>재고정책 기준정보관리</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="ip_02020_combo_search_type" datasource="t3sinc"/>
+			<query idref="ip_01020_inventoryPlan_item_mod" datasource="t3sinc"/>
+		</queries>
+	</job> 
+
+	<!-- 품목별 관리 저장 --> 
+	<job id="ip_01020_inventoryPlan_item_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="ip_01020_inventoryPlan_item_save"/>		
+		<sub_job id="ip_01020_inventoryPlan_item_mod"/>
+		<permission_desc>재고정책 저장</permission_desc>
+	</job>	
+	<job id="ip_01020_inventoryPlan_item_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="ip_01020_inventoryPlan_item_save_01" datasource="t3sinc"/>
+			<query idref="ip_01020_inventoryPlan_item_save_02" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+	<!-- 품목별 기초정보 신규 등록 화면 조회 --> 
+	<job id="ip_01020_inventoryPlan_item_reg" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 재고정책 기준정보관리 >> 품목별 기초정보 생성</navigation>
+		<toolbars>0000</toolbars>
+		<title>재고정책 기준정보관리</title>
+		<authority>1</authority>
+		<description>재고정책 기준정보관리</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="ip_02020_combo_search_type" datasource="t3sinc"/>
+			<query idref="ip_01020_inventoryPlan_item_reg" datasource="t3sinc"/>
+		</queries>
+	</job> 
+
+	<!-- 품목별 기초정보 신규 등록 : 저장 --> 
+	<job id="ip_01020_inventoryPlan_item_reg_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="ip_01020_inventoryPlan_item_reg_save"/>		
+		<sub_job id="ip_01020_inventoryPlan_item_mod"/>
+		<permission_desc>재고정책 저장</permission_desc>
+	</job>	
+	<job id="ip_01020_inventoryPlan_item_reg_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="ip_01020_inventoryPlan_item_reg_save_01" datasource="t3sinc"/>
+			<query idref="ip_01020_inventoryPlan_item_reg_save_02" datasource="t3sinc"/> 
+		</queries>
+	</job>
+
+
+	<!-- 
+	============================
+	 재고정책출고사업장별 기준정보 관리
+	============================
+	-->
+	<!-- 출고사업장별 기초정보 관리 --> 
+	<job id="ip_01030_inventoryPlan_DC_mod" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 재고정책 기준정보관리 >> 출고사업장별 기초정보 생성</navigation>
+		<toolbars>0010</toolbars>
+		<title>재고정책 기준정보관리</title>
+		<authority>1</authority>		
+		<description>재고정책 기준정보관리</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_02020_combo_search_type" datasource="t3sinc"/>
+			<query idref="ip_01030_inventoryPlan_DC_mod" datasource="t3sinc"/>
+		</queries>
+	</job>
+	<!-- 출고사업장별 기초정보 관리-품목별 iframe--> 
+	<job id="ip_01030_inventoryPlan_DC_sub_mod" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 재고정책 기준정보관리 >> 출고사업장별 기초정보 생성</navigation>
+		<toolbars>1111</toolbars>
+		<title>재고정책 기준정보관리</title>
+		<authority>1</authority>		
+		<description>iframe</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="ip_01030_inventoryPlan_DC_sub_mod" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+	<!-- 출고사업장별 기초정보 관리 iframe-저장 --> 
+	<job id="ip_01030_inventoryPlan_DC_sub_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="ip_01030_inventoryPlan_DC_sub_save"/>		
+		<sub_job id="ip_01030_inventoryPlan_DC_sub_mod"/>
+		<permission_desc>재고정책 저장</permission_desc>
+	</job>	
+	<job id="ip_01030_inventoryPlan_DC_sub_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="ip_01030_inventoryPlan_DC_sub_save" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+	<!-- 
+	=======================
+	 공급할당 품목설정
+	=======================
+	-->
+	<!-- 공급할당 품목설정 --> 
+	<job id="ip_02020_dcAllocatonItemMgmt_mod" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 공급할당관리 >> 공급할당 품목설정</navigation>
+		<toolbars>0010</toolbars>
+		<title>공급할당 품목 관리</title> 
+		<authority>1</authority>		
+		<description>공급할당 품목 관리</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_02020_combo_search_type" datasource="t3sinc"/>
+			<query idref="ip_02020_cnfm_date" datasource="t3sinc"/>
+			<query idref="ip_02020_dcAllocatonItemMgmt_mod" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 공급할당 품목설정 pop_up --> 
+	<job id="ip_02020_dcAllocatonItemMgmt_pop_up" job_type="single">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 공급할당관리 >> 공급할당 품목설정</navigation>
+		<toolbars>0000</toolbars>
+		<title>공급할당 품목 관리</title> 
+		<authority>1</authority>		
+		<description>공급할당 품목 관리 pop_up</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="ip_02030combo_allocQuotaType" datasource="t3sinc"/>
+			<query idref="ip_02030combo_allocReason" datasource="t3sinc"/>
+		</queries>
+	</job>	
+
+	<!-- 공급할당품목설정 저장 --> 
+	<job id="ip_02020_dcAllocatonItemMgmt_mod_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="ip_02020_dcAllocatonItemMgmt_mod_save"/>		
+		<sub_job id="ip_02020_dcAllocatonItemMgmt_mod"/>
+		<permission_desc>공급할당관리 저장</permission_desc>
+	</job>	
+	<job id="ip_02020_dcAllocatonItemMgmt_mod_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="ip_02020_dcAllocatonItemMgmt_mod_save_01" datasource="t3sinc"/>
+			 <!-- <query idref="ip_02020_dcAllocatonItemMgmt_mod_save_02" datasource="t3sinc"/> -->
+		</queries>
+	</job>
+
+
+	<!-- 
+	=======================
+	거점별 재고 추이 분석
+	=======================
+	-->
+	<!-- 거점별 재고추이 분석 --> 
+	<job id="ip_01040_inventoryPlanAnalysis_list" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고정책 >> 분석정보 >> 거점별 재고추이 분석</navigation>
+		<toolbars>0010</toolbars>
+		<title>거점별 재고추이 분석</title>
+		<authority>1</authority>		
+		<description>거점별 재고추이 분석</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="dc_id_and_name_list" datasource="t3sinc"/> <!-- 입고장 리스트 -->
+			<query idref="rp_01160_SCM_CHARGE_list" datasource="t3sinc"/><!--담당 리스트-->
+			<query idref="ip_01040_cat02" datasource="t3sinc"/>
+			<query idref="ip_01040_inventoryPlanAnalysis_list_date" datasource="t3sinc"/>
+			<query idref="ip_01040_inventoryPlanAnalysis_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+	<!-- 품목별 재고추이 분석 --> 
+	<job id="ip_01050_inventoryPlanAnalysis_02_list" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고정책 >> 분석정보 >> 품목별 재고추이 분석</navigation>
+		<toolbars>0010</toolbars>
+		<title>품목별 재고추이 분석</title>
+		<authority>1</authority>		
+		<description>품목별 재고추이 분석</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_02020_combo_search_type" datasource="t3sinc"/>
+			<query idref="ip_01050_inventoryPlanAnalysis_02_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+	<!-- 품목별 재고추이 분석(신규) --> 
+	<job id="ip_01050_inventoryPlanAnalysis_02_list_new" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고정책 >> 분석정보 >> 품목별 재고추이 분석</navigation>
+		<toolbars>0010</toolbars>
+		<title>품목별 재고추이 분석</title>
+		<authority>1</authority>		
+		<description>품목별 재고추이 분석</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_02020_combo_search_type" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 장기체화 품목분석 --> 
+	<job id="ip_01120_Jgc_inventoryPlanAnalysis_list" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>상품발주 >> 상품분석 >> 장기체화 품목 분석</navigation>
+		<toolbars>1000</toolbars>
+		<title>장기체화 품목 분석</title>
+		<authority>1</authority>		
+		<description>장기체화 품목 분석</description>
+		<request_type>list</request_type>
+		<queries> 		
+			
+			
+		</queries>
+	</job>
+	<!-- 판매부진 장기체화 예상품목 -->
+	<job id="ip_01120_Jgc_inventoryPlanAnalysis_list2" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>상품발주 >> 상품분석 >> 판매부진 품목분석(장기체화 예상)</navigation>
+		<toolbars>1000</toolbars>
+		<title>판매부진 품목분석(장기체화 예상)</title>
+		<authority>1</authority>		
+		<description>판매부진 품목분석(장기체화 예상)</description>
+		<request_type>list</request_type>
+		<queries> 		
+			
+			
+		</queries>
+	</job>
+	<!-- 수출 장기체화 품목분석 -->
+	<job id="ip_01120_Jgc_inventoryPlanAnalysis_list_expert" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>해외영업시스템 >> 해외영업 >> 수출 장기체화 품목분석</navigation>
+		<toolbars>1000</toolbars>
+		<title>수출 장기체화 품목분석</title>
+		<authority>1</authority>		
+		<description>수출 장기체화 품목분석</description>
+		<request_type>list</request_type>
+		<queries> 		
+			
+			
+		</queries>
+	</job>
+	
+	<!-- 장기체화 품목 분석 요약 레포트 --> 
+	<job id="ip_01120_Jgc_inventoryPlanAnalysis_summaryReport" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>상품발주 >> 상품분석 >> 장기체화 품목 요약 리포트</navigation>
+		<toolbars>0010</toolbars>
+		<title>장기체화 품목 요약 리포트</title>
+		<authority>1</authority>		
+		<description>장기체화 품목 요약 리포트</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_01120_Jgc_inventoryPlanAnalysis_summaryReport" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<job id="ip_01120_Jgc_inventoryPlanAnalysis_summaryReport_new" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>상품발주 >> 상품분석 >> 장기체화 품목 요약 리포트</navigation>
+		<toolbars>0010</toolbars>
+		<title>장기체화 품목 요약 리포트</title>
+		<authority>1</authority>		
+		<description>장기체화 품목 요약 리포트</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_01120_Jgc_inventoryPlanAnalysis_summaryReport" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<job id="ip_01120_Jgc_inventoryPlanAnalysis_summaryReport_new2" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>상품발주 >> 상품분석 >> 장기체화 예상품목 요약 리포트</navigation>
+		<toolbars>0010</toolbars>
+		<title>장기체화 예상품목 요약 리포트</title>
+		<authority>1</authority>		
+		<description>장기체화 예상품목 요약 리포트</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_01120_Jgc_inventoryPlanAnalysis_summaryReport2" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 장기체화 품목 - 신규등록 -->	
+	<job id="ip_01120_Jgc_inventoryPlanAnalysis_list_reg" job_type="single" check_permission="no">
+	<path>/sinc/10.InventoryPlanning</path>		
+	<navigation>상품발주 >> 상품분석 >> 장기체화 품목 신규등록</navigation>
+	<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+	<title>장기체화 등록</title>
+	<authority>1</authority>
+	<description>장기체화 등록</description>
+	<request_type>list</request_type>
+	<queries>
+	<query idref="dc_id_and_short_name_list" datasource="t3sinc"/> <!-- 입고장 리스트 -->
+	<query idref="rp_01015_trans_class_list" datasource="t3sinc"/> <!-- 수송구분 리스트 -->	
+	<query idref="rp_01015_get_truck_seq" datasource="t3sinc"/>			
+	<query idref="rp_01015_transportPlanRegistration_reg" datasource="t3sinc"/>		
+	</queries>	
+	</job>
+	
+	<!-- Excel Download --> 
+	<!-- 장기체화 품목 분석 : Excel Download --> 
+	<job id="ip_01120_Jgc_inventoryPlanAnalysis_list_excelDown" job_type="single">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation></navigation>
+		<toolbars>0000</toolbars>
+		<title></title>
+		<authority></authority>
+		<description>excel</description>
+		<request_type>list</request_type>
+		<queries>
+			<!--<query idref="weekly_3_start_end_date" datasource="t3sinc"/> -->
+			<query idref="ip_01120_Jgc_inventoryPlanAnalysis_list_excelDown" datasource="t3sinc"/>
+		</queries>
+	</job>	 
+	
+	<!--  Excel Upload -->
+	<job id="ip_01120_Jgc_inventoryPlanAnalysis_list_excelUp" job_type="single">
+	   <path>/sinc/10.InventoryPlanning</path>
+	   <navigation>상품발주 >> 상품분석 >> 장기체화품목 분석(업로드)</navigation>
+	   <toolbars>0100</toolbars>
+	   <title>장기체화품목 관리 - Excel Upload</title>
+	   <authority>1</authority>                
+	   <description>-</description>                     
+	   <request_type>excel_upload</request_type>          
+	</job>
+	
+	<!-- 장기체화품목 분석(업로드) : Excel - DB 저장 -->
+	<job id="ip_01120_Jgc_inventoryPlanAnalysis_list_excel_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="ip_01120_Jgc_inventoryPlanAnalysis_list_excel_save"/>		
+		<sub_job id="ip_01120_Jgc_inventoryPlanAnalysis_list_excelUp"/>
+		<permission_desc>장기체화품목 분석 EXCEL (업로드)-저장</permission_desc>
+	</job>
+	<job id="ip_01120_Jgc_inventoryPlanAnalysis_list_excel_save" job_type="single" check_permission="no">				
+		<request_type>insert</request_type>
+		<queries>
+			<!-- JGC_ITEM_STOCK DELETE -->
+			<query idref="ip_01120_Jgc_inventoryPlanAnalysis_list_excel_save_01" datasource="t3sinc"/>
+			<!-- JGC_ITEM_STOCK INSERT -->
+			<query idref="ip_01120_Jgc_inventoryPlanAnalysis_list_excel_save_02" datasource="t3sinc"/>			
+		</queries>	
+	</job>
+	
+	<!-- 출고사업장별 재고분석 --> 
+	<job id="ip_01060_inventoryPlanAnalysis_dc" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고정책 >> 분석정보 >> 출고사업장별 재고분석</navigation>
+		<toolbars>0000</toolbars>
+		<title>출고사업장별 재고분석</title>
+		<authority>1</authority>	
+		<description>출고사업장별 재고분석</description>
+		<request_type>list</request_type>
+		<queries> 
+			<!--<query idref="ip_02020_combo_search_type" datasource="t3sinc"/>--> 
+			<!--<query idref="rp_01160_SCM_CHARGE_list" datasource="t3sinc"/>-->
+			<query idref="ip_01060_inventoryPlanAnalysis_dc" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+	<!-- 일자별 재고추이 분석 --> 
+	<job id="ip_01070_dailyInventoryPlanAnalysis" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고정책 >> 분석정보 >> 일자별 재고추이 분석</navigation>
+		<toolbars>0000</toolbars>
+		<title>일자별 재고추이 분석</title>
+		<authority>1</authority>		
+		<description>일자별 재고추이 분석</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_02020_combo_search_type" datasource="t3sinc"/>
+			<query idref="ip_01070_dailyInventoryPlanAnalysis_header" datasource="t3sinc"/>
+			<query idref="ip_01070_dailyInventoryPlanAnalysis" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+	<!-- 
+	=======================
+	  제품 입고 경과일수 분석
+	=======================
+	-->
+	<!-- 출고사업장별 재고 추이 분석 01--> 
+	<job id="ip_01080_StockTermAnalysis" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 분석정보 >>   제품 입고 경과일수 분석</navigation>
+		<toolbars>0010</toolbars>
+		<title>  제품 입고 경과일수 분석</title>
+		<authority>1</authority>		
+		<description>  제품 입고 경과일수 분석</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="get_max_gyrdate" datasource="t3sinc"/>
+			<query idref="ip_02020_combo_search_type" datasource="t3sinc"/>
+			<query idref="dc_id_and_short_name_list" datasource="t3sinc"/>
+			<query idref="ip_01080_StockTermAnalysis_2" datasource="t3sinc"/>
+			<query idref="ip_01080_StockTermAnalysis" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+
+
+	<!-- 
+	=======================
+	  재고 및 생산 적합성 분석
+	=======================
+	-->
+	<job id="ip_02050_Inventory_production_analysis_list" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 운영정보 >>   공급 적합성 사전 분석</navigation>
+		<toolbars>0010</toolbars>
+		<title> 공급 적합성 사전 분석</title>
+		<authority>1</authority>		
+		<description>  공급 적합성 사전 분석</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_02020_combo_search_type" datasource="t3sinc"/>
+			<query idref="md_04100_combo_plant" datasource="t3sinc"/>
+			<query idref="md_01060_combo_multi" datasource="t3sinc"/>
+			<query idref="get_CAT06_list" datasource="t3sinc"/>
+			<query idref="ip_02050_get_line_id" datasource="t3sinc"/>
+			<query idref="ip_02050_Inventory_production_analysis_list_header" datasource="t3sinc"/>
+			<query idref="ip_02050_Inventory_production_analysis_list" datasource="t3sinc"/>
+			<!-- 
+			<query idref="ip_02050_Inventory_production_analysis_list_count" datasource="t3sinc"/>
+			-->
+		</queries>
+	</job>
+
+	<!-- 
+	=======================
+	  재고 및 생산 적합성 분석 pop_up
+			<query idref="ip_02050_Inventory_production_analysis_list_header" datasource="t3sinc"/>
+			<query idref="ip_02050_Inventory_production_analysis_list_pop_plan" datasource="t3sinc"/>
+			<query idref="ip_02050_Inventory_production_analysis_list_pop_act" datasource="t3sinc"/>
+	=======================
+	-->
+	<job id="ip_02050_Inventory_production_analysis_list_pop_new" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 운영정보 >>   공급 적합성 사전 분석(일자 별)</navigation>
+		<toolbars>0010</toolbars>
+		<title> 공급 적합성 사전 분석(일자 별)</title>
+		<authority>1</authority>		
+		<description>  공급 적합성 사전 분석(일자 별)</description>
+		<request_type>list</request_type>
+		<queries> 	
+			<query idref="ip_02050_get_sales_mean_week" datasource="t3sinc"/>
+			<query idref="ip_02050_get_sales_mean_1week_pre" datasource="t3sinc"/>
+			<query idref="ip_02050_get_sales_mean_3week_pre" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<job id="ip_02050_Inventory_production_analysis_list_pop_hawa_new" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 운영정보 >>   공급 적합성 사전 분석(주차 별) </navigation>
+		<toolbars>0010</toolbars>
+		<title> 공급 적합성 사전 분석(주차 별)</title>
+		<authority>1</authority>		
+		<description>  공급 적합성 사전 분석(주차 별)</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_02050_get_sales_mean_month" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 
+	=======================
+	  상품보충계획 품목별 및 DC별 pop_up + 캘로그 전용 배송 팝업
+			<query idref="ip_02050_Inventory_production_analysis_list_header" datasource="t3sinc"/>
+			<query idref="ip_02050_Inventory_production_analysis_list_pop_plan" datasource="t3sinc"/>
+			<query idref="ip_02050_Inventory_production_analysis_list_pop_act" datasource="t3sinc"/>
+	=======================
+	-->
+	<job id="ip_02090_hawastockSupportPlan_list_popup" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고정책 >> 운영정보 >> 품목별 상품발주내역 확정</navigation>
+		<toolbars>0010</toolbars>
+		<title> 상품발주내역 확정</title>
+		<authority>1</authority>		
+		<description>  상품발주내역 확정</description>
+		<request_type>list</request_type>
+		<queries> 
+	
+		</queries>
+	</job>
+	
+	<job id="ip_02090_hawastockSupportPlan_list_popup2" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고정책 >> 운영정보 >> DC별 상품발주내역 확정</navigation>
+		<toolbars>0010</toolbars>
+		<title> 상품발주내역 확정</title>
+		<authority>1</authority>		
+		<description>  상품발주내역 확정</description>
+		<request_type>list</request_type>
+		<queries> 
+	
+		</queries>
+	</job>
+	
+	<job id="ip_02090_hawastockSupportPlan_list_popup_calog" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>수송계획 >> 운영정보 >> 상품 배송 확정</navigation>
+		<toolbars>0010</toolbars>
+		<title> 상품 배송 확정</title>
+		<authority>1</authority>		
+		<description>  상품 배송 확정</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="rp_01015_trans_class_list" datasource="t3sinc"/>
+			<query idref="dc_id_and_short_name_list" datasource="t3sinc"/>
+			<query idref="cdc_rdc_list2" datasource="t3sinc"/>
+			<query idref="op_02010_Long_Term_Planning_list_Hawa_combo" datasource="t3sinc"/>
+		</queries>
+	</job>
+	<!-- 
+	=======================
+	  재고 및 생산 적합성 분석 pop_up
+	=======================
+	-->
+	<job id="ip_02050_Inventory_production_analysis_list_pop" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 운영정보 >>   공급 적합성 사전 분석</navigation>
+		<toolbars>0010</toolbars>
+		<title> 공급 적합성 사전 분석</title>
+		<authority>1</authority>		
+		<description>  공급 적합성 사전 분석</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_02050_Inventory_production_analysis_list_header" datasource="t3sinc"/>
+			<query idref="ip_02050_Inventory_production_analysis_list_pop_plan" datasource="t3sinc"/>
+			<query idref="ip_02050_Inventory_production_analysis_list_pop_act" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 
+	=======================
+	  중장기 물량 점검 - 재고추이분석 2에서 클릭시 실행  
+	=======================
+	-->
+	<job id="ip_01090_longTermSupplyCheck" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 분석 >>   중장기 물량 점검</navigation>
+		<toolbars>0010</toolbars>
+		<title> 중장기 물량 점검</title>
+		<authority>1</authority>		  
+		<description>  중장기 물량 점검</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_01090_CAT03" datasource="t3sinc"/>
+		</queries>
+	</job>	
+	
+
+	<!-- 
+	=======================
+	  공급할당지역 관리 화면
+	=======================
+	-->
+	<job id="ip_02080_AllocZone_Mgmt" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 분석 >>   공급할당지역 관리</navigation>
+		<toolbars>0010</toolbars>
+		<title> 공급할당지역 관리</title>
+		<authority>1</authority>		  
+		<description>  공급할당지역 관리</description>
+		<request_type>list</request_type>
+		<queries> 
+		</queries>
+	</job>	
+
+
+<!-- 
+	=======================
+	  상품 재고보충 계획 생성 화면 
+	=======================
+	-->
+	 
+	<job id="ip_02090_hawastockSupportPlan_list" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 재고정책 기준정보관리 >> 상품재고보충 계획 생성</navigation>
+		<toolbars>0010</toolbars>
+		<title>재고정책 기준정보관리</title>
+		<authority>1</authority>
+		<description>재고정책 기준정보관리</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="cdc_rdc_list" datasource="t3sinc"/> <!-- 입고장 리스트 -->			
+			<query idref="rp_01160_SCM_CHARGE_list" datasource="t3sinc"/><!--담당 리스트-->
+			<query idref="ip_01040_cat02" datasource="t3sinc"/>	<!--품종 리스트-->
+			
+			<!--<query idref="ip_02020_combo_search_type" datasource="t3sinc"/>
+			<query idref="ip_01020_inventoryPlan_item_mod" datasource="t3sinc"/>-->
+		</queries>
+	</job> 		
+
+
+<!-- 
+	=======================
+	  상품 재고보충 계획 생성 화면(SCM팀 김종환 과장님 요청건) 신규 
+	=======================
+	-->
+	 
+	<job id="ip_02090_hawastockSupportPlan_list2" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 재고정책 기준정보관리 >> 상품재고보충 계획 생성</navigation>
+		<toolbars>0010</toolbars>
+		<title>재고정책 기준정보관리</title>
+		<authority>1</authority>
+		<description>재고정책 기준정보관리</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="cdc_rdc_list" datasource="t3sinc"/> <!-- 입고장 리스트 -->			
+			<query idref="rp_01160_SCM_CHARGE_list" datasource="t3sinc"/><!--담당 리스트-->
+			<query idref="ip_01040_cat02" datasource="t3sinc"/>	<!--품종 리스트-->
+			
+			<!--<query idref="ip_02020_combo_search_type" datasource="t3sinc"/>
+			<query idref="ip_01020_inventoryPlan_item_mod" datasource="t3sinc"/>-->
+		</queries>
+	</job> 
+	
+	
+		
+
+<!--  
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</jobs>	

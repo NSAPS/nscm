@@ -1,0 +1,397 @@
+<script type='text/javascript' src='$!{project}/dwr/interface/nongshim.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/engine.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/util.js'></script>
+
+<table id="dataArea" border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	<tr>
+		<td height="25" align="right" bgcolor="${toolbar_bgcolor}" class="line">
+			<table align="right" width="100%" height="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+				<tr>
+					<td align="right">
+						<input type="button" name="btnSearch" value=" 조회" onClick="searchIFrameData('fc_02020_controlSales_tailer');" class="btn_search_on">
+						#toolbar_nscm($_moon_toolbar "" "" "" "")
+					</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+	<tr id="search_menu" style="DISPLAY:block">
+		<td height="20" valign="top" bgcolor="${search_bgcolor}" class="line">			 
+			<input type="hidden" name="tab11">
+			<input type="hidden" name="tab22">
+				
+			<div class="tab-pane" id="salesCtlHeadTbp">
+				<div class="tab-page" id="tabPage1">
+					<h2 class="tab" id="tab1">조회 Option</h2>
+				
+        			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; display:block; ">
+        				<tr>
+        					<td height="10"></td>
+        				</tr>
+        				<tr>        					
+							<td width="40%" align="center">
+								<table height="21" border="0" cellpadding="0" cellspacing="0">        							
+									<tr>
+        								<td width="100" align="center" class="td1">
+        									<span>기간 단위</span>
+        								</td>
+        								<td align="left">
+        									<select name="oper_type" style="width:100" OnChange="changeStart(this);changeEnd(this);">
+        										<option value="">선택</option>
+        										#foreach( $choice in $!{bucket_units} )
+        											<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{oper_type}") selected #end >$choice.get(1)</option>
+        										#end
+        									</select>
+        								</td>
+        							</tr>
+									<tr>        								
+										<td width="100" align="center" class="td1">
+        									<span>시 작</span>
+        								</td>
+        								<td width="100" align="left">
+        									<select name="start" style="width:100" OnChange="">
+        										<option value="">----------</option>
+												#foreach( $choice in $!{sales_start} )
+        											<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{start}") selected #end>$choice.get(0)</option>
+        										#end
+        									</select>
+                                        </td> 
+        							</tr>
+									<tr> 
+        								<td width="100" align="center" class="td1">
+        									<span>완 료</span>
+        								</td> 
+        								<td width="100" align="left"> 
+        									<select name="end" style="width:100" OnChange="">
+        										<option value="">----------</option>
+												#foreach( $choice in $!{sales_end} )
+        											<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{end}") selected #end>$choice.get(0)</option>
+        										#end
+											</select>				
+                                         </td>
+        							</tr>
+									<tr>
+										<td width="100" align="center" class="td1">
+        									<span>단 위</span>
+        								</td> 
+										<td width="100" align="left">
+        									<select name="s_unit" style="width:100" OnChange="">
+        										<option value="">----------</option>
+												#foreach( $choice in $!{s_units} )
+        											<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{s_unit}") selected #end>$choice.get(0)</option>
+        										#end
+        									</select>
+                                        </td>
+                                     </tr>
+									 <tr>										
+										<td align="center" class="td1" colspan=2>
+											<input type="checkbox" name="is_analyze_data" value="$!{is_analyze_data}" onClick="check(this);" #if("$!{is_analyze_data}" == "Y") checked #end>
+											<span>&nbsp 분석용 Data 포함</span>
+										</td>										
+									</tr>
+        						</table>
+							</td>
+							<td width="60%" align="left">
+								<table height="21" border="0" cellpadding="0" cellspacing="0">
+									
+									<tr>	
+										 <td width="20" align="center" class="td1">
+        									조<br>회<br>기<br>준
+										 </td>
+        								 <td width="180" align="center">
+											<input type="hidden" name="condition_type1" value="">
+											<input type="hidden" name="condition_type2" value="">
+											<input type="hidden" name="condition_type3" value="">
+											<input type="hidden" name="condition_level1" value="">
+											<input type="hidden" name="condition_level2" value="">
+											<input type="hidden" name="condition_level3" value="">
+												
+											<input type="hidden" name="added_key" value="$!{added_key}" style="width:300px;">
+										    <input type="hidden" name="added_value" value="$!{added_value}" style="width:300px;">
+												
+        									<select name="select_1" style="width:180px;" multiple size=7 OnChange="">									
+    											#foreach( $choice in $!{select_1st} )
+        											<option value="$choice.get(0)!%!$choice.get(1)" #if( "$choice.get(0)!%!$choice.get(1)" == "$!{select_1}") selected #end>$choice.get(2)</option>
+        										#end
+        									</select> 
+                                         </td>  
+    									 <td width="30" align="center">
+                                		     <a href="javascript:add();"><img name="side_expand" src="$!{project}/sinc/template/basic/images/common/application_side_expand.png" align="absmiddle" border="0"/></a>											 
+    									     <br>
+											 <a href="javascript:del();"><img name="side_contract" src="$!{project}/sinc/template/basic/images/common/application_side_contract.png" align="absmiddle" border="0"/></a>
+                                		 </td>	
+										 <td width="20" align="center" class="td1">
+        									조<br>회<br>대<br>상
+										 </td>
+    									 <td width="180" align="center">
+                                            <select multiple size=7 style="width:180px;" name="added_list"></select>               
+    									</td>
+                                    </tr>									
+        						</table>
+							</td>
+							
+							<td width="80" align="center">
+        						<table height="21" border="0" cellpadding="0" cellspacing="0">
+        							
+									 					 		
+                                 </table>
+        					 </td>							 
+        				 </tr>        				 			
+        		  		 <tr height="10"><td></td></tr>
+        		     </table>					
+    			 </div>
+				 <div class="tab-page" id="tabPage2">
+					<h2 class="tab" id="tab2">조회Data Filter</h2>
+					<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; display:block; ">
+        				<tr><td height="10"></td></tr>        				
+						<tr>
+        					<td width="700" align="right">
+        						<table height="21" border="0" cellpadding="0" cellspacing="0">  
+									<tr> 
+										<td align="left" colspan="4">
+											<input type="button" name="btnReg" value="   Filter" onClick="setTimeout(changeProductType1,1000);setTimeout(changeSalesCenter,1000);" class="btn_search_on">
+											<input type="button" name="btnReg" value="   Reset" onClick="resetProductType();resetSalesType();resetDc();" class="btn_search_on">	 
+										</td>
+										<td align="right" colspan="4">
+											<select name="hrchy_type" OnChange="changeTypeLevel(this);">												
+        										<option value="품종분류">제품</option>
+        										<option value="영업">영업</option>
+												<option value="물류거점">배송</option>									   										
+        									</select>
+											<select name="hrchy_lvl" OnChange="">
+												<option value="">---------</option>        										 										
+        									</select>
+											<input name="hrchy_name" type="text" value="$!{item_name}" class="normal" style="width:122px;" onFocus="this.value='';" onKeyPress="enterChangeHrchyTypes();"
+											><img name="searchBt1" src="$!{project}/sinc/template/basic/skin/nongshim/images/common/icon_search.gif" align="absmiddle" onClick="changeHrchyTypes();" style="cursor:pointer; " />
+											<script>
+												changeTypeLevel(document.frm.hrchy_type);
+											</script>
+										</td>
+        							</tr>
+									<tr height="10"><td colspan="8"></td></tr>
+        							<tr>
+										<td width="10" align="center" class="td1">
+											제<br>품<br>1<br>분<br>류<br>
+										</td>
+        								<td width="120" align="left">
+											#set( $count = 0 )
+											<input type="hidden" name="prod_1" value="$!{prod_1}">											
+        									<select type="list" style="width:120" name="prod_type1" multiple size="5" onClick="setTimeout('setValues(document.frm.prod_type1, document.frm.prod_1)',1000);">
+												#foreach( $choice in $!{product_type1} )
+													#set( $count = $count + 1)
+        											<option value="$choice.get(0)">$choice.get(0) - $choice.get(1)</option>													
+												#end
+												#if( $count == 0 )
+													<option value="">해당 데이터 없음</option>	
+												#end
+											</select>											
+        								</td>
+										<td width="10" align="center" class="td1">
+											제<br>품<br>2<br>분<br>류<br>
+										</td>										
+        								<td width="150" align="left">
+											#set( $count = 0 )										
+											<input type="hidden" name="prod_2" value="$!{prod_2}">
+        									<select type="list" style="width:150" name="prod_type2" multiple size="5" onClick="setTimeout('setValues(document.frm.prod_type2, document.frm.prod_2)',1000);">
+												#foreach( $choice in $!{product_type2} )
+													#set( $count = $count + 1)
+        											<option value="$choice.get(0)">$choice.get(0) - $choice.get(1)</option>
+												#end
+												#if( $count == 0 )
+													<option value="">해당 데이터 없음</option>	
+												#end	
+											</select>
+        								</td>
+										<td width="10" align="center" class="td1">
+											제<br>품<br>3<br>분<br>류<br>
+										</td>
+										<td width="200" align="left">
+											#set( $count = 0 )
+											<input type="hidden" name="prod_3" value="$!{prod_3}">
+        									<select type="list" style="width:200" name="prod_type3" multiple size="5" onClick="setTimeout('setValues(document.frm.prod_type3, document.frm.prod_3)',1000);">
+												#foreach( $choice in $!{product_type3} )
+        											#set( $count = $count + 1)
+													<option value="$choice.get(0)">$choice.get(0) - $choice.get(1)</option>
+												#end
+												#if( $count == 0 )
+													<option value="">해당 데이터 없음</option>	
+												#end	
+											</select>
+        								</td> 
+										<td width="10" align="center" class="td1">
+											품<br>목<br>
+										</td>
+										<td width="210" align="left">
+											#set( $count = 0 )
+											<input type="hidden" name="prod_4" value="$!{prod_4}">
+        									<select type="list" style="width:210" name="prod_type4" multiple size="5" onClick="setTimeout('setValues(document.frm.prod_type4, document.frm.prod_4)',1000);">
+												#foreach( $choice in $!{product_type4} )
+											
+        											#set( $count = $count + 1) 
+													<option value="$choice.get(0)">$choice.get(1)</option>
+												#end
+												#if( $count == 0 )
+													<option value="">해당 데이터 없음</option>
+												#end
+											</select>
+											
+        								</td>										
+        							</tr>
+        						</table>
+        					</td>        								  
+        				</tr>						
+        		  		<tr height="10"><td></td></tr>
+        		    </table>
+        			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; display:block; ">
+        				<tr><td height="10"></td></tr> 								
+						<tr>        				
+        					<td width="700" align="right">
+        						<table height="21" border="0" cellpadding="0" cellspacing="0">
+        							<tr>
+										<td width="10" align="center" class="td1"> 
+											영<br>업<br>본<br>부<br>
+										</td>
+        								<td width="120" align="left">
+											#set( $count = 0 )
+											<input type="hidden" name="sales_1" value="$!{sales_1}">
+        									<select type="list" style="width:120" name="sales_center" multiple size="5" onClick="setTimeout('setValues(document.frm.sales_center, document.frm.sales_1)',1000);">
+												#foreach( $choice in $!{sales_centers} )
+													#set( $count = $count + 1)
+        											<option value="$choice.get(0)">$choice.get(1)</option>
+												#end
+												#if( $count == 0 )
+													<option value="">해당 데이터 없음</option>	
+												#end	
+											</select>
+        								</td> 
+										<td width="10" align="center" class="td1">
+											영<br>업<br>부<br>
+										</td>
+        								<td width="150" align="left">
+											#set( $count = 0 )
+											<input type="hidden" name="sales_2" value="$!{sales_2}">
+        									<select type="list" style="width:150" name="sales_dept" multiple size="5" onClick="setTimeout('setValues(document.frm.sales_dept, document.frm.sales_2)',1000);">
+												#foreach( $choice in $!{sales_depts} )
+													#set( $count = $count + 1)
+        											<option value="$choice.get(0)">$choice.get(1)</option>
+												#end
+												#if( $count == 0 )
+													<option value="">해당 데이터 없음</option>	
+												#end
+											</select>
+        								</td>
+										<td width="10" align="center" class="td1">
+											영<br>업<br>지<br>점<br>
+										</td>
+										<td width="200" align="left">
+											#set( $count = 0 )
+											<input type="hidden" name="sales_3" value="$!{sales_3}">
+        									<select type="list" style="width:200" name="sales_loc" multiple size="5" onClick="setTimeout('setValues(document.frm.sales_loc, document.frm.sales_3)',1000);">
+												#foreach( $choice in $!{sales_locs} )
+													#set( $count = $count + 1)
+        											<option value="$choice.get(0)">$choice.get(1)</option>
+												#end
+												#if( $count == 0 )
+													<option value="">해당 데이터 없음</option>	
+												#end
+											</select>
+        								</td>
+										<td width="10" align="center" class="td1">
+											배<br>송<br>지<br>점<br>  
+										</td>
+										<td width="210" align="left">
+											#set( $count = 0 )
+											<input type="hidden" name="delivery_1" value="$!{delivery_1}">
+        									<select type="list" style="width:210" name="delivery_loc" multiple size="5" onClick="setTimeout('setValues(document.frm.delivery_loc, document.frm.delivery_1)',1000);">
+												#foreach( $choice in $!{delivery_locs} )
+													#set( $count = $count + 1)
+        											<option value="$choice.get(0)">$choice.get(1)</option>
+												#end
+												#if( $count == 0 )
+													<option value="">해당 데이터 없음</option>
+												#end
+											</select>
+        								</td>
+                                     </tr>
+                                 </table>
+        					 </td>
+        				</tr>
+        		  		<tr height="10"><td></td></tr>
+        		     </table>
+    			 </div>				
+				 <div class="tab-page" id="tabPage3" style="display:none;">
+					<h2 class="tab" id="tab3" style="display:none;">Graph</h2>
+					<table><tr><td height="5"></td></tr></table>
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">						
+						<tr>
+							<td align="left" width="5%">
+                        		<input type="button" name="option" value=" Option" onClick="displayOption();" class="btn1_on">							
+        					</td>
+							<td align="left" width="5%">
+                        		<input type="button" name="btnApp" value="  적용" onClick="confirmForecasts();" style="display:none;" class="btn_mod_on">						
+							</td>
+							<td width="90%" align="right">
+        						<table height="21" border="1" cellpadding="1" cellspacing="1">
+									<tr>
+										 <td width="50" align="center" class="td1">
+            								<input type="hidden" name="index" value="0">
+            								<input type="text" name="fcstDate" style="width:50px;" class="td1" readonly>											
+            							 </td>
+										 <td width="60" align="center" class="td1">            								
+											<input type="text" name="fcstQty" style="width:60px;" class="normal" onKeyPress="onlynumber();">
+            							 </td>
+										 <td width="100" align="center">
+											 <input type="button" name="btnCtl" value=" Simulate" onClick="paintLineGraph(true);" class="btn2_on" style="width:100px;">
+        								 </td>
+                                     </tr>								 				
+        						</table>
+        					</td>
+        				</tr>
+						<tr>
+							<td width="70%" colspan="3">
+								<input type="hidden" name="thisType" value="SALE">
+								<input type="hidden" name="itemCode" value="$!{itemCode}">
+								<input type="hidden" name="salesCode" value="$!{salesCode}">
+								<input type="hidden" name="dcCode" value="$!{dcCode}">
+								<input type="hidden" name="project" value="$!{project}">
+								<input type="hidden" name="title" value="$!{title}">
+								<input type="hidden" name="line1" value="$!{line1}">
+								<input type="hidden" name="line2" value="$!{line2}">
+								<input type="hidden" name="beforeFirstLine" value="$!{beforeFirstLine}">
+								<input type="hidden" name="firstLine" value="$!{firstLine}">
+								<input type="hidden" name="secondLine" value="$!{secondLine}">
+								<input type="hidden" name="headerCol" value="$!{headerCol}">
+								<input type="hidden" name="links" value="$!{links}">
+								<input type="hidden" name="maxValue" value="$!{maxValue}">
+								<input type="hidden" name="_user_id" value="$!{_user_id}">
+                        		<div id="my_chart" style="padding: 0px; margin:10px; border: 1px solid lightblue; width: 100%;"></div>                                        
+        					</td>
+        				</tr>
+        			</table>
+					<table height="5"><tr><td></td></tr></table>
+				</div>
+			 </div> 
+		 </td>   
+	 </tr>	 
+	 <tr class="line" height="10"><td></td></tr>
+	 <tr>
+	 	 <td valign="top">
+			<iframe id="child" name="iframe" src="service.do?_moon_service=fc_02020_controlSales_tailer&amp;_moon_perpage=100&amp;_moon_pagenumber=1" width="100%" height="100%" scrolling="no" topmargin="0" leftmargin="0" frameborder="NO" border="0" framespacing="0"></iframe>
+		 </td>
+	 </tr>
+	 <input type="hidden" name="_moon_service" value="${_moon_service}">
+	 <input type="hidden" name="_moon_pagenumber" value="${_moon_pagenumber}">
+</table>
+	
+## waiting 표시 영역
+<table width="100%" height="100%" id="waitArea" style="display:none; ">
+	<tr>
+		<td valign="middle" align="center">
+			<img src="sinc/template/basic/skin/nongshim/images/common/progress_waiting.gif" 
+				align="absmiddle" border="0" width="200px" height="60px">
+			<img src="sinc/template/basic/skin/nongshim/images/common/loading_icon.gif" 
+				align="absmiddle" border="0" width="60px" height="60px">
+			<br><h1>&nbsp;</h1><br><h1>&nbsp;</h1><br>
+		</td>
+	</tr>
+</table>

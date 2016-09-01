@@ -1,0 +1,292 @@
+############################################################
+## 프로그램ID : md_04040_transRouteByProduct_list.vm
+## 프로그램명 : 품목별 수송Route관리
+## 개발자  : 허준성
+## 개발일자 : 2008-07-24 목요일
+##
+##관련 job file : job_sinc_70_masterData_00.xml
+##
+##관련 query file : query_sinc_70_masterData_00.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2008-07-24  허준성    md_04040_transRouteByProduct_list.vm 개발
+##
+##
+############################################################
+
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('125', '155')" )
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+	
+##  HEADER 정보를 읽어드림.
+#set( $header = $transRouteByProduct_header )
+
+## 선택한 제품의 Exception 테이블(MAP_PROD_DCPATH_EXCEPT)에 데이터가 있으면 그 내용을 조회
+#set( $list = $md_04040_transRouteByProduct_list )
+
+#if( ${list.size()} == 0)
+	#set($header_size = 0)
+#else
+	#set($header_size = ${header.size()})
+#end
+
+
+#set($width_size = $header_size*70)
+
+##Total 값 구하기()
+#if($header_size == 0)
+	#set($row_count = 0)
+#else
+	#set($row_count = ${list.size()}/$header_size)
+#end	
+
+
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						#button("search")
+						#toolbar_nscm($_moon_toolbar "" "" "md_04040_transRouteByProduct_list_save_comp" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; ">
+            				<tr id="search_menu" style="display:block; ">
+            					<td width="10%" align="right">
+									제품 :
+            					</td>
+								<td width="90%" align="left">
+									<input name="item_id" class="normal" style="width:70px; " onChange="getItemName(this); "
+										onkeypress="enterCheck('${_moon_service}'); " value="$!{item_id}">
+									<input name="item_name" class="normal" readOnly style="width:230px; " value="$!{item_name}"><img
+										name="imgItem" src="sinc/template/basic/skin/nongshim/images/common/icon_search.gif"
+										align="absmiddle" border="0" style="cursor:pointer;"  
+										onClick="openItemSearchPop('item_id', '450', '300'); ">
+								</td>
+            				</tr> 
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="23"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+								<img src="/nscm/sinc/template/basic/skin/nongshim/images/common/dot_sub6.gif" width="16" height="13">Total :
+								<span id="areaTot" class="f_color_o b">$row_count</span>
+							</td>
+							<td align="right">
+								##table_display()
+							</td>
+						</tr>
+					</table>
+					
+					<table id="tbMain" border="0" width="715" cellpadding="0" cellspacing="0" >
+						<tr>
+							<td> 
+								<div id="topLeft" style="height:44px; width:80px; overflow:hidden; "> 
+									<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>
+											<tr align="center" height="44px"> 
+												<td width="80px">입고장</td>
+											</tr> 
+					   					 </thead>
+					   				</table>
+					   			</div>
+							</td>
+							<td> 
+								<div id="topLine" style="height:44px; width:626px;overflow:hidden;">
+									## header의 갯수에 120을 곱해서 table의 width를 구함.
+									<table width=$width_size class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>
+											<tr height="22px">
+        										<td width=$width_size colspan=$header_size class="right">
+													<span id="fixHeader" style="position:absolute; visibility:visible; 
+														left:150px; top:7px; z-index:1; width: 200px; height: 20px">출고장 우선순위</span>
+												</td>
+        									</tr>
+											<tr height="22px">
+											
+											## header의 수만큼 UI의 상의 출고장 Header를 보여줌.
+											#set($td_seq = 1)  
+											#if( ${list.size()} > 0 )
+                                            	#foreach( $tr in $header )
+													#if($td_seq < $header_size)
+														<td width="70px" class="mid">$tr.get(0)</td>
+														#set($td_seq = $td_seq + 1)
+													#else
+														<td width="70px" class="midright">$tr.get(0)</td>
+													#end
+												#end
+											#else
+											## header의 수가 0인 경우  빈 공간의 Header를 보여줌.
+												<td width=$width_size class="midright"></td>	
+                                            #end
+											
+											</tr>
+					   					 </thead>
+					   				</table>
+					   			</div>
+							</td>
+						</tr>	
+						
+						<tr>
+							<td valign="top"> 
+								<div id="leftDisplay" style="width:80px; overflow:hidden; ">
+									<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="left_tbody">
+										
+										## 입고장 영역에 data를 셋팅하는  부분. 
+										#set($td_seq = 1)  ## 첫입고장의 정보를 담아 놓기 위해서, 사용되는 변수.
+										#foreach( $tr in $list )  
+											
+											#if($td_seq == 1) ## 첫 입고장일 경우 
+												#set($tot_loc_id = $tr.get(0)) ## 다음번 입고장 값과 비교 하기 위해서 첫입고장 정보를 저장.
+												<tr id="left_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+    												<td width="80px" align="left"> ## 입고장
+    													<a id="divTgtName">&nbsp;$tr.get(1)</a><input 
+    														type="text" name="tgt_name" class="normal" size="20" value="$tr.get(1)"
+    														onFocusOut="setViewMode(this); "
+    														style="width:100%; padding-left:5px; display:none; ">
+    												</td>
+    											</tr>
+												#set($td_seq = 2) ## 첫 입고장일 경우가 다시 실행되지 못하도록 정보를 변경함.
+											#end
+											
+											#if($tot_loc_id != $tr.get(0)) ## 입고장이 변경된 경우에만 한번씩 화면에 출력(중복되게 입고장 정보가 나타나지 않게 하기 위해서.)
+    											<tr id="left_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+    												<td width="80px" align="left"> ## 입고장
+    													<a id="divTgtName">&nbsp;$tr.get(1)</a><input 
+    														type="text" name="tgt_name" class="normal" size="20" value="$tr.get(1)"
+    														onFocusOut="setViewMode(this); "
+    														style="width:100%; padding-left:5px; display:none; ">
+    												</td>
+    											</tr>
+												## 입고장의 정보가 변경된 경우      다음번 입고정보와 변경된 입고정보를 비교하기 위해서,   다시 입고장 정보를 셋팅함.
+												#set($tot_loc_id = $tr.get(0))
+											#end
+										#end
+										</tbody> 
+									</table> 
+								</div> 	
+							</td>
+							<td valign="top"> 
+								<div id="mainDisplay" class="ns_scroll" style="border:0; width:645px; overflow-y:scroll; overflow-x:scroll; " onscroll="scrollX(); scrollY(); fix(); ">
+									<table width=$width_size class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="main_tbody">
+										
+									    ## 출고장 영역에 데이타를 셋팅하는 부분.
+										#set($td_seq = 1) ## UI 상의 한 Row의 Column 수를 header의 수만큼 조정하기 위한 초기값
+					
+										#foreach( $tr in $list )
+											#if($td_seq == 1) ## Row의 시작인 경우 TR 태그를 열어 놓음
+												<tr id="main_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+											#end
+											
+											#if($td_seq < $header_size)
+    											<td width="70px" onClick="setEditMode(this); " align="center">
+    												<a id="divPriority">&nbsp;$tr.get(4)</a><input 
+    													type="text" name="priority" class="normal" size="100" value="$tr.get(4)"
+    												    onFocusOut="setViewMode(this); " onkeypress="filterKey('[0-9]')" onKeyDown="moveNextBox(this);"
+    													style="width:100%; padding-left:5px; display:none; text-align: center;">
+    												<input type="hidden" name="tgt_loc" value="$tr.get(0)"> ## 입고장 코드
+    												<input type="hidden" name="src_loc" value="$tr.get(2)"> ## 출고장 코드
+    												<input type="hidden" name="tran_cost" value="$tr.get(5)"> ## 운송 비용
+    											</td>
+												#set($td_seq = $td_seq + 1)
+											#else
+												<td width="70px" onClick="setEditMode(this); " align="center" class="right">
+    												<a id="divPriority">&nbsp;$tr.get(4)</a><input 
+    													type="text" name="priority" class="normal" size="100" value="$tr.get(4)"
+    												    onFocusOut="setViewMode(this); " onkeypress="filterKey('[0-9]')" onKeyDown="moveNextBox(this);"
+    													style="width:100%; padding-left:5px; display:none; text-align: center;">
+    												<input type="hidden" name="tgt_loc" value="$tr.get(0)"> ## 입고장 코드
+    												<input type="hidden" name="src_loc" value="$tr.get(2)"> ## 출고장 코드
+    												<input type="hidden" name="tran_cost" value="$tr.get(5)"> ## 운송 비용
+    											</td>
+												</tr> ## header의 size와 증가된 td_seq값이 같은 경우.
+												#set($td_seq = 1)
+											#end	
+										#end
+										</tbody>
+									</table>
+								</div>
+							</td>
+						</tr>
+					</table>
+					
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+						
+					<input type="hidden" name="_moon_service">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					<input type="hidden" name="_user_id" value="$!{_user_id}">
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; fix(); }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 선택한 제품을 각 입고장에 공급할 때 우선할 출고장을 조회하는 화면입니다.";
+	helpStr += "<br>◈ 아이템 코드를 검색하여 선택한 후 조회 버튼을 눌러 주십시요.";
+	helpStr += "<br>◈ 각 우선 순위를  입력한 후 상단의 저장 버튼을 클릭하여 코드를 수정합니다.";
+	helpStr += "<br>◈ 우선 순위는 반드시 숫자만 입력합니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+	fix();
+
+	// 최초 화면 로드 시, 5 LINE DISPLAY
+	//addRows(5);
+	
+</script>

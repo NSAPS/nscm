@@ -1,0 +1,787 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('130', '155')" )   
+
+##공장할당 버전
+<input type="hidden" name="plant_alloc_version" value="$plant_alloc_version.get(0).get(0)">
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						#button("search")
+						#toolbar_nscm($_moon_toolbar "" "" "sc_01060_plantAllocationPlanResultAnalysis_list_save_comp" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table id="search_menu" style="background-color:#f2f2f2; display:block; " border="0" width="100%" cellpading="0" cellspacing="0" >
+            				<tr>
+								<td width="10%" align="right">조회 일자 :</td> 
+								<td width="20%">  																	    
+            						#date_sole_no_title( "sdate" "10" "normal" "searchBtn" $date.get('yyyy-MM-dd'))
+            					</td>
+								<td width="40%"> 
+									<input type="radio" name="checked_domain" value="DO" style="border:0px;"
+            							onClick="this.checked" #if("$!{checked_domain}" == "DO" ) checked #else #end>내수</input>&nbsp;
+            						<input type="radio" name="checked_domain" value="EXMTS" style="border:0px;"
+            							onClick="this.checked" #if("$!{checked_domain}" == "EXMTS") checked #else #end>수출MTS</input>&nbsp;            						
+            						<input type="radio" name="checked_domain" value="EXMTO" style="border:0px;"
+            							onClick="this.checked" #if("$!{checked_domain}" == "EXMTO") checked #else #end>수출MTO</input>&nbsp;            						
+									<input type="radio" name="checked_domain" value=""  style="border:0px;"
+            							onClick="this.checked" #if("$!{checked_domain}" == "") checked #else #end>전체</input>
+            					</td>
+								<td width="10%" align="right">필요량/계획 :</td>
+            					<td width="20%"> 
+									<input type="radio" name="checked_pa_pr" value="" style="border:0px;" checked="on"
+            							onClick="this.checked" #if("$!{checked_pa_pr}" == "") checked #else #end>생산필요량</input>&nbsp;
+            						<input type="radio" name="checked_pa_pr" value="PR" style="border:0px;"
+            							onClick="this.checked" #if("$!{checked_pa_pr}" == "PR") checked #else #end>생산계획</input>           					       						
+            					</td>
+								#*<td width="8%" align="right">차 주확판매계획 기간:</td>          
+            					<td width="32%">			 	 									    
+									#date_sole_no_title( "sdate" "10" "normal" "startBtn" $date.get('yyyy-MM-dd'))~
+            						#date_sole_no_title( "edate" "10" "normal" "endBtn" $date.get('yyyy-MM-dd'))
+            					</td>
+								<td width="8%" align="right">보충요구량 산출기간 :</td>          
+            					<td width="32%">			 	 		 							    
+									#date_sole_no_title( "sdate" "10" "normal" "startBtn" $date.get('yyyy-MM-dd'))~
+            						#date_sole_no_title( "edate" "10" "normal" "endBtn" $date.get('yyyy-MM-dd'))
+            					</td>*#
+							</tr>
+							<tr>								
+            				</tr>        				
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="26"> ## search 조건 부분 높이 
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+								<img src="/nscm/sinc/template/basic/skin/nongshim/images/common/dot_sub6.gif" width="16" height="13">Total :
+								<span id="areaTot" class="f_color_o b">$!{_moon_service_count}</span>
+							</td> 
+						</tr>
+					</table>
+					
+					#set( $topLeft1 = 30 )##번호
+					#set( $topLeft2 = 40 )##설비유형
+					#set( $topLeft3 = 75 )##제품코드
+					#set( $topLeft4 = 210 )##제품 명  
+					#set( $leftWidth = $topLeft1 + $topLeft2 + $topLeft3 + $topLeft4 ) ## 
+					<table id="tbMain" border="0" width="100%" cellpadding="0" cellspacing="0" ><tr><td>
+						<div id="topLeft" style="height:70px; width:$!{leftWidth}px; overflow:hidden; ">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead> 
+									<tr height="70px">   
+										<td width="$!{topLeft1}px">번호</td>			## 1
+										<td width="$!{topLeft2}px">설비유형</td>		## 2
+										<td width="$!{topLeft3}px">제품<br>코드</td>	## 3
+										<td width="$!{topLeft4}px">제품 명</td>		## 4
+										##<td width="90px">규격</td>
+									</tr> 
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td>  
+					<td> 
+						#set( $topLine1 = 70 )##3주평균 접근율       
+						#set( $topLine2 = 70 )##1주평균 접근율
+						#set( $topLine3 = 70 )##안전재고
+						#set( $topLine4 = 70 )##기초재고
+						#set( $topLine5 = 70 )##금주생산계획
+						#set( $topLine6 = 70 )##금주판매계획
+						#set( $topLine7 = 70 )##금주판매계획 대비 실적
+						#set( $topLine8 = 70 )##1주평균 판매대비
+						#set( $topLine9 = 70 )##예상재고(차주초)
+						#set( $topLine10 = 70 )##차주계획대비재고일수
+						#set( $topLine11 = 70 )##차주실적대비재고일수
+						#set( $topLine12 = 70 )##차주 생산계획
+						#set( $topLine13 = 70 )##차주 보충요구량
+						#set( $topLine14 = 70 )##차주 생산필요량 
+						#set( $topLine15 = 70 )##차주 요구/생산 차이
+						#set( $topLine27 = 70 )##판매계획가감량(1주평균)
+						#set( $topLine28 = 70 )##판매계획가감량(3주평균)
+						#set( $topLine16 = 70 )##차주 판매계획 
+						#set( $topLine17 = 70 )##차주판매계획 대비 실적
+						#set( $topLine18 = 70 )##차주 예상재고
+						#set( $topLine19 = 70 )##차차주계획대비재고일수
+						#set( $topLine20 = 70 )##차차주계획대비재고일수 
+						#set( $topLine21 = 70 )##차차주 보충요구량 
+						#set( $topLine22 = 70 )##차차주 생산필요량 
+						#set( $topLine23 = 70 )##차차주 판매계획 
+						#set( $topLine24 = 70 )##차차주 판매계획 대비 실적
+						#set( $topLine25 = 70 )##차차주 예상재고
+						#set( $topLine26 = 70 )##차차차주실적대비재고일수
+						#set( $topHead1 = $topLine1 + $topLine2 + $topLine3 + $topLine4 + $topLine5 + $topLine6 + $topLine7 + $topLine8 )##당주(W)
+						#set( $topHead2 = $topLine9 + $topLine10 + $topLine11 + $topLine12 + $topLine13 + $topLine14 + $topLine15 + $topLine16 + $topLine17 + $topLine27 + $topLine28 )##차주(W+1)
+						#set( $topHead3 = $topLine18 + $topLine19 + $topLine20 + $topLine21 + $topLine22+ $topLine23 + $topLine24 + $topLine25+ $topLine26)##차차주(W+2)
+						#set( $rightWidth = $topLine1 + $topLine2 + $topLine3 + $topLine4 + $topLine5 + $topLine6 + $topLine7 + $topLine8 + $topLine9 + $topLine10 + $topLine11 + $topLine12 + $topLine13 + $topLine14 + $topLine15 + $topLine16 + $topLine17 + $topLine18 + $topLine19 + $topLine20  + $topLine21 + $topLine22 + $topLine23 + $topLine24 + $topLine25+ $topLine26 + $topLine27+ $topLine28) ## 
+						<div id="topLine" style="height:70px; width:736px;overflow:hidden;">  
+							<table width="$!{rightWidth}px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead>  
+									<tr height="25px">
+										<td width="$!{topHead1}px" colspan="8">당주(W)</td>
+										<td width="$!{topHead2}px" colspan="11">차주(W+1)</td>
+										<td width="$!{topHead3}px" colspan="9" class="right">차차주(W+2)</td>
+									</tr>
+									<tr height="45px">	 
+										<td width="$!{topLine1}px" class="mid">3주평균<br>접근율 </td>			## 1
+										<td width="$!{topLine2}px" class="mid">1주평균<br>접근율</td>			## 2
+										<td width="$!{topLine3}px" class="mid">안전재고</td>					## 3
+										<td width="$!{topLine4}px" class="mid">기초재고</td>					## 4
+										<td width="$!{topLine5}px" class="mid">생산계획</td>					## 5
+										<td width="$!{topLine6}px" class="mid">판매계획</td>					## 6
+										<td width="$!{topLine7}px" class="mid">판매계획<br>대비실적</td>		## 7
+										<td width="$!{topLine8}px" class="mid">1주 평균<br>판매 대비</td>		## 8
+										#******************************************************************#
+										<td width="$!{topLine9}px" class="mid">예상재고<br>(차주초)</td>		## 9
+										<td width="$!{topLine10}px" class="mid">계획대비<br>재고일수</td>		##10
+										<td width="$!{topLine11}px" class="mid">실적대비<br>재고일수</td>		##11
+										<td width="$!{topLine12}px" class="mid">생산계획</td>					##12 
+										<td width="$!{topLine13}px" class="mid">보충<br>요구량</td>			##13
+										<td width="$!{topLine14}px" class="mid">생산<br>필요량</td>			##14
+										<td width="$!{topLine15}px" class="mid">요구/생산<br>차이</td>			##15
+										<td width="$!{topLine27}px" class="mid">판매계획<br>가감량<br>(1주평균)</td>	##27
+										<td width="$!{topLine28}px" class="mid">판매계획<br>가감량<br>(3주평균)</td>	##28
+										<td width="$!{topLine16}px" class="mid">판매계획</td>					##16
+										<td width="$!{topLine17}px" class="mid">판매계획<br>대비실적</td>		##17
+										#******************************************************************#
+										<td width="$!{topLine18}px" class="mid">예상재고</td>					##18
+										<td width="$!{topLine19}px" class="mid">계획대비<br>재고일수</td>		##19
+										<td width="$!{topLine20}px" class="mid">실적대비<br>재고일수</td>		##20
+										<td width="$!{topLine21}px" class="mid">보충<br>요구량</td>			##21
+										<td width="$!{topLine22}px" class="mid">생산<br>필요량</td>			##22
+										<td width="$!{topLine23}px" class="mid">판매계획</td>					##23
+										<td width="$!{topLine24}px" class="mid">판매계획<br>대비실적</td>		##24
+										<td width="$!{topLine25}px" class="mid">예상재고</td>					##25
+										<td width="$!{topLine26}px" class="midright">실적대비<br>재고일수</td>	##26
+									</tr>									
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td></tr>	
+					<tr><td valign="top">
+						<div id="leftDisplay" style="width:$!{leftWidth}px; overflow:hidden; ">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="left_tbody"> ## 30/40/100/270/90
+								#foreach( $tr in $sc_01060_plantAllocationPlanResultAnalysis_list )
+									#if( $tr.get(3) == "소계" )##소계 라인 배경색 지정
+									<tr id="left_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+										## 번호
+										<td width="$!{topLeft1}px" align="center" style="background-color:${search_bgcolor}; ">
+											<a id="divRowNo">$velocityCount</a>
+										</td>
+										## 설비유형
+										<td width="$!{topLeft2}px" align="center" style="background-color:#d0d0d0; ">
+											<a id="divCat">$tr.get(2)</a>
+										</td>										
+										## 품목 코드  
+										<td width="$!{topLeft3}px" align="center" style="background-color:#d0d0d0; ">  
+											<a id="divItemId">$tr.get(3)</a>
+										</td>
+										## 품목 명 
+										<td width="$!{topLeft4}px" align="left" style="background-color:#d0d0d0; ">
+											<a id="divItemName">&nbsp;$tr.get(4)</a>
+										</td>
+									</tr>
+									#elseif( $tr.get(3) == "" ) ##총계 라인 배경색 지정
+									<tr id="left_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+										## 번호
+										<td width="$!{topLeft1}px" align="center" style="background-color:${search_bgcolor}; ">
+											<a id="divRowNo">$velocityCount</a>
+										</td>
+										## 설비유형
+										<td width="$!{topLeft2}px" align="center" style="background-color:#b0b0b0; ">
+											<a id="divCat">$tr.get(2)</a>
+										</td>										
+										## 품목 코드  
+										<td width="$!{topLeft3}px" align="center" style="background-color:#b0b0b0; ">  
+											<a id="divItemId">$tr.get(3)</a>
+										</td>
+										## 품목 명 
+										<td width="$!{topLeft4}px" align="left" style="background-color:#b0b0b0; ">
+											<a id="divItemName">&nbsp;$tr.get(4)</a>
+										</td>
+									</tr>
+									#else
+									<tr id="left_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+										## 번호
+										<td width="$!{topLeft1}px" align="center" style="background-color:${search_bgcolor}; ">
+											<a id="divRowNo">$velocityCount</a>
+										</td>
+										## 설비유형
+										<td width="$!{topLeft2}px" align="center">
+											<input type="hidden" name="version" value="$tr.get(1)">
+											<input type="hidden" name="version" value="$tr.get(1)">
+											<input type="hidden" name="version" value="$tr.get(1)">
+											<a id="divCat">$tr.get(2)</a>
+											<input type="hidden" name="cat" class="normal" size="20" value="$tr.get(2)">
+										</td>										
+										## 품목 코드  
+										<td width="$!{topLeft3}px" align="center" >  
+											<a id="divItemId">$tr.get(3)</a>
+											<input type="hidden" name="item_id" class="normal" size="20" value="$tr.get(3)">
+											<input type="hidden" name="item_id" class="normal" size="20" value="$tr.get(3)">
+											<input type="hidden" name="item_id" class="normal" size="20" value="$tr.get(3)">
+										</td>
+										## 품목 명 
+										<td width="$!{topLeft4}px" align="left" >
+											<a id="divItemName">&nbsp;$tr.get(4)</a>
+											<input type="hidden" name="item_name" class="normal" size="20" value="$tr.get(4)">
+										</td>
+									</tr>
+									#end
+								#end
+								</tbody> 
+							</table> 
+						</div> 
+					</td>  
+					<td valign="top"> 
+						<div id="mainDisplay" class="ns_scroll" style="border:0; width:645px; overflow-y:scroll; overflow-x:scroll; " onscroll="scrollX(); scrollY(); ">
+							<table width="$!{rightWidth}px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="main_tbody"> 
+								#foreach( $tr in $sc_01060_plantAllocationPlanResultAnalysis_list )
+									#if( $tr.get(3) == "소계" )##소계, 총계 라인 배경색 지정
+									<tr id="main_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); " >
+										#if( "$tr.get(5)" == "" )
+											#set( $subWk3Avg = "" )
+										#else
+											#set( $subWk3Avg = "$number.format('#,##0.00',$tr.get(5))" )
+										#end
+										## 3주평균 접근율
+										<td width="$!{topLine1}px" align="right" style="background-color:#d0d0d0; ">
+											<a id="divWk3Avg">$subWk3Avg&nbsp;</a>
+										</td>
+										#if( "$tr.get(6)" == "" )
+											#set( $subWk1Avg = "" )
+										#else
+											#set( $subWk1Avg = "$number.format('#,##0.00',$tr.get(6))" )
+										#end
+										## 1주평균 접근율
+										<td width="$!{topLine2}px" align="right" style="background-color:#d0d0d0; ">
+											<a id="divWk1Avg">$subWk1Avg&nbsp;</a>
+										</td>
+										## 안전재고
+										<td width="$!{topLine3}px" align="right" style="background-color:#d0d0d0; ">
+											<a id="divSafetyStock">$tr.get(7)&nbsp;</a>
+										</td>
+										## 기초재고
+										<td width="$!{topLine4}px" align="right" style="background-color:#d0d0d0; ">
+											<a id="divCwkBoh">$tr.get(8)&nbsp;</a>
+										</td> 
+										## 금주생산계획
+										<td width="$!{topLine5}px" align="right" style="background-color:#d0d0d0; ">
+											<a id="divCwkSchPlan">$tr.get(9)&nbsp;</a>
+										</td> 
+										## 금주판매계획
+										<td width="$!{topLine6}px" align="right" style="background-color:#d0d0d0; ">
+											<a id="divCwkSalPlan">$tr.get(10)&nbsp;</a>
+										</td>	
+										## 금주판매계획대비 실적
+										<td width="$!{topLine7}px" align="right" style="background-color:#d0d0d0; ">
+											<a id="divCwkSalVsAct">$tr.get(38)&nbsp;</a>
+										</td>	
+										#if( "$tr.get(11)" == "" )
+											#set( $subWk1AvgPlanAct = "" )
+										#else
+											#set( $subWk1AvgPlanAct = "$number.format('#,##0.00',$tr.get(11))" )
+										#end
+                						## 1주평균 판매대비
+										<td width="$!{topLine8}px" align="right" style="background-color:#d0d0d0; ">
+											<a id="divWk1AvgPlanAct">$subWk1AvgPlanAct&nbsp;</a>
+										</td>
+                						## 예상재고(차주초)
+										<td width="$!{topLine9}px" align="right" style="background-color:#d0d0d0; ">
+											<a id="divNwkBoh">$tr.get(12)&nbsp;</a>
+										</td>
+										#if( "$tr.get(31)" == "" )
+											#set( $subNwkPlanVsStk = "" )
+										#else
+											#set( $subNwkPlanVsStk = "$number.format('#,##0.0',$tr.get(31))" )
+										#end
+										## 차주 계획대비재고일수
+										<td width="$!{topLine10}px" align="right" style="background-color:#d0d0d0; ">
+											<a id="divNwkPlanVsStk">$subNwkPlanVsStk&nbsp;</a>
+										</td>
+										#if( "$tr.get(32)" == "" )
+											#set( $subNwkActVsStk = "" )
+										#else
+											#set( $subNwkActVsStk = "$number.format('#,##0.0',$tr.get(32))" )
+										#end
+										## 차주 실적대비재고일수
+										<td width="$!{topLine11}px" align="right" style="background-color:#d0d0d0; ">
+											<a id="divNwkActVsStk">$subNwkActVsStk&nbsp;</a>
+										</td>
+                						## 차주 생산계획
+										<td width="$!{topLine12}px" align="right" style="background-color:#d0d0d0; ">
+											<a id="divNwkSchPlan">$tr.get(13)&nbsp;</a>
+										</td>
+                						## 차주 보충요구량
+										<td width="$!{topLine13}px" align="right" style="background-color:#d0d0d0; ">
+											<a id="divNwkRepPlan">$tr.get(18)&nbsp;</a>
+										</td>
+                						## 차주 생산필요량
+										<td width="$!{topLine14}px" align="right" style="background-color:#d0d0d0; ">
+											<a id="divNwkLstProdQtyTotPart$tr.get(2)">$tr.get(20)&nbsp;</a>
+										</td>
+                						## 차주 요구/생산 차이
+										<td width="$!{topLine15}px" align="right" style="background-color:#d0d0d0; ">
+											<a id="divNwkAdjQtyTotPart$tr.get(2)">$tr.get(24)&nbsp;</a>
+										</td>
+										## 판매계획가감량(1주평균)
+										<td width="$!{topLine27}px" align="right" style="background-color:#d0d0d0; ">
+											<a id="divW1SalesPlanDiff">$tr.get(41)&nbsp;</a>
+										</td>
+										## 판매계획가감량(3주평균)
+										<td width="$!{topLine28}px" align="right" style="background-color:#d0d0d0; ">
+											<a id="divW3SalesPlanDiff">$tr.get(42)&nbsp;</a>
+										</td>
+                						## 차주 판매계획
+										<td width="$!{topLine16}px" align="right" style="background-color:#d0d0d0; ">
+											<a id="divNwkSalPlan">$tr.get(25)&nbsp;</a>
+										</td>
+										## 차주 판매계획 대비 실적
+										<td width="$!{topLine17}px" align="right" style="background-color:#d0d0d0; ">
+											<a id="divNwkSalVsAct">$tr.get(39)&nbsp;</a>
+										</td>
+                						## 차주 예상재고
+										<td width="$!{topLine18}px" align="right" style="background-color:#d0d0d0; ">
+											<a id="divNwkEohTotPart$tr.get(2)">$tr.get(26)&nbsp;</a>
+										</td> 
+										#************************************************************************************#									
+										## 차차주 계획대비재고일수
+										<td width="$!{topLine19}px" align="right" style="background-color:#d0d0d0; ">
+											<a id="divNNwkPlanVsStkTotPart$tr.get(2)">$tr.get(33)&nbsp;</a>
+										</td>
+										## 차차주 실적대비재고일수
+										<td width="$!{topLine20}px" align="right" style="background-color:#d0d0d0; ">
+											<a id="divNNwkActVsStkTotPart$tr.get(2)">$tr.get(34)&nbsp;</a>
+										</td>
+										## 차차주 보충요구량
+										<td width="$!{topLine21}px" align="right" style="background-color:#d0d0d0; ">
+											<a id="divNNwkRepPlan">$tr.get(19)&nbsp;</a>
+										</td>
+                						## 차차주 생산필요량
+										<td width="$!{topLine22}px" align="right" style="background-color:#d0d0d0; ">
+											<a id="divNNwkLstProdQtyTotPart$tr.get(2)">$tr.get(21)&nbsp;</a>
+										</td>
+                						## 차차주 판매계획
+										<td width="$!{topLine23}px" align="right" style="background-color:#d0d0d0; ">
+											<a id="divNNwkSalPlan">$tr.get(22)&nbsp;</a>
+										</td>
+										## 차차주 판매계획 대비 판배 실적
+										<td width="$!{topLine24}px" align="right" style="background-color:#d0d0d0; ">
+											<a id="divNNwkSalVsAct">$tr.get(40)&nbsp;</a>
+										</td>
+                						## 차차주 예상재고
+										<td width="$!{topLine25}px" align="right" style="background-color:#d0d0d0; ">
+											<a id="divNNwkEohTotPart$tr.get(2)">$tr.get(23)&nbsp;</a>
+										</td> 
+										## 차차차주실적대비재고일수
+										<td width="$!{topLine26}px" align="right" class="right" style="background-color:#d0d0d0; ">
+											<a id="divNNNwkActVsStkTotPart$tr.get(2)">$tr.get(37)&nbsp;</a>
+										</td> 
+									</tr>
+									#elseif( $tr.get(3) == "" ) ##총계 라인 배경색 지정 
+									<tr id="main_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); " >
+										#if( "$tr.get(5)" == "" )
+											#set( $totWk3Avg = "" )
+										#else
+											#set( $totWk3Avg = "$number.format('#,##0.00',$tr.get(5))" )
+										#end
+										## 3주평균 접근율
+										<td width="$!{topLine1}px" align="right" style="background-color:#b0b0b0; ">
+											<a id="divWk3Avg">$totWk3Avg&nbsp;</a>
+										</td>
+										#if( "$tr.get(6)" == "" )
+											#set( $totWk1Avg = "" )
+										#else
+											#set( $totWk1Avg = "$number.format('#,##0.00',$tr.get(6))" )
+										#end
+										## 1주평균 접근율
+										<td width="$!{topLine2}px" align="right" style="background-color:#b0b0b0; ">
+											<a id="divWk1Avg">$totWk1Avg&nbsp;</a>
+										</td>
+										## 안전재고
+										<td width="$!{topLine3}px" align="right" style="background-color:#b0b0b0; ">
+											<a id="divSafetyStock">$tr.get(7)&nbsp;</a>
+										</td>
+										## 기초재고
+										<td width="$!{topLine4}px" align="right" style="background-color:#b0b0b0; ">
+											<a id="divCwkBoh">$tr.get(8)&nbsp;</a>
+										</td> 
+										## 금주생산계획
+										<td width="$!{topLine5}px" align="right" style="background-color:#b0b0b0; ">
+											<a id="divCwkSchPlan">$tr.get(9)&nbsp;</a>
+										</td> 
+										## 금주판매계획
+										<td width="$!{topLine6}px" align="right" style="background-color:#b0b0b0; ">
+											<a id="divCwkSalPlan">$tr.get(10)&nbsp;</a>
+										</td>	
+										## 금주판매계획 대비 판매실적
+										<td width="$!{topLine7}px" align="right" style="background-color:#b0b0b0; ">
+											<a id="divCwkSalVsAct">$tr.get(38)&nbsp;</a>
+										</td>
+										#if( "$tr.get(11)" == "" )
+											#set( $totWk1AvgPlanAct = "" )
+										#else
+											#set( $totWk1AvgPlanAct = "$number.format('#,##0.00',$tr.get(11))" )
+										#end
+                						## 1주평균 판매대비
+										<td width="$!{topLine8}px" align="right" style="background-color:#b0b0b0; ">
+											<a id="divWk1AvgPlanAct">$totWk1AvgPlanAct&nbsp;</a>
+										</td>
+                						## 예상재고(차주초)
+										<td width="$!{topLine9}px" align="right" style="background-color:#b0b0b0; ">
+											<a id="divNwkBoh">$tr.get(12)&nbsp;</a>
+										</td>
+										#if( "$tr.get(31)" == "" )
+											#set( $totNwkPlanVsStk = "" )
+										#else
+											#set( $totNwkPlanVsStk = "$number.format('#,##0.0',$tr.get(31))" )
+										#end
+										## 차주 계획대비재고일수
+										<td width="$!{topLine10}px" align="right" style="background-color:#b0b0b0; ">
+											<a id="divNwkPlanVsStk">$totNwkPlanVsStk&nbsp;</a>
+										</td>
+										#if( "$tr.get(32)" == "" )
+											#set( $totNwkActVsStk = "" )
+										#else
+											#set( $totNwkActVsStk = "$number.format('#,##0.0',$tr.get(32))" )
+										#end
+										## 차주실 적대비재고일수
+										<td width="$!{topLine11}px" align="right" style="background-color:#b0b0b0; ">
+											<a id="divNwkActVsStk">$totNwkActVsStk&nbsp;</a>
+										</td>
+                						## 차주 생산계획
+										<td width="$!{topLine12}px" align="right" style="background-color:#b0b0b0; ">
+											<a id="divNwkSchPlan">$tr.get(13)&nbsp;</a>
+										</td>
+                						## 차주 보충요구량
+										<td width="$!{topLine13}px" align="right" style="background-color:#b0b0b0; ">
+											<a id="divNwkRepPlan">$tr.get(18)&nbsp;</a>
+										</td>
+                						## 차주 생산필요량
+										<td width="$!{topLine14}px" align="right" style="background-color:#b0b0b0; ">
+											<a id="divNwkLstProdQtyTot">$tr.get(20)&nbsp;</a>											
+										</td>
+                						## 차주 요구/생산 차이
+										<td width="$!{topLine15}px" align="right" style="background-color:#b0b0b0; ">
+											<a id="divNwkAdjQtyTot">$tr.get(24)&nbsp;</a>
+										</td>
+										## 판매계획가감량(1주평균)
+										<td width="$!{topLine27}px" align="right" style="background-color:#b0b0b0; ">
+											<a id="divW1SalesPlanDiff">$tr.get(41)&nbsp;</a>
+										</td>
+										## 판매계획가감량(3주평균)
+										<td width="$!{topLine28}px" align="right" style="background-color:#b0b0b0; ">
+											<a id="divW3SalesPlanDiff">$tr.get(42)&nbsp;</a>
+										</td>
+                						## 차주 판매계획
+										<td width="$!{topLine16}px" align="right" style="background-color:#b0b0b0; ">
+											<a id="divNwkSalPlan">$tr.get(25)&nbsp;</a>
+										</td>
+										## 차주 판매계획 대비 실적
+										<td width="$!{topLine17}px" align="right" style="background-color:#b0b0b0; ">
+											<a id="divNwkSalVsAct">$tr.get(39)&nbsp;</a>
+										</td>
+                						## 차주 예상재고
+										<td width="$!{topLine18}px" align="right" style="background-color:#b0b0b0; ">
+											<a id="divNwkEohTot">$tr.get(26)&nbsp;</a>
+										</td>
+										#************************************************************************************#
+										## 차차주 계획대비재고일수
+										<td width="$!{topLine19}px" align="right" style="background-color:#b0b0b0; ">
+											<a id="divNNwkPlanVsStkTot">$tr.get(33)&nbsp;</a>
+										</td>
+										## 차차주 실적대비재고일수
+										<td width="$!{topLine20}px" align="right" style="background-color:#b0b0b0; ">
+											<a id="divNNwkActVsStkTot">$tr.get(34)&nbsp;</a>
+										</td>
+										## 차차주 보충요구량
+										<td width="$!{topLine21}px" align="right" style="background-color:#b0b0b0; ">
+											<a id="divNNwkRepPlan">$tr.get(19)&nbsp;</a>
+										</td>
+                						## 차차주 생산필요량
+										<td width="$!{topLine22}px" align="right" style="background-color:#b0b0b0; ">
+											<a id="divNNwkLstProdQtyTot">$tr.get(21)&nbsp;</a>											
+										</td>
+                						## 차차주 판매계획
+										<td width="$!{topLine23}px" align="right" style="background-color:#b0b0b0; ">
+											<a id="divNNwkSalPlan">$tr.get(22)&nbsp;</a>
+										</td>
+										## 차차주 판매계획
+										<td width="$!{topLine24}px" align="right" style="background-color:#b0b0b0; ">
+											<a id="divNNwkSalVsAct">$tr.get(40)&nbsp;</a>
+										</td>
+                						## 차차주 예상재고
+										<td width="$!{topLine25}px" align="right" style="background-color:#b0b0b0; ">
+											<a id="divNNwkEohTot">$tr.get(23)&nbsp;</a>
+										</td>
+										## 차차차주실적대비재고일수
+										<td width="$!{topLine26}px" align="right" class="right" style="background-color:#b0b0b0; ">
+											<a id="divNNNwkActVsStkTot">$tr.get(37)&nbsp;</a>
+										</td>
+									</tr>
+									#else									
+									<tr id="main_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+										#if( "$tr.get(5)" == "" )
+											#set( $wk3Avg = "" )
+										#else
+											#set( $wk3Avg = "$number.format('#,##0.00',$tr.get(5))" )
+										#end
+										## 3주평균 접근율
+										<td width="$!{topLine1}px" align="right" title="판매계획 : [$tr.get(29)]    판매실적 : [$tr.get(30)] ">
+											<a id="divWk3Avg">$wk3Avg&nbsp;</a>
+											<input type="hidden" name="wk3_avg" class="normal" size="20" value="$wk3Avg">							
+										</td>
+										#if( "$tr.get(6)" == "" )
+											#set( $wk1Avg = "" )
+										#else
+											#set( $wk1Avg = "$number.format('#,##0.00',$tr.get(6))" )
+										#end
+										## 1주평균 접근율
+										<td width="$!{topLine2}px" align="right" title="판매계획 : [$tr.get(27)]    판매실적 : [$tr.get(28)] ">
+											<a id="divWk1Avg">$wk1Avg&nbsp;</a>
+											<input type="hidden" name="wk1_avg" class="normal" size="20" value="$wk1Avg">
+										</td>
+										## 안전재고
+										<td width="$!{topLine3}px" align="right" >
+											<a id="divSafetyStock">$tr.get(7)&nbsp;</a>
+											<input type="hidden" name="safety_stock" class="normal" size="20" value="$tr.get(7)">						 					
+										</td>
+										## 기초재고
+										<td width="$!{topLine4}px" align="right" >
+											<a id="divCwkBoh">$tr.get(8)&nbsp;</a>
+											<input type="hidden" name="cwk_boh" class="normal" size="20" value="$tr.get(8)">
+										</td> 
+										## 금주생산계획
+										<td width="$!{topLine5}px" align="right" >
+											<a id="divCwkSchPlan">$tr.get(9)&nbsp;</a>
+											<input type="hidden" name="cwk_schplan" class="normal" size="20" value="$tr.get(9)">											
+										</td> 
+										## 금주판매계획
+										<td width="$!{topLine6}px" align="right" >
+											<a id="divCwkSalPlan">$tr.get(10)&nbsp;</a>
+											<input type="hidden" name="cwk_salplan" class="normal" size="20" value="$tr.get(10)"> 
+										</td>
+										## 금주판매계획 대비 실적
+										<td width="$!{topLine7}px" align="right" >
+											<a id="divCwkSalVsAct">$tr.get(38)&nbsp;</a>
+											<input type="hidden" name="cwk_salVsAct" class="normal" size="20" value="$tr.get(38)"> 
+										</td>
+										#if( "$tr.get(11)" == "" )
+											#set( $wk1AvgPlanAct = "" )
+										#else
+											#set( $wk1AvgPlanAct = "$number.format('#,##0.00',$tr.get(11))" )
+										#end
+                						## 1주평균 판매대비
+										<td width="$!{topLine8}px" align="right" title="1주평균판매실적 : [$tr.get(36)]">
+											<a id="divWk1AvgPlanAct">$wk1AvgPlanAct&nbsp;</a>
+											<input type="hidden" name="wk1avg_plan_act" class="normal" size="20" value="$wk1AvgPlanAct"> 
+										</td>
+										<input type="hidden" name="nwk_lst_prodqty" class="normal" value="$tr.get(17)">
+										<input type="hidden" name="due_date" value="$tr.get(14)">
+										#************************************************************************************#
+                						## 예상재고(차주초)
+										<td width="$!{topLine9}px" align="right" > ##style="background-color:#f8f8f8;"
+											<a id="divNwkBoh">$tr.get(12)&nbsp;</a><input 
+												type="hidden" name="nwk_boh" class="normal" size="20" value="$tr.get(12)">
+										</td>
+										#if( "$tr.get(31)" == "" )
+											#set( $nwkPlanVsStk = "" )
+										#else
+											#set( $nwkPlanVsStk = "$number.format('#,##0.0',$tr.get(31))" )
+										#end
+										## 차주 계획대비재고일수
+										<td width="$!{topLine10}px" align="right" > ##style="background-color:#f8f8f8;"
+											<a id="divNwkPlanVsStk">$nwkPlanVsStk&nbsp;</a><input 
+												type="hidden" name="nwk_plan_vs_stk" class="normal" size="20" value="$nwkPlanVsStk">							
+										</td>
+										#if( "$tr.get(32)" == "" )
+											#set( $nwkActVsStk = "" )
+										#else
+											#set( $nwkActVsStk = "$number.format('#,##0.0',$tr.get(32))" )
+										#end
+										## 차주 실적대비재고일수
+										<td width="$!{topLine11}px" align="right" title="1주평균판매실적 : [$tr.get(36)]"> ##style="background-color:#f8f8f8;"
+											<a id="divNwkActVsStk">$nwkActVsStk&nbsp;</a><input 
+												type="hidden" name="nwk_act_vs_stk" class="normal" size="20" value="$nwkActVsStk"> 
+										</td>
+                						## 차주 생산계획
+										<td width="$!{topLine12}px" align="right" >
+											<a id="divNwkSchPlan">$tr.get(13)&nbsp;</a>
+											<input type="hidden" name="nwk_sch_plan" class="normal" size="20" value="$tr.get(13)"> 
+										</td>
+                						## 차주 보충요구량
+										<td width="$!{topLine13}px" align="right" >
+											<a id="divNwkRepPlan">$tr.get(18)&nbsp;</a><input 
+												type="hidden" name="nwk_rep_plan" class="normal" size="20" value="$tr.get(18)"> 
+										</td>
+                						## 차주 생산필요량
+										<td width="$!{topLine14}px" align="right" >
+											<input type="text" name="nwk_lst_prodqty" class="normal" value="$tr.get(20)"	
+    											onFocusIn="saveValues(this); " onChange="calculate(this); "  onDblClick="this.select(); " ##onKeyDown="moveNextBox(this); " 
+    											style="width:100%;  text-align:right; "><input 
+												type="hidden" name="modify_flag" value="N"><input 
+												type="hidden" name="nnwk_work" value="$tr.get(35)"><input 
+												type="hidden" name="sales_mean_1week" value="$tr.get(36)"> ## 1주평균판매
+												<input type="hidden" name="due_date" value="$tr.get(15)">
+										</td>
+                						## 차주 요구/생산 차이
+										<td width="$!{topLine15}px" align="right" >
+											<a id="divNwkAdjQty">$tr.get(24)&nbsp;</a><input 
+												type="hidden" name="nwk_adj_qty" class="normal" size="20" value="$tr.get(24)"> 
+										</td>
+										## 판매계획가감량(1주평균)
+										<td width="$!{topLine27}px" align="right" >
+											<a id="divW1SalesPlanDiff">$tr.get(41)&nbsp;</a>
+										</td>
+										## 판매계획가감량(3주평균)
+										<td width="$!{topLine28}px" align="right" >
+											<a id="divW3SalesPlanDiff">$tr.get(42)&nbsp;</a>
+										</td>
+                						## 차주 판매계획
+										<td width="$!{topLine16}px" align="right" >
+											<a id="divNwkSalPlan">$tr.get(25)&nbsp;</a><input 
+												type="hidden" name="nwk_salplan" class="normal" size="20" value="$tr.get(25)"> 
+										</td>
+										## 차주 판매계획 대비 실적
+										<td width="$!{topLine17}px" align="right" >
+											<a id="divNwkSalVsAct">$tr.get(39)&nbsp;</a><input 
+												type="hidden" name="nwk_salVsAct" class="normal" size="20" value="$tr.get(39)"> 
+										</td>
+                						## 차주 예상재고
+										<td width="$!{topLine18}px" align="right" >
+											<a id="divNwkEoh">$tr.get(26)&nbsp;</a><input 
+												type="hidden" name="nwk_eoh" class="normal" size="20" value="$tr.get(26)"> 
+										</td> 
+										#************************************************************************************#
+										## 차차주 계획대비재고일수
+										<td width="$!{topLine19}px" align="right" > ##style="background-color:#f8f8f8;"
+											<a id="divNNwkPlanVsStk">$tr.get(33)&nbsp;</a><input 
+												type="hidden" name="nnwk_plan_vs_stk" class="normal" size="20" value="$tr.get(33)"> 
+										</td>
+										## 차차주 실적대비재고일수
+										<td width="$!{topLine20}px" align="right" title="1주평균판매실적 : [$tr.get(36)]"> ##style="background-color:#f8f8f8;"
+											<a id="divNNwkActVsStk">$tr.get(34)&nbsp;</a><input 
+												type="hidden" name="nnwk_act_vs_stk" class="normal" size="20" value="$tr.get(34)"> 
+										</td>
+										## 차차주 보충요구량
+										<td width="$!{topLine21}px" align="right" >
+											<a id="divNwkRepPlan">$tr.get(19)&nbsp;</a><input 
+												type="hidden" name="nwk_rep_plan" class="normal" size="20" value="$tr.get(19)"> 
+										</td>
+                						## 차차주 생산필요량
+										<td width="$!{topLine22}px" align="right" >
+											<input type="text" name="nwk_lst_prodqty" class="normal" value="$tr.get(21)"	
+    											onFocusIn="saveValues2(this); " onChange="calculate2(this); "  onDblClick="this.select(); " ##onKeyDown="moveNextBox(this); " 
+    											style="width:100%;  text-align:right; "><input 
+												type="hidden" name="modify_flag" value="N"><input 
+												type="hidden" name="sales_mean_week1" value="$tr.get(36)"> ## 1주평균판매
+												<input type="hidden" name="due_date" value="$tr.get(16)">
+										</td>
+                						## 차차주 판매계획
+										<td width="$!{topLine23}px" align="right" >
+											<a id="divNwkSalPlan">$tr.get(22)&nbsp;</a><input 
+												type="hidden" name="nwk_salplan" class="normal" size="20" value="$tr.get(22)"> 
+										</td>
+										## 차차주 판매계획 대비 실적
+										<td width="$!{topLine24}px" align="right" >
+											<a id="divNwkSalVsAct">$tr.get(40)&nbsp;</a><input 
+												type="hidden" name="nwk_salVsAct" class="normal" size="20" value="$tr.get(40)"> 
+										</td>
+                						## 차차주 예상재고
+										<td width="$!{topLine25}px" align="right" >
+											<a id="divNwkEoh">$tr.get(23)&nbsp;</a><input 
+												type="hidden" name="nwk_eoh" class="normal" size="20" value="$tr.get(23)"> 
+										</td>
+										## 차차차주 실적대비재고일수
+										<td width="$!{topLine26}px" align="right" class="right" title="1주평균판매실적 : [$tr.get(36)]"> ##style="background-color:#f8f8f8;"
+											<a id="divNNNwkActVsStk">$tr.get(37)&nbsp;</a><input 
+												type="hidden" name="nnnwk_act_vs_stk" class="normal" size="20" value="$tr.get(37)"> 
+										</td>
+									</tr>
+									#end
+								#end
+								</tbody>
+							</table>
+						</div>
+					</td></tr></table>
+					
+					<table border="0" width="100%" cellpadding="0" cellspacing="0" height="5px"><tr><td></td></tr></table>
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+						
+					<input type="hidden" name="_moon_service">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					<input type="hidden" name="_user_id" value="$!{_user_id}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+																				
+				</div>
+			</div> 
+		</td>
+	</tr>
+</table> 
+ 
+<script>
+	 
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력 
+	var helpStr = "◈ 조회 일자를 선택하고 우측 상단의 조회 버튼을 클릭하면 공장할당 결과 조정 화면이 조회 됩니다.";		
+	helpStr += "<br>◈ 차주 생산필요량은 최신 공장할당 계획 결과에서 산출 합니다.";
+	helpStr += "<br>◈ 차주 생산필요량을 변경하면 요구/생산 차이, 차주 예상재고, 소계, 총계 등이 자동으로 변경 됩니다.";
+	helpStr += "<br>◈ 차주 생산필요량을 수정하고 우측 상단의 저장 버튼을 클릭하면 변경된 내용이 저장 됩니다.";
+	helpStr += "<br>";
+	helpStr += "<br>◈ 계산 로직";
+	helpStr += "<br>◈ 1. 3주평균 접근율, 1주평균 접근율 : 판매계획/판매실적";
+	helpStr += "<br>◈ 2. 기초재고 : 조회일자 당일 기초재고";
+	helpStr += "<br>◈ 3. 금주생산계획, 금주판매계획 : 금주 조회일자부터 남은기간";
+	helpStr += "<br>◈ 4. 1주평균 판매대비 : 금주판매계획/(1주일평균판매*금주잔여판매일수)";
+	helpStr += "<br>◈ 5. 예상재고(차주초) : 기초재고 + 금주생산계획 - 금주판매계획";
+	helpStr += "<br>◈ 6. 요구/생산차이 : 생산필요량 - 보충요구량";
+	helpStr += "<br>◈ 7. 계획대비 재고일수 : 예상재고/(해당주 판매계획/영업일수)";
+	helpStr += "<br>◈ 8. 실적대비 재고일수 : 예상재고/ 일주평균 판매 ";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+		
+</script>

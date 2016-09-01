@@ -1,0 +1,120 @@
+<script language="JavaScript" type="text/javascript">
+	window.onload = function() { setSize(); }
+	window.onresize = function() { setSize(); }
+	window.oncontextmenu="return $!{_moon_refresh_detect}"
+
+	function setSize() {		
+		if (document.body.clientHeight > 100) {
+			document.grid1.height = document.body.clientHeight - 100;		
+		}
+	}
+</script>
+
+<input type="hidden" name="perpage_pre" value="${_moon_perpage}">
+<input type="hidden" name="pagenumber_pre" value="$!{_moon_pagenumber}">
+ 
+ <table border="0" width="100%" height="100%" cellpading="0" cellspacing="0"> 
+	 <tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">				
+				<div class="tab-page" id="tabPage1">
+					<h2 class="tab">$_moon_title</h2>
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>Total : <b>$_moon_service_count</b>
+							    
+								#set( $headertype = "TEXT!%!TEXT" )		
+                            	#set( $header = "코드!%!코드명" )
+                            	#set( $colwidth = "100!%!200")
+                            	#set( $data = $grid.getBody(${customer_code_list},"!%!", "/%/") )
+                            	#set( $columaligns = "") 
+									
+        						<textarea id="txt1" style="display:none;" rows="0" cols="0">                           		
+									<object name='grid1' classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93" width="100%" 
+                            		 codebase="http://java.sun.com/update/1.6.0/jinstall-6-windows-i586.cab#Version=1,5,3,0">
+									
+                            			<!--Necessary-->
+                            			<param name="code" value="com.zionex.t3sinc.ui.ZLattice.class">
+                            			<param name="archive" value="$request.getContextPath()/zLattice.jar">
+                            			<param name="headertypes" value="$!{headertype}">
+                            			<param name="headers" value="$!{header}">
+                            			<param name="headertype" value="HORIZONTAL_HEADER">
+                            			<param name="columnheight" value="40"> ## 한줄 추가 될때마다 20 의 배수로 증가하면 됨			
+                            			<param name="data" value="$!{data}">
+                            				 
+                            			<!--optional - Default Value 있음-->
+                            			<param name="hasnestedsubheader" value="false"> <!-- defalut : false -->
+                            			<param name="topheaders" value="Item/%/Site">
+                            			<param name="topheaderposition" value="O!%!O/%/O!%!O/%/X!%!X">
+                            			<param name="columndelimeter" value="!%!"> <!-- defalut : !%! -->
+                            			<param name="rowdelimeter" value="/%/"> <!-- defalut : /%/ -->
+                            			<param name="showgroupingfunction" value="false">  <!-- defalut : true -->
+                            			<param name="showprintingfunction" value="false">   <!-- defalut : true -->
+                            			<param name="showlockingfunction" value="false"> <!-- defalut : true -->
+                            			<param name="showpagingfunction" value="false"> <!-- defalut : true --> 
+                            			<param name="enablesorting" value="true">   <!-- defalut : true -->
+                            			<param name="enabledragging" value="true"> <!-- defalut : false -->
+                            			<param name="groupingcolumn" value="0"> <!-- defalut : 그루핑 없음 --> 
+                            			<param name="groupsumcolumn" value="-1"> <!-- defalut : 그루핑 없음 -->
+                            			<param name="lockedcolumn" value="0"> <!-- defalut : 락킹 없음 -->
+                            			<param name="presentpage" value="1">   <!-- defalut : 1 -->
+                            			<param name="listinpage" value="1">   <!-- defalut : 40 -->
+                            			<param name="bordertype" value="PLANE"> <!-- default - PLANE : PICTURE, RAISED, NONE -->
+                            			##<param name="indateformat" value="yyyy-MM-dd HH:mm:ss.SSS"> <!-- default - yyyyMMdd -->
+                            			<param name="indateformat" value="yyyy/MM/dd"> <!-- default - yyyyMMdd -->
+                            			<param name="outdateformat" value="yyyy/MM/dd">  <!-- default - yyyyMMdd -->
+                            			##<param name="outnumberformat" value="###,###,##0.000##"> ## 을 주석으로 인식하므로 아래와 같이 &#035; 로 표기
+                            			##<param name="outnumberformat" value="&#035;,&#035;&#035;0.00">
+                            			<param name="columnwidth" value="$!{colwidth}"> <!-- default -80 -->
+                            
+                            			<!--<param name="combo3" value="DECIMAL(10,2)!%!VARCHAR!%!CHAR(1)!%!INT!%!DATETIME"> -->
+                            
+                            			<!--Necessary for Modifiability -->
+                            			<param name="names" value="">
+                            			<param name="enableinserting" value="false"> <!-- default -false -->
+                            			<param name="enabledeleting" value="false"> <!-- default -false -->
+                            			<param name="enableediting" value="false"> <!-- default -false -->
+                            
+                            			<param name="disablecolumns" value="0">
+                            
+                            			<param name="hasverticaltotal" value="false"> <!-- default -true -->
+                            			<param name="hashorizontaltotal" value="false"> <!-- default -true -->
+                            
+                            			<param name="columnalign" value="$!{columaligns}">
+                            			<param name="font" value="굴림체">
+                            			<param name="fontsize" value="12">
+                            
+                            			<!--optional - Default Value 없음 -->
+                            			<!--<param name="columncolor" value="5=FFE4E1&6=FFE4E1&7=FFE4E1">
+                            			<param name="rowcolor" value="1,일별합계=33FFFF&1,LOT 합계=FF9966">
+                            			<param name="columncolor" value="3=FFFFCC"> -->
+                               			<param name="onclickrowfunc" value="addCheckedItem">  
+                            			<param name="callingfunction" value="DOUBLECLICKED_CALLING"> <!-- 더블클릭으로 이벤트 발생 -->
+                            			##<param name="rowcolor" value="1,전체합계=FFCC99&1,합계=D2FFD2"> 
+                            			<!--optional - Default Value 없음
+                            			<param name="columncolor" value="5=FFE4E1&6=FFE4E1&7=FFE4E1">
+                            			<param name="rowcolor" value="1,일별합계=33FFFF&1,LOT 합계=FF9966">
+                            			<param name="onclickrowfunc" value="onclickfunc">
+                            			-->
+                            		</object>
+                            	</textarea>
+								<script language="javascript" src="${project}/object_activity.jsp?txtID=txt1"></script>
+        						<!-- <script language="javascript" src="${project}/object_activity.vm"></script> -->								
+							</td>
+						</tr> 
+					</table>					
+					<table height="5"><tr><td></td></tr></table>				
+					<!-- page start -->
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+						$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+						<input type="hidden" name="_moon_service" value="${_moon_service}">
+						<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+						<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+						<input type="hidden" name="_user_id" value="$!{_user_id}">
+					</td></tr></table>
+					<!-- page end -->
+				</div>			 	
+			</div> 
+		</td>
+	</tr>
+</table> 

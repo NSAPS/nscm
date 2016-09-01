@@ -1,0 +1,109 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수  
+#set( $resizeFuncCallCode = "setTabAutoResize('90')" )
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						#toolbar($_moon_toolbar "" "menu_register" "" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr style="display:none; ">
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2">
+					<td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; ">
+            				<tr id="search_menu" style="display:block; ">
+            					<td width="10%" align="right">
+									&nbsp;
+            					</td>
+            					<td width="90%" align="left">
+									&nbsp;
+            					</td>
+            				</tr> 
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2">
+					<td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="0"> ## search 조건 부분 높이 
+	##<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top" >
+			<div class="tab-pane" id="tabPane1" >
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; " >
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table border="0" width="100%">
+						<tr>
+							<td width="70%">
+								<table cellspacing="0" width="100%" class="table2">
+									<tr>
+										<td class="td1" width="20%" align="center">메뉴 ID</td>
+										<td class="td2" width="80%">
+											<input type="text" name="menu_id_insert" size="30" class="normal" onkeydown="enterToTapCheck();"
+												style="padding-left:5px; width:100%; " value="$!{menu_id_insert}">
+										</td>
+									</tr>
+									<input type="hidden" name="_moon_service">
+									<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+									<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+								</table>
+							</td>
+							<td align="left" width="30%">
+								<input type="button" value=" 중복체크 " class="button1_1" onClick="check(); " >
+							</td>
+						</tr>
+					</table>
+				</div>
+			</div>			
+		</td>
+	</tr>
+</table>
+ 
+<script>
+			
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 메뉴ID 항목을 입력한 후 상단의 저장 버튼을 클릭하여 메뉴ID를 등록합니다.";	
+	helpCont.innerHTML = helpStr;
+	// 도움말 zoomOut 높이 조절 변수
+	hDynamicHeight = 0;	
+	
+	// 중복 체크 실행 여부
+	// 0 : 체크 않함
+	// 1 : 체크 -> 중복
+	// 2 : 체크 -> 중복아님
+	var dCheckResult = 0;
+	
+</script>

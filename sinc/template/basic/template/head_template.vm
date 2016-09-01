@@ -1,0 +1,138 @@
+
+## session out 시 화면을 보이지 않게 
+#if( "$!{_moon_skin}" != "" ) 
+	
+#set($project = $request.getContextPath())
+#parse("/sinc/template/basic/skin/${_moon_skin}/skin.vm")
+
+<html>
+<head>
+	<TITLE>HEADER of SCM System for NONGSHIM</TITLE>
+<style>
+td {  font-family: ${font_family}; font-size: ${font_size}pt; color: #FFFFFF}
+</style>
+<script>
+      function GoLogout(){      	
+      	parent.window.close();
+      }
+     
+     function GoHome(){
+	 	parent.mainFrame.location ="${project}/service.do?_moon_service=default_main";			
+     }
+
+	//KSY 2005.09.08
+	//modify PSW 2006.06.08
+	function KeepLoginId(userid,skin) {
+		var days = 100;
+		var date = new Date();
+		date.setTime(date.getTime()+(days*24*60*60*1000));
+		var newCookie = "userid=" + userid+ "; "
+				    + "expires=" + date.toGMTString() +"; "
+				    + "path=/";
+					
+		document.cookie = newCookie;		    	
+		
+		newCookie = "skin=" + skin+ "; "
+				    + "expires=" + date.toGMTString() +"; "
+				    + "path=/";
+		document.cookie = newCookie;		    					
+	}
+		
+	function home_toggle(div) {
+		if (div=="over") {
+			home_over.style.display='block';
+			home_out.style.display='none';
+		} else {
+			home_over.style.display='none';
+			home_out.style.display='block';
+		}
+	}
+	function logout_toggle(div) {
+		if (div=="over") {
+			logout_over.style.display='block';
+			logout_out.style.display='none';
+		} else {
+			logout_over.style.display='none';
+			logout_out.style.display='block';
+		}
+	}
+	function back_toggle(div) {
+		if (div=="over") {
+			back_over.style.display='block';
+			back_out.style.display='none';
+		} else {
+			back_over.style.display='none';
+			back_out.style.display='block';
+		}
+	}
+	
+</script>
+</head>
+
+##<body bgcolor="${body_bgcolor}" onLoad="KeepLoginId('$!{_user_id}','$!{_moon_skin}')" oncontextmenu="return false">
+<body bgcolor="white" onLoad="KeepLoginId('$!{_user_id}','$!{_moon_skin}')" oncontextmenu="return false">
+<form name="frm">	
+<table height="100%" cellSpacing=0 cellPadding=0 width="100%" border=0>
+	<tr bgColor=#ffffff>
+		<td align=middle>
+      		<table cellspacing="0" cellPadding="0" width="100%" border="0" height="100%" >
+	        	<tr>
+                	<td align=left width="250" bgcolor="#ffffff">
+                		<table width="100%" height="100%">
+                			<tr>
+                				<td height="100%">
+									<img src="$!{project}/sinc/template/basic/skin/nongshim/images/common/top_logo.gif" width="228" height="70">
+                				</td>
+                			</tr>
+                		</table>
+                	</td>
+					<td align="absmiddle">
+						<table width="100%" border="0" cellpadding="0" cellspacing="0" background="$!{project}/sinc/template/basic/skin/nongshim/images/common/top_bar_bg.gif">
+							<tr>
+								<td align="left" width="22"><img src="$!{project}/sinc/template/basic/skin/nongshim/images/common/top_bar_l.gif" width="22" height="27"></td>
+								<td align="left" onMouseOver="home_toggle('over')" onMouseOut="home_toggle('out')">
+									<div id="home_out"><a href="#">
+										<img src="$!{project}/sinc/template/basic/skin/nongshim/images/common/top_home.gif" width="47" height="27" 
+											onclick="GoHome(); " style="border-width:0px; " align="absmiddle">
+									</a></div>
+									<div id="home_over"><a href="#">
+										<img src="$!{project}/sinc/template/basic/skin/nongshim/images/common/top_home.gif" width="47" height="27" 
+											onclick="GoHome(); " style="border-width:0px; " align="absmiddle">
+									</a></div>
+								</td>
+								<td align="left" onMouseOver="logout_toggle('over')" onMouseOut="logout_toggle('out')">
+									<div id="logout_out"><a href="#">
+										<img src="$!{project}/sinc/template/basic/skin/nongshim/images/common/top_logout.gif" width="58" height="27" 
+											onclick="GoLogout(); " style="border-width:0px; " align="absmiddle">
+									</a></div>
+									<div id="logout_over"><a href="#">
+										<img src="$!{project}/sinc/template/basic/skin/nongshim/images/common/top_logout.gif" width="58" height="27" 
+											onclick="GoLogout(); " style="border-width:0px; " align="absmiddle">
+									</a></div>
+								</td>
+								<td align="right" width="100%">남웅용 로컬서버입니다^^&nbsp;</td>
+								<td align="right" width="187"><img src="$!{project}/sinc/template/basic/skin/nongshim/images/common/top_bar_right.gif" width="187" height="27"></td>
+								<td align="right" width="10px" bgcolor="#ffffff">&nbsp;</td>
+							</tr>
+						</table>
+					</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+<input type="hidden" name="_moon_service" value="">
+</form>
+</body>
+<script>
+	home_over.style.display='none';
+	home_out.style.display='block';
+	logout_over.style.display='none';
+	logout_out.style.display='block';
+</script>
+</html>
+
+#else 
+	$response.sendRedirect("about:blank") 
+
+#end 

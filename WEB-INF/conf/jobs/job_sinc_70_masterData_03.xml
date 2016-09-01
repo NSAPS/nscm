@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+	<!--
+	======================================================================
+		◈1. 품목마스터 관리
+	======================================================================
+	-->	
+	<!-- 품목마스터 : 조회 -->
+	<job id="md_01060_itemMasterManagement_list_new" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 공통 >> 품목마스터 관리</navigation>
+		<toolbars>0010</toolbars>
+		<title>품목마스터 관리</title>
+		<authority>1</authority>		
+		<description>품목마스터 관리</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="md_01060_combo_item_type" datasource="t3sinc"/>
+		</queries>
+	</job>	
+
+
+	<!-- 품목마스터 : 조회 -->
+	<job id="md_01060_itemMasterManagement_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 공통 >> 품목마스터 관리</navigation>
+		<toolbars>0100</toolbars>
+		<title>품목마스터 관리</title>
+		<authority>1</authority>		
+		<description>품목마스터 관리</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="md_01060_combo_item_type" datasource="t3sinc"/>
+			<query idref="md_01060_itemMasterManagement_list" datasource="t3sinc"/>
+		</queries>
+	</job>	
+
+	<!--플렌트별 품목마스터조회 iframe--> 
+	<job id="md_01070_itemMasterDetail_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 공통 >> 품목마스터 관리</navigation>
+		<toolbars>1111</toolbars>
+		<title>풀렌트별 품목 관리</title>
+		<authority>1</authority>		
+		<description>iframe</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="md_01070_itemMasterDetail_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+		
+	<!-- 품목마스터 : 수정화면 -->
+	<job id="md_01060_itemMasterManagement_mod" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 공통 >> 품목마스터 관리 >> 수정</navigation>
+		<toolbars>0010</toolbars>
+		<title>품목마스터 관리 - 수정</title>
+		<authority>1</authority>		
+		<description>품목마스터 관리 - 수정</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="md_01060_combo_item_type" datasource="t3sinc"/>
+			<query idref="md_01060_combo_yn" datasource="t3sinc"/>
+			<query idref="md_01060_combo_cat01" datasource="t3sinc"/>
+			<query idref="md_01060_combo_cat02" datasource="t3sinc"/>
+			<query idref="md_01060_combo_cat03" datasource="t3sinc"/>
+			<query idref="md_01060_combo_cat06" datasource="t3sinc"/>
+			<query idref="md_01060_combo_cat07" datasource="t3sinc"/>
+			<query idref="md_01060_combo_multi" datasource="t3sinc"/>
+			<query idref="md_01060_combo_sales_plan_appl_code" datasource="t3sinc"/>
+			<query idref="md_01060_combo_cm_gubn" datasource="t3sinc"/>
+			<query idref="md_01060_itemMasterManagement_mod" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+	<!--플렌트별 품목마스터 수정 iframe--> 
+	<job id="md_01070_itemMasterDetail_mod" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 공통 >> 품목마스터 관리</navigation>
+		<toolbars>1111</toolbars>
+		<title>풀렌트별 품목 관리</title>
+		<authority>1</authority>
+		<description>iframe</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="md_01060_combo_dayweek_pattern" datasource="t3sinc"/>
+			<query idref="md_01060_combo_mc_type" datasource="t3sinc"/>
+			<query idref="md_01070_itemMasterDetail_mod" datasource="t3sinc"/>
+		</queries>
+	</job>
+				
+	<!-- 품목마스터 : 저장 -->
+	<job id="md_01060_itemMasterManagement_mod_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_01060_itemMasterManagement_mod_save"/>		
+		<sub_job id="md_01060_itemMasterManagement_list"/>
+		<permission_desc>품목마스터 관리 - 수정</permission_desc>
+	</job>	
+	<job id="md_01060_itemMasterManagement_mod_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="md_01060_itemMasterManagement_mod_save" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+	<!-- PLANT별 품목관리 : 저장 -->
+	<job id="md_01070_itemMasterDetail_mod_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_01070_itemMasterDetail_mod_save"/>		
+		<sub_job id="md_01070_itemMasterDetail_mod"/>
+		<permission_desc>PLANT별 품목 관리 - 수정</permission_desc>
+	</job>	
+	<job id="md_01070_itemMasterDetail_mod_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="md_01070_itemMasterDetail_mod_save" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+
+
+	<!--품목마스터 -  품목 이력 등록 관리--> 
+	<job id="md_01060_itemHist_popup" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 공통 >> 품목마스터 관리</navigation>
+		<toolbars>0010</toolbars>
+		<title>품목 이력 등록 관리</title>
+		<authority>1</authority>
+		<description>iframe</description>		
+		<request_type>list</request_type>
+	</job>
+	
+	<!-- 품목이령 생성 SP 호출 -->
+
+	<job id="md_01060_itemHist_popup" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="md_01060_create_item_hist" datasource="t3sinc"/>
+		</queries>
+	</job>	
+
+
+
+	<!--
+	======================================================================
+		◈2. 품목 이력 관리
+	======================================================================
+	-->	
+	<!-- 품목이력 : 조회 -->
+	<job id="md_01080_itemHistoryMgmt_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 공통 >> 품목이력 관리</navigation>
+		<toolbars>1000</toolbars>
+		<title>품목이력 관리</title>
+		<authority>1</authority>		
+		<description>품목이력 관리</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="md_01080_itemHistoryMgmt_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- ITEM SEARCH POPUP : PAGING : ITEM_HIST 관리 화면 용 -->
+	<job id="md_01080_item_search_popup_for_item_hist" job_type="single">
+		<path>/sinc/70.MasterData</path>
+		<navigation>품목 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>품목 조회</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="md_01080_item_search_popup_for_item_hist" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 품목이력 : 수정 화면 -->
+	<job id="md_01080_itemHistoryMgmt_mod" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 공통 >> 품목이력 관리 >> 수정</navigation>
+		<toolbars>0010</toolbars>
+		<title>품목이력 관리 - 수정</title>
+		<authority>1</authority>		
+		<description>품목이력 관리 - 수정</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="md_01080_itemHistoryMgmt_mod" datasource="t3sinc"/>
+		</queries>
+	</job>
+			
+	<!-- 품목이력 : 수정 저장 -->
+	<job id="md_01080_itemHistoryMgmt_mod_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_01080_itemHistoryMgmt_mod_save"/>		
+		<sub_job id="md_01080_itemHistoryMgmt_list"/>
+		<permission_desc>품목이력 관리 - 수정</permission_desc>
+	</job>	
+	<job id="md_01080_itemHistoryMgmt_mod_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="md_01080_itemHistoryMgmt_mod_save_01" datasource="t3sinc"/>
+			<query idref="md_01080_itemHistoryMgmt_mod_save_02" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 품목이력 등록 -->
+	<job id="md_01080_itemHistoryMgmt_reg" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 공통 >> 품목이력 관리 >> 등록</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>품목이력 등록</title>
+		<authority>1</authority>		
+		<description>품목이력 등록</description>
+		<request_type>list</request_type>
+	</job>
+	
+	<!-- 품목이력 등록 : 저장 -->
+	<job id="md_01080_itemHistoryMgmt_reg_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_01080_itemHistoryMgmt_reg_save"/>		
+		<sub_job id="md_01080_itemHistoryMgmt_reg"/>
+		<permission_desc>품목이력 등록-저장</permission_desc>
+	</job>
+	<job id="md_01080_itemHistoryMgmt_reg_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="md_01080_itemHistoryMgmt_reg_save_01" datasource="t3sinc"/>
+			<query idref="md_01080_itemHistoryMgmt_reg_save_02" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+	<!--
+	======================================================================
+		◈3.검사제약조건 관리 
+	======================================================================
+	-->	
+	<!-- 검사제약조건 조회-->
+	<job id="md_04100_inspectionRestriction_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>생산계획 >> 제약조건 >>  검사제약조건 조회</navigation>
+		<toolbars>1100</toolbars><!--(등록/수정/저장/삭제)-->
+		<title> 검사제약조건 조회</title>
+		<authority>1</authority>		
+		<description> 검사제약조건 조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="md_04100_combo_plant" datasource="t3sinc"/>
+			<query idref="md_04100_combo_item_type" datasource="t3sinc"/>
+			<query idref="md_04100_inspectionRestriction_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+
+	<!-- 검사제약조건 수정화면 -->
+	<job id="md_04100_inspectionRestriction_mod" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>생산계획 >> 제약조건 >>  검사제약조건 수정</navigation>
+		<toolbars>0010</toolbars><!--(등록/수정/저장/삭제)-->
+		<title> 검사제약조건 수정</title>
+		<authority>1</authority>		
+		<description> 검사제약조건 수정</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="md_04100_combo_plant" datasource="t3sinc"/>
+			<query idref="md_04100_combo_item_type" datasource="t3sinc"/>
+			<query idref="md_04100_combo_ins_type" datasource="t3sinc"/>
+			<query idref="md_04100_combo_ins_loc" datasource="t3sinc"/>
+			<query idref="md_04100_combo_ins_days" datasource="t3sinc"/>
+			<query idref="md_04100_combo_ins_market" datasource="t3sinc"/>
+			<query idref="md_04100_inspectionRestriction_mod" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+	<!-- 검사제약조건 수정화면 : 저장 -->
+	<job id="md_04100_inspectionRestriction_mod_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_04100_inspectionRestriction_mod_save"/>		
+		<sub_job id="md_04100_inspectionRestriction_list"/>
+		<permission_desc>검사제약조건 - 수정</permission_desc>
+	</job>	
+	<job id="md_04100_inspectionRestriction_mod_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="md_04100_inspectionRestriction_mod_save_01" datasource="t3sinc"/>
+			<query idref="md_04100_inspectionRestriction_mod_save_02" datasource="t3sinc"/>
+			<query idref="md_04100_inspectionRestriction_mod_save_03" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+	<!-- 검사제약조건 신규등록화면 -->
+	<job id="md_04100_inspectionRestriction_reg" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>생산계획 >> 제약조건 >> 검사제약조건 >> 신규등록 </navigation>
+		<toolbars>0010</toolbars><!--(등록/수정/저장/삭제)-->
+		<title> 검사제약조건 등록</title>
+		<authority>1</authority>		
+		<description> 검사제약조건 등록</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="md_04100_combo_plant" datasource="t3sinc"/>
+			<query idref="md_04100_combo_item_type" datasource="t3sinc"/>
+			<query idref="md_04100_combo_ins_type" datasource="t3sinc"/>
+			<query idref="md_04100_combo_ins_loc" datasource="t3sinc"/>
+			<query idref="md_04100_combo_ins_days" datasource="t3sinc"/>
+			<query idref="md_04100_combo_ins_market" datasource="t3sinc"/>		</queries>
+	</job>
+
+	<!-- 검사제약조건 신규등록 : 저장 -->
+	<job id="md_04100_inspectionRestriction_reg_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_04100_inspectionRestriction_reg_save"/>		
+		<sub_job id="md_04100_inspectionRestriction_list"/>
+		<permission_desc>검사제약조건 등록 </permission_desc>
+	</job>	
+	<job id="md_04100_inspectionRestriction_reg_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="md_04100_inspectionRestriction_reg_save" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!--
+	======================================================================
+		◈4. 입고DC별 수송단위관리
+	======================================================================
+	-->
+	<!-- 입고DC별 수송단위관리 : 조회-->
+	<job id="md_04110_transUnit_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 수송계획 >> 입고DC별 수송단위관리</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>입고DC별 수송단위관리</title>
+		<authority>1</authority>		
+		<description>입고DC별 수송단위관리</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="dc_id_and_name_list" datasource="t3sinc"/><!-- 입고장 정보 검색 조건 -->
+			<query idref="md_04110_transUnit_list" datasource="t3sinc"/><!-- 적용중인 품목 조회 -->
+		</queries>
+	</job>
+	
+	<!-- 입고DC별 수송단위관리 : 저장 -->
+	<job id="md_04110_transUnit_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_04110_transUnit_list_save"/>		
+		<sub_job id="md_04110_transUnit_list"/>
+		<permission_desc>중계수송거점설정-저장</permission_desc>
+	</job>
+	<job id="md_04110_transUnit_list_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="md_04110_transUnit_list_save_01" datasource="t3sinc"/>
+			<query idref="md_04110_transUnit_list_save_02" datasource="t3sinc"/> 
+		</queries>
+	</job>
+
+
+	<!--
+	======================================================================
+		◈4. 품목별 수송단위관리
+	======================================================================
+	-->
+	<!-- 품목별 수송단위관리 : 조회-->
+	<job id="md_04110_transUnit_item_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 수송계획 >> 입고DC별 수송단위관리</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>입고DC별 수송단위관리</title>
+		<authority>1</authority>		
+		<description>입고DC별 수송단위관리</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="dc_id_and_name_list" datasource="t3sinc"/><!-- 입고장 정보 검색 조건 -->
+			<query idref="md_04110_transUnit_item_list" datasource="t3sinc"/><!-- 적용중인 품목 조회 -->
+		</queries>
+	</job>
+	
+	<!-- 품목별 수송단위관리 : 저장 -->
+	<job id="md_04110_transUnit_item_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_04110_transUnit_item_list_save"/>		
+		<sub_job id="md_04110_transUnit_item_list"/>
+		<permission_desc>중계수송거점설정-저장</permission_desc>
+	</job>
+	<job id="md_04110_transUnit_item_list_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="md_04110_transUnit_item_list_save_01" datasource="t3sinc"/>
+			<query idref="md_04110_transUnit_item_list_save_02" datasource="t3sinc"/> 
+		</queries>
+	</job>
+
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</jobs>	

@@ -1,0 +1,377 @@
+############################################################
+## 프로그램ID : rp_01160_replenishmentNiceLikePlan.vm
+## 프로그램명 : 자동공급계획
+## 개발자  : 남웅용
+## 개발일자 : 2009-11-19
+##
+##관련 job file : 
+##
+##관련 query file : 
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2009-11-19  남웅용     rp_01160_replenishmentNiceLikePlan.vm 개발
+##
+##
+############################################################
+
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수
+#set( $resizeFuncCallCode = "setWiseGridAutoResize('150', '273')" )
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/replenishPlan.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+############################ Index ###################################
+## 전월실적(0)      입고사업장ID(1)  입고사업장(2)    당일재고(3) 
+## 판매누계(4)     판매오더(5)       1주평균판매(6)    3주평균판매(7)  
+## 입고예정(8)     출고예정(9)       예상재고(10)    ,  재고기간(25)
+## 익일판매계획(12) 안전재고(13)      보충요구량(14)  공급량PLT(15)  
+## 공급량BOX(16)   출고사업장ID(17)  출고사업장(18)   예상재고2(19)
+## 최소수송단위(20) 전일판매(21)    CRDC_FLAG(22)	당일판매계획(23)	익일판매오더 (24)
+
+
+#########################################    WiseGrid Event     #####################################################			
+######################################### 기본 Event외 추가 Event #####################################################
+
+<script language=javascript for="WiseGrid" event="HeaderClick(strColumnKey)">
+HeaderClick_DW1(strColumnKey);
+</script> 
+
+## WiseGrid에 Mouse Over 되었을때 이벤트가 발생한다. 
+##<script language=javascript for="WiseGrid3" event="MouseOver(strType ,strColumnKey, nRow)">
+##  handler1(strType, strColumnKey, nRow);
+##</script>
+
+
+## WiseGrid의 컨텍스트 메뉴의 사용자 컨텍스트 메뉴를 클릭했을때 발생한다. 
+<script language=javascript for="WiseGrid" event="UserContextMenuClick(strMenuKey, strMenuItemKey, strColumnKey, nRow)">
+  	GridUserContextMenuClickHandler(strMenuKey, strMenuItemKey, strColumnKey, nRow);
+</script>
+
+<script language=javascript for="WiseGrid3" event="UserContextMenuClick(strMenuKey, strMenuItemKey, strColumnKey, nRow)">
+  	handler(strMenuKey, strMenuItemKey, strColumnKey, nRow);
+</script>
+
+##  WiseGrid의 t_combo타입의 컬럼내용이 변경되었을때 발생합니다  
+<script language=javascript for="WiseGrid" event="ChangeCombo(strColumnKey,nRow,nOldIndex,nNewIndex)">
+	GridChangeComboHandler(strColumnKey, nRow, nOldIndex, nNewIndex);
+</script>
+
+## WiseGrid가 생성됨과 동시에 발생한다. 
+<script language="javascript" for="WiseGrid2" event="Initialize()">
+	init2();
+</script>
+
+## DoQuery 메소드가 실행되고 서버와의 통신이 정상적으로 완료되면 발생한다. 
+<script language="javascript" for="WiseGrid2" event="EndQuery()">
+	GridEndQuery2();
+</script>
+
+<script language=javascript for="WiseGrid2" event="HeaderClick(strColumnKey)">
+	HeaderClick_DW2(strColumnKey);
+</script> 
+
+<script language=javascript for="WiseGrid2" event="CellDblClick(strColumnKey, nRow)">
+	CellDblClick_DW2(strColumnKey, nRow);
+</script> 
+
+## WiseGrid가 생성됨과 동시에 발생한다. 
+<script language="javascript" for="WiseGrid3" event="Initialize()">
+	init3();
+</script>
+
+## DoQuery 메소드가 실행되고 서버와의 통신이 정상적으로 완료되면 발생한다. 
+<script language="javascript" for="WiseGrid3" event="EndQuery()">
+	GridEndQuery3();
+</script>
+
+<script language=javascript for="WiseGrid3" event="CellDblClick(strColumnKey, nRow)">
+	CellDblClick_DW3(strColumnKey, nRow);
+</script> 
+
+############################################ WiseGrid Event #########################################################
+##onkeypress
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0" onkeydown="enterShortKey();" onKeyUp="onKeyUp();">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+					<td align="left">
+						&nbsp;&nbsp;
+						##수송계획버젼
+						<a id="divVersion"> 
+    						<select name="plan_version" style="width:130px; " >
+    							<option value="">선택</option>									
+    						</select>		
+						</a>
+						<script>
+                        	function doChange(){ 
+                        		var divStr = "<select name=\"plan_version\" style=\"width:130px; \" onChange=\"setVersions(this.value); doChange2(document.frm.scm_charge); \"  > ";
+                        	#foreach( $condition in $outOrderAdjDailyTransportPlan_version_list )
+                        		if ( "DAILY" == "$condition.get(2)" ) { 
+                        			divStr += "<option value=\"${condition.get(0)}!%!${condition.get(1)}\" ";
+									if("$condition.get(4)" == "27") // confrim 된 버전인 경우.
+										if("$!{plan_version}" == "${condition.get(0)}!%!${condition.get(1)}")
+											divStr += "style=\"background-color:#ffffaa; \" selected>";
+										else
+											divStr += "style=\"background-color:#ffffaa; \">";
+									else
+										if("$!{plan_version}" == "${condition.get(0)}!%!${condition.get(1)}")
+											divStr += " selected>";
+										else
+											divStr += ">";
+                        			divStr += "$condition.get(0) - $condition.get(1)</option>"; 
+                        		}
+                        	#end 
+                        		divStr += "</select>"; 
+                        		divVersion.innerHTML = divStr;	
+								setVersions(document.frm.plan_version.value);
+                        	}        
+						</script>
+						<input type="hidden" name="version" value="$!{version}">
+						<input type="hidden" name="seq" value="$!{seq}">
+						## 수송일자
+						##date_sole_no_title("trans_start" "10" "normal" "btnS" "$date.get('yyyy-MM-dd')")
+            			<input type="text" name="trans_start" size="10" class="normal" value="$date.get('yyyy-MM-dd')" maxlength="10" onBlur="chkDate(this, '10')" 
+                				onkeypress="enterCheckDate('$_moon_service', this, '10');" onChange="doChange2(document.frm.scm_charge);" style="text-align:center; "><img src="sinc/template/basic/skin/nongshim/images/common/icon_cal.gif"
+                				id="btnS" align="absmiddle" border="0" style="cursor:pointer;">
+                	    	<script type="text/javascript">
+                        	    Calendar.setup({
+                        	        inputField     :    "trans_start",     // id of the input field
+                        			ifFormat       :    "%Y-%m-%d",      // format of the input field 
+                        			button         :    "btnS",  			// trigger for the calendar (button ID)
+                        	        align          :    "Tl",           // alignment (defaults to "Bl")
+                        	        singleClick    :    true
+                        	    });
+                        	</script>
+						##담당
+						<select name="scm_charge" onChange="doChange2(this);" >
+							#foreach( $condition in $rp_01160_SCM_CHARGE_list )
+								<option value="$condition.get(0)" #if( "$!{_user_id}" == "$condition.get(0)" ) selected #end  >$condition.get(1)</option>
+							#end
+						</select>
+						##<select name="scm_charge" onChange="doChange2(this);" >
+						##	<option value="%" #if( "$!{in_owner_gubn}" == "%" ) selected #end >전체</option>
+						##	<option value="01" #if( "$!{in_owner_gubn}" == "01" ) selected #end >SCM담당</option>
+						##	<option value="02" #if( "$!{in_owner_gubn}" == "02" ) selected #end >마케팅담당</option>
+						##</select>
+    					<a id="divItemCombo" align="left">
+    						##품목
+    						<select name="item_id" onChange=""  >
+    							<option value=""  selected  >선택</option> 
+    						</select>
+    					</a>
+						<script>
+							doChange2(document.frm.scm_charge);
+						</script>
+		                ##<img name="imgItem" src="sinc/template/basic/skin/nongshim/images/common/icon_search.gif" 
+						##	align="absmiddle" border="0" style="cursor:pointer;"  
+						##	onClick="openItemPopup(); ">
+						<input name="item_info" class="normal" style="width:45px; " value="" style="text-align:center; " disabled >	
+						<input name="box_per_palet" class="normal" style="width:30px; " value="" style="text-align:center; " disabled >	
+						<input type="hidden" name="itype" value="">
+						<input name="cd_gubn" class="normal" style="width:0px; font:10px/15px 맑은 고딕 bold;" value="" style="text-align:center; " disabled >	
+						<input type="hidden" name="curr_item_id" value="">
+						<input type="hidden" name="curr_trans_start" value="">
+						<input type="hidden" name="curr_version" value=""> 
+						<input name="btnSCM_CHARGE_SETUP" type="button" value="담당" style="width:35px; text-align:center;" onClick="execute_scm_charge_setup('SETUP'); "  
+            							class="button1_1" onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'">
+						<input name="btnSCM_CHARGE_CANCEL" type="button" value="해제" style="width:35px; text-align:center;" onClick="execute_scm_charge_setup('CANCEL'); "  
+            							class="button1_1" onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'">									
+						사용자예측 		
+						##<td width="50px" align="left">
+								
+								##<td width="55px" align="left"> 
+									<input type="text" name="frc_qty" class="normal" style="width:40px; text-align:right; "  
+										style="ime-mode:disabled;" onkeypress="checkForNumber(this);"> 
+								##</td>
+								
+						##<td>		
+						<select name="week_gubn" onChange="">
+            							<option value="01" #if( "$!{week_gubn}" == "01" ) selected #end >주초</option>
+            							<option value="02" #if( "$!{week_gubn}" == "02" ) selected #end >주중</option>
+            							<option value="03" #if( "$!{week_gubn}" == "03" ) selected #end >주말</option>
+            			</select>
+						이벤트물량
+							<input type="text" name="event_qty" class="normal" style="width:45px; text-align:right; "  
+										style="ime-mode:disabled;" onkeypress="checkForNumber(this);"> 
+						
+##<input name="test" type="button" value="dw상태확인" style="width:80px; text-align:center;" onClick="check_status(); "  
+##				class="button1_1" onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'">
+					</td>
+					<td align="right">
+						#button("search")
+						<input type="button" name="btnSave" value="  저장" onClick="GoSave();" class="btn_sav_on" >
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2">
+					<td colspan="3" style="background-color:#d0d0d0; " ></td>
+				</tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " ></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" 
+							id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr>
+            					<td align="left">
+            						&nbsp;
+            						<select name="in_zone_gubn">
+            							<option value="0" #if( "$!{in_zone_gubn}" == "0" ) selected #end >전체</option>
+            							<option value="1" #if( "$!{in_zone_gubn}" == "1" ) selected #end >수도권</option>
+            							<option value="7" #if( "$!{in_zone_gubn}" == "7" ) selected #end >부산권</option>
+            						</select>    
+									<input type="text" name="confirm_qty" class="normal" style="width:70px; text-align:right; "  
+										style="ime-mode:disabled;" onkeypress="checkForNumber(this);"> ## onChange ="Do_DC_Allocate(this);">
+        						    ##<input type="button" name="btnAlloc" value="  할당" onClick="Do_DC_Allocate();" class="btn_sav_on" >
+									&nbsp;
+									<select name="in_supply_gubn">
+            							<option value="01" #if( "$!{in_supply_gubn}" == "01" ) selected #end >구성량</option>
+            							<option value="04" #if( "$!{in_supply_gubn}" == "04" ) selected #end >공급율</option>
+            							<option value="02" #if( "$!{in_supply_gubn}" == "02" ) selected #end >판매계획</option>
+            							<option value="03" #if( "$!{in_supply_gubn}" == "03" ) selected #end >공급할당</option>
+            						</select>            					
+    								<select name="in_mean_sell">
+            							<option value="01" #if( "$!{in_mean_sell}" == "01" ) selected #end >3주평균</option>
+            							<option value="02" #if( "$!{in_mean_sell}" == "02" ) selected #end >1주평균</option>
+            							<option value="03" #if( "$!{in_mean_sell}" == "03" ) selected #end >(1+3)주/2</option>
+            							<option value="03" #if( "$!{in_mean_sell}" == "04" ) selected #end >전월실적</option>
+            						</select>            					
+									<input type="radio" name="in_trans_unit"  style="border:0px; " value="pal" >PL</intput>
+									<input type="radio" name="in_trans_unit"  style="border:0px; " value="box" >BOX</intput> 
+									<input type="radio" name="in_trans_unit"  style="border:0px; " value="usr" checked="on">수송단위</intput> 
+									&nbsp;&nbsp;
+									<select name="chk_involve_CD" onChange="">
+            							<option value="01" #if( "$!{chk_involve_CD}" == "01" ) selected #end >C/D제외</option>
+            							<option value="02" #if( "$!{chk_involve_CD}" == "02" ) selected #end >C/D중계</option>
+            							<option value="03" #if( "$!{chk_involve_CD}" == "03" ) selected #end >일반</option>
+            						</select>  
+									&nbsp;&nbsp;
+									정렬
+									<select name="in_sort_key" onChange="changeSortKey(this);">
+            							<option value="ROWNUM" #if( "$!{in_sort_key}" == "ROWNUM" ) selected #end >초기화</option>
+            							<option value="STOCK_DAY" #if( "$!{in_sort_key}" == "STOCK_DAY" ) selected #end >재고일수</option>
+            							<option value="NEXT_STOCK_DAY" #if( "$!{in_sort_key}" == "NEXT_STOCK_DAY" ) selected #end >예상일수</option>
+            							<option value="STOCK_TERM" #if( "$!{in_sort_key}" == "STOCK_TERM" ) selected #end >재고기간</option>
+            							<option value="TRANS_PLAN_QTY" #if( "$!{in_sort_key}" == "TRANS_PLAN_QTY" ) selected #end >보충박스</option>
+            							<option value="REP_QTY" #if( "$!{in_sort_key}" == "REP_QTY" ) selected #end >보충요구량</option>
+            							<option value="SALES_MEAN_3WEEK" #if( "$!{in_sort_key}" == "SALES_MEAN_3WEEK" ) selected #end >3주평균</option>
+            							<option value="SALES_MEAN_1WEEK" #if( "$!{in_sort_key}" == "SALES_MEAN_1WEEK" ) selected #end >1주평균</option>
+            							<option value="PRE_MONTH_SELL" #if( "$!{in_sort_key}" == "PRE_MONTH_SELL" ) selected #end >전월판매</option>
+            							<option value="SALES_PRE" #if( "$!{in_sort_key}" == "SALES_PRE" ) selected #end >전일판매</option>
+            							<option value="SALES_PRE_CUM" #if( "$!{in_sort_key}" == "SALES_PRE_CUM" ) selected #end >판매누계</option>
+            							<option value="SALES_PLAN" #if( "$!{in_sort_key}" == "SALES_PLAN" ) selected #end >판매계획</option>
+            							<option value="ISSUE" #if( "$!{in_sort_key}" == "ISSUE" ) selected #end >판매주문</option>
+            							<option value="BASE_STOCK" #if( "$!{in_sort_key}" == "BASE_STOCK" ) selected #end >당일재고</option>
+            							<option value="STOCK_EXPT" #if( "$!{in_sort_key}" == "STOCK_EXPT" ) selected #end >예상재고</option>
+            							<option value="NEXT_STOCK_EXPT" #if( "$!{in_sort_key}" == "NEXT_STOCK_EXPT" ) selected #end >익일기초재고</option>
+            							<option value="RECEIPT" #if( "$!{in_sort_key}" == "RECEIPT" ) selected #end >입고예정</option>
+            							<option value="CHGO_QTY" #if( "$!{in_sort_key}" == "CHGO_QTY" ) selected #end >출고예정</option>
+            						</select>  
+									내림
+									<input name="chk_sort_descend" type="checkbox" class="normal" onClick="changeSortDesc();"
+        								style="background-color:#f2f2f2; border:0;"
+        								#if("$!{chk_sort_descend}" == "Y")  #end>
+									그룹
+									<input name="chk_do_grouping" type="checkbox" class="normal" onClick="doGrouping();"
+        								style="background-color:#f2f2f2; border:0;" >
+        						</td>
+								<td align="right">
+									선행지수 
+									<input name="ld_idc" class="normal" style="width:45px; " value="" style="text-align:center; " disabled >	
+									&nbsp;&nbsp;	
+									<input name="btnSelectedChangeRow" type="button" value="일괄변경" style="width:50px; text-align:center;" onClick="changeChecked(this); " ##clickLine(this,1); 
+            							class="button1_1" onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'">	
+									<input name="btnChangeSize" type="button" value="축소" style="width:30px; text-align:center;" onClick="ChangeSize_DW1(this); "  
+            							class="button1_1" onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'">
+									<input type="radio" name="stock_type" style="border:0px; " value="base" checked="on">기본</intput>
+									<input type="radio" name="stock_type" style="border:0px; " value="prod" >생산</intput> 
+									&nbsp;&nbsp;
+									##공급할당저장
+									##<input name="chk_alloc_save" type="checkbox" class="normal" onClick=""
+        							##	style="background-color:#f2f2f2; border:0;"
+        							##	checked>
+									##<input type="hidden" name="chk_alloc_save_yn" value="$!{chk_alloc_save_yn}">
+								</td>
+            				</tr> 
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2">
+					<td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="50"> ## search 조건 부분 높이
+	<tr><td height="1"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<table id="tbBottom" border="0" width="100%" cellpadding="0" cellspacing="0" width="100%" height="150px">
+				<tr height="100%">
+					<td align="left" width="89%" >
+						<script>initWiseGrid("WiseGrid2", "100%", "100%");</script>
+					</td>  
+					<td align="left" width="11%"> 
+						<script>initWiseGrid("WiseGrid3", "100%", "100%");</script> 
+					</td>
+				</tr>
+			</table>
+			<table name="grid" width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+				<tr>
+					<td align="left" > 
+						<script>initWiseGrid("WiseGrid", "100%", "450");</script>  
+					</td> 
+				</tr>
+			</table> 
+		</td>
+	</tr>
+
+	<input type="hidden" name="_moon_service" value="$!{_moon_service}">
+	<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+	<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+	<input type="hidden" name="_user_id" value="$!{_user_id}">
+	## 번호 배경색
+	<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 계획버전, 수송일자, 품목코드를 반드시 입력하고 조회해야 합니다.";
+	helpStr += "<br>◈ 각 항목을 입력한 후 상단의 저장 버튼을 클릭하여 수정 내용을 저장합니다.";
+	helpStr += "<br>◈ PLT, BOX를 수정하기 전에 출고장을 먼저 선택하셔야 합니다.";
+	helpStr += "<br>◈ 수정가능한 컬럼은 PLT, BOX, 출고사업장, 최소수송단위 입니다.";
+	helpStr += "<br>◈ PLT나 BOX를 0으로 변경하면 해당 수송계획은 삭제됩니다.";
+	helpStr += "<br>◈ PLT값을 수정하면 BOX 수량이 자동 셋팅되고, BOX값을 수정하면 PLT값이 자동 셋팅됩니다.";
+	helpCont.innerHTML = helpStr;
+	// 도움말 zoomOut 높이 조절 변수
+	hDynamicHeight = 0;
+	
+	// 버전 초기값 세팅
+	//setVersions(document.frm.plan_version.value);
+	doChange();
+	if( "$!{plan_version}" != "" ) {
+		document.frm.plan_version.value = "$!{plan_version}";
+	}
+	
+</script>

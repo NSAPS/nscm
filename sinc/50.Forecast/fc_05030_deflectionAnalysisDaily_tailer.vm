@@ -1,0 +1,157 @@
+#*-----------------------------------------------------------------------
+ @path    /sinc/50.Forecast/script/fc_05030_deflectionAnalysisDaily_tailer.vm
+ @Creator    김규철 
+ @version    1.0
+ @date        2008-11-26 
+ @description : 판매실적 편차분석 조회 화면(iframe) - 주/일별  
+ -------------------------------------------------------------------------
+*#  
+ 
+<input type="hidden" name="project" value="$!{project}">
+   
+<!-- 부모로 부터 받는 변수 setting -->	  
+<input type="hidden" name="sdate"   value="$!{sdate}"> 
+<input type="hidden" name="item_id"     value="$!{item_id}">     ##제품
+<input type="hidden" name="item_name"   value="$!{item_name}">   ##제품명
+
+<input type="hidden" name="org_gubun"   value="$!{org_gubun}">   ##구분2
+<input type="hidden" name="sales_org"   value="$!{sales_org}">   ##영업조직
+
+<input type="hidden" name="diff_check1"   value="$!{diff_check1}"> ##구분3 
+<input type="hidden" name="diff_check2"   value="$!{diff_check2}"> ##구분3
+<input type="hidden" name="diff_check3"   value="$!{diff_check3}"> ##구분3 
+ 
+<input type="hidden" name="recordVar"   value="$!{recordVar}">   ##구분4
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">	 
+	 <tr>
+		<td valign="top"> 
+			<div class="tab-pane" id="salesCtlTailTbp"> 
+				<div class="tab-page" id="tabPage1">
+					<h2 class="tab">편차분석(주/일)</h2>		
+					<table id="gridArea" width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">						
+					<tr>
+						<td>
+						###### page 구현 , KIM KC
+						<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+    						<tr>
+    							<td>#page_info()</td>
+    							<td align="right">#table_display()</td>
+    						</tr>
+    					</table>	
+						<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">						
+						###### page 구현시 500 row 이상 안됨.
+						<tr> 
+							 <td>
+							    #set($total = $nongshim.getTotal(${fc_05030_deflectionAnalysisDaily_tailer}))
+	                            #set($ww = $!day_Weekly_main_list.get(0)) 
+								#set($wd = $!day_Weekly_sub_list.get(0))
+
+								#if($total == "0")
+									#set( $headertype = "TEXT" )
+                            		#set( $header = "데이터 없음" ) 
+                            		#set( $colwidth = "100" )
+                            		#set( $data = "데이터 없음" )
+                            		#set( $columaligns = "" )
+									#set( $groupingCol = "-1" )
+									#set( $lockedCol = "-1" ) 
+									#set( $hasnestedsubheader = "false") 
+								#else 
+									#set( $headertype = "TEXT" )  
+    								#set( $header = "SALE ID!%!영업지점!%!ITEMID!%!품목!%!구분!%!$wd.get(0)!%!$wd.get(1)!%!$wd.get(2)!%!$wd.get(3)!%!$wd.get(4)!%!$wd.get(5)!%!$wd.get(6)!%!$wd.get(7)!%!$wd.get(8)!%!$wd.get(9)!%!$wd.get(10)!%!$wd.get(11)!%!$wd.get(12)!%!$wd.get(13)!%!$ww.get(2)!%!$ww.get(3)!%!$ww.get(4)!%!$ww.get(5)!%!$ww.get(6)!%!$ww.get(7)!%!$ww.get(8)!%!$ww.get(9)" )																		 							   
+    								## 이중헤더								
+    								#set( $topheaderPosition = "X!%!X!%!X!%!X!%!X!%!O!%!O!%!O!%!O!%!O!%!O!%!O/%/O!%!O!%!O!%!O!%!O!%!O!%!O/%/O/%/O/%/O/%/O/%/O/%/O/%/O/%/O" )
+    								#set( $topheader = "$!{ww.get(0)}/%/$!{ww.get(1)}" )              
+    								#set( $headerType = "TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT" )
+    								#set( $colwidth = "0!%!100!%!100!%!125!%!125!%!60!%!60!%!60!%!60!%!60!%!60!%!60!%!60!%!60!%!60!%!60!%!60!%!60!%!60!%!60!%!60!%!60!%!60!%!60!%!60!%!60!%!60" )
+    								#set( $colalign = "CENTER!%!CENTER!%!CENTER!%!CENTER!%!CENTER!%!CENTER!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT" )
+    								#set( $data = $zlattice.getBody($!{fc_05030_deflectionAnalysisDaily_tailer},"!%!", "/%/") ) 
+								    #set( $hasnestedsubheader = "true")
+								#end
+									 
+								<textarea id="txt1" style="display:none;" rows="0" cols="0"> 
+									<object name='grid1'
+										classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93" width="100%" height="375"
+										##codebase="http://java.sun.com/update/1.5.0/jinstall-1_5_0_03-windows-i586.cab#Version=1,5,3,0">
+										codebase="http://javadl.sun.com/webapps/download/AutoDL?BundleId=19588#Version=6,0,050,13">
+										<!--Necessary-->  
+										<param name="code" value="com.zionex.t3sinc.ui.ZLattice">
+										<param name="archive" value="zLattice.jar">
+										<param name="headertypes" value= "$headerType">
+										<param name="headers"  value= "$header">
+										<param name="data" value= "$data">
+										<!--Necessary for Modification Grid -->
+										<param name="names" value= "" >
+										<!--Necessary for Cookie -->
+
+										<!--Necessary in TYPE COMBO 
+										<param name="combo9" value="DATA1!%!DATA2!%!DATA3">-->
+										<!--optional - Default Value 있음--> 
+										<param name="columndelimeter" value="!%!"> <!-- defalut : !%! -->
+										<param name="rowdelimeter" value="/%/"> <!-- defalut : /%/ -->
+										<param name="showgroupingfunction" value="false">  <!-- defalut : true -->
+										<param name="showprintingfunction" value="false">   <!-- defalut : true -->
+										<param name="showlockingfunction" value="false"> <!-- defalut : true -->
+										<param name="showpagingfunction" value="false"> <!-- defalut : true -->
+										<param name="enablesorting" value="true">      <!-- defalut : true -->
+										<param name="groupingcolumn" value="4"> <!-- defalut : 그루핑 없음 --> 
+										<param name="groupsumcolumn" value="0"> <!-- defalut : 그루핑 없음 -->
+										<param name="lockedcolumn" value="6"> <!-- defalut : 락킹 없음 --> 
+										<param name="presentpage" value="$_moon_pagenumber">   <!-- defalut : 1 -->
+										<param name="listinpage" value="$_moon_perpage">   <!-- defalut : 40 -->
+										<param name="bordertype" value="PLANE"> <!-- default - PLANE -->
+										<param name="indateformat" value="yyyy-MM-dd"> <!-- default - yyyyMMdd -->
+										<param name="outdateformat" value="yyyy-MM-dd">  <!-- default - yyyyMMdd -->									
+										<param name="outnumberformat" value="&#035;,&#035;&#035;0">  									 
+										<param name="columnwidth" value="$colwidth"> <!-- default -80 -->
+										<param name="hasverticaltotal" value="false"> <!-- default -true -->
+										<param name="hashorizontaltotal" value="false"> <!-- default -true -->
+										<param name="totalrowcolor" value="909090"> <!-- default ? E6E6FA -->
+										<param name="totalverticalrowcolor" value="909090"> <!-- default ? E6E6FF -->
+										<param name="totalhorizontalrowcolor" value="a1a1a1"> <!-- default ? E6E6FF -->
+										<param name="hascookie" value="false">       <!-- default -false -->
+										<param name="enableinserting" value="false"> <!-- default -false -->
+										<param name="enabledeleting" value="false">  <!-- default -false -->
+										<param name="enableediting" value="false"> <!-- default -false -->
+										<!--optional - Default Value 없음-->
+										<param name="columncolor" value="$!{colCor}">       
+										#set( $rowCor = "5,판매계획적중률(예측)=CCCCCC&5,판매실적적중률(예측)=CCCCCC&5,판매실적적중률(계획)=CCCCCC" )    										
+										<param name="rowcolor" value="$!{rowCor}">   
+										<param name="onclickrowfunc" value="onclickfunc">
+										<param name="callingfunction" value="DOUBLECLICKED_CALLING">
+										<param name="disablecolumns" value="">
+										<param name="columnalign" value="$colalign">
+										<param name="font" value="굴림">
+										<param name="fontsize" value="12">
+										<param name="columnheight" value="40"> 
+										<param name="headertype" value="HORIZONTAL_HEADER">
+										
+										## 이중 헤더  
+										<param name="hasnestedsubheader" value="$!{hasnestedsubheader}"> 
+										<param name="topheaders" value="$!{topheader}">
+										<param name="topheaderposition" value="$!{topheaderPosition}">
+										<param name="enabledragging" value="true">
+									</object>
+								</textarea> 
+								<script language="javascript" src="${project}/object_activity.jsp?txtID=txt1"></script>
+                          </td>
+						</tr>
+					</table>
+       					   </td>  
+						</tr>
+					</table>
+					<!-- page start -->
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+            			$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+            			<input type="hidden" name="_moon_service"     value="${_moon_service}">				
+            			<input type="hidden" name="_moon_pagenumber"  value="${_moon_pagenumber}"> 
+            			##<input type="hidden" name="_moon_perpage"     value="$!{_moon_perpage}"> 
+					</td></tr></table>
+					<!-- page end -->
+					## waiting 표시영역
+					#waitingArea()  					
+				</div>			
+			</div> 
+		</td>
+	</tr>
+</table>

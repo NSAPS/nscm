@@ -1,0 +1,1403 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>
+
+<!--
+=====================================================================================================
+	기준정보 >> 계획수립
+=====================================================================================================
+-->
+	
+	<!--
+	======================================================================
+		일간계획
+	======================================================================
+	-->
+	
+	<!-- 계획구간 버전 리스트 -->
+	<query id="md_00010_periodVersion_list">
+			
+			-- SEQ(3번째 필드)가 1 이면 생성되어 있는 계획구간 버전, 0 이면 생성되지 않은 계획구간 버전
+			SELECT 	VL.RUN_DATE, VL.RUN_SEQ, VL.SEQ
+			  FROM 	(
+					SELECT 	VL.RUN_DATE, VL.RUN_SEQ, MAX(VL.SEQ) SEQ
+					  FROM (
+							SELECT 	TO_CHAR(VL.RUN_DATE, 'YYYYMMDD') RUN_DATE, VL.RUN_SEQ, 1 SEQ
+							  FROM 	PLAN_VERSION_LOG VL
+							 WHERE 	VL.PERIOD_TYPE = '$!{PERIOD_TYPE}'
+							   AND 	VL.MADE_TYPE != 'DE'
+							UNION ALL
+							-- 일간계획의 경우, 당일 계획버전이 없으면 새로 생성하기 위해
+							-- 당일 1차수를 추가해 준다
+							SELECT 	TO_CHAR(SYSDATE, 'YYYYMMDD') RUN_DATE, 1 RUN_SEQ, 0 SEQ
+							  FROM 	DUAL
+					 		) VL
+					 GROUP 	BY VL.RUN_DATE, VL.RUN_SEQ
+					 ORDER 	BY VL.RUN_DATE DESC, VL.RUN_SEQ DESC
+					) VL
+			 WHERE 	31 > ROWNUM
+			
+	</query>
+	
+	<!-- 일간계획 -->
+	<query id="md_00010_controlBoardDaily_list" paging="false">
+			
+			<!-- 상태정의
+				======================================
+				0.  최초는 NULL
+				======================================
+				1.  인터페이스 시작
+				2.  인터페이스 진행중
+				3.  인터페이스 오류
+				4.  인터페이스 완료
+				======================================
+				5.  계획수립 시작
+				..............................
+				6.  계획정보 로딩 시작
+				7.  계획정보 로딩중
+				8.  계획정보 로딩 실패
+				9.  계획정보 로딩 완료
+				..............................
+				10. 스케줄링 시작(실제 엔진 구동)
+				11. 계획수립 진행중
+				12. 계획수립 실패
+				13. 스케줄링 완료
+				..............................
+				14. 계획결과 저장 시작
+				15. 계획결과 저장 진행중
+				16. 계획결과 저장 실패
+				17. 계획결과 저장 완료
+				..............................
+				18. 계획결과 컨버젼 시작
+				19. 계획결과 컨버젼 진행중
+				20. 계획결과 컨버젼 실패
+				21. 계획결과 컨버젼 완료
+				..............................
+				22. 계획수립 완료
+				======================================
+				23. 계획확정
+				======================================
+				24. ERP 전송 시작
+				25. ERP 전송 진행중
+				26. ERP 전송 실패
+				27. ERP 전송 완료
+				====================================== -->
+			-- CHECKED 계획부문코드 계회부문명 공장코드 공장명 버전 SEQ 상태 상태표시
+			-- 기준정보확인 IF진행 IF보기 계획수립진행 계획수립보기 확정 취소 추가 ERP전송진행 ERP전송보기
+			-- PERIOD_TYPE RUN_DATE RUN_SEQ PLAN_STEP CAT_SEQ SUB_CAT
+			SELECT 	DECODE(VL.PLAN_STEP, NVL(MX.MAX_STEP, 0), 'checked', NULL) CHECKED
+					, EM.CAT_ID, EM.CAT_NAME, EM.PLANT_ID, EM.PLANT_NAME, VL.VERSION, VL.SEQ, VL.STATUS
+					, DECODE(VL.STATUS, 0, NULL, VL.STATUS_NAME) STATUS_NAME
+					, DECODE(VL.PLAN_STEP, NVL(MX.MAX_STEP, 0), '', 'disabled') VIEW_BASIC -- 기준정보 확인 : RADIO 버튼이 활성이면 항상 활성
+					-- IF 진행 가능 : 0 3 4 8 12 16 20 22
+					, CASE WHEN ( VL.PLAN_STEP = MX.MAX_STEP ) AND
+								( VL.STATUS = 0 OR VL.STATUS = 3 OR VL.STATUS = 4 OR VL.STATUS = 8
+									OR VL.STATUS = 12 OR VL.STATUS = 16 OR VL.STATUS = 20 OR VL.STATUS = 22 )
+						   THEN '' ELSE 'disabled' 
+					END EXEC_IF
+					-- IF 보기 가능 : 3~27
+					, CASE WHEN ( VL.PLAN_STEP = MX.MAX_STEP ) AND VL.STATUS >= 3 AND 27 >= VL.STATUS THEN '' ELSE 'disabled' END VIEW_IF
+					-- 계획수립 진행 가능 : 4 8 12 16 20 22
+					, CASE WHEN ( VL.PLAN_STEP = MX.MAX_STEP ) AND 
+								( VL.STATUS = 4 OR VL.STATUS = 8 OR VL.STATUS = 12 OR VL.STATUS = 16 
+									OR VL.STATUS = 20 OR VL.STATUS = 22 )
+						   THEN '' ELSE 'disabled'
+					END EXEC_PLAN
+					-- 계획수립 보기 가능 : 8 12 16 20 22~27
+					, CASE WHEN ( VL.PLAN_STEP = MX.MAX_STEP ) AND
+								( VL.STATUS = 8 OR VL.STATUS = 12 OR VL.STATUS = 16 OR VL.STATUS = 20 
+								OR (VL.STATUS >= 22 AND 27 >= VL.STATUS) )
+						   THEN '' ELSE 'disabled'
+					END VIEW_PLAN
+					-- 확정 가능 : 22
+					, CASE WHEN ( VL.PLAN_STEP = MX.MAX_STEP ) AND ( VL.STATUS = 22 ) THEN '' ELSE 'disabled' END CONFIRM
+					-- 취소 가능 : 8 12 16 20 22
+					, CASE WHEN ( VL.PLAN_STEP = MX.MAX_STEP ) AND
+								( VL.STATUS = 8 OR VL.STATUS = 12 OR VL.STATUS = 16 OR VL.STATUS = 20 OR VL.STATUS = 22 )
+						   THEN '' ELSE 'disabled' 
+					END CANCEL
+					-- 추가 가능 : 22 23 26 27
+					, CASE WHEN ( VL.PLAN_STEP = MX.MAX_STEP ) AND
+								( VL.STATUS = 22 OR VL.STATUS = 23 OR VL.STATUS = 26 OR VL.STATUS = 27 )
+						   THEN '' ELSE 'disabled'
+					END ADD_VER
+					-- ERP 전송 가능 : 23 26
+					, CASE WHEN ( VL.PLAN_STEP = MX.MAX_STEP ) AND ( VL.STATUS = 23 OR VL.STATUS = 26 ) THEN '' ELSE 'disabled' END TO_ERP
+					-- ERP 보기 가능 : 26 27
+					, CASE WHEN ( VL.PLAN_STEP = MX.MAX_STEP ) AND ( VL.STATUS = 26 OR VL.STATUS = 27 ) THEN '' ELSE 'disabled' END VIEW_ERP
+					, NVL(VL.PERIOD_TYPE, '$!{PERIOD_TYPE}') PERIOD_TYPE
+					, NVL(VL.RUN_DATE, NVL('$!{run_date_sel}', TO_CHAR(SYSDATE, 'YYYYMMDD'))) RUN_DATE
+					, NVL(VL.RUN_SEQ, NVL(TO_NUMBER('$!{run_seq_sel}'), NVL(DR.DEFAULT_RUN_SEQ, 1))) RUN_SEQ
+					, VL.PLAN_STEP -- PLAN_STEP 은 화면에서 생성
+					, EM.CAT_SEQ, EM.SUB_CAT, VL.COMMTS
+			  FROM 	(
+						-- ENGN_BAT_MST 정보
+						SELECT 	EM.SEQ CAT_SEQ, EM.CAT_ID, CM.CD_NAME CAT_NAME, EM.SUB_CAT, EM.PLANT_ID, PT.HID_NAME PLANT_NAME
+						  FROM 	ENGN_BAT_MST EM
+								, ( 	SELECT CM.CD, CM.CD_NAME, CM.CAT01 
+										  FROM CODE_MST CM 
+										 WHERE CM.CD_GRP = 'CAT_ID' AND CM.MADE_TYPE != 'DE' ) CM
+								, ( 	SELECT HR.HID, HR.HID_NAME 
+										  FROM HRCHY HR 
+										 WHERE HR.LVL_TYPE = '공장' AND HR.MADE_TYPE != 'DE' ) PT
+						 WHERE 	EM.CAT_ID = CM.CD
+						   AND 	EM.PLANT_ID = PT.HID(+)
+						   AND 	EM.PERIOD_TYPE = '$!{PERIOD_TYPE}'
+						   AND 	EM.MADE_TYPE != 'DE'
+						--
+						-- 판매계획
+						UNION ALL
+						SELECT 	0 CAT_SEQ, 'SP' CAT_ID, '판매계획' CAT_NAME, 'SS' SUB_CAT, '' PLANT_ID, '' PLANT_NAME
+						  FROM 	DUAL
+					) EM
+					, (
+					-- PLAN_VERSION_LOG 정보
+					<!-- 처음 화면 로드인 경우, MAX VERSION 의 DATA -->
+					#if( "$!{run_date_sel}" == "" )
+						SELECT 	VL.PERIOD_TYPE, TO_CHAR(VL.RUN_DATE, 'YYYYMMDD') RUN_DATE, VL.RUN_SEQ, VL.PLAN_STEP
+								, VL.CAT_ID, VL.SUB_CAT, VL.VERSION, VL.SEQ, NVL(VL.STATUS, 0) STATUS, ST.CD_NAME STATUS_NAME
+								, VL.COMMTS
+						  FROM 	PLAN_VERSION_LOG VL
+								, ( 	SELECT CM.CD, CM.CD_NAME 
+										  FROM CODE_MST CM 
+										 WHERE CM.CD_GRP = 'STATUS' AND CM.MADE_TYPE != 'DE' ) ST -- STATUS
+						  		, (
+						  			SELECT 	VI.RUN_DATE, VI.RUN_SEQ
+						  			  FROM 	(
+								  			SELECT 	VI.RUN_DATE, VI.RUN_SEQ
+								  			  FROM 	PLAN_VERSION_LOG VI
+								  			 WHERE 	VI.PERIOD_TYPE = '$!{PERIOD_TYPE}'
+								  			   AND 	VI.MADE_TYPE != 'DE'
+								  			   -- DEFAULT 로 오늘의 계획이 보여지도록 함
+								  			   AND 	TO_CHAR(VI.RUN_DATE, 'YYYYMMDD') = TO_CHAR(SYSDATE, 'YYYYMMDD')
+								  			 ORDER 	BY VI.RUN_DATE DESC, VI.RUN_SEQ DESC
+						  			 		) VI
+						  			 WHERE 	ROWNUM = 1
+						  		) MX
+						 WHERE 	VL.PERIOD_TYPE = '$!{PERIOD_TYPE}'
+						   AND 	TO_CHAR(VL.RUN_DATE, 'YYYYMMDD') = TO_CHAR(MX.RUN_DATE, 'YYYYMMDD')
+						   AND 	VL.RUN_SEQ = MX.RUN_SEQ
+						   AND 	VL.MADE_TYPE != 'DE'
+						   AND 	NVL(VL.STATUS, 0) = ST.CD
+					<!-- PERIOD VERSION 을 선택한 경우, 해당 VERSION DATA -->
+					#else
+						SELECT 	VL.PERIOD_TYPE, TO_CHAR(VL.RUN_DATE, 'YYYYMMDD') RUN_DATE, VL.RUN_SEQ, VL.PLAN_STEP
+								, VL.CAT_ID, VL.SUB_CAT, VL.VERSION, VL.SEQ, NVL(VL.STATUS, 0) STATUS, ST.CD_NAME STATUS_NAME
+								, VL.COMMTS
+						  FROM 	PLAN_VERSION_LOG VL
+								, ( 	SELECT CM.CD, CM.CD_NAME 
+										  FROM CODE_MST CM 
+										 WHERE CM.CD_GRP = 'STATUS' AND CM.MADE_TYPE != 'DE' ) ST -- STATUS
+						 WHERE 	VL.PERIOD_TYPE = '$!{PERIOD_TYPE}'
+						   AND 	TO_CHAR(VL.RUN_DATE, 'YYYYMMDD') = REPLACE(REPLACE('$!{run_date_sel}', '-', ''), '/', '')
+						   AND 	VL.RUN_SEQ = TO_NUMBER('$!{run_seq_sel}')
+						   AND 	VL.MADE_TYPE != 'DE'
+						   AND 	NVL(VL.STATUS, 0) = ST.CD
+					#end
+					) VL
+					, (
+					-- MAX PLAN_STEP 정보
+					<!-- 처음 화면 로드인 경우, MAX VERSION 의 MAX(PLAN_STEP) -->
+					#if( "$!{run_date_sel}" == "" )
+						SELECT 	MAX(VL.PLAN_STEP) MAX_STEP
+						  FROM 	PLAN_VERSION_LOG VL
+						  		, (
+						  			SELECT 	VI.RUN_DATE, VI.RUN_SEQ
+						  			  FROM 	(
+								  			SELECT 	VI.RUN_DATE, VI.RUN_SEQ
+								  			  FROM 	PLAN_VERSION_LOG VI
+								  			 WHERE 	VI.PERIOD_TYPE = '$!{PERIOD_TYPE}'
+								  			   AND 	VI.MADE_TYPE != 'DE'
+								  			 ORDER 	BY VI.RUN_DATE DESC, VI.RUN_SEQ DESC
+						  			 		) VI
+						  			 WHERE 	ROWNUM = 1
+						  		) MX
+						 WHERE 	VL.PERIOD_TYPE = '$!{PERIOD_TYPE}'
+						   AND 	TO_CHAR(VL.RUN_DATE, 'YYYYMMDD') = TO_CHAR(MX.RUN_DATE, 'YYYYMMDD')
+						   AND 	VL.RUN_SEQ = MX.RUN_SEQ
+						   --AND 	NVL(VL.STATUS, 0) != 0
+						   AND 	VL.MADE_TYPE != 'DE'
+					<!-- PERIOD VERSION 을 선택한 경우, 해당 VERSION 의 MAX(PLAN_STEP) -->
+					#else
+						SELECT 	MAX(VL.PLAN_STEP) MAX_STEP
+						  FROM 	PLAN_VERSION_LOG VL
+						 WHERE 	VL.PERIOD_TYPE = '$!{PERIOD_TYPE}'
+						   AND 	TO_CHAR(VL.RUN_DATE, 'YYYYMMDD') = REPLACE(REPLACE('$!{run_date_sel}', '-', ''), '/', '')
+						   AND 	VL.RUN_SEQ = TO_NUMBER('$!{run_seq_sel}')
+						   --AND 	NVL(VL.STATUS, 0) != 0
+						   AND 	VL.MADE_TYPE != 'DE'
+					#end
+					) MX
+					, (
+						SELECT 	MAX(VI.RUN_SEQ) DEFAULT_RUN_SEQ
+			  			  FROM 	PLAN_VERSION_LOG VI
+			  			 WHERE 	VI.PERIOD_TYPE = '$!{PERIOD_TYPE}'
+			  			   AND 	VI.MADE_TYPE != 'DE'
+			  			   -- DEFAULT 로 오늘의 계획이 보여지도록 함
+			  			   AND 	TO_CHAR(VI.RUN_DATE, 'YYYYMMDD') = TO_CHAR(SYSDATE, 'YYYYMMDD')
+					) DR -- DEFAULT_RUN_SEQ
+			 WHERE 	EM.CAT_ID = VL.CAT_ID(+)
+			   AND 	EM.SUB_CAT = VL.SUB_CAT(+)
+			 ORDER 	BY EM.CAT_SEQ, EM.PLANT_ID, VL.PLAN_STEP, VL.VERSION DESC, VL.SEQ DESC
+			
+	</query>
+	
+	<!-- 일간계획 : 기준정보관리 POPUP -->
+	<query id="md_00010_controlBoardDaily_masterData_pop" paging="false"> 
+			
+			SELECT 	CM.CD, CM.CD_NAME, CM.DESCR
+			  FROM 	CODE_MST CM, DUAL B
+			 WHERE 	CM.CD_GRP = '$!{cat_id}'
+			 ORDER 	BY CM.CD, CM.CD_NAME
+			
+	</query>
+	
+	<!-- 일간계획 : IF 진행 POPUP : HORIZON 정보 -->
+	<query id="md_00010_controlBoardDaily_execIf_pop_hrzn" paging="false">
+			
+			SELECT 	CASE WHEN CM.IDX_UOM = 'DAY' THEN TO_CHAR(SYSDATE + BM.HORST_IDX, 'YYYY-MM-DD')
+						 WHEN CM.IDX_UOM = 'MONTH' THEN TO_CHAR(ADD_MONTHS(SYSDATE, BM.HORST_IDX), 'YYYY-MM-DD')
+						 ELSE TO_CHAR(SYSDATE + BM.HORST_IDX, 'YYYY-MM-DD')
+					END HORZN_START
+					, CASE WHEN CM.IDX_UOM = 'DAY' THEN TO_CHAR(SYSDATE + BM.HOREN_IDX, 'YYYY-MM-DD')
+						   WHEN CM.IDX_UOM = 'MONTH' THEN TO_CHAR(ADD_MONTHS(SYSDATE, BM.HOREN_IDX), 'YYYY-MM-DD')
+						   ELSE TO_CHAR(SYSDATE + BM.HOREN_IDX, 'YYYY-MM-DD')
+					END HORZN_END
+					, CASE WHEN CM.IDX_UOM = 'DAY' THEN TO_CHAR(SYSDATE + BM.PLNST_IDX, 'YYYY-MM-DD')
+						   WHEN CM.IDX_UOM = 'MONTH' THEN TO_CHAR(ADD_MONTHS(SYSDATE, BM.PLNST_IDX), 'YYYY-MM-DD')
+						   ELSE TO_CHAR(SYSDATE + BM.PLNST_IDX, 'YYYY-MM-DD')
+					END PLAN_START
+					, BM.ENGN_IP, BM.PDB_USER
+			  FROM 	ENGN_BAT_MST BM
+					, ( 	SELECT CM.CD, CM.CD_NAME, CM.CAT01 O_SEQ, CM.CAT02 IDX_UOM 
+							  FROM CODE_MST CM 
+							 WHERE CM.CD_GRP = 'PERIOD_TYPE' AND CM.MADE_TYPE != 'DE' ) CM
+			 WHERE 	BM.PERIOD_TYPE = CM.CD
+			   AND 	BM.MADE_TYPE != 'DE'
+			   AND 	BM.PERIOD_TYPE = '$!{period_type}'
+			   AND 	BM.CAT_ID = '$!{cat_id}'
+			   AND 	BM.SUB_CAT = '$!{sub_cat}'
+			
+	</query>
+	
+	<!-- 일간계획 : IF 진행 POPUP -->
+	<!--query id="md_00010_controlBoardDaily_execIf_pop" paging="true">
+			
+		#if( "$!{faSecondFlag}" == "Y" )
+			SELECT 	1 SEQ, 'SP_FA_META_TO_PDB_MOD' SP_ID
+			  FROM 	DUAL
+			 WHERE 	0 = 0
+			 ORDER 	BY 1
+		#else
+			SELECT 	JB.SEQ, JB.SP_ID
+			  FROM 	ENGN_BAT_JOB_INFO JB, DUAL B
+			 WHERE 	JB.PERIOD_TYPE = '$!{period_type}'
+			   AND 	JB.CAT_ID = '$!{cat_id}'
+			   AND  JB.SUB_CAT = '$!{sub_cat}'
+			   AND 	JB.JOB_TYPE = 'PDB_IN'
+			   AND 	JB.EXEC_FLAG = 'Y'
+			   AND 	JB.MADE_TYPE != 'DE'
+			 ORDER 	BY 1
+		#end
+			
+	</query-->
+	<!-- 2009.03.20 수정 정재교 -->
+	<query id="md_00010_controlBoardDaily_execIf_pop" paging="true">
+			
+		#if( "$!{faSecondFlag}" == "RATE" )
+			SELECT 	1 SEQ, 'SP_FA_META_TO_PDB_MOD' SP_ID
+			  FROM 	DUAL
+			 WHERE 	0 = 0
+			 ORDER 	BY 1
+		#elseif( "$!{faSecondFlag}" == "COST" )
+			SELECT 	1 SEQ, 'SP_FA_META_TO_PDB_MOD_COST' SP_ID
+			  FROM 	DUAL
+			 WHERE 	0 = 0
+			 ORDER 	BY 1		
+		#else
+			SELECT 	JB.SEQ, JB.SP_ID
+			  FROM 	ENGN_BAT_JOB_INFO JB, DUAL B
+			 WHERE 	JB.PERIOD_TYPE = '$!{period_type}'
+			   AND 	JB.CAT_ID = '$!{cat_id}'
+			   AND  JB.SUB_CAT = '$!{sub_cat}'
+			   AND 	JB.JOB_TYPE = 'PDB_IN'
+			   AND 	JB.EXEC_FLAG = 'Y'
+			   AND 	JB.MADE_TYPE 	!= 'DE'
+			   AND  JB.CAT_ID		!= 'FA' --공장할당일 경우 조회방지
+			 ORDER 	BY 1
+		#end
+			
+	</query>
+	
+	<!-- 일간계획 : IF 진행 POPUP -->
+	<query id="md_00010_controlBoardDaily_execIf_pop2" paging="true">
+			
+			SELECT 	JB.SEQ, JB.SP_ID
+			  FROM 	ENGN_BAT_JOB_INFO JB, DUAL B
+			 WHERE 	JB.PERIOD_TYPE = '$!{period_type}'
+			   AND 	JB.CAT_ID = '$!{cat_id}'
+			   AND  JB.SUB_CAT = '$!{sub_cat}'
+			   AND 	JB.JOB_TYPE = 'PDB_IN'
+			   AND 	JB.EXEC_FLAG = 'Y'
+			   AND 	JB.MADE_TYPE != 'DE'
+		<!-- 일간 공장할당 진행시에만 적용 -->
+		#if( "$!{period_type}" == "DAILY" &amp;&amp; "$!{cat_id}" == "FA" )
+			   AND 	NOT EXISTS (
+						SELECT VL.SEQ
+					      FROM PLAN_VERSION_LOG VL
+					     WHERE VL.PERIOD_TYPE = 'DAILY' 										-- 일간
+					       AND TO_CHAR(VL.RUN_DATE, 'YYYYMMDD') = TO_CHAR(SYSDATE, 'YYYYMMDD') 	-- 당일
+					       AND VL.CAT_ID = 'FA'													-- 공장할당
+					       AND VL.SEQ = 2														-- 1차 공장할당 : 무한CAPA, 매일 자동실행
+			        )
+			--
+			UNION ALL
+			--
+			SELECT 	1 SEQ, 'SP_FA_META_TO_PDB_MOD' SP_ID
+			  FROM 	DUAL
+			 WHERE 	0 = 0
+			   AND 	EXISTS (
+						SELECT VL.SEQ
+					      FROM PLAN_VERSION_LOG VL
+					     WHERE VL.PERIOD_TYPE = 'DAILY' 										-- 일간
+					       AND TO_CHAR(VL.RUN_DATE, 'YYYYMMDD') = TO_CHAR(SYSDATE, 'YYYYMMDD') 	-- 당일
+					       AND VL.CAT_ID = 'FA'													-- 공장할당
+					       AND VL.SEQ = 2														-- 1차 공장할당 : 무한CAPA, 매일 자동실행
+			        )
+		#end
+			 ORDER 	BY 1
+			
+	</query>
+	
+	<!-- 일간계획 : IF 결과조회 POPUP -->
+	<query id="md_00010_controlBoardDaily_viewIf_pop" paging="true">
+			
+			SELECT 	IL.SP_ID--, IL.STATUS
+					, IL.TABLE_NAME, IL.SEL_CNT, IL.INS_CNT, IL.UPD_CNT, IL.DEL_CNT, IL.ERR_CNT
+					, LD.ERR_DATA
+					, REPLACE(LD.ERR_MESG, '"', '''') ERR_MESG
+					--, LD.ERR_MESG
+			  FROM 	SCM_IF_LOG IL
+					, (
+						SELECT LD.PERIOD_TYPE, LD.RUN_DATE, LD.RUN_SEQ, LD.PLAN_STEP, LD.SP_ID, LD.ERR_DATA, LD.ERR_MESG, LD.DTL_SEQ
+						  FROM SCM_IF_LOG_DTL LD 
+						 WHERE LD.MADE_TYPE != 'DE'
+					) LD
+					, (
+							SELECT JI.SEQ, JI.SP_ID
+							  FROM ENGN_BAT_JOB_INFO JI, PLAN_VERSION_LOG VL
+							 WHERE VL.PERIOD_TYPE = '$!{period_type}'
+							   AND TO_CHAR(VL.RUN_DATE, 'YYYYMMDD') = REPLACE(REPLACE('$!{run_date}', '-', ''), '/', '')
+							   AND VL.RUN_SEQ = TO_NUMBER('$!{run_seq}')
+							   AND VL.PLAN_STEP = TO_NUMBER('$!{plan_step}')
+							   AND VL.CAT_ID = JI.CAT_ID
+							   AND VL.SUB_CAT = JI.SUB_CAT
+							   AND VL.PERIOD_TYPE = JI.PERIOD_TYPE
+					) JI
+			 WHERE 	IL.PERIOD_TYPE = LD.PERIOD_TYPE(+) 
+			   AND 	IL.RUN_DATE = LD.RUN_DATE(+) 
+			   AND 	IL.RUN_SEQ = LD.RUN_SEQ(+) 
+			   AND 	IL.PLAN_STEP = LD.PLAN_STEP(+) 
+			   AND 	IL.SP_ID = LD.SP_ID(+)
+			   AND 	IL.DIRECTION = 'PDB_IN' 
+			   AND 	IL.MADE_TYPE != 'DE'
+			   AND 	IL.PERIOD_TYPE = '$!{period_type}'
+			   AND 	TO_CHAR(IL.RUN_DATE, 'YYYYMMDD') = REPLACE(REPLACE('$!{run_date}', '-', ''), '/', '')
+			   AND 	IL.RUN_SEQ = TO_NUMBER('$!{run_seq}')
+			   AND 	IL.PLAN_STEP = TO_NUMBER('$!{plan_step}')
+			   AND 	IL.SP_ID = JI.SP_ID(+)
+			   [AND IL.STATUS = '${status}']
+			 ORDER 	BY JI.SEQ, IL.SP_ID, LD.DTL_SEQ
+			
+	</query>
+	
+	<!-- 일간계획 : 계획수립 진행 POPUP -->
+	<query id="md_00010_controlBoardDaily_execPlan_pop" paging="true">
+			
+			SELECT 	EM.SUB_CAT
+					, DECODE(PT.HID_NAME, NULL, CM.CD_NAME, CM.CD_NAME || ' ' || PT.HID_NAME) NAME
+					, EM.ENGN_IP, EM.PDB_USER
+			  FROM 	ENGN_BAT_MST EM
+			  		, ( SELECT CM.CD, CM.CD_NAME FROM CODE_MST CM WHERE CM.CD_GRP = 'CAT_ID' AND CM.MADE_TYPE != 'DE' ) CM
+			  		, ( SELECT HR.HID, HR.HID_NAME FROM HRCHY HR WHERE HR.LVL_TYPE = '공장' AND HR.MADE_TYPE != 'DE' ) PT
+			 WHERE 	EM.PERIOD_TYPE = '$!{period_type}'
+			   AND 	EM.CAT_ID = '$!{cat_id}'
+			   AND 	EM.SUB_CAT = '$!{sub_cat}'
+			   AND 	EM.MADE_TYPE != 'DE'
+			   AND 	EM.CAT_ID = CM.CD
+			   AND 	EM.PLANT_ID = PT.HID(+)
+			
+	</query>
+	
+	<!-- 일간계획 : 계획수립 결과조회 POPUP : VERSION INFO -->
+	<query id="md_00010_controlBoardDaily_viewPlan_pop" paging="false">
+			
+			SELECT 	VL.CAT_ID, CT.CD_NAME CAT_NAME, BM.PLANT_ID, PT.HID_NAME PLANT_NAME
+					, VL.VERSION, VL.SEQ
+					, TO_CHAR(VL.VERSION_DATE, 'YYYY-MM-DD HH24:MI:SS') VERSION_DATE
+					, TO_CHAR(VL.START_DATE, 'YYYY-MM-DD HH24:MI:SS') START_DATE
+					, TO_CHAR(VL.SCH_START_DATE, 'YYYY-MM-DD HH24:MI:SS') SCH_START_DATE
+					, TO_CHAR(VL.END_DATE, 'YYYY-MM-DD HH24:MI:SS') END_DATE
+					--, VL.COMMTS
+					, NVL(VL.COMMTS, CASE WHEN VL.PERIOD_TYPE = 'DAILY' AND VL.CAT_ID = 'RP' 
+                           THEN '차일 ' || DECODE(VL.ORDER_FLAG, 'Y', '주문', '판매계획') || ' 반영, 차일 안전재고 ' || DECODE(VL.SAFETY_FLAG, 'Y', '반영', '미반영') 
+                           ELSE NULL 
+                    END) COMMTS
+			  FROM 	PLAN_VERSION_LOG VL
+					, ENGN_BAT_MST BM
+					, ( SELECT CM.CD, CM.CD_NAME FROM CODE_MST CM WHERE CM.CD_GRP = 'CAT_ID' AND CM.MADE_TYPE != 'DE' ) CT
+					, ( SELECT HR.HID, HR.HID_NAME FROM HRCHY HR WHERE HR.LVL_TYPE = '공장' AND HR.MADE_TYPE != 'DE' ) PT
+			 WHERE 	VL.PERIOD_TYPE = '$!{period_type}'
+			   AND 	TO_CHAR(VL.RUN_DATE, 'YYYYMMDD') = REPLACE(REPLACE('$!{run_date}', '-', ''), '/', '')
+			   AND 	VL.RUN_SEQ = TO_NUMBER('$!{run_seq}')
+			   AND 	VL.PLAN_STEP = TO_NUMBER('$!{plan_step}')
+			   AND 	VL.PERIOD_TYPE = BM.PERIOD_TYPE
+			   AND 	VL.CAT_ID = BM.CAT_ID
+			   AND 	VL.SUB_CAT = BM.SUB_CAT
+			   AND 	VL.CAT_ID = CT.CD
+			   AND 	BM.PLANT_ID = PT.HID(+)
+			   AND 	VL.MADE_TYPE != 'DE'
+			   AND 	BM.MADE_TYPE != 'DE'
+			
+	</query>
+	
+	<!-- 일간계획 : 계획수립 결과조회 POPUP : PDB to META IF LOG 조회 -->
+	<query id="md_00010_controlBoardDaily_viewPlan_pop_if" paging="true">
+			
+			SELECT 	IL.SP_ID--, IL.STATUS
+					, IL.TABLE_NAME, IL.SEL_CNT, IL.INS_CNT, IL.UPD_CNT, IL.DEL_CNT, IL.ERR_CNT
+					, LD.ERR_DATA
+					, REPLACE(LD.ERR_MESG, '"', '''') ERR_MESG
+					--, LD.ERR_MESG
+			  FROM 	SCM_IF_LOG IL
+					, (
+							SELECT LD.PERIOD_TYPE, LD.RUN_DATE, LD.RUN_SEQ, LD.PLAN_STEP, LD.SP_ID, LD.ERR_DATA, LD.ERR_MESG, LD.DTL_SEQ
+							  FROM SCM_IF_LOG_DTL LD 
+							 WHERE LD.MADE_TYPE != 'DE'
+					) LD
+					, (
+							SELECT JI.SEQ, JI.SP_ID
+							  FROM ENGN_BAT_JOB_INFO JI, PLAN_VERSION_LOG VL
+							 WHERE VL.PERIOD_TYPE = '$!{period_type}'
+							   AND TO_CHAR(VL.RUN_DATE, 'YYYYMMDD') = REPLACE(REPLACE('$!{run_date}', '-', ''), '/', '')
+							   AND VL.RUN_SEQ = TO_NUMBER('$!{run_seq}')
+							   AND VL.PLAN_STEP = TO_NUMBER('$!{plan_step}')
+							   AND VL.CAT_ID = JI.CAT_ID
+							   AND VL.SUB_CAT = JI.SUB_CAT
+							   AND VL.PERIOD_TYPE = JI.PERIOD_TYPE
+					) JI
+			 WHERE 	IL.PERIOD_TYPE = LD.PERIOD_TYPE(+) 
+			   AND 	IL.RUN_DATE = LD.RUN_DATE(+) 
+			   AND 	IL.RUN_SEQ = LD.RUN_SEQ(+) 
+			   AND 	IL.PLAN_STEP = LD.PLAN_STEP(+) 
+			   AND 	IL.SP_ID = LD.SP_ID(+)
+			   AND 	IL.DIRECTION = 'PDB_OUT'
+			   AND 	IL.MADE_TYPE != 'DE'
+			   AND 	IL.PERIOD_TYPE = '$!{period_type}'
+			   AND 	TO_CHAR(IL.RUN_DATE, 'YYYYMMDD') = REPLACE(REPLACE('$!{run_date}', '-', ''), '/', '')
+			   AND 	IL.RUN_SEQ = TO_NUMBER('$!{run_seq}')
+			   AND 	IL.PLAN_STEP = TO_NUMBER('$!{plan_step}')
+			   AND 	IL.SP_ID = JI.SP_ID(+)
+			   [AND IL.STATUS = '${status}']
+			 ORDER 	BY JI.SEQ, IL.SP_ID, LD.DTL_SEQ
+			
+	</query>
+	
+	<!-- 일간계획 : ERP 전송 결과조회 POPUP -->
+	<query id="md_00010_controlBoardDaily_viewIfErp_pop" paging="true">
+			
+			SELECT 	IL.SP_ID--, IL.STATUS
+					, IL.TABLE_NAME, IL.SEL_CNT, IL.INS_CNT, IL.UPD_CNT, IL.DEL_CNT, IL.ERR_CNT
+					, LD.ERR_DATA
+					, REPLACE(LD.ERR_MESG, '"', '''') ERR_MESG
+					--, LD.ERR_MESG
+			  FROM 	SCM_IF_LOG IL
+					, (
+						SELECT LD.PERIOD_TYPE, LD.RUN_DATE, LD.RUN_SEQ, LD.PLAN_STEP, LD.SP_ID, LD.ERR_DATA, LD.ERR_MESG, LD.DTL_SEQ
+						  FROM SCM_IF_LOG_DTL LD 
+						 WHERE LD.MADE_TYPE != 'DE'
+					) LD
+					, (
+							SELECT JI.SEQ, JI.SP_ID
+							  FROM ENGN_BAT_JOB_INFO JI, PLAN_VERSION_LOG VL
+							 WHERE VL.PERIOD_TYPE = '$!{period_type}'
+							   AND TO_CHAR(VL.RUN_DATE, 'YYYYMMDD') = REPLACE(REPLACE('$!{run_date}', '-', ''), '/', '')
+							   AND VL.RUN_SEQ = TO_NUMBER('$!{run_seq}')
+							   AND VL.PLAN_STEP = TO_NUMBER('$!{plan_step}')
+							   AND VL.CAT_ID = JI.CAT_ID
+							   AND VL.SUB_CAT = JI.SUB_CAT
+							   AND VL.PERIOD_TYPE = JI.PERIOD_TYPE
+					) JI
+			 WHERE 	IL.PERIOD_TYPE = LD.PERIOD_TYPE(+) 
+			   AND 	IL.RUN_DATE = LD.RUN_DATE(+) 
+			   AND 	IL.RUN_SEQ = LD.RUN_SEQ(+) 
+			   AND 	IL.PLAN_STEP = LD.PLAN_STEP(+) 
+			   AND 	IL.SP_ID = LD.SP_ID(+)
+			   AND 	IL.DIRECTION = 'META_OUT'
+			   AND 	IL.MADE_TYPE != 'DE'
+			   AND 	IL.PERIOD_TYPE = '$!{period_type}'
+			   AND 	TO_CHAR(IL.RUN_DATE, 'YYYYMMDD') = REPLACE(REPLACE('$!{run_date}', '-', ''), '/', '')
+			   AND 	IL.RUN_SEQ = TO_NUMBER('$!{run_seq}')
+			   AND 	IL.PLAN_STEP = TO_NUMBER('$!{plan_step}')
+			   --AND 	IL.SP_ID = 'SP_'||'$!{cat_id}'||'_81_IF_DAILY_SCH_PLAN'
+			   AND 	IL.SP_ID = JI.SP_ID(+)
+			   [AND IL.STATUS = '${status}']
+			 ORDER 	BY IL.SP_ID, LD.DTL_SEQ
+			
+	</query>
+	
+	<!-- 일간계획 : 계획차수 증가 -->
+	<query id="md_00010_controlBoardDaily_addRunSeq">
+			
+			INSERT 	INTO PLAN_VERSION_LOG
+					(PERIOD_TYPE, RUN_DATE, RUN_SEQ, PLAN_STEP, CAT_ID, SUB_CAT, MADE_TYPE, MADE_DTTM, MADE_BY)
+			SELECT 	BM.PERIOD_TYPE
+					, TO_DATE(REPLACE(REPLACE('$!{run_date_sel}', '/', ''), '-', ''), 'YYYYMMDD') RUN_DATE
+					, TO_NUMBER('$!{run_seq_sel}') RUN_SEQ
+					, 1 PLAN_STEP
+					, BM.CAT_ID, BM.SUB_CAT
+					, 'AD' MADE_TYPE, SYSDATE MADE_DTTM, '$!{_user_id}' MADE_BY
+			  FROM 	ENGN_BAT_MST BM, DUAL B
+			 WHERE 	BM.MADE_TYPE != 'DE'
+			   AND 	BM.PERIOD_TYPE = '$!{PERIOD_TYPE}'
+			   AND 	BM.SEQ = 1
+			   AND 	NOT EXISTS (
+						SELECT VL.PLAN_STEP
+						  FROM PLAN_VERSION_LOG VL
+						 WHERE VL.MADE_TYPE != 'DE'
+						   AND VL.PERIOD_TYPE = '$!{PERIOD_TYPE}'
+						   AND TO_CHAR(VL.RUN_DATE, 'YYYYMMDD') = REPLACE(REPLACE('$!{run_date_sel}', '/', ''), '-', '')
+						   AND VL.RUN_SEQ = TO_NUMBER('$!{run_seq_sel}')
+					)
+			
+	</query>
+	
+	<!-- 일간계획 : 강제상태설정 -->
+	<query id="md_00010_controlBoardDaily_setStatus">
+			
+			UPDATE 	PLAN_VERSION_LOG VL
+			   SET 	VL.STATUS = '$!{sel_status}'
+			 WHERE 	VL.PERIOD_TYPE = '$!{period_type_c}'
+			   AND 	TO_CHAR(VL.RUN_DATE, 'YYYYMMDD') = REPLACE(REPLACE('$!{run_date_c}', '/', ''), '-', '')
+			   AND 	VL.RUN_SEQ = TO_NUMBER('$!{run_seq_c}')
+			   AND 	VL.PLAN_STEP = TO_NUMBER('$!{plan_step_c}')
+			
+	</query>
+	
+	<!-- 컨트롤 보드 완제품 계획 확정시 SP 실행 --> 
+	<query id="call_sp_confirm" > 
+			
+			CALL SP_CONFIRM('$!{plant_id}','$!{version}');
+			
+	</query>
+	
+	<!-- 컨트롤 보드 반제품 계획 확정시 SP 실행 --> 
+	<query id="call_sp_confirm_semi" > 
+			
+			CALL SP_CONFIRM_SEMI('$!{plant_id}','$!{version}');
+			
+	</query>
+	
+	<!-- 2009.03.20 추가 정재교 -->
+	
+	<!-- 공장할당 정책 비율 적용 -->
+	<query id="plant_alloc_policy_update_rate">
+	
+			UPDATE  /*+ bypass_ujvc*/
+			(
+			    SELECT  CM.CAT01, TMP.NEW_CAT01
+			    FROM    CODE_MST CM,
+			            (
+			            SELECT  'ALLOC_RATE' AS CD, 'Y' AS NEW_CAT01 FROM DUAL
+			            UNION   ALL
+			            SELECT  'ALLOC_COST' AS CD, 'N' AS NEW_CAT01 FROM DUAL
+			            ) TMP
+			    WHERE   CM.CD_GRP = 'ALLOC_POLICY'
+			    AND     CM.CD     IN ('ALLOC_RATE','ALLOC_COST')
+			    AND     CM.CD     = TMP.CD      
+			)
+			SET CAT01 = NEW_CAT01	
+	
+	</query>
+	
+	<!-- 공장할당 정책 비용 적용 -->
+	<query id="plant_alloc_policy_update_cost">
+	
+			UPDATE  /*+ bypass_ujvc*/
+			(
+			    SELECT  CM.CAT01, TMP.NEW_CAT01
+			    FROM    CODE_MST CM,
+			            (
+			            SELECT  'ALLOC_RATE' AS CD, 'N' AS NEW_CAT01 FROM DUAL
+			            UNION   ALL
+			            SELECT  'ALLOC_COST' AS CD, 'Y' AS NEW_CAT01 FROM DUAL
+			            ) TMP
+			    WHERE   CM.CD_GRP = 'ALLOC_POLICY'
+			    AND     CM.CD     IN ('ALLOC_RATE','ALLOC_COST')
+			    AND     CM.CD     = TMP.CD      
+			)
+			SET CAT01 = NEW_CAT01	
+	
+	</query>	
+	
+	<!-- 일간계획 : IF 진행 POPUP : SP결과 ERROR 체크  -->
+	<query id="md_00010_sp_err_status_check" paging="false">
+			
+		SELECT	SP_ID,
+				STATUS
+		FROM	SCM_IF_LOG, DUAL
+		WHERE	PERIOD_TYPE		= '$!{period_type}'
+		AND		RUN_DATE 		= TRUNC(TO_DATE('$!{run_date}'))
+		AND		RUN_SEQ			= '$!{run_seq}'
+		AND		PLAN_STEP		= '$!{plan_step}'
+		AND		SP_ID			= '$!{sp_id}'
+			
+	</query>	
+
+	<!-- 일간계획 : 다른 생산계획이 ERP에 IF중인것이 있는지 확인  -->
+	<query id="md_00010_ERP_IF_available_check" paging="false">
+			
+		SELECT	ID,
+				MIN(ERP_IF_AVAILABLE)	ERP_IF_AVAILABLE
+		FROM	(
+				SELECT	'ERP_IF_AVAILABLE' 			ID,
+						-- 조회건수가 있으면 'N', 없으면 'Y'
+						NVL2(MIN(VERSION),'N','Y')	ERP_IF_AVAILABLE
+				FROM	IF_DAILY_SCH_PLAN
+				WHERE	VERSION	LIKE TO_CHAR(SYSDATE,'YYYYMMDD')||'%'
+				AND		(IF_FLAG	= 'P' OR IF_FLAG IS NULL) 	-- NULL : XI GATHERING전, P : XI GATHER! C : 생산(계획)오더 생성성공, F : 생산(계획)오더 생성실패 
+				#if("$!{cat_id}" == "PS")
+					-- 완제품인 경우 계획에 동일공장(반제품포함)의 계획이 I/F되고 있으면 안된다. 단, 반제품계획의 경우는 공장상관없이 I/F되고 있는 것이 없어야 한다.
+					AND		PLANT_ID	IN 	(
+											SELECT	MIN(T2.PLANT_ID)
+											FROM	PLAN_VERSION_LOG	T1,
+													ENGN_BAT_MST		T2
+											WHERE	T1.PERIOD_TYPE 	= T2.PERIOD_TYPE
+											AND		T1.CAT_ID		= T2.CAT_ID
+											AND		T1.SUB_CAT		= T2.SUB_CAT
+											AND		T1.PERIOD_TYPE		= 'DAILY'
+											AND		T1.RUN_DATE 		= TRUNC(TO_DATE('$!{run_date}'))
+											AND		T1.CAT_ID			= '$!{cat_id}'
+											AND		RUN_SEQ			= '$!{run_seq}'
+											AND		PLAN_STEP		= '$!{plan_step}'
+											)
+					UNION	ALL
+					SELECT	'ERP_IF_AVAILABLE' 				ID,
+							DECODE(USE_FLAG,'Y','N','Y')	ERP_IF_AVAILABLE	
+					FROM	PROC_STATUS	
+					WHERE	CAT_ID		= 'IF'
+					AND		PLANT_ID	= '$!{plant_id}'
+				#else
+					UNION	ALL
+					SELECT	'ERP_IF_AVAILABLE' 				ID,
+							DECODE(USE_FLAG,'Y','N','Y')	ERP_IF_AVAILABLE	
+					FROM	PROC_STATUS	
+					WHERE	CAT_ID		= 'IF'
+					AND		PLANT_ID	= 'SS'
+				#end
+				UNION	ALL
+				-- ERP에 생산오더를 생성했는지 여부를 판단한다
+				SELECT	'ERP_IF_AVAILABLE' 			ID,
+		                -- 조회건수가 있으면 'A', 없으면 'Y'
+		                NVL2(MIN(VERSION),'A','Y')	ERP_IF_AVAILABLE
+		        FROM	IF_DAILY_SCH_PLAN_PO_SET
+		        --WHERE	VERSION	LIKE TO_CHAR(SYSDATE,'YYYYMMDD')||'%'
+   		        WHERE	SUBSTR(VERSION,1,8)	BETWEEN TO_CHAR(TRUNC(SYSDATE,'D'),'YYYYMMDD') 
+											AND 	TO_CHAR(SYSDATE,'YYYYMMDD')
+		        AND		PLAN_KIND	= DECODE('$!{cat_id}','PS','PROD','SEMI')
+		        #if("$!{cat_id}" == "PS")
+		        AND		PLANT_ID	IN 	(
+		                                SELECT	MIN(T2.PLANT_ID)
+		                                FROM	PLAN_VERSION_LOG	T1,
+		                                        ENGN_BAT_MST		T2
+		                                WHERE	T1.PERIOD_TYPE 	= T2.PERIOD_TYPE
+		                                AND		T1.CAT_ID		= T2.CAT_ID
+		                                AND		T1.SUB_CAT		= T2.SUB_CAT
+		                                AND		T1.PERIOD_TYPE		= 'DAILY'
+		                                AND		T1.RUN_DATE 		= TRUNC(TO_DATE('$!{run_date}'))
+		                                AND		T1.CAT_ID			= '$!{cat_id}'
+		                                AND		RUN_SEQ			= '$!{run_seq}'
+		                                AND		PLAN_STEP		= '$!{plan_step}'
+		                                )
+		        #else 
+		          -- 부산 반제품은 목요일에 생산오더가 생성되므로 제외
+		          AND PLANT_ID	!= '1170'
+		        #end				
+				)
+		GROUP
+		BY		ID
+			
+	</query>	
+	
+	<!--
+	======================================================================
+		월간계획
+	======================================================================
+	-->
+	
+	<!-- 월간계획 -->
+	<query id="md_00030_controlBoardMonthly_list" paging="false">
+			
+			<!-- 상태정의
+				======================================
+				0.  최초는 NULL
+				======================================
+				1.  인터페이스 시작
+				2.  인터페이스 진행중
+				3.  인터페이스 오류
+				4.  인터페이스 완료
+				======================================
+				5.  계획수립 시작
+				..............................
+				6.  계획정보 로딩 시작
+				7.  계획정보 로딩중
+				8.  계획정보 로딩 실패
+				9.  계획정보 로딩 완료
+				..............................
+				10. 스케줄링 시작(실제 엔진 구동)
+				11. 계획수립 진행중
+				12. 계획수립 실패
+				13. 스케줄링 완료
+				..............................
+				14. 계획결과 저장 시작
+				15. 계획결과 저장 진행중
+				16. 계획결과 저장 실패
+				17. 계획결과 저장 완료
+				..............................
+				18. 계획결과 컨버젼 시작
+				19. 계획결과 컨버젼 진행중
+				20. 계획결과 컨버젼 실패
+				21. 계획결과 컨버젼 완료
+				..............................
+				22. 계획수립 완료
+				======================================
+				23. 계획확정
+				======================================
+				24. ERP 전송 시작
+				25. ERP 전송 진행중
+				26. ERP 전송 실패
+				27. ERP 전송 완료
+				====================================== -->
+			-- CHECKED 계획부문코드 계회부문명 공장코드 공장명 버전 SEQ 상태 상태표시
+			-- 기준정보확인 IF진행 IF보기 계획수립진행 계획수립보기 확정 취소 추가 ERP전송진행 ERP전송보기
+			-- PERIOD_TYPE RUN_DATE RUN_SEQ PLAN_STEP CAT_SEQ SUB_CAT
+			SELECT 	DECODE(VL.PLAN_STEP, NVL(MX.MAX_STEP, 0), 'checked', NULL) CHECKED
+					, EM.CAT_ID, EM.CAT_NAME, EM.PLANT_ID, EM.PLANT_NAME, VL.VERSION, VL.SEQ, VL.STATUS
+					, DECODE(VL.STATUS, 0, NULL, VL.STATUS_NAME) STATUS_NAME
+					, DECODE(VL.PLAN_STEP, NVL(MX.MAX_STEP, 0), '', 'disabled') VIEW_BASIC -- 기준정보 확인 : RADIO 버튼이 활성이면 항상 활성
+					-- IF 진행 가능 : 0 3 4 8 12 16 20 22
+					, CASE WHEN ( VL.PLAN_STEP = MX.MAX_STEP ) AND
+								( VL.STATUS = 0 OR VL.STATUS = 3 OR VL.STATUS = 4 OR VL.STATUS = 8
+									OR VL.STATUS = 12 OR VL.STATUS = 16 OR VL.STATUS = 20 OR VL.STATUS = 22 )
+						   THEN '' ELSE 'disabled' 
+					END EXEC_IF
+					-- IF 보기 가능 : 3~27
+					, CASE WHEN ( VL.PLAN_STEP = MX.MAX_STEP ) AND VL.STATUS >= 3 AND 27 >= VL.STATUS THEN '' ELSE 'disabled' END VIEW_IF
+					-- 계획수립 진행 가능 : 4 8 12 16 20 22
+					, CASE WHEN ( VL.PLAN_STEP = MX.MAX_STEP ) AND 
+								( VL.STATUS = 4 OR VL.STATUS = 8 OR VL.STATUS = 12 OR VL.STATUS = 16 
+									OR VL.STATUS = 20 OR VL.STATUS = 22 )
+						   THEN '' ELSE 'disabled'
+					END EXEC_PLAN
+					-- 계획수립 보기 가능 : 8 12 16 20 22~27
+					, CASE WHEN ( VL.PLAN_STEP = MX.MAX_STEP ) AND
+								( VL.STATUS = 8 OR VL.STATUS = 12 OR VL.STATUS = 16 OR VL.STATUS = 20 
+								OR (VL.STATUS >= 22 AND 27 >= VL.STATUS) )
+						   THEN '' ELSE 'disabled'
+					END VIEW_PLAN
+					-- 확정 가능 : 22
+					, CASE WHEN ( VL.PLAN_STEP = MX.MAX_STEP ) AND ( VL.STATUS = 22 ) THEN '' ELSE 'disabled' END CONFIRM
+					-- 취소 가능 : 8 12 16 20 22
+					, CASE WHEN ( VL.PLAN_STEP = MX.MAX_STEP ) AND
+								( VL.STATUS = 8 OR VL.STATUS = 12 OR VL.STATUS = 16 OR VL.STATUS = 20 OR VL.STATUS = 22 )
+						   THEN '' ELSE 'disabled' 
+					END CANCEL
+					-- 추가 가능 : 22 23 26 27
+					, CASE WHEN ( VL.PLAN_STEP = MX.MAX_STEP ) AND
+								( VL.STATUS = 22 OR VL.STATUS = 23 OR VL.STATUS = 26 OR VL.STATUS = 27 )
+						   THEN '' ELSE 'disabled'
+					END ADD_VER
+					-- ERP 전송 가능 : 23 26
+					, CASE WHEN ( VL.PLAN_STEP = MX.MAX_STEP ) AND ( VL.STATUS = 23 OR VL.STATUS = 26 ) THEN '' ELSE 'disabled' END TO_ERP
+					-- ERP 보기 가능 : 26 27
+					, CASE WHEN ( VL.PLAN_STEP = MX.MAX_STEP ) AND ( VL.STATUS = 26 OR VL.STATUS = 27 ) THEN '' ELSE 'disabled' END VIEW_ERP
+					, NVL(VL.PERIOD_TYPE, '$!{PERIOD_TYPE}') PERIOD_TYPE
+					, NVL(VL.RUN_DATE, NVL('$!{run_date_sel}', TO_CHAR(DR.RUN_DATE, 'YYYYMMDD'))) RUN_DATE
+					, NVL(VL.RUN_SEQ, NVL(TO_NUMBER('$!{run_seq_sel}'), NVL(DR.DEFAULT_RUN_SEQ, 1))) RUN_SEQ
+					, VL.PLAN_STEP -- PLAN_STEP 은 화면에서 생성
+					, EM.CAT_SEQ, EM.SUB_CAT, VL.COMMTS
+			  FROM 	(
+						-- ENGN_BAT_MST 정보
+						SELECT 	EM.SEQ CAT_SEQ, EM.CAT_ID, CM.CD_NAME CAT_NAME, EM.SUB_CAT, EM.PLANT_ID, PT.HID_NAME PLANT_NAME
+						  FROM 	ENGN_BAT_MST EM
+								, ( 	SELECT CM.CD, CM.CD_NAME, CM.CAT01 
+										  FROM CODE_MST CM 
+										 WHERE CM.CD_GRP = 'CAT_ID' AND CM.MADE_TYPE != 'DE' ) CM
+								, ( 	SELECT HR.HID, HR.HID_NAME 
+										  FROM HRCHY HR 
+										 WHERE HR.LVL_TYPE = '공장' AND HR.MADE_TYPE != 'DE' ) PT
+						 WHERE 	EM.CAT_ID = CM.CD
+						   AND 	EM.PLANT_ID = PT.HID(+)
+						   AND 	EM.PERIOD_TYPE = '$!{PERIOD_TYPE}'
+						   AND 	EM.MADE_TYPE != 'DE'
+						--
+						-- 판매계획
+						UNION ALL
+						SELECT 	0 CAT_SEQ, 'SP' CAT_ID, '판매계획' CAT_NAME, 'SS' SUB_CAT, '' PLANT_ID, '' PLANT_NAME
+						  FROM 	DUAL
+					) EM
+					, (
+					-- PLAN_VERSION_LOG 정보
+					<!-- 처음 화면 로드인 경우, MAX VERSION 의 DATA -->
+					#if( "$!{run_date_sel}" == "" )
+						SELECT 	VL.PERIOD_TYPE, TO_CHAR(VL.RUN_DATE, 'YYYYMMDD') RUN_DATE, VL.RUN_SEQ, VL.PLAN_STEP
+								, VL.CAT_ID, VL.SUB_CAT, VL.VERSION, VL.SEQ, NVL(VL.STATUS, 0) STATUS, ST.CD_NAME STATUS_NAME
+								, VL.COMMTS
+						  FROM 	PLAN_VERSION_LOG VL
+								, ( 	SELECT CM.CD, CM.CD_NAME 
+										  FROM CODE_MST CM 
+										 WHERE CM.CD_GRP = 'STATUS' AND CM.MADE_TYPE != 'DE' ) ST -- STATUS
+						  		, (
+						  			SELECT 	VI.RUN_DATE, VI.RUN_SEQ
+						  			  FROM 	(
+								  			SELECT 	VI.RUN_DATE, VI.RUN_SEQ
+								  			  FROM 	PLAN_VERSION_LOG VI
+								  			 WHERE 	VI.PERIOD_TYPE = '$!{PERIOD_TYPE}'
+								  			   AND 	VI.MADE_TYPE != 'DE'
+								  			 ORDER 	BY VI.RUN_DATE DESC, VI.RUN_SEQ DESC
+						  			 		) VI
+						  			 WHERE 	ROWNUM = 1
+						  		) MX
+						 WHERE 	VL.PERIOD_TYPE = '$!{PERIOD_TYPE}'
+						   AND 	TO_CHAR(VL.RUN_DATE, 'YYYYMMDD') = TO_CHAR(MX.RUN_DATE, 'YYYYMMDD')
+						   AND 	VL.RUN_SEQ = MX.RUN_SEQ
+						   AND 	VL.MADE_TYPE != 'DE'
+						   AND 	NVL(VL.STATUS, 0) = ST.CD
+					<!-- PERIOD VERSION 을 선택한 경우, 해당 VERSION DATA -->
+					#else
+						SELECT 	VL.PERIOD_TYPE, TO_CHAR(VL.RUN_DATE, 'YYYYMMDD') RUN_DATE, VL.RUN_SEQ, VL.PLAN_STEP
+								, VL.CAT_ID, VL.SUB_CAT, VL.VERSION, VL.SEQ, NVL(VL.STATUS, 0) STATUS, ST.CD_NAME STATUS_NAME
+								, VL.COMMTS
+						  FROM 	PLAN_VERSION_LOG VL
+								, ( 	SELECT CM.CD, CM.CD_NAME 
+										  FROM CODE_MST CM 
+										 WHERE CM.CD_GRP = 'STATUS' AND CM.MADE_TYPE != 'DE' ) ST -- STATUS
+						 WHERE 	VL.PERIOD_TYPE = '$!{PERIOD_TYPE}'
+						   AND 	TO_CHAR(VL.RUN_DATE, 'YYYYMMDD') = REPLACE(REPLACE('$!{run_date_sel}', '-', ''), '/', '')
+						   AND 	VL.RUN_SEQ = TO_NUMBER('$!{run_seq_sel}')
+						   AND 	VL.MADE_TYPE != 'DE'
+						   AND 	NVL(VL.STATUS, 0) = ST.CD
+					#end
+					) VL
+					, (
+					-- MAX PLAN_STEP 정보
+					<!-- 처음 화면 로드인 경우, MAX VERSION 의 MAX(PLAN_STEP) -->
+					#if( "$!{run_date_sel}" == "" )
+						SELECT 	MAX(VL.PLAN_STEP) MAX_STEP
+						  FROM 	PLAN_VERSION_LOG VL
+						  		, (
+						  			SELECT 	VI.RUN_DATE, VI.RUN_SEQ
+						  			  FROM 	(
+								  			SELECT 	VI.RUN_DATE, VI.RUN_SEQ
+								  			  FROM 	PLAN_VERSION_LOG VI
+								  			 WHERE 	VI.PERIOD_TYPE = '$!{PERIOD_TYPE}'
+								  			   AND 	VI.MADE_TYPE != 'DE'
+								  			 ORDER 	BY VI.RUN_DATE DESC, VI.RUN_SEQ DESC
+						  			 		) VI
+						  			 WHERE 	ROWNUM = 1
+						  		) MX
+						 WHERE 	VL.PERIOD_TYPE = '$!{PERIOD_TYPE}'
+						   AND 	TO_CHAR(VL.RUN_DATE, 'YYYYMMDD') = TO_CHAR(MX.RUN_DATE, 'YYYYMMDD')
+						   AND 	VL.RUN_SEQ = MX.RUN_SEQ
+						   --AND 	NVL(VL.STATUS, 0) != 0
+						   AND 	VL.MADE_TYPE != 'DE'
+					<!-- PERIOD VERSION 을 선택한 경우, 해당 VERSION 의 MAX(PLAN_STEP) -->
+					#else
+						SELECT 	MAX(VL.PLAN_STEP) MAX_STEP
+						  FROM 	PLAN_VERSION_LOG VL
+						 WHERE 	VL.PERIOD_TYPE = '$!{PERIOD_TYPE}'
+						   AND 	TO_CHAR(VL.RUN_DATE, 'YYYYMMDD') = REPLACE(REPLACE('$!{run_date_sel}', '-', ''), '/', '')
+						   AND 	VL.RUN_SEQ = TO_NUMBER('$!{run_seq_sel}')
+						   --AND 	NVL(VL.STATUS, 0) != 0
+						   AND 	VL.MADE_TYPE != 'DE'
+					#end
+					) MX
+					, (
+						SELECT 	VI.RUN_DATE, VI.RUN_SEQ DEFAULT_RUN_SEQ
+			  			  FROM 	(
+					  			SELECT 	VI.RUN_DATE, VI.RUN_SEQ
+					  			  FROM 	PLAN_VERSION_LOG VI
+					  			 WHERE 	VI.PERIOD_TYPE = '$!{PERIOD_TYPE}'
+					  			   AND 	VI.MADE_TYPE != 'DE'
+					  			 ORDER 	BY VI.RUN_DATE DESC, VI.RUN_SEQ DESC
+			  			 		) VI
+			  			 WHERE 	ROWNUM = 1
+					) DR -- DEFAULT_RUN_SEQ
+			 WHERE 	EM.CAT_ID = VL.CAT_ID(+)
+			   AND 	EM.SUB_CAT = VL.SUB_CAT(+)
+			 ORDER 	BY EM.CAT_SEQ, EM.PLANT_ID, VL.PLAN_STEP, VL.VERSION DESC, VL.SEQ DESC
+			
+	</query>
+
+<!--
+=====================================================================================================
+	기준정보 >> 공통
+=====================================================================================================
+--> 
+	
+	<!--
+	======================================================================
+		코드관리
+	======================================================================
+	-->
+	
+	<!-- 코드조회 -->
+	<query id="md_01030_codeMasterManagement_list" paging="true">
+			
+			SELECT 	CM.CD_GRP, CM.CD, CM.CD_NAME, CM.DESCR, CM.CAT01, CM.CAT02, CM.CAT03, CM.CAT04, CM.CAT05
+			  FROM 	CODE_MST CM
+			  		, ( SELECT 'TMP' TP FROM DUAL ) TP
+			 WHERE 	CM.CD_GRP LIKE '%' || UPPER('$!{cd_grp}') || '%'
+			 ORDER 	BY CM.CD_GRP, CM.CD
+			
+	</query>
+	
+	<!-- CODE_GRP 중복 체크 -->
+	<query id="cd_grp_dup_check_in_code_mst"> 
+			
+			SELECT 	COUNT(CM.CD_GRP) CNT 
+			  FROM 	CODE_MST CM
+			  		, ( SELECT 'TMP' TP FROM DUAL ) TP
+			 WHERE 	CM.CD_GRP = '$!{check_value}'
+			
+	</query>
+	
+	<!-- 코드등록 : 저장01 : 최상위코드 등록 -->
+	<!-- 최상위코드 : 0000 -->
+	<!-- 전체 코드 그룹 리스트를 관리하기 위한 코드 그룹 -->
+	<query id="md_01030_codeMasterManagement_reg_save_01">
+			
+			INSERT 	INTO CODE_MST( CD_GRP, CD, CD_NAME, DESCR, MADE_TYPE, MADE_DTTM, MADE_BY )
+			SELECT 	'0000' AS CD_GRP
+					, '$!{cd_grp}' AS CD
+					, '$!{cd_grp_desc}' AS CD_NAME
+					, '' AS DESCR
+					, 'AD' AS MADE_TYPE
+					, SYSDATE AS MADE_DTTM
+					, '$!{_user_id}' AS MADE_BY
+			  FROM 	DUAL
+			 WHERE 	NOT EXISTS ( SELECT CD.CD_GRP, CD.CD FROM CODE_MST CD WHERE CD.CD_GRP = '0000' AND CD.CD = '$!{cd_grp}' )
+			
+	</query>
+	
+	<!-- 코드등록 : 저장02 : 사용자 입력 코드 등록 -->
+	<query id="md_01030_codeMasterManagement_reg_save_02" fix="_user_id cd_grp" iterator="cd cd_name descr cat01 cat02 cat03 cat04 cat05"> 
+			
+			INSERT 	INTO CODE_MST( CD_GRP, CD, CD_NAME, DESCR, CAT01, CAT02, CAT03, CAT04, CAT05, MADE_TYPE, MADE_DTTM, MADE_BY )
+			SELECT 	'$!{cd_grp}' AS CD_GRP
+					, '$!{cd}' AS CD
+					, '$!{cd_name}' AS CD_NAME
+					, '$!{descr}' AS DESCR
+					, '$!{cat01}' AS CAT01
+					, '$!{cat02}' AS CAT02
+					, '$!{cat03}' AS CAT03
+					, '$!{cat04}' AS CAT04
+					, '$!{cat05}' AS CAT05
+					, 'AD' AS MADE_TYPE
+					, SYSDATE AS MADE_DTTM
+					, '$!{_user_id}' AS MADE_BY
+			  FROM 	DUAL
+			 WHERE 	NOT EXISTS ( SELECT CD.CD_GRP, CD.CD FROM CODE_MST CD WHERE CD.CD_GRP = '$!{cd_grp}' AND CD.CD = '$!{cd}' )
+			
+	</query>
+	
+	<!-- 코드수정 -->
+	<query id="md_01030_codeMasterManagement_mod" paging="false">
+			
+			SELECT 	CM.CD_GRP, CM.CD, CM.CD_NAME, CM.DESCR, CM.CAT01, CM.CAT02, CM.CAT03, CM.CAT04, CM.CAT05
+			  FROM 	CODE_MST CM
+					, ( SELECT 'TMP' TMP FROM DUAL ) TP
+			 WHERE 	CM.CD_GRP = '$!{cd_grp}'
+			 ORDER 	BY CM.CD_GRP, CM.CD
+			
+	</query>
+	
+	<!-- 코드수정 : 저장 -->
+	<!-- 01. 해당 코드 그룹 전체 삭제 -->
+	<!-- 02. 해당 코드 그룹 전체 INSERT -->
+	<query id="md_01030_codeMasterManagement_mod_save_01">
+			
+			DELETE 	CODE_MST
+			 WHERE 	CD_GRP = '$!{cd_grp}'
+			
+	</query>
+	<query id="md_01030_codeMasterManagement_mod_save_02" fix="_user_id cd_grp" iterator="cd cd_name descr cat01 cat02 cat03 cat04 cat05"> 
+			
+			INSERT 	INTO CODE_MST( CD_GRP, CD, CD_NAME, DESCR, CAT01, CAT02, CAT03, CAT04, CAT05, MADE_TYPE, MADE_DTTM, MADE_BY )
+			SELECT 	'$!{cd_grp}' AS CD_GRP
+					, '$!{cd}' AS CD
+					, '$!{cd_name}' AS CD_NAME
+					, '$!{descr}' AS DESCR
+					, '$!{cat01}' AS CAT01
+					, '$!{cat02}' AS CAT02
+					, '$!{cat03}' AS CAT03
+					, '$!{cat04}' AS CAT04
+					, '$!{cat05}' AS CAT05
+					, 'AD' AS MADE_TYPE
+					, SYSDATE AS MADE_DTTM
+					, '$!{_user_id}' AS MADE_BY
+			  FROM 	DUAL
+			 WHERE 	NOT EXISTS ( SELECT CD.CD_GRP, CD.CD FROM CODE_MST CD WHERE CD.CD_GRP = '$!{cd_grp}' AND CD.CD = '$!{cd}' )
+			
+			
+	</query>
+	
+	<!-- 코드수정 : 삭제 -->
+	<!-- 01. 해당 코드 그룹 최상위 코드 그룹에서 삭제 -->
+	<!-- 02. 해당 코드 그룹 삭제 -->
+	<query id="md_01030_codeMasterManagement_mod_del_01">
+			
+			DELETE 	CODE_MST
+			 WHERE 	CD_GRP = '0000'
+			   AND 	CD = '$!{cd_grp_del}'
+			   AND 	'$!{cd_grp_del}' != '0000' -- 최상위 코드그룹은 삭제 불가
+			
+	</query>
+	<query id="md_01030_codeMasterManagement_mod_del_02">
+			
+			DELETE 	CODE_MST
+			 WHERE 	CD_GRP = '$!{cd_grp_del}'
+			   AND 	'$!{cd_grp_del}' != '0000' -- 최상위 코드그룹은 삭제 불가
+			
+	</query>
+	
+	<!--
+	======================================================================
+		계획구간정보 관리
+	======================================================================
+	-->
+	
+	<!-- 계획구간정보 조회 -->
+	<query id="md_01040_horizonInfoManagement_list" paging="false">
+			
+			SELECT 	HZ.PERIOD_TYPE, PD.CD_NAME PERIOD_NAME, HZ.CAT_ID, CT.CD_NAME CAT_NAME
+					, HZ.TIME_FENCE, HZ.BCKT1_UOM, HZ.BCKT1_HORZN, HZ.BCKT2_UOM, HZ.BCKT2_HORZN, HZ.ROLLING_UOM
+			  FROM 	HORIZON_INFO HZ
+					, ( 	SELECT CM.CD, CM.CD_NAME, CM.CAT01 
+							  FROM CODE_MST CM 
+							 WHERE CM.CD_GRP = 'PERIOD_TYPE' AND CM.MADE_TYPE != 'DE' ) PD -- PERIOD
+					, ( 	SELECT CM.CD, CM.CD_NAME, CM.CAT01 
+							  FROM CODE_MST CM 
+							 WHERE CM.CD_GRP = 'CAT_ID' AND CM.MADE_TYPE != 'DE' ) CT -- CAT
+			 WHERE 	HZ.PERIOD_TYPE 	= PD.CD
+			   AND 	HZ.CAT_ID 		= CT.CD
+			   AND 	HZ.MADE_TYPE 	!= 'DE'
+			   [AND HZ.PERIOD_TYPE 	= '${period_type_sel}']
+			 ORDER 	BY PD.CAT01, CT.CAT01
+			
+	</query>
+	
+	<!-- 계획구간정보 관리 : 저장 -->
+	<!-- 01. HORIZON_INFO 에서 해당 계획주기 레코드 전체 DELETE -->
+	<!-- 02. HORIZON_INFO 에 데이터 INSERT -->
+	<query id="md_01040_horizonInfoManagement_list_save_01">
+			
+			DELETE 	HORIZON_INFO
+			 WHERE	MADE_TYPE != 'DE'
+			  [AND 	PERIOD_TYPE = '${period_type_key}']
+			
+	</query>
+	<query id="md_01040_horizonInfoManagement_list_save_02" fix="_user_id"
+		   iterator="period_type cat_id time_fence bckt1_uom bckt1_horzn bckt2_uom bckt2_horzn rolling_uom">
+			
+			INSERT 	INTO HORIZON_INFO
+						( PERIOD_TYPE, CAT_ID, TIME_FENCE, BCKT1_UOM, BCKT1_HORZN, BCKT2_UOM, BCKT2_HORZN, ROLLING_UOM
+							, MADE_TYPE, MADE_DTTM, MADE_BY )
+			SELECT 	'$!{period_type}' PERIOD_TYPE
+					, '$!{cat_id}' CAT_ID
+					, #if( "$!{time_fence}" == "" ) NULL #else TO_NUMBER('$!{time_fence}') #end TIME_FENCE
+					, '$!{bckt1_uom}' BCKT1_UOM
+					, #if( "$!{bckt1_horzn}" == "" ) NULL #else TO_NUMBER('$!{bckt1_horzn}') #end BCKT1_HORZN
+					, '$!{bckt2_uom}' BCKT2_UOM
+					, #if( "$!{bckt2_horzn}" == "" ) NULL #else TO_NUMBER('$!{bckt2_horzn}') #end BCKT2_HORZN
+					, '$!{rolling_uom}' ROLLING_UOM
+					, 'AD' MADE_TYPE, SYSDATE MADE_DTTM, '${_user_id}' MADE_BY
+			  FROM 	DUAL
+			 WHERE 	NOT EXISTS (
+			 			SELECT 	HZ.PERIOD_TYPE
+			 			  FROM 	HORIZON_INFO HZ
+			 			 WHERE 	HZ.PERIOD_TYPE = '$!{period_type}'
+			 			   AND 	HZ.CAT_ID = '$!{cat_id}'
+			 		)
+			
+	</query>
+	
+	<!--
+	======================================================================
+		엔진배치마스터 관리
+	======================================================================
+	-->
+	
+	<!-- 엔진배치마스터 조회 -->
+	<!-- 계획주기 리스트 -->
+	<query id="md_01050_period_type_list">
+			
+			SELECT 	CM.CD, CM.CD_NAME 
+			  FROM 	CODE_MST CM, DUAL B 
+			 WHERE 	CM.CD_GRP = 'PERIOD_TYPE'
+			   AND 	CM.MADE_TYPE != 'DE'
+			 ORDER 	BY CM.CAT01
+			
+	</query>
+	
+	<!-- 엔진배치마스터 조회 -->
+	<!-- 계획부문 리스트 -->
+	<query id="md_01050_cat_id_list">
+			
+			SELECT 	CM.CD, CM.CD_NAME 
+			  FROM 	CODE_MST CM, DUAL B 
+			 WHERE 	CM.CD_GRP = 'CAT_ID'
+			   AND 	CM.MADE_TYPE != 'DE'
+			 ORDER 	BY CM.CAT01
+			
+	</query>
+	
+	<!-- 엔진배치마스터 조회 -->
+	<!-- SUB_CAT and PLANT_ID 리스트 -->
+	<query id="md_01050_sub_cat_and_plant_id_list">
+			
+			SELECT 	CM.CD--, CM.CD_NAME
+					, PL.HID_NAME, CM.DESCR PLANT_ID
+			  FROM 	CODE_MST CM
+					, ( SELECT HR.HID, HR.HID_NAME FROM HRCHY HR WHERE HR.LVL_TYPE = '공장' AND HR.MADE_TYPE != 'DE' ) PL -- PLANT
+			 WHERE 	CM.CD_GRP = 'SUB_CAT'
+			   AND 	CM.MADE_TYPE != 'DE'
+			   AND 	CM.DESCR IS NOT NULL
+			   AND 	CM.DESCR = PL.HID
+			 ORDER 	BY CM.DESCR
+			
+	</query>
+	
+	<!-- 엔진배치마스터 조회 -->
+	<query id="md_01050_engineBatchMaster_list" paging="false">
+			
+			SELECT 	BM.PERIOD_TYPE, PT.CD_NAME PERIOD_NAME, BM.CAT_ID, CT.CD_NAME CAT_NAME
+					, BM.SUB_CAT, BM.PLANT_ID, PL.HID_NAME PLANT_NAME, BM.SEQ
+					, BM.AUTO_FLAG, DECODE(BM.AUTO_FLAG, 'Y', 'YES', 'N', 'NO', BM.AUTO_FLAG) AUTO_FLAG_NAME
+					, BM.RUN_CYCLE, RC.CD_NAME RUN_CYCLE_NAME
+					, SUBSTR(BM.RUN_TIME, 1, 2) RUN_TIME_H, SUBSTR(BM.RUN_TIME, 3, 2) RUN_TIME_M
+					, SUBSTR(BM.RUN_TIME, 1, 2)||':'||SUBSTR(BM.RUN_TIME, 3, 2) RUN_TIME
+					, BM.ENGN_IP, BM.PDB_USER, BM.HORST_IDX, BM.HOREN_IDX, BM.PLNST_IDX
+			  FROM 	ENGN_BAT_MST BM
+					, ( 	SELECT CM.CD, CM.CD_NAME 
+							  FROM CODE_MST CM 
+							 WHERE CM.CD_GRP = 'CAT_ID' AND CM.MADE_TYPE != 'DE' ) CT -- CAT
+					, ( 	SELECT CM.CD, CM.CD_NAME, CM.CAT01 
+							  FROM CODE_MST CM 
+							 WHERE CM.CD_GRP = 'PERIOD_TYPE' AND CM.MADE_TYPE != 'DE' ) PT -- PERIOD_TYPE
+					, ( 	SELECT HR.HID, HR.HID_NAME 
+							  FROM HRCHY HR
+							 WHERE HR.LVL_TYPE = '공장' AND HR.MADE_TYPE != 'DE' ) PL -- PLANT
+					, ( 	SELECT CM.CD, CM.CD_NAME, CM.CAT01 
+							  FROM CODE_MST CM 
+							 WHERE CM.CD_GRP = 'PERIOD_TYPE' AND CM.MADE_TYPE != 'DE' ) RC -- RUN_CYCLE
+			 WHERE 	BM.MADE_TYPE != 'DE'
+			   AND 	BM.CAT_ID = CT.CD
+			   AND 	BM.PERIOD_TYPE = PT.CD
+			   AND 	BM.PLANT_ID = PL.HID(+)
+			   AND 	BM.RUN_CYCLE = RC.CD(+)
+			   [AND BM.PERIOD_TYPE = '${period_type_sel}']
+			 ORDER 	BY PT.CAT01, BM.SEQ
+			
+	</query>
+	
+	<!-- 엔진배치마스터 관리 : 저장 -->
+	<!-- 01. ENGN_BAT_MST 에서 해당 계획주기 레코드 전체 DELETE -->
+	<!-- 02. ENGN_BAT_MST 에 데이터 INSERT -->
+	<query id="md_01050_engineBatchMaster_list_save_01">
+			
+			DELETE 	ENGN_BAT_MST
+			 WHERE	MADE_TYPE != 'DE'
+			  [AND 	PERIOD_TYPE = '${period_type_key}']
+			
+	</query>
+	<query id="md_01050_engineBatchMaster_list_save_02" fix="_user_id"
+		   iterator="period_type cat_id sub_cat plant_id auto_flag run_cycle run_time_h run_time_m seq engn_ip pdb_user horst_idx plnst_idx horen_idx">
+			
+			INSERT 	INTO ENGN_BAT_MST
+						( PERIOD_TYPE, CAT_ID, SUB_CAT, PLANT_ID, AUTO_FLAG, RUN_CYCLE, RUN_TIME, SEQ, ENGN_IP, PDB_USER
+							, HORST_IDX, PLNST_IDX, HOREN_IDX, MADE_TYPE, MADE_DTTM, MADE_BY )
+			SELECT 	'$!{period_type}' PERIOD_TYPE
+					, '$!{cat_id}' CAT_ID
+					, '$!{sub_cat}' SUB_CAT
+					, '$!{plant_id}' PLANT_ID
+					, '$!{auto_flag}' AUTO_FLAG
+					, '$!{run_cycle}' RUN_CYCLE
+					, '$!{run_time_h}$!{run_time_m}' RUN_TIME
+					, #if( "$!{seq}" == "" ) NULL #else TO_NUMBER('$!{seq}') #end SEQ
+					, '$!{engn_ip}' ENGN_IP
+					, '$!{pdb_user}' PDB_USER
+					, #if( "$!{horst_idx}" == "" ) NULL #else TO_NUMBER('$!{horst_idx}') #end HORST_IDX
+					, #if( "$!{plnst_idx}" == "" ) NULL #else TO_NUMBER('$!{plnst_idx}') #end PLNST_IDX
+					, #if( "$!{horen_idx}" == "" ) NULL #else TO_NUMBER('$!{horen_idx}') #end HOREN_IDX
+					, 'AD' MADE_TYPE, SYSDATE MADE_DTTM, '${_user_id}' MADE_BY
+			  FROM 	DUAL
+			 WHERE 	NOT EXISTS (
+			 			SELECT 	BM.PERIOD_TYPE
+			 			  FROM 	ENGN_BAT_MST BM
+			 			 WHERE 	BM.PERIOD_TYPE = '$!{period_type}'
+			 			   AND 	BM.CAT_ID = '$!{cat_id}'
+			 			   AND 	BM.SUB_CAT = '$!{sub_cat}'
+			 		)
+			
+	</query>
+	
+	<!-- 엔진배치마스터 상세조회 -->
+	<!-- 계획주기 to PLANT_ID 리스트 -->
+	<query id="md_01050_period_type_to_plant_id_list">
+			
+			SELECT 	BM.PERIOD_TYPE, BM.CAT_ID, CT.CD_NAME CAT_NAME, BM.SUB_CAT, BM.PLANT_ID, PL.HID_NAME PLANT_NAME
+			  FROM 	ENGN_BAT_MST BM
+					, ( SELECT HR.HID, HR.HID_NAME FROM HRCHY HR WHERE HR.LVL_TYPE = '공장' AND HR.MADE_TYPE != 'DE' ) PL -- PLANT
+					, ( SELECT CM.CD, CM.CD_NAME, CM.CAT01 
+						  FROM CODE_MST CM 
+						 WHERE CM.CD_GRP = 'PERIOD_TYPE' AND CM.MADE_TYPE != 'DE' ) PT -- PERIOD_TYPE
+					, ( SELECT CM.CD, CM.CD_NAME
+						  FROM CODE_MST CM 
+						 WHERE CM.CD_GRP = 'CAT_ID' AND CM.MADE_TYPE != 'DE' ) CT -- CAT_ID
+			 WHERE 	BM.MADE_TYPE 	!= 'DE'
+			   AND 	BM.PLANT_ID 	= PL.HID(+)
+			   AND 	BM.PERIOD_TYPE 	= PT.CD
+			   AND 	BM.CAT_ID 		= CT.CD
+			 GROUP 	BY PT.CAT01, BM.PERIOD_TYPE, BM.CAT_ID, CT.CD_NAME, BM.SUB_CAT, BM.PLANT_ID, PL.HID_NAME, BM.SEQ
+			 ORDER 	BY PT.CAT01, BM.SEQ
+			
+	</query>
+	
+	<!-- 엔진배치마스터 상세조회 -->
+	<!-- JOB_TYPE 리스트 -->
+	<query id="md_01050_job_type_list">
+			
+			SELECT 	CM.CD, CM.CD_NAME 
+			  FROM 	CODE_MST CM, DUAL B 
+			 WHERE 	CM.CD_GRP = 'JOB_TYPE'
+			   AND 	CM.MADE_TYPE != 'DE'
+			 ORDER 	BY CM.CAT01
+			
+	</query>
+	
+	<!-- 엔진배치마스터 상세조회 -->
+	<query id="md_01050_engineBatchMaster_detail" paging="false">
+			
+			SELECT 	JI.JOB_TYPE, JI.SEQ, JI.SP_ID, JI.DESCR
+					, DECODE(JI.EXEC_FLAG, 'Y', 'YES', 'N', 'NO', JI.EXEC_FLAG) EXEC_FLAG
+			FROM 	ENGN_BAT_JOB_INFO JI
+					, ( 	SELECT CM.CD, CM.CD_NAME, CM.CAT01 
+							  FROM CODE_MST CM 
+							 WHERE CM.CD_GRP = 'JOB_TYPE' AND CM.MADE_TYPE != 'DE' ) JT -- JOB_TYPE
+			 WHERE 	JI.JOB_TYPE 	= JT.CD
+			   AND 	JI.MADE_TYPE 	!= 'DE'
+			   AND 	JI.PERIOD_TYPE 	= '$!{period_type}'
+			   AND 	JI.CAT_ID 		= '$!{cat_id}'
+			   AND 	JI.SUB_CAT 		= '$!{sub_cat}'
+			  [AND 	JI.JOB_TYPE 	= '${job_type_sel}']
+			 ORDER 	BY JT.CAT01, JI.SEQ
+			
+	</query>
+	
+	<!-- 엔진배치마스터 상세조회 : 저장 -->
+	<!-- 01. ENGN_BAT_JOB_INFO 에서 해당 계획부문 JOB TYPE 레코드 전체 DELETE -->
+	<!-- 02. ENGN_BAT_JOB_INFO 에 데이터 INSERT -->
+	<query id="md_01050_engineBatchMaster_detail_save_01">
+			
+			DELETE 	ENGN_BAT_JOB_INFO
+			 WHERE	MADE_TYPE 	!= 'DE'
+			   AND 	PERIOD_TYPE = '$!{period_type}'
+			   AND 	CAT_ID 		= '$!{cat_id}'
+			   AND 	SUB_CAT 	= '$!{sub_cat}'
+			  [AND 	JOB_TYPE 	= '${job_type_key}']
+			
+	</query>
+	<query id="md_01050_engineBatchMaster_detail_save_02" fix="_user_id period_type cat_id sub_cat"
+		   iterator="job_type seq sp_id descr exec_flag">
+			
+			INSERT 	INTO ENGN_BAT_JOB_INFO
+						( PERIOD_TYPE, CAT_ID, SUB_CAT, JOB_TYPE, SEQ, SP_ID, DESCR, EXEC_FLAG
+							, MADE_TYPE, MADE_DTTM, MADE_BY )
+			SELECT 	'$!{period_type}' PERIOD_TYPE
+					, '$!{cat_id}' CAT_ID
+					, '$!{sub_cat}' SUB_CAT
+					, '$!{job_type}' JOB_TYPE
+					, #if( "$!{seq}" == "" ) NULL #else TO_NUMBER('$!{seq}') #end SEQ
+					, '$!{sp_id}' SP_ID
+					, '$!{descr}' DESCR
+					, '$!{exec_flag}' EXEC_FLAG
+					, 'AD' MADE_TYPE, SYSDATE MADE_DTTM, '${_user_id}' MADE_BY
+			  FROM 	DUAL
+			 WHERE 	NOT EXISTS (
+			 			SELECT 	JI.PERIOD_TYPE
+			 			  FROM 	ENGN_BAT_JOB_INFO JI
+			 			 WHERE 	JI.PERIOD_TYPE 	= '$!{period_type}'
+			 			   AND 	JI.CAT_ID 		= '$!{cat_id}'
+			 			   AND 	JI.SUB_CAT 		= '$!{sub_cat}'
+			 			   AND 	JI.JOB_TYPE 	= '$!{job_type}'
+			 			   AND 	JI.SP_ID 		= '$!{sp_id}'
+			 		)
+			
+	</query>
+	
+	
+	<query id="md_10020_fert_and_halb_bom_list">
+			
+		SELECT	DISTINCT 	T1.PLANT_ID,								--공장코드
+							T3.CD_NAME	 PLANT_NAME,					--공장명
+					        T1.PROD_VER,								--생산버전        	
+							CASE	
+					        		WHEN	T2.ITYPE	='FERT'	THEN	'BOX'
+							ELSE	T1.PROD_QTY_UOM
+					        END	UOM,									--단위		                
+					        CASE 
+					        		WHEN	T2.ITYPE	='FERT'		THEN	ROUND(F_GETCONV_UOM(T1.prod_ITEM_ID,T1.PROD_QTY_UOM,'BOX',T1.PROD_QTY),0)
+							ELSE		ROUND(T1.PROD_QTY)
+					        END		QTY,								--수량
+							T2.RECIPE_TYPE,								--유형코드
+					        F_GET_ITEM_NAME(T2.RECIPE_TYPE)	RECIPE		--유형면
+		FROM	MBOM		T1,
+				ITEM_MST	T2,
+		        (
+		        SELECT	CD,
+		        		CD_NAME
+		        FROM CODE_MST
+		        WHERE	CD_GRP = 'PLANT_NAME'
+		        )        	T3
+		WHERE	T1.PROD_ITEM_ID	=	T2.ITEM_ID
+		AND		T1.PLANT_ID		=	T3.CD   
+		AND		T1.PROD_ITEM_ID	=	'$!{item_id}'
+		ORDER	BY	1,3
+			
+	</query>
+	
+	<query id="md_10020_fert_and_halb_bom_list_dtl">
+			
+		SELECT	CONS_ITEM_SEQ,
+				CONS_ITEM_ID,
+		        F_GET_ITEM_NAME(CONS_ITEM_ID)	ITEM_NAME,
+		        CONS_ITEM_TYPE,
+		        CONS_QTY_UOM,
+		        CONS_QTY
+		FROM	MBOM		T1
+		WHERE	CONS_ITEM_TYPE	IN('HALB','ROH1','ROH2')
+		AND		PROD_ITEM_ID	=	'$!{item_id}'
+		AND		PLANT_ID		=	'$!{plant_id}'
+		AND		PROD_VER		=	'$!{prod_ver}'
+		ORDER	BY	1,2
+			
+	</query>
+	
+	
+<!--
+=====================================================================================================
+ 끝
+=====================================================================================================
+-->
+
+</queries>

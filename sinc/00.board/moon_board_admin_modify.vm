@@ -1,0 +1,138 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setTabAutoResize('90')" )
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						#toolbar($_moon_toolbar "" "moon_board_admin_modsave" "" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr style="display:none; ">
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2">
+					<td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; ">
+            				<tr id="search_menu" style="display:block; ">
+            					<td width="10%" align="right">
+									&nbsp;
+            					</td>
+            					<td width="90%" align="left">
+									&nbsp;
+            					</td>
+            				</tr> 
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2">
+					<td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="0"> ## search 조건 부분 높이 
+	##<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>						
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table cellspacing="0" width="100%">
+						<tr>
+							<td class="td1" width="25%" align="right">테이블 이름 &nbsp;</td>
+							<td>
+								&nbsp;$!{moon_board_admin_detail.get(0).get(0)}
+							</td>
+						</tr>
+						<tr> 
+							<td class="td1" align="right">테이블 설명  &nbsp;</td>
+							<td>
+								&nbsp;<input type="text" name="table_explain" size="50" class="normal" value="$!{moon_board_admin_detail.get(0).get(1)}">
+							</td>
+						</tr>
+						<tr>
+							<td class="td1" align="right">TITLE  &nbsp; </td>
+							<td>
+								&nbsp;<input type="text" name="title" size="50" class="normal" value="$!{moon_board_admin_detail.get(0).get(2)}">
+							</td>
+						</tr>
+						<tr>
+							<td class="td1" align="right">파일업로드 설정 여부  &nbsp;</td>											
+							<td>
+								#checkbox2("data_flag" ${moon_board_admin_detail.get(0).get(3)})
+							</td>											
+						</tr>		
+						<tr>
+							<td class="td1" align="right">메모기능 설정 여부  &nbsp;</td>										
+							<td>
+								#checkbox2("memo_flag" ${moon_board_admin_detail.get(0).get(4)})
+							</td>											
+						</tr>
+						<tr>											
+							<td class="td1" valign="top" align='right' style="padding-top:5px ">그룹별  권한 설정&nbsp;</td>										
+							<td>
+							[<span onClick="CheckAll('secu_flag', true)" style='color:blue;cursor:hand;' onMouseOver='this.style.color="red"' onMouseOut='this.style.color="blue"'>전체선택</span>]
+							[<span onClick="CheckAll('secu_flag', false)" style='color:blue;cursor:hand;' onMouseOver='this.style.color="red"' onMouseOut='this.style.color="blue"'>선택해제</span>]                                                       												
+							
+							<div class="table_scroll"  style="height:300px">	
+								<table border="0" cellspacing="0" cellpadding="0" align="left" width="100%">
+									<tr height="5px"><td></td></tr>
+									## A.GROUP_ID, B.GROUP_NAME, A.BOARD_ID, A.SECU_FLAG
+									#foreach( $td in ${moon_board_admin_secu_detail} )
+									<tr>										
+										<td width='5%'>
+											<input type="checkbox" name="secu_flag" style="border:0px; "
+												#if( "$td.get(3)" == "1" ) checked value="1" #else value="0" #end>
+										</td>									
+										
+										<td>&nbsp;$td.get(1)&nbsp;[$td.get(0)]</td>
+										<input type='hidden' name="secu_group_seq" value="$td.get(0)">
+									</tr>	
+									#end 
+                                </table> 
+							</div>
+							</td>											
+						</tr>
+						<input type="hidden" name="_moon_service">
+						<input type="hidden" name="_board_id" value="${_board_id}">
+					</table>
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 수정할 항목을 선택하여 수정하고 저장 버튼으로 수정 내용을 저장합니다.";
+	//helpStr += "<br>◈ Second Line is Here,,";
+	helpCont.innerHTML = helpStr;
+	// 도움말 zoomOut 높이 조절 변수
+	var hDynamicHeight = 0;
+	
+</script>

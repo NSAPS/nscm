@@ -1,0 +1,776 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>
+
+<!--
+=====================================================================================================
+	재고운영계획 >> 운영정보
+=====================================================================================================
+-->
+	
+	<!--
+	======================================================================
+		공급정보입력정정 
+	======================================================================
+	-->
+	
+	<!-- 다음 영업일  -->
+	<query id="ip_02060_NEXT_SALE_DATE">
+		
+		SELECT	TO_CHAR(MIN(CAL_DATE),'YYYY-MM-DD')	CNFM_DATE
+		FROM	CAL_MST,	DUAL
+		WHERE	CAL_DATE	> SYSDATE
+		AND		HOLIDAY_FLAG IS NULL
+   		 
+	</query>
+
+	<!-- combo 공급할당 기준 --> 
+	<query id="ip_02060_combo_allocQuotaType" paging="false"> 
+
+		SELECT	CD,CD_NAME  
+		FROM	CODE_MST,
+				DUAL
+		WHERE	CD_GRP	= 'ALLOC_QUOTA_TYPE'
+		ORDER
+		BY		1
+
+	</query> 
+
+	<!-- combo 공급할당 사유 --> 
+	<query id="ip_02060_combo_allocReason"  paging="false"> 
+
+		SELECT	CD,CD_NAME
+		FROM	CODE_MST,
+				DUAL
+ 		WHERE	CD_GRP	= 'ALLOC_REASON'
+ 		AND		CD > 20  -- 이승용 대리 요청 배정사유 수정 2014-12-19
+
+	</query> 
+	
+	<!-- NFOS전송여부  -->
+	<query id="ip_02060_CHECK_DC_ALLOC_FLAG">
+		
+		SELECT	ALLOC_FLAG,
+				CASE
+					WHEN ALLOC_FLAG	= 'Y' THEN 'NFOS전송'
+					ELSE 'NFOS전송전'
+				END,
+				ADD_ALLOC_FLAG,
+				CASE
+					WHEN ADD_ALLOC_FLAG	= 'Y' THEN '추가완료'
+					ELSE '추가작업중'
+				END,
+				COMMON_COMMENT
+		FROM	SDORT202, DUAL
+		WHERE	CNFM_DATE	=	REPLACE('$!{cnfm_date}','-','')
+   		 
+	</query>
+
+	<!-- 공급할당 품목정보 정정   -->
+	<query id="ip_02060_UPDATE_DC_ALLOC_ITEM">
+
+		UPDATE	SDORT203	TA
+		SET		TA.ALLOC_REASON 	= '$!{alloc_reason}',
+				TA.USE_QUOTA_TYPE 	= '$!{use_quota_type}',
+				TA.ALLOC_COMMENT 	= '$!{alloc_comment}',
+				TA.MADE_DTTM		= SYSDATE,
+				TA.MADE_BY 			= '$!{user_id}'
+		WHERE	TA.CNFM_DATE	= REPLACE('$!{cnfm_date}','-','')
+		AND		TA.PROD_CODE	= '$!{item_id}'
+
+	</query>
+
+
+	<!-- NFOS전송여부정정_Y로 변경  -->
+	<query id="ip_02060_UPDATE_DC_ALLOC_FLAG">
+
+		UPDATE	SDORT202
+		SET		ALLOC_FLAG	= 'Y',
+				MADE_TYPE	= 'UP',
+				MADE_DTTM	= SYSDATE,
+				MADE_BY		= '$!{user_id}'
+		WHERE	CNFM_DATE	= REPLACE('$!{cnfm_date}','-','')
+   		 
+	</query>
+	
+	<!-- NFOS SCM추가할당 여부 Y로 변경  -->
+	<query id="ip_02060_UPDATE_DC_ADD_ALLOC_FLAG">
+
+		UPDATE	SDORT202
+		SET		ADD_ALLOC_FLAG	= 'Y'
+		WHERE	CNFM_DATE	= REPLACE('$!{cnfm_date}','-','')
+   		 
+	</query>
+
+	<!-- NFOS전송 COMMENT UPDATE  -->
+	<query id="ip_02060_UPDATE_COMMON_COMMENT">
+
+		UPDATE	SDORT202
+		SET		COMMON_COMMENT	= '$!{common_comment}'
+		WHERE	CNFM_DATE	= REPLACE('$!{cnfm_date}','-','')
+   		 
+	</query>	
+	
+	<!-- 자동공급할당 기준저장 -->
+	<query id="ip_02060_UPDATE_AUTO_ALLOC_INFO">
+
+		UPDATE	ITEM_MST
+		SET		AUTO_ALLOC_FLAG	= '$!{chk_AutoAllocCheck}',
+				AUTO_ALLOC_QUOTA_TYPE = '$!{insel_allocQoutaType}'
+		WHERE	ITEM_ID	= '$!{item_id}'
+   		 
+	</query>		
+
+	<!-- COMBO 지역구분 조회 -->
+	<query id="ip_02060_combo_catAllocZone">
+
+		SELECT	CAT01, CD_NAME
+		FROM	CODE_MST, DUAL
+		WHERE	CD_GRP	LIKE 'CAT_ALLOC_ZONE'
+		AND		CAT02	= 'Y'
+		AND		CD	!= '00'
+		ORDER
+		BY		1
+	
+	</query>		
+
+	<!-- 공급정보입력정정_품목리스트 -->
+	<query id="ip_02060_ALLOC_ITEM_LIST" paging="false">
+
+		SELECT	ITEM_ID,
+				ITEM_ID||'_('||ALLOC_YN||') '||ITEM_NAME||'_('||ALLOC_ZONE_NAME||')',
+				TO_CHAR(RANK() OVER (ORDER BY ITEM_ID))||'/'||TO_CHAR(T2.CNT)	RANK,
+				BOX_PER_PALET,
+				ITYPE,
+				(SELECT	NVL(MAX('C/D'), '일반')	CD_GUBN
+				FROM	STOCK_POLICY_QTY
+				WHERE	WORK_DATE	= (SELECT	MAX(WORK_DATE) FROM	STOCK_POLICY_QTY)
+				AND		SAFETY_STOCK_FLAG	= '01'
+				AND		ITEM_ID		= T1.ITEM_ID
+				),
+				ALLOC_YN,
+				NVL(T1.ALLOC_REASON,'00'),
+				NVL(T1.USE_QUOTA_TYPE,'14'),
+				T1.ALLOC_COMMENT,
+				T1.AUTO_ALLOC_FLAG,
+				T1.AUTO_ALLOC_QUOTA_TYPE
+		FROM	(		
+				SELECT	T1.PROD_CODE	ITEM_ID,
+						T3.ITEM_NAME,
+						T3.DIVISION,
+						HR_TY1,
+						NVL(BOX_PER_PALET,1) BOX_PER_PALET,
+						ITYPE,
+						/* 1박스 이상이라도 할당되면 YES */
+						CASE
+							WHEN SUM(T2.MODI_BOX) &gt; 0	 THEN 'YES'
+							ELSE 'NO'
+						END ALLOC_YN,
+						/* 총할당량이 0이면 NO, 총할당량과 실제 할당량이 50%이하이면 NO */
+						T1.ALLOC_REASON,
+						T1.USE_QUOTA_TYPE,
+						T1.ALLOC_COMMENT	ALLOC_COMMENT,
+						T3.AUTO_ALLOC_FLAG,
+						T3.AUTO_ALLOC_QUOTA_TYPE,
+						F_GET_CODE_NAME('CAT_ALLOC_ZONE',T1.ALLOC_ZONE)	ALLOC_ZONE_NAME
+				FROM	SDORT203		T1,
+						SDORT204		T2,
+						ITEM_MST		T3,
+						NCOMT005		T4
+				WHERE	T1.CNFM_DATE	=	REPLACE('$!{cnfm_date}','-','')
+				AND		T1.CNFM_DATE	= T2.CNFM_DATE(+)
+				AND		T1.PROD_CODE	= T2.PROD_CODE(+)
+				AND		T1.PROD_CODE	= T3.ITEM_ID
+				AND		T1.ALLOC_GUBN	= '2'
+				AND		T2.CUST_CODE(+)	= '0000000'
+				AND		T3.SCM_CHARGE	= T4.EMP_NO(+)
+				GROUP
+				BY		T1.PROD_CODE,
+						T3.ITEM_NAME,
+						T3.DIVISION,
+						HR_TY1,
+						NVL(BOX_PER_PALET,1),
+						ITYPE,
+						T1.ALLOC_REASON,
+						T1.USE_QUOTA_TYPE,
+						T1.ALLOC_COMMENT,
+						T3.AUTO_ALLOC_FLAG,
+						T3.AUTO_ALLOC_QUOTA_TYPE,
+						T1.ALLOC_ZONE, T4.HAN_NAME, T4.TEL_NO
+				)	T1,
+				(		
+				SELECT	COUNT(DISTINCT	T1.PROD_CODE)	CNT
+				FROM	SDORT203		T1,
+						SDORT204		T2,
+						ITEM_MST			T3
+				WHERE	T1.CNFM_DATE	=	REPLACE('$!{cnfm_date}','-','')
+				AND		T1.CNFM_DATE	= T2.CNFM_DATE(+)
+				AND		T1.PROD_CODE	= T2.PROD_CODE(+)
+				AND		T1.PROD_CODE	= T3.ITEM_ID
+				AND		T1.ALLOC_GUBN	= '2'
+				AND		T2.CUST_CODE(+)	= '0000000'
+				)	T2
+
+	</query>
+	
+	<!-- 공급정보입력정정_DW1 -->
+	<query id="ip_02060_SalesAllocationNiceLikePlan_DW1" paging="false">
+
+		SELECT	S1.DEPT_CODE,
+				f_getsaleslocname(S1.DEPT_CODE) DEPT_NAME,
+				SUM(PRE_REQT_BOX)	PRE_REQT_BOX,
+				SUM(PRE_SELL_BOX)	PRE_SELL_BOX,
+				SUM(PRE_ALLOC_BOX)	PRE_ALLOC_BOX,
+				DECODE(SUM(PRE_ALLOC_BOX),0,0,ROUND(SUM(PRE_REQT_BOX)/SUM(PRE_ALLOC_BOX)*100,1))	PRE_USE_ALLOC_RATE,
+				DECODE(SUM(PRE_REQT_BOX),0,0,ROUND(SUM(PRE_SELL_BOX)/SUM(PRE_REQT_BOX)*100,1))		PRE_CLOSE_RATE,
+			#if("$!{insel_allocQoutaType}" == "10")
+				-- 판매계획
+				SUM(PLAN_BOX)			PLAN_BOX,
+				0						CUM_SELL_BOX,
+				0						GOAL_RATE,
+			#else		
+				-- 판매목표 or 가상목표
+				NVL(S3.GOAL_BOX,0)		PLAN_BOX,
+				SUM(ALLOC_BOX)+NVL(CUM_SELL_BOX,0)+NVL(SELL_BOX,0)	CUM_SELL_BOX,
+				--달성율
+				DECODE(NVL(S3.GOAL_BOX,0),0,0,ROUND((SUM(ALLOC_BOX)+NVL(CUM_SELL_BOX,0)+NVL(SELL_BOX,0))/NVL(S3.GOAL_BOX,0)*100,1))		GOAL_RATE,
+			#end
+				SUM(EDI_21)+SUM(EDI_22)+SUM(EDI_23)+SUM(EDI_ETC)	EDI,
+				SUM(EDI_21)		EDI_21,
+				SUM(EDI_22)		EDI_22,
+				SUM(EDI_23)		EDI_23,
+				SUM(EDI_ETC)	EDI_ETC,
+			#if("$!{insel_allocQoutaType}" == "10")
+				-- 판매계획
+				DECODE(SUM(PLAN_BOX),0,0,ROUND(SUM(ALLOC_BOX)/SUM(PLAN_BOX)*100,1))		ALLOC_RATE,
+			#else		
+				-- 판매목표 or 가상목표
+				DECODE(NVL(S3.GOAL_BOX,0),0,0,ROUND((SUM(ALLOC_BOX))/NVL(S3.GOAL_BOX,0)*100,1))		ALLOC_RATE,
+			#end
+				SUM(ALLOC_BOX)	ALLOC_BOX,
+				SUM(REQT_BOX)		REQT_BOX,
+				SUM(ALLOC_BOX) - SUM(REQT_BOX) 	REMN_BOX,
+				DECODE(SUM(ALLOC_BOX),0,0,ROUND(SUM(REQT_BOX)/SUM(ALLOC_BOX)*100,1))	USE_ALLOC_RATE,
+				SUM(REQT_ALLOC_BOX)				REQT_ALLOC_BOX,
+				SUM(ADD_ALLOC_BOX)				ADD_ALLOC_BOX,
+				MAX(REQT_ALLOC_REASON)			REQT_ALLOC_REASON,
+				S4.ALLOC_ZONE_02,
+				S4.ALLOC_ZONE_03,
+		        CASE
+		            WHEN S1.DEPT_CODE = '015' OR S1.DEPT_CODE = '016' OR S1.DEPT_CODE = '017' OR S1.DEPT_CODE = '026' OR S1.DEPT_CODE = '027' THEN '3' --특판
+		            WHEN S4.ALLOC_ZONE_04 = '1' THEN '1' -- 직판
+		            WHEN S4.ALLOC_ZONE_06 = '1' THEN '2' -- CVS
+		            ELSE '0' --시판
+		        END ALLOC_ZONE_04,				
+				--DECODE(S4.ALLOC_ZONE_06, '1', '2', S4.ALLOC_ZONE_04) ALLOC_ZONE_04,  -- CVS 지점은 2로 설정..
+				S4.ALLOC_ZONE_05
+		FROM	(			
+				/* 전일 주문의뢰, 주문마감 */
+				SELECT	T1.DEPT_CODE		DEPT_CODE,
+						SUM(DECODE(T2.UPDT_GUBN,'10',T2.SELL_BOX,T2.REQT_BOX))	PRE_REQT_BOX,
+						SUM(T2.SELL_BOX)	PRE_SELL_BOX,
+						0					REQT_BOX,
+						0					PRE_ALLOC_BOX,
+						0					PLAN_BOX,
+						0					EDI_21,
+						0					EDI_22,
+						0					EDI_23,
+						0					EDI_ETC,
+						0	ALLOC_BOX,        
+						0	REMN_BOX,         
+						0	REQT_ALLOC_BOX,   
+						''	REQT_ALLOC_REASON,
+						0	ADD_ALLOC_BOX,    
+						''	REQT_EMP_NO,      
+						''	ADD_EMP_NO        				
+				FROM	SDORT101	T1,
+						SDORT102	T2,
+						(
+						SELECT	MAX(YYYYMMDD)	YYYYMMDD
+						FROM	CAL_MST
+						WHERE	YYYYMMDD	&lt; REPLACE('$!{cnfm_date}','-','')
+						AND		HOLIDAY_FLAG IS NULL
+						)			T3
+				WHERE	T1.SLIP_NO		= T2.SLIP_NO
+				AND		T1.CNFM_DATE	= T3.YYYYMMDD
+				AND		T2.PROD_CODE	= '$!{item_id}'
+				AND		SUBSTR(T1.SLIP_GUBN_CODE,1,2)	= 'YO'
+				AND		nvl(T1.CASH_CARD,'XX') 	!= '01' -- 특약점 주문, 영업사원 전환전
+				AND		T1.UPDT_GUBN	!= '00'
+				AND		T2.UPDT_GUBN	!= '00'	
+				GROUP
+				BY		T1.DEPT_CODE
+				UNION	ALL		
+				/* 공급할당일 주문의뢰 */
+				SELECT	T1.DEPT_CODE		DEPT_CODE,
+						0					PRE_REQT_BOX,
+						0					PRE_SELL_BOX,
+						SUM(DECODE(T2.UPDT_GUBN,'10',T2.SELL_BOX,T2.REQT_BOX))	REQT_BOX,
+						0					PRE_ALLOC_BOX,
+						0					PLAN_BOX,
+						0					EDI_21,
+						0					EDI_22,
+						0					EDI_23,
+						0					EDI_ETC,
+						0	ALLOC_BOX,        
+						0	REMN_BOX,         
+						0	REQT_ALLOC_BOX,   
+						''	REQT_ALLOC_REASON,
+						0	ADD_ALLOC_BOX,    
+						''	REQT_EMP_NO,      
+						''	ADD_EMP_NO        				
+				FROM	SDORT101	T1,
+						SDORT102	T2
+				WHERE	T1.SLIP_NO		= T2.SLIP_NO
+				AND		T1.CNFM_DATE	= REPLACE('$!{cnfm_date}','-','')
+				AND		T2.PROD_CODE	= '$!{item_id}'
+				AND		SUBSTR(T1.SLIP_GUBN_CODE,1,2)	= 'YO'
+				AND		nvl(T1.CASH_CARD,'XX') 	!= '01' -- 특약점 주문, 영업사원 전환전
+				AND		T1.UPDT_GUBN	!= '00'
+				AND		T2.UPDT_GUBN	!= '00'	
+				GROUP
+				BY		T1.DEPT_CODE
+				UNION	ALL		
+				/* 전일 공급할당량 */		
+				SELECT	T1.DEPT_CODE	DEPT_CODE,
+						0				PRE_REQT_BOX,
+						0				PRE_SELL_BOX,
+						0				REQT_BOX,
+						MODI_BOX		PRE_ALLOC_BOX,
+						0				PLAN_BOX,
+						0				EDI_21,
+						0				EDI_22,
+						0				EDI_23,
+						0				EDI_ETC,
+						0	ALLOC_BOX,        
+						0	REMN_BOX,         
+						0	REQT_ALLOC_BOX,   
+						''	REQT_ALLOC_REASON,
+						0	ADD_ALLOC_BOX,    
+						''	REQT_EMP_NO,      
+						''	ADD_EMP_NO        	
+				FROM	SDORT204	T1,
+						SDORT203	T2,
+						(
+						SELECT	MAX(YYYYMMDD)	YYYYMMDD
+						FROM	CAL_MST
+						WHERE	YYYYMMDD	&lt; REPLACE('$!{cnfm_date}','-','')
+						AND		HOLIDAY_FLAG IS NULL
+						)			T3
+				WHERE	T1.CNFM_DATE	= T2.CNFM_DATE
+				AND		T1.CNFM_DATE	= T3.YYYYMMDD
+				AND		T1.DEPT_CODE	= T2.DEPT_CODE
+				AND		T1.PROD_CODE	= T2.PROD_CODE
+				AND		T1.PROD_CODE	= '$!{item_id}'
+				AND		T2.ALLOC_GUBN	= '2'
+				AND		T1.CUST_CODE	= '0000000'
+				UNION	ALL
+				/* 판매계획 */
+				SELECT	SALES_LOC	DEPT_CODE,
+						0				PRE_REQT_BOX,
+						0				PRE_SELL_BOX,
+						0				REQT_BOX,
+						0				PRE_ALLOC_BOX,
+						SUM(NORMAL_QTY+PROM_QTY+SUPT_QTY+SAMP_QTY)	PLAN_BOX,
+						0					EDI_21,
+						0					EDI_22,
+						0					EDI_23,
+						0					EDI_ETC,
+						0	ALLOC_BOX,        
+						0	REMN_BOX,         
+						0	REQT_ALLOC_BOX,   
+						''	REQT_ALLOC_REASON,
+						0	ADD_ALLOC_BOX,    
+						''	REQT_EMP_NO,      
+						''	ADD_EMP_NO        
+				FROM	NFOS_SALES_PLAN_WEEKLY	S1,
+						V_NFOS_PLAN_VERSION		S2
+				WHERE	S1.YYYY		= S2.YYYY
+				AND		S1.VERSION	= S2.VERSION
+				AND		S1.YYYYMMDD	= S2.YYYYMMDD
+				AND		S1.YYYYMMDD = REPLACE('$!{cnfm_date}','-','')
+				AND		S1.ITEM_ID	= '$!{item_id}'
+				GROUP
+				BY		SALES_LOC,
+						DELIV_LOC
+				UNION	ALL
+				/* EDI 주문정보 */
+				SELECT	T3.DEPT_CODE,
+						0				PRE_REQT_BOX,
+						0				PRE_SELL_BOX,
+						0				REQT_BOX,
+						0					PRE_ALLOC_BOX,
+						0					PLAN_BOX,
+						NVL(SUM(DECODE(GRUP_CODE,'21',T1.ODER_BOX)),0)		EDI_21,
+						NVL(SUM(DECODE(GRUP_CODE,'32',T1.ODER_BOX)),0)		EDI_22,
+						NVL(SUM(DECODE(GRUP_CODE,'23',T1.ODER_BOX)),0)		EDI_23,
+						SUM(DECODE(GRUP_CODE,'21',0,'32',0,'23',0,T1.ODER_BOX))	EDI_ETC,
+						0	ALLOC_BOX,        
+						0	REMN_BOX,         
+						0	REQT_ALLOC_BOX,   
+						''	REQT_ALLOC_REASON,
+						0	ADD_ALLOC_BOX,    
+						''	REQT_EMP_NO,      
+						''	ADD_EMP_NO        
+				FROM	SDORT120	T1,
+						(
+						SELECT	DISTINCT	T1.CUST_CODE, T1.DEPT_CODE, T1.STOR_CODE	DC_ID, T3.EMP_NO,T3.HAN_NAME
+						FROM	SDSTT103	T1,
+								SDSTT105	T2,
+								NCOMT005	T3
+						WHERE	T1.SALE_ORG	= '1000'
+						AND		T1.SALE_ORG	= T2.SALE_ORG
+						AND		T1.CUST_CODE	= T2.CUST_CODE
+						AND		T2.PRTN_CUST_CODE	= T3.EMP_NO
+						AND		T2.PRTN_ROLE	= 'VE'
+						)			T3
+				WHERE	CNFM_DATE	= REPLACE('$!{cnfm_date}','-','')
+				AND		GRUP_CODE	IN (
+										SELECT	CD
+										FROM	CODE_MST
+										WHERE	CD_GRP	= 'GRUP_CODE1'
+										)
+				AND		T1.PROD_CODE	= '$!{item_id}'
+				AND		T1.CUST_CODE	= T3.CUST_CODE
+				AND		T1.ERR_GUBN		!= '16'  --2014-10-31 NFOS 삭제표시 데이터 안 보이게 수정
+				GROUP
+				BY		T3.DEPT_CODE
+				UNION	ALL
+				SELECT	DEPT_CODE	DEPT_CODE,
+						0				PRE_REQT_BOX,
+						0				PRE_SELL_BOX,
+						0				REQT_BOX,
+						0				PRE_ALLOC_BOX,
+						0				PLAN_BOX,
+						0					EDI_21,
+						0					EDI_22,
+						0					EDI_23,
+						0					EDI_ETC,	
+						MODI_BOX		ALLOC_BOX, 
+						REMN_BOX, 
+						REQT_ALLOC_BOX, 
+						REQT_ALLOC_REASON, 
+						ADD_ALLOC_BOX, 
+						REQT_EMP_NO, 
+						ADD_EMP_NO
+				FROM	SDORT204
+				WHERE	CNFM_DATE	= REPLACE('$!{cnfm_date}','-','')
+				AND		PROD_CODE	= '$!{item_id}'
+				AND		CUST_CODE	= '0000000'
+				UNION	ALL
+				SELECT	DEPT_CODE,
+						0				PRE_REQT_BOX,
+						0				PRE_SELL_BOX,
+						0				REQT_BOX,
+						0				PRE_ALLOC_BOX,
+						0				PLAN_BOX,
+						0					EDI_21,
+						0					EDI_22,
+						0					EDI_23,
+						0					EDI_ETC,
+						0	ALLOC_BOX,        
+						0	REMN_BOX,         
+						0	REQT_ALLOC_BOX,   
+						''	REQT_ALLOC_REASON,
+						0	ADD_ALLOC_BOX,    
+						''	REQT_EMP_NO,      
+						''	ADD_EMP_NO  
+				FROM	SDORT203
+				WHERE	CNFM_DATE	= REPLACE('$!{cnfm_date}','-','')
+				AND		PROD_CODE	= '$!{item_id}'
+				)		S1,
+				(
+				SELECT	SALES_LOC,
+						SUM(GOAL_BOX)		GOAL_BOX,
+						SUM(CUM_SELL_BOX)	CUM_SELL_BOX,
+						SUM(SELL_BOX)		SELL_BOX
+				FROM	DC_ALLOC_GOAL
+				WHERE	VERSION			= SUBSTR(REPLACE('$!{cnfm_date}','-',''),1,6)
+				AND		USE_QUOTA_TYPE	= '$!{insel_allocQoutaType}'
+				AND		ITEM_ID			= '$!{item_id}'
+				GROUP
+				BY		SALES_LOC
+				)		S3,
+				(
+				SELECT	T1.DEPT_CODE,
+						MAX(DECODE(CAT01,'02',1,0))	ALLOC_ZONE_02,
+						MAX(DECODE(CAT01,'03',1,0))	ALLOC_ZONE_03,
+						MAX(DECODE(CAT01,'04',1,0))	ALLOC_ZONE_04,
+						MAX(DECODE(CAT01,'05',1,0))	ALLOC_ZONE_05,
+						MAX(DECODE(CAT01,'06',1,0))	ALLOC_ZONE_06
+				FROM	SDORT203	T1,
+						CODE_MST	T2
+				WHERE	T1.CNFM_DATE = REPLACE('$!{cnfm_date}','-','')
+				AND		T1.PROD_CODE = '$!{item_id}'
+				AND		T1.ALLOC_GUBN	= '2'
+				AND		T2.CD_GRP	IN (
+									SELECT	CAT01
+									FROM	CODE_MST
+									WHERE	CD_GRP	= 'CAT_ALLOC_ZONE'
+									AND		CAT02	= 'Y'
+									)
+				AND		T1.DEPT_CODE	= T2.CD
+				GROUP
+				BY		T1.DEPT_CODE
+				)		S4
+		WHERE	S1.DEPT_CODE	= S3.SALES_LOC(+)
+		AND		S1.DEPT_CODE	= S4.DEPT_CODE
+		#if("$!{chk_sel_01}" == "Y" || "$!{chk_sel_02}" == "Y" || "$!{chk_sel_03}" == "Y")
+		HAVING
+		#end
+		#if("$!{chk_sel_01}" == "Y" )
+			#if("$!{insel_allocQoutaType}" == "10")
+				(SUM(PLAN_BOX)	> 0  -- 판매계획 유
+				OR
+				NVL(S3.CUM_SELL_BOX,0)+NVL(S3.SELL_BOX,0)	> 0 -- 누적판매
+				)
+			#else		
+				-- 판매목표 or 가상목표
+				(NVL(S3.GOAL_BOX,0)	> 0	-- 판매목표 유
+				OR
+				NVL(S3.CUM_SELL_BOX,0)+NVL(S3.SELL_BOX,0)	> 0 -- 누적판매
+				)
+			#end
+		#end
+		#if("$!{chk_sel_01}" == "Y" &amp;&amp; ("$!{chk_sel_02}" == "Y" || "$!{chk_sel_03}" == "Y"))
+			OR
+		#end
+		#if("$!{chk_sel_02}" == "Y" ) -- EDI 유
+			#if("$!{chk_sel_02_EDI}" == "00" ) -- 전체
+				SUM(EDI_21)+SUM(EDI_22)+SUM(EDI_23)+SUM(EDI_ETC)	> 0
+			#elseif("$!{chk_sel_02_EDI}" == "22" )  -- 이마트
+				SUM(EDI_22)	> 0
+			#elseif("$!{chk_sel_02_EDI}" == "21" )  -- 홈플러스
+				SUM(EDI_21)	> 0
+			#elseif("$!{chk_sel_02_EDI}" == "23" )  -- 롯데마트
+				SUM(EDI_23)	> 0
+			#elseif("$!{chk_sel_02_EDI}" == "99" )  -- 기타
+				SUM(EDI_ETC)	> 0
+			#end			
+		#end
+		#if("$!{chk_sel_02}" == "Y" &amp;&amp; "$!{chk_sel_03}" == "Y")
+			OR
+		#end
+		#if("$!{chk_sel_03}" == "Y" )
+			SUM(REQT_ALLOC_BOX) + SUM(ADD_ALLOC_BOX)> 0 -- 추가요청만
+		#end
+		GROUP
+		BY		S1.DEPT_CODE,
+				S3.GOAL_BOX,
+				S3.CUM_SELL_BOX,
+				S3.SELL_BOX,
+				S4.ALLOC_ZONE_02,
+				S4.ALLOC_ZONE_03,
+				S4.ALLOC_ZONE_04,
+				S4.ALLOC_ZONE_05,
+				S4.ALLOC_ZONE_06
+		ORDER
+		BY		S1.DEPT_CODE										
+
+	</query>
+
+
+	<!-- 공급정보입력정정_DW2 -->
+	<query id="ip_02060_SalesAllocationNiceLikePlan_DW2" paging="false">
+
+		SELECT	T1.DC_ID,
+				T2.DC_SHORT_NAME		DC_NAME,
+				SUM(DECODE(CNFM_DATE,PRE_DATE,BASE_STOCK))	BASE_STOCK,
+				SUM(DECODE(CNFM_DATE,PRE_DATE,ISSUE + TRANS_BOX))		CHGO,
+				SUM(DECODE(CNFM_DATE,PRE_DATE,RECEIPT + RECEIPT_EXPT))	IPGO,
+				SUM(DECODE(CNFM_DATE,PRE_DATE,STOCK_EXPT))	STOCK_EXPT,
+			#if("$!{insel_allocQoutaType}" == "10")
+				-- 판매계획
+				SUM(DECODE(CNFM_DATE,REPLACE('$!{cnfm_date}','-',''),SALES_PLAN + PROM_PLAN))	 	PLAN_BOX,
+				0	CUM_SELL_BOX,
+				0	GOAL_RATE,
+				DECODE(SUM(DECODE(CNFM_DATE,REPLACE('$!{cnfm_date}','-',''),SALES_PLAN + PROM_PLAN)),0,0,
+					ROUND(NVL(T3.ALLOC_BOX,0)/SUM(DECODE(CNFM_DATE,REPLACE('$!{cnfm_date}','-',''),SALES_PLAN + PROM_PLAN))*100,1)) ALLOC_RATE,
+			#else		
+				-- 판매목표 or 가상목표
+				SUM(DECODE(CNFM_DATE,REPLACE('$!{cnfm_date}','-',''),NVL(T5.GOAL_BOX,0)))	 		GOAL_BOX,
+				SUM(DECODE(CNFM_DATE,REPLACE('$!{cnfm_date}','-',''),NVL(T5.CUM_SELL_BOX,0)+NVL(T5.SELL_BOX,0)))+NVL(T3.ALLOC_BOX,0)	CUM_SELL_BOX,
+				-- 달성율
+				DECODE(SUM(DECODE(CNFM_DATE,REPLACE('$!{cnfm_date}','-',''),NVL(T5.GOAL_BOX,0))),0,0,
+					ROUND((SUM(DECODE(CNFM_DATE,REPLACE('$!{cnfm_date}','-',''),NVL(T5.CUM_SELL_BOX,0)+NVL(T5.SELL_BOX,0)))+NVL(T3.ALLOC_BOX,0))/SUM(DECODE(CNFM_DATE,REPLACE('$!{cnfm_date}','-',''),NVL(T5.GOAL_BOX,0)))*100,1)) GOAL_RATE,
+				DECODE(SUM(DECODE(CNFM_DATE,REPLACE('$!{cnfm_date}','-',''),NVL(T5.GOAL_BOX,0))),0,0,
+					ROUND(NVL(T3.ALLOC_BOX,0)/SUM(DECODE(CNFM_DATE,REPLACE('$!{cnfm_date}','-',''),NVL(T5.GOAL_BOX,0)))*100,1)) ALLOC_RATE,
+			#end	
+				NVL(T3.ALLOC_BOX,0)		ALLOC_BOX,
+				SUM(DECODE(CNFM_DATE,PRE_DATE,STOCK_EXPT))	- NVL(T3.ALLOC_BOX,0)	NEXT_STOCK
+		FROM	DC_DATAWAREHOUSE	T1,
+				DC_MST				T2,
+				(
+				SELECT	K2.DC_ID,
+						ROUND(SUM(MODI_BOX*SALES_DC_QUOTA),0)	ALLOC_BOX
+				FROM	SDORT204	K1,
+						(
+						SELECT	T1.ITEM_ID,
+								T1.SALES_LOC,
+								T1.DC_ID,
+								CASE
+									WHEN SUM_SALES_LOC = 0 THEN 0
+									ELSE 
+										ROUND(T1.GOAL_BOX/SUM_SALES_LOC,2)	
+								END	SALES_DC_QUOTA
+						FROM	DC_ALLOC_GOAL	T1,
+								(
+								SELECT	ITEM_ID,
+										SALES_LOC,
+										SUM(GOAL_BOX)	SUM_SALES_LOC
+								FROM	DC_ALLOC_GOAL
+								WHERE	VERSION	= SUBSTR(REPLACE('$!{cnfm_date}','-',''),1,6)
+								AND		USE_QUOTA_TYPE	= '17' -- 과거 3개월 평균
+								AND		ITEM_ID	= '$!{item_id}'
+								GROUP
+								BY		ITEM_ID,
+										SALES_LOC
+								)				T2
+						WHERE	T1.VERSION			= SUBSTR(REPLACE('$!{cnfm_date}','-',''),1,6)
+						AND		T1.USE_QUOTA_TYPE	= '17' -- 과거 3개월 평균
+						AND		T1.ITEM_ID		= T2.ITEM_ID
+						AND		T1.SALES_LOC	= T2.SALES_LOC	
+						AND		T1.ITEM_ID	= '$!{item_id}'
+						)			K2
+				WHERE	K1.CNFM_DATE	= 	REPLACE('$!{cnfm_date}','-','')
+				AND		K1.PROD_CODE	= '$!{item_id}'
+				AND		K1.PROD_CODE	= K2.ITEM_ID
+				AND		K1.DEPT_CODE	= K2.SALES_LOC
+				AND		K1.CUST_CODE	= '0000000'
+				GROUP
+				BY		K2.DC_ID
+				)					T3,
+				(
+				SELECT	MAX(YYYYMMDD)	PRE_DATE
+				FROM	CAL_MST
+				WHERE	YYYYMMDD	&lt; REPLACE('$!{cnfm_date}','-','')
+				AND		HOLIDAY_FLAG IS NULL
+				)					T4,
+				(
+				SELECT	DC_ID,
+						SUM(GOAL_BOX)		GOAL_BOX,
+						SUM(CUM_SELL_BOX)	CUM_SELL_BOX,
+						SUM(SELL_BOX)		SELL_BOX
+				FROM	DC_ALLOC_GOAL
+				WHERE	VERSION			= 	SUBSTR(REPLACE('$!{cnfm_date}','-',''),1,6)
+				AND		USE_QUOTA_TYPE	= '$!{insel_allocQoutaType}'
+				AND		ITEM_ID			= '$!{item_id}'
+				AND		EXISTS
+						(
+						SELECT	T1.DEPT_CODE
+						FROM	SDSTT401	T1,
+								(
+								SELECT	DISTINCT	DEPT_CODE
+								FROM	SDSTT103
+								WHERE	SALE_ORG	= '1000'
+								)			T2
+						WHERE	T1.DEPT_CODE	= T2.DEPT_CODE
+						AND		T1.APPL_END_YYMM	= '999912'
+						AND		T1.DEPT_GRAD_CODE	= '40'
+						AND		T1.SUPL_APPL_GUBN	IS NULL
+						AND		T1.DEPT_CODE	= SALES_LOC
+						)
+				GROUP
+				BY		DC_ID
+				)					T5
+		WHERE	T1.DC_ID	= T2.DC_ID
+		AND		T1.DC_ID	= T3.DC_ID(+)
+		AND		T1.DC_ID	= T5.DC_ID(+)
+		AND		CNFM_DATE	BETWEEN  T4.PRE_DATE AND	REPLACE('$!{cnfm_date}','-','')
+		AND		ITEM_ID		= '$!{item_id}'
+		--AND		RDC_FLAG	= 'Y'
+		AND		EXPORT_FLAG	IS NULL
+		AND		RDC_FLAG	= 'Y'
+		#if("$!{chk_sel_10}" == "Y" || "$!{chk_sel_11}" == "Y" )
+		HAVING
+		#end
+		#if("$!{chk_sel_10}" == "Y" )
+			#if("$!{insel_allocQoutaType}" == "10")
+				(SUM(DECODE(CNFM_DATE,REPLACE('$!{cnfm_date}','-',''),SALES_PLAN + PROM_PLAN)) > 0 -- 출고장 판매계획 유
+				OR
+				SUM(DECODE(CNFM_DATE,REPLACE('$!{cnfm_date}','-',''),NVL(T5.CUM_SELL_BOX,0)+NVL(T5.SELL_BOX,0))) > 0 -- 누적판매 유
+				)  
+			#else		
+				-- 판매목표 or 가상목표
+				(SUM(DECODE(CNFM_DATE,REPLACE('$!{cnfm_date}','-',''),NVL(T5.GOAL_BOX,0))) > 0	-- 판매목표 유
+				OR
+				SUM(DECODE(CNFM_DATE,REPLACE('$!{cnfm_date}','-',''),NVL(T5.CUM_SELL_BOX,0)+NVL(T5.SELL_BOX,0))) > 0 -- 누적판매 유
+				)
+			#end
+		#end
+		#if("$!{chk_sel_10}" == "Y" &amp;&amp; "$!{chk_sel_11}" == "Y")
+			OR
+		#end
+		#if("$!{chk_sel_11}" == "Y" )
+			SUM(DECODE(CNFM_DATE,PRE_DATE,STOCK_EXPT)) > 0 -- 재고 유  
+		#end
+		GROUP
+		BY		T1.DC_ID,
+				T2.DC_SHORT_NAME,
+				NVL(T3.ALLOC_BOX,0)
+		ORDER
+		BY		T1.DC_ID
+		
+	</query>
+
+	<!-- 영업지점-출고장의 판매지분 조회 -->
+	<query id="ip_02060_getDeptStorQuota">
+
+		SELECT	T1.SALES_LOC, --f_getSalesLocName(T1.SALES_LOC),
+				T1.DC_ID, --F_GETDCNAME(T1.DC_ID),
+				CASE
+					WHEN SUM_SALES_LOC = 0 THEN 0
+					ELSE 
+						ROUND(T1.GOAL_BOX/SUM_SALES_LOC,2)	
+				END		DEPT_STOR_QUOTA,
+				CASE
+					WHEN SUM_DC_ID = 0 THEN 0
+					ELSE 
+						ROUND(T1.GOAL_BOX/SUM_DC_ID,2)	
+				END		STOR_DEPT_QUOTA,
+				NVL(T4.CD_SRC_LOC,T1.DC_ID)	CD_SRC_LOC
+		FROM	DC_ALLOC_GOAL	T1,
+				(
+				SELECT	ITEM_ID,
+						SALES_LOC,
+						SUM(GOAL_BOX)	SUM_SALES_LOC
+				FROM	DC_ALLOC_GOAL
+				WHERE	VERSION	= SUBSTR(REPLACE('$!{cnfm_date}','-',''),1,6)
+				AND		USE_QUOTA_TYPE	= '17' -- 과거 3개월 평균
+				AND		ITEM_ID	= '$!{item_id}'
+				GROUP
+				BY		ITEM_ID,
+						SALES_LOC
+				)				T2,
+				(
+				SELECT	ITEM_ID,
+						DC_ID,
+						SUM(GOAL_BOX)	SUM_DC_ID
+				FROM	DC_ALLOC_GOAL
+				WHERE	VERSION	= SUBSTR(REPLACE('$!{cnfm_date}','-',''),1,6)
+				AND		USE_QUOTA_TYPE	= '17' -- 과거 3개월 평균
+				AND		ITEM_ID	= '$!{item_id}'
+				GROUP
+				BY		ITEM_ID,
+						DC_ID
+				)				T3,
+				DC_MST			T4
+		WHERE	T1.VERSION			= SUBSTR(REPLACE('$!{cnfm_date}','-',''),1,6)
+		AND		T1.USE_QUOTA_TYPE	= '17' -- 과거 3개월 평균
+		AND		T1.ITEM_ID		= T2.ITEM_ID
+		AND		T1.SALES_LOC	= T2.SALES_LOC	
+		AND		T1.DC_ID		= T3.DC_ID	
+		AND		T1.ITEM_ID	= '$!{item_id}'
+		AND		T1.DC_ID	= T4.DC_ID
+		ORDER
+		BY		1,2
+   		 
+	</query>		
+
+
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</queries>

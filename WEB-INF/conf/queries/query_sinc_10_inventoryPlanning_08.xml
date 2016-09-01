@@ -1,0 +1,581 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>	
+	
+	<query id="ip_02110_combo_search_type" > 
+
+		SELECT  CD,    CD_NAME
+		FROM    CODE_MST, DUAL B
+		WHERE   CD_GRP = 'EX_NATION'
+		ORDER
+		BY		CD
+
+	</query> 
+	
+	<query id="ip_02110_Cy_stock_list" paging="true">
+		SELECT	A.*,				
+				ROWNUM
+		FROM
+		(
+		SELECT	F_GET_CODE_NAME('SALES_CAT3', IM.SALES_CAT03)       SALES_CAT03,
+				IM.ITEM_ID,
+		        IM.ITEM_NAME,
+		        IM.SPEC,
+		        MAX(DC.DONGU_STOCK)	+  MAX(DC.DSJ_STOCK) + MAX(DC.PS_STOCK) + MAX(DC.GITA) 															"기초재고",
+		        MAX(DC.DONGU_STOCK)																													"동우재고",
+		        MAX(DC.DSJ_STOCK)																													"디에스제이재고",     
+		        MAX(DC.PS_STOCK)																													"부산제품 재고", 
+		        MAX(DC.GITA)																														"기타",
+		        NVL(BK.ISSUE,0)      						   																						"일계",             
+		        NVL(BK.SELL_BOX_CUM,0)      						   																				"누계", 
+		        MAX(DC.DONGU_STOCK)	+  MAX(DC.DSJ_STOCK) + MAX(DC.PS_STOCK) + MAX(DC.GITA)  - NVL(BK.ISSUE,0)                   					"예상재고",			        	        
+		        NVL(CH.CHGO_W,0)																													"W출고계획량",		        
+		        NVL(PO.QTY_WEEK,0)																													"W생산계획",
+		        MAX(DC2.BASE_STOCK)	- 0 + NVL(PO.QTY_WEEK,0) -	 NVL(BK.WEEK_QTY,0)																	"W1가용재고",
+		        NVL(CH.CHGO_W1,0)																													"W1출고계획량",		        
+		        NVL(PO.QTY_NWEEK,0)																													"W1생산계획",
+		        MAX(DC2.BASE_STOCK)	- 0 + NVL(PO.QTY_WEEK,0) -	 NVL(BK.WEEK_QTY,0) + 	NVL(PO.QTY_NWEEK,0) -  NVL(BK.WEEK2_QTY,0)					"W2가용재고",
+		        NVL(CH.CHGO_W2,0)																													"W2출고계획량",		        
+		        MAX(DC.CY_STOCK)																													"CY재고",
+		        NVL(PO.QTY_TODAY,0)																													"금일생산계획",
+		       	NVL(PO2.QTY_MM,0)																													"생산누계",
+		        NVL(SA.SALES_M1,0) 																													"M-1판매량",
+		        NVL(SA.SALES_M2,0) 																													"M-2판매량",
+		        NVL(SA.SALES_M3,0) 																													"M-3판매량",
+		        NVL(SA.SALES_M4,0) 																													"M-4판매량",
+		        NVL(SA.SALES_M5,0) 																													"M-5판매량",
+		        NVL(SA.SALES_M6,0) 																													"M-6판매량",
+		        IM.TERM_VAL																															"유통기한",
+		        NVL(PROD.DAY,0)																														"유통경과일",
+		        NVL(MIN(PROD.PROD_TERM),0)																											"유통기한경과율",
+		        DECODE(IM.MTO_MTS_TYPE,'0001','MTO','0002','MTS','기타')																				"속성",
+		        F_GET_CODE_NAME('EX_NATION',IM.EX_NATION)																							"국가",
+		        CASE WHEN 	NVL(MIN(PROD.PROD_TERM),0) &lt; 20	
+                    	 	THEN 'G'
+                         	ELSE CASE WHEN NVL(MIN(PROD.PROD_TERM),0) &gt;= 20	AND  NVL(MIN(PROD.PROD_TERM),0) &lt; 50
+                                   	  THEN 'Y'
+                                   	  ELSE 'R'
+                          	END
+                END																																	"GYR",
+                NVL(DC2.BASE_STOCK,0)																												"주초기초재고",
+                NVL(MI.MI_ORDER,0)                             																						"미출오더",
+                NVL(BK.WEEK_QTY,0)																													"W부킹",
+                NVL(BK.WEEK2_QTY,0)																												"W+1부킹"         
+		FROM	/*동우, 디에스제이, 부산CY만 고려한다 */
+				(
+				SELECT	ITEM_ID,
+						SUM(DONGU_STOCK)	DONGU_STOCK,
+						SUM(DSJ_STOCK)	DSJ_STOCK,
+						SUM(CY_STOCK)+SUM(CY2_STOCK)	CY_STOCK,				--인천CY + 부산CY 가 CY재고다. 광양은 재고 없으므로 PASS
+						SUM(PS_STOCK)	PS_STOCK,
+						SUM(GITA)		GITA
+				FROM	(
+						SELECT	DC.DC_ID,
+				        		DC.ITEM_ID,
+				                DECODE(DC.DC_ID,'8913',SUM(BASE_STOCK),0)	DONGU_STOCK,
+				                DECODE(DC.DC_ID,'8938',SUM(BASE_STOCK),0)	DSJ_STOCK,
+				                DECODE(DC.DC_ID,'8901',SUM(BASE_STOCK),0)	CY_STOCK, 
+				                DECODE(DC.DC_ID,'8903',SUM(BASE_STOCK),0)	CY2_STOCK,
+				                DECODE(DC.DC_ID,'7700',SUM(BASE_STOCK),0)	PS_STOCK,
+				                CASE WHEN DC.DC_ID NOT IN ('8913','8938','8901','8903','7700')
+				                     THEN SUM(BASE_STOCK)      
+				                     ELSE 0
+				                END	GITA      
+				        FROM	DC_DATAWAREHOUSE DC, DC_MST DM
+				        WHERE	DC.CNFM_DATE = '$!{start_date}'
+				        AND		DC.DC_ID = DM.DC_ID
+			           -- AND		DM.DC_ID NOT IN ('8901','8902','8903')
+				       -- AND		DC_ID	IN ('8913','8938','8901','7700')     
+				        GROUP
+				        BY		DC.DC_ID,
+				        		DC.ITEM_ID   
+						)
+				GROUP
+				BY		ITEM_ID						
+		      	)DC, 
+		      	(
+		      	SELECT	ITEM_ID,
+		      			SUM(BASE_STOCK)	BASE_STOCK
+		      	FROM	(
+		      			SELECT	DC.DC_ID,
+				        		DC.ITEM_ID,
+				                SUM(BASE_STOCK) BASE_STOCK
+				        FROM	DC_DATAWAREHOUSE DC, DC_MST DM
+				        WHERE	DC.CNFM_DATE = TO_CHAR(TRUNC(TO_DATE('$!{start_date}'),'D')+1,'YYYYMMDD')
+				        AND		DC.DC_ID = DM.DC_ID
+			            AND		DM.DC_NAME NOT LIKE '%CY%'
+				        GROUP
+				        BY		DC.DC_ID,
+				        		DC.ITEM_ID 
+		      			)
+		      	GROUP
+		      	BY		ITEM_ID				        
+		      	)DC2,   
+		      	 /* 출고계획량 W는 부킹IF 테이블에서 가져온다. */  
+		      	(
+		      	SELECT	ITEM_ID,
+						SUM(SELL_BOX_CUM)	SELL_BOX_CUM,
+				        SUM(ISSUE)			ISSUE,
+				        SUM(SALES_PRE)		SALES_PRE,
+				        SUM(WEEK_QTY)		WEEK_QTY,
+				        SUM(WEEK2_QTY)		WEEK2_QTY
+		        FROM	(
+						SELECT	ITEM_CD ITEM_ID,		
+						        CASE WHEN SHIPPLAN_DATE BETWEEN TRUNC(TO_DATE('$!{start_date}'),'MM') AND TO_DATE('$!{start_date}')
+						             THEN SUM(ORDER_QTY)
+						             ELSE 0
+						        END		SELL_BOX_CUM,
+						        CASE WHEN SHIPPLAN_DATE = TO_DATE('$!{start_date}')
+						             THEN SUM(ORDER_QTY)
+						             ELSE 0
+						        END		ISSUE,
+						         CASE WHEN SHIPPLAN_DATE = TO_DATE('$!{start_date}')
+						             THEN SUM(ORDER_QTY)
+						             ELSE 0
+						        END		SALES_PRE	,
+						        CASE WHEN SHIPPLAN_DATE BETWEEN TRUNC(TO_DATE('$!{start_date}'),'D')+1 AND TRUNC(TO_DATE('$!{start_date}'),'D')+7
+						             THEN SUM(ORDER_QTY)
+						             ELSE 0
+						        END		WEEK_QTY,	  
+						        CASE WHEN SHIPPLAN_DATE BETWEEN TRUNC(TO_DATE('$!{start_date}'),'D')+8 AND TRUNC(TO_DATE('$!{start_date}'),'D')+14
+						             THEN SUM(ORDER_QTY)
+						             ELSE 0
+						        END		WEEK2_QTY		
+				      	FROM	EXPORTSHIPORDER_S
+				      	WHERE	SHIPPLAN_DATE BETWEEN TRUNC(TO_DATE('$!{start_date}'),'MM') AND TRUNC(TO_DATE('$!{start_date}')+7,'D')+7                
+				      	GROUP
+				      	BY		ITEM_CD,SHIPPLAN_DATE	
+                		)	
+                GROUP BY ITEM_ID      			
+		      	)BK,		      
+		      	 /* 출고계획량 W+1, W+2 는 선적예정일 테이블에서 가져온다. */  
+		      	(
+		      	SELECT	PROD_CODE		ITEM_ID,
+						SUM(CHGO_W)		CHGO_W,
+				        SUM(CHGO_W1)	CHGO_W1,
+				        SUM(CHGO_W2)	CHGO_W2
+				FROM(
+				        SELECT  PROD_CODE,
+				                CASE WHEN SHIP_DATE BETWEEN TO_CHAR(TRUNC(TO_DATE('$!{start_date}'),'D')+1,'YYYYMMDD') AND TO_CHAR(TRUNC(TO_DATE('$!{start_date}'),'D')+7,'YYYYMMDD')
+				                     THEN SUM(YET_QTY)
+				                     ELSE 0
+				                END	 CHGO_W,
+				                CASE WHEN SHIP_DATE BETWEEN TO_CHAR(TRUNC(TO_DATE('$!{start_date}'),'D')+8,'YYYYMMDD') AND TO_CHAR(TRUNC(TO_DATE('$!{start_date}'),'D')+14,'YYYYMMDD')
+				                     THEN SUM(YET_QTY)
+				                     ELSE 0
+				                END	 CHGO_W1,
+				                CASE WHEN SHIP_DATE BETWEEN TO_CHAR(TRUNC(TO_DATE('$!{start_date}'),'D')+15,'YYYYMMDD') AND TO_CHAR(TRUNC(TO_DATE('$!{start_date}'),'D')+21,'YYYYMMDD')
+				                     THEN SUM(YET_QTY)
+				                     ELSE 0
+				                END	 CHGO_W2,		
+				                SUM(YET_QTY) 
+				        FROM 	EXMAT203
+				        WHERE 	SHIP_DATE BETWEEN TO_CHAR(TRUNC(TO_DATE('$!{start_date}'),'D')+1,'YYYYMMDD') AND TO_CHAR(TRUNC(TO_DATE('$!{start_date}'),'D')+21,'YYYYMMDD')
+				        GROUP
+				        BY		SHIP_DATE,
+				                PROD_CODE
+				        )
+				GROUP
+				BY		PROD_CODE
+		      	)CH,
+		      	 /* M-1 판매량은 선적확정일 테이블에서 가져온다. */  
+		      	(
+		      	SELECT	PROD_CODE		ITEM_ID,
+						SUM(SALES_M1)	SALES_M1,
+				        SUM(SALES_M2)	SALES_M2,
+				        SUM(SALES_M3)	SALES_M3,
+				        SUM(SALES_M4)	SALES_M4,
+				        SUM(SALES_M5)	SALES_M5,
+				        SUM(SALES_M6)	SALES_M6
+				FROM(
+				        SELECT  PROD_CODE,
+				                CASE WHEN SHIP_DATE BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE('$!{start_date}'),-6),'MM'),'YYYYMMDD')
+				                		 AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE('$!{start_date}'),-6)),'YYYYMMDD')
+				                     THEN SUM(ACHI_QTY)
+				                     ELSE 0
+				                END	 SALES_M1,
+				                CASE WHEN SHIP_DATE BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE('$!{start_date}'),-5),'MM'),'YYYYMMDD')
+				                		 AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE('$!{start_date}'),-5)),'YYYYMMDD')
+				                     THEN SUM(ACHI_QTY)
+				                     ELSE 0
+				                END	 SALES_M2,
+				                CASE WHEN SHIP_DATE BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE('$!{start_date}'),-4),'MM'),'YYYYMMDD')
+				                		 AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE('$!{start_date}'),-4)),'YYYYMMDD')
+				                     THEN SUM(ACHI_QTY)
+				                     ELSE 0
+				                END	 SALES_M3,
+				                CASE WHEN SHIP_DATE BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE('$!{start_date}'),-3),'MM'),'YYYYMMDD')
+				                		 AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE('$!{start_date}'),-3)),'YYYYMMDD')
+				                     THEN SUM(ACHI_QTY)
+				                     ELSE 0
+				                END	 SALES_M4,
+				                CASE WHEN SHIP_DATE BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE('$!{start_date}'),-2),'MM'),'YYYYMMDD')
+				                		 AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE('$!{start_date}'),-2)),'YYYYMMDD')
+				                     THEN SUM(ACHI_QTY)
+				                     ELSE 0
+				                END	 SALES_M5,
+				                CASE WHEN SHIP_DATE BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE('$!{start_date}'),-1),'MM'),'YYYYMMDD')
+				                		 AND TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE('$!{start_date}'),-1)),'YYYYMMDD')
+				                     THEN SUM(ACHI_QTY)
+				                     ELSE 0
+				                END	 SALES_M6				               
+				        FROM 	EXMAT201
+				        WHERE 	SHIP_DATE BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(TO_DATE('$!{start_date}'),-6),'MM'),'YYYYMMDD')
+				        				  AND	TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE('$!{start_date}'),-1)),'YYYYMMDD')
+				        GROUP
+				        BY		SHIP_DATE,
+				                PROD_CODE
+				        )
+				GROUP
+				BY		PROD_CODE
+		      	)SA,
+		        (
+		        SELECT	SALES_CAT03,
+		        		ITEM_ID,
+		        		ITEM_NAME,
+		                SPEC,
+		                MTO_MTS_TYPE,
+		                EX_NATION,
+		                TERMVAL * 30 TERM_VAL
+		        FROM	ITEM_MST	IM
+		        WHERE	(IM.SELL_STOP_DATE > TO_CHAR(SYSDATE,'YYYYMMDD') OR IM.SELL_STOP_DATE = '00000000')
+		        AND		NVL(IM.CAT03,'XX')     LIKE 'O%' --수출품 
+		        AND		IM.SEARCH_FLAG !='N'
+		        AND		IM.DIVISION		LIKE '%'||'$!{search_type}'||'%'		         		
+	       		AND		IM.MTO_MTS_TYPE LIKE '%'||'$!{mto_gubn}'||'%'
+	        	AND		IM.EX_NATION LIKE '%'||'$!{nation_gubn}'||'%'	   
+	        	#if ( "$!{search_type}" == "" )   
+	            AND		IM.DIVISION IN('10','20')
+	            #elseif ( "$!{search_type}" == "10" )
+	            AND		IM.DIVISION = '10'
+	            #else
+	            AND		IM.DIVISION = '20'
+	            #end     		
+		        )IM,
+		        /* 생산계획 누계 */
+		        ( 		
+		     	SELECT	ITEM_ID,
+			    		MAX(QTY_TODAY)	QTY_TODAY,
+			            MAX(QTY_WEEK)	QTY_WEEK,
+			            MAX(QTY_NWEEK)	QTY_NWEEK
+            	FROM	(
+						 SELECT	ITEM_ID,
+				        		SUM(QTY_TODAY)	QTY_TODAY,
+				                SUM(QTY_WEEK)	QTY_WEEK,
+		                        0				QTY_NWEEK,
+		                        0				QTY_MM
+		                FROM	(
+		                       	SELECT	ITEM_ID,
+		                                PROD_DATES,
+		                               	CASE WHEN PROD_DATES = TO_CHAR(TO_DATE('$!{start_date}','YYYY-MM-DD'),'YYYYMMDD')
+			                                 THEN SUM(QTY)
+			                                 ELSE 0
+			                            END					QTY_TODAY,   
+		                                CASE WHEN 	PROD_DATES BETWEEN TO_CHAR(TRUNC(TO_DATE('$!{start_date}','YYYY-MM-DD'),'D')+1,'YYYYMMDD') AND 
+		                                			TO_CHAR(TRUNC( TO_DATE('$!{start_date}','YYYY-MM-DD'),'D')+7,'YYYYMMDD') 
+			                                 THEN 	SUM(QTY)
+			                                 ELSE 	0
+			                            END					QTY_WEEK
+					            FROM	( 
+					                    SELECT	PO.ITEM_ID,
+		                                		PO.PROD_DATES,
+				                                PO.WO_ID,                               	
+				                                MAX(PO.SHIFT_QTY)	QTY
+				                       	FROM     DAILY_SCH_PLAN_SHIFT PO,
+				                       			ITEM_MST IM,
+		                                       (
+							                    SELECT	CAL_DATE
+							                    FROM	CAL_MST
+							                    WHERE	CAL_DATE BETWEEN  TO_CHAR(TRUNC(TO_DATE('$!{start_date}','YYYY-MM-DD'),'D')+1,'YYYYMMDD') AND 
+					                                			TO_CHAR(TRUNC( TO_DATE('$!{start_date}','YYYY-MM-DD'),'D')+7,'YYYYMMDD')   
+							                    )CAL,
+							                    (                                               
+				                                SELECT	DECODE(SUB_CAT,'ANY','1110','ANS','1120','ANSB','1130','ASA','1140','KUM','1160','PUS','1170','NOK','1180')	PLANT,
+				                                	  	VERSION
+				                                FROM 	PLAN_VERSION_LOG
+				                                WHERE 	VERSION LIKE TO_CHAR(TRUNC(TO_DATE('$!{start_date}','YYYY-MM-DD'),'D')-5,'YYYYMMDD')||'%'
+				                                AND		CAT_ID='PS'
+		                                        )VR                                                                    					                 
+										WHERE	PO.VERSION = VR.VERSION
+				                        AND		PO.PLANT_ID = VR.PLANT              				                 
+								        AND		PO.ITEM_ID	= IM.ITEM_ID       
+				                        AND		(IM.SELL_STOP_DATE > TO_CHAR(SYSDATE,'YYYYMMDD') OR IM.SELL_STOP_DATE = '00000000')
+				        				AND		NVL(IM.CAT03,'XX')     LIKE 'O%' --수출품                  
+				                        AND		PO.CAT_ID = 'PS'          
+				                        AND		PO.PROD_DATES = CAL.CAL_DATE                
+				                        GROUP 
+				                        BY 		PO.ITEM_ID,
+		                                		PO.PROD_DATES,
+				                    	        PO.WO_ID   
+				                    	)
+				                   GROUP BY ITEM_ID, PROD_DATES                        
+		                           )
+		                GROUP BY ITEM_ID
+		                UNION ALL
+		                        SELECT	ITEM_ID,	
+		                        0				QTY_TODAY,
+		                        0				QTY_WEEK,	        		
+				                SUM(QTY_NWEEK)	QTY_NWEEK,
+		                        0				QTY_MM
+		                FROM	(
+		                		SELECT	ITEM_ID,
+		                				SUM(QTY_NWEEK)	QTY_NWEEK
+		                		FROM	(
+		                				SELECT	PO.ITEM_ID,
+		                                		PO.PROD_DATES,
+				                                PO.WO_ID,                               	
+				                                MAX(PO.SHIFT_QTY)    	QTY_NWEEK
+				                       	FROM    DAILY_SCH_PLAN_SHIFT PO,	
+				                       			ITEM_MST IM,	                   
+				                                (
+							                    SELECT	CAL_DATE
+							                    FROM	CAL_MST
+							                    WHERE	CAL_DATE BETWEEN  TO_CHAR(TRUNC(TO_DATE('$!{start_date}','YYYY-MM-DD'),'D')+8,'YYYYMMDD') AND 
+					                                			TO_CHAR(TRUNC( TO_DATE('$!{start_date}','YYYY-MM-DD'),'D')+14,'YYYYMMDD')   
+							                    )CAL,
+							                    (                                               
+				                                SELECT	DECODE(SUB_CAT,'ANY','1110','ANS','1120','ANSB','1130','ASA','1140','KUM','1160','PUS','1170','NOK','1180')	PLANT,
+				                                	  	VERSION
+				                                FROM 	PLAN_VERSION_LOG
+				                                WHERE 	VERSION LIKE TO_CHAR(TRUNC(TO_DATE('$!{start_date}','YYYY-MM-DD'),'D')+2,'YYYYMMDD')||'%'
+				                                AND		CAT_ID='PS'
+		                                        )VR                                                                    					                 
+								        WHERE	PO.VERSION = VR.VERSION
+		                                AND		PO.PLANT_ID = VR.PLANT 
+				                        AND		PO.ITEM_ID	= IM.ITEM_ID		                           
+				                        AND		(IM.SELL_STOP_DATE > TO_CHAR(SYSDATE,'YYYYMMDD') OR IM.SELL_STOP_DATE = '00000000')
+				        				AND		NVL(IM.CAT03,'XX')     LIKE 'O%' --수출품 
+				                   		AND		PO.CAT_ID = 'PS'                      
+				                        AND		PO.PROD_DATES= CAL.CAL_DATE
+				                        GROUP 
+				                        BY 		PO.ITEM_ID,
+		                                		PO.PROD_DATES,
+				                                PO.WO_ID 
+		                				)
+			                    GROUP
+			                    BY		ITEM_ID                           
+		                           )
+		                GROUP 
+		                BY ITEM_ID
+		                )
+		        GROUP 
+		        BY ITEM_ID		                
+		        )PO,
+		         (
+		         SELECT  	PO.ITEM_ID,       
+		         			SUM(PO.COMPL_QTY)	QTY_MM 
+		           FROM     V_ERP_PO_MES PO,
+		                    ITEM_MST IM,
+		                    (
+		                    SELECT	CAL_DATE
+		                    FROM	CAL_MST
+		                    WHERE	CAL_DATE BETWEEN TRUNC(SYSDATE,'MM') AND TRUNC(SYSDATE) 
+		                    )CAL
+		           WHERE	PO.START_DTTM = CAL.CAL_DATE
+		           AND		IM.ITEM_ID		= PO.ITEM_ID
+		           AND		(IM.SELL_STOP_DATE > TO_CHAR(SYSDATE,'YYYYMMDD') OR IM.SELL_STOP_DATE = '00000000')
+		           AND		NVL(IM.CAT03,'XX')     LIKE 'O%' --수출품 
+		           GROUP
+		           BY		PO.ITEM_ID		           			
+		        )PO2,
+		        (						                   
+                SELECT	ITEM_ID,
+                	   	MAX(QTY) QTY,
+                       	MIN(DAY) DAY,                           
+                       	TERM_VAL,
+                       	NVL(MIN(PROD_TERM),0) PROD_TERM                          
+                FROM	(
+	                    SELECT	ITEM_ID,		
+	    						CASE WHEN QTY >=  CUR_STOCK-CY_QTY
+	                               	 THEN CUR_STOCK-CY_QTY
+	                                 ELSE QTY
+	                            END	QTY, 
+	    						DECODE(QTY,0,0,DAY) DAY,  
+	                            TERM_VAL,
+	                            NVL(ROUND(DECODE(QTY,0,0,DAY)/DECODE(TERM_VAL,0,NULL,TERM_VAL),2)*100,0) PROD_TERM,      
+	    						CUR_STOCK
+						FROM	(
+								SELECT 	S1.ITEM_ID,
+										S1.START_DTTM,
+	                                    S1.TERM_VAL,
+	    								CASE WHEN MAX(S2.CUR_STOCK) - S3.CUR_STOCK - MAX(S1.PROD_SUM) >= 0
+	    	 							THEN SUM(QTY)
+	         							ELSE SUM(QTY)+ MAX(S2.CUR_STOCK)- S3.CUR_STOCK - MAX(S1.PROD_SUM)
+	         							END	QTY,
+	         							S3.CUR_STOCK	CY_QTY,
+	    								MAX(S1.PROD_SUM) PROD_SUM,                
+	    								TRUNC(SYSDATE) - START_DTTM	DAY,
+	    								MAX(S2.CUR_STOCK)	CUR_STOCK
+								FROM	(    
+										SELECT	T1.ITEM_ID,
+												T1.START_DTTM,
+	                                            T2.TERMVAL * 30 TERM_VAL,
+	    										SUM(T1.COMPL_QTY) QTY ,
+	    										SUM(T1.COMPL_QTY) OVER(PARTITION BY T1.ITEM_ID ORDER BY T1.START_DTTM DESC) PROD_SUM            
+										FROM	V_ERP_PO_MES T1, ITEM_MST T2
+										WHERE	T1.START_DTTM BETWEEN ADD_MONTHS(TRUNC(SYSDATE),-12) AND TO_DATE('$!{start_date}','YYYY-MM-DD')
+										AND		T1.ITEM_ID	= T2.ITEM_ID                                   
+										AND		NVL(T2.CAT03,'XX')     LIKE 'O%' --수출품
+						                AND		(T2.SELL_STOP_DATE > TO_CHAR(SYSDATE,'YYYYMMDD') OR T2.SELL_STOP_DATE = '00000000')
+										GROUP
+										BY		T1.ITEM_ID, T1.START_DTTM, T1.COMPL_QTY, T2.TERMVAL
+										)S1,
+										(
+	 									SELECT 	ITEM_ID,
+	        									SUM(BASE_STOCK)	CUR_STOCK 
+										FROM 	DC_DATAWAREHOUSE
+										WHERE 	CNFM_DATE = '$!{start_date}'    
+                                       -- AND		DC_ID IN ('8901','8913','8938','7700')                                   
+										GROUP 
+	        							BY 		ITEM_ID
+										)S2,
+										(
+	 										SELECT 	DC.ITEM_ID,
+	        										SUM(DC.BASE_STOCK)	CUR_STOCK 
+											FROM 	DC_DATAWAREHOUSE DC
+											WHERE 	DC.CNFM_DATE = '$!{start_date}'  
+											AND		DC_ID IN ('8901','8902','8903')       --부산,광양,인천 CY                                     
+	                                        --AND		DC.DC_ID ='8901'	                                     
+											GROUP 
+	        								BY 		DC.ITEM_ID
+											)S3
+								WHERE	S1.ITEM_ID	= S2.ITEM_ID (+)
+								AND		S1.ITEM_ID  = S3.ITEM_ID (+)
+								GROUP
+								BY		S1.ITEM_ID,
+										S1.START_DTTM,
+	                                    S1.TERM_VAL,
+	                                    S3.CUR_STOCK          
+								)
+						WHERE	QTY > 0					
+                        AND	PROD_SUM -	(
+                        					 CASE WHEN QTY >=  CUR_STOCK-CY_QTY
+			                               	 THEN CUR_STOCK-CY_QTY
+			                                 ELSE QTY
+                            				 END
+                            				 )	 >= 0
+	                    --AND		NVL(ROUND(DAY/DECODE(TERM_VAL,0,NULL,TERM_VAL),2)*100,0) >= 20
+	                    ORDER
+	                    BY		ITEM_ID
+	                    )
+	                GROUP 
+	                BY 		ITEM_ID,TERM_VAL
+	                )PROD,
+	               (
+		        	SELECT	ITEM_ID,						
+					NVL(
+						SUM(
+							CASE
+								WHEN TO_DATE(SHIP_DATE,'YYYY-MM-DD') &lt;= TRUNC(TO_DATE(REPLACE('$!{start_date}','-','')),'D') THEN ORDER_QTY	-- = 추가
+								ELSE 0
+							END
+							)
+						,0)	MI_ORDER				
+				FROM	(
+						--	납품문서는 생성되었으나 출고가 안된것.
+						SELECT	A.VBELN,	-- 오더번호
+								A.ZFEPSD	SHIP_DATE,	-- 선적예정일
+								A.AUART,	-- 오더타입
+								B.MATNR		ITEM_ID,	-- 제품코드
+								B.LFIMG		ORDER_QTY	-- 제품수량
+						FROM	(
+                        		SELECT	*
+                                FROM	SAPVBAK		A
+                                WHERE	A.MANDT		=	'100'
+                                AND		A.AUDAT		BETWEEN	TO_CHAR(TO_DATE(REPLACE('$!{start_date}','-',''))-100,'YYYYMMDD')
+													AND		TO_CHAR(TO_DATE(REPLACE('$!{start_date}','-','')),'YYYYMMDD')
+                                )A,								
+								SAPLIPS		B,
+								SAPVBUK		C
+						WHERE	A.ZFEPSD	BETWEEN	TO_CHAR(TO_DATE(REPLACE('$!{start_date}','-',''))-30,'YYYYMMDD')
+											AND		TO_CHAR(TO_DATE(REPLACE('$!{start_date}','-',''))+60,'YYYYMMDD')
+						AND		A.VKORG		=	'1500'
+						AND		C.MANDT		=	'100'
+						AND		B.VBELN		=	C.VBELN
+						AND		A.VBELN		=	B.VGBEL
+						AND		C.WBSTK		!=	'C'
+						AND		B.MANDT		=	'100'
+						AND		B.PSTYV		LIKE	'X%'						
+						UNION	ALL
+						--	납품문서가 아예 생기지 않은 경우.
+						SELECT	A.VBELN,	-- 오더번호
+								A.ZFEPSD	SHIP_DATE,	-- 선적예정일
+								A.AUART,	-- 오더타입
+								B.MATNR		ITEM_ID,	-- 제품코드
+								B.LSMENG	ORDER_QTY	-- 제품수량
+						FROM	(
+                        		SELECT	*
+                                FROM	SAPVBAK		A
+                                WHERE	A.MANDT		=	'100'
+                                AND		A.AUDAT		BETWEEN	TO_CHAR(TO_DATE(REPLACE('$!{start_date}','-',''))-100,'YYYYMMDD')
+													AND		TO_CHAR(TO_DATE(REPLACE('$!{start_date}','-','')),'YYYYMMDD')
+                                )A,		
+								SAPVBAP		B,
+								SAPVBUK		C
+						WHERE	A.ZFEPSD	BETWEEN	TO_CHAR(TO_DATE(REPLACE('$!{start_date}','-',''))-30,'YYYYMMDD')
+											AND		TO_CHAR(TO_DATE(REPLACE('$!{start_date}','-',''))+60,'YYYYMMDD')
+						AND		A.VKORG		=	'1500'
+						AND		C.MANDT		=	'100'
+						AND		A.VBELN		=	C.VBELN
+						AND		C.LFSTK		=	'A'
+						AND		B.MANDT		=	'100'
+						AND		A.VBELN		=	B.VBELN
+						AND		B.PSTYV		LIKE	'X%'					
+						)
+				GROUP
+				BY		ITEM_ID
+                    )MI
+		WHERE	DC.ITEM_ID	= IM.ITEM_ID
+		AND		DC.ITEM_ID  = DC2.ITEM_ID	
+		AND		IM.ITEM_ID	= BK.ITEM_ID (+)	
+		AND		IM.ITEM_ID	= SA.ITEM_ID (+)	
+		AND		IM.ITEM_ID	= MI.ITEM_ID(+)
+		AND		IM.ITEM_ID	= CH.ITEM_ID (+)
+		AND		DC.ITEM_ID	= PO.ITEM_ID  (+)	
+		AND		DC.ITEM_ID	= PO2.ITEM_ID  (+)
+		AND		DC.ITEM_ID	= PROD.ITEM_ID (+)    
+		#if ( "$!{prod_term}" == "" )		
+		#else   
+		AND		PROD_TERM &gt;= '$!{prod_term}'
+	    #end 	
+		HAVING ( MAX(DC.DONGU_STOCK) + MAX(DC.DSJ_STOCK) + MAX(DC.PS_STOCK) + MAX(DC.GITA) + MAX(DC.CY_STOCK) > 0 )
+		 OR ( NVL(CH.CHGO_W,0) + NVL(CH.CHGO_W1,0) + NVL(CH.CHGO_W2,0) + NVL(PO.QTY_NWEEK,0) + NVL(PO.QTY_WEEK,0) > 0 )
+		GROUP
+		BY		IM.SALES_CAT03,
+				IM.ITEM_ID,
+		        IM.ITEM_NAME,
+		        IM.SPEC,
+		        PROD.DAY,
+		        IM.MTO_MTS_TYPE,
+		        IM.EX_NATION,
+		        IM.TERM_VAL,
+		      	PO.QTY_TODAY,
+		      	PO.QTY_WEEK,
+		      	PO.QTY_NWEEK,	     
+		        CH.CHGO_W,
+		        CH.CHGO_W1,
+		        CH.CHGO_W2,
+		        PO2.QTY_MM,
+		        DC2.BASE_STOCK,
+		        MI.MI_ORDER,
+		        BK.WEEK_QTY,
+		        BK.WEEK2_QTY,
+		        BK.ISSUE,
+		        BK.SELL_BOX_CUM,
+		        SA.SALES_M1,
+		        SA.SALES_M2,
+		        SA.SALES_M3,
+		        SA.SALES_M4,
+		        SA.SALES_M5,
+		        SA.SALES_M6
+		ORDER
+		BY		IM.SALES_CAT03,
+				IM.ITEM_ID
+        )A
+        
+        
+
+	
+	</query>
+
+</queries>
+	

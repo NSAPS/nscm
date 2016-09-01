@@ -1,0 +1,1153 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>
+
+<!--
+=====================================================================================================
+	수송계획 >> 운영정보
+=====================================================================================================
+-->
+	
+	<!--
+	======================================================================
+		수송계획조회 및 조정
+	======================================================================
+	-->
+
+
+	<!-- 중장기 물량 점검 - 품종구분 combo box  -->
+	<query id="ip_01090_CAT03">
+		SELECT  CD.CD,
+		        F_GET_CODE_NAME('SALES_CAT3', CD.CD) CD_NAME
+		FROM    (
+		        SELECT  DISTINCT SALES_CAT03 CD
+		        FROM    ITEM_MST IM
+			#if( "$!{division}" == "01")
+				-- 면 / 스낵
+				WHERE	IM.ITYPE		= 'FERT'
+				AND		IM.DIVISION		IN ('10','20')
+				AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+			#elseif( "$!{division}" == "02")                        
+				-- 면
+				WHERE	IM.ITYPE		= 'FERT'
+				AND		IM.DIVISION		= '10'
+				AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+			#elseif( "$!{division}" == "03")
+				-- 스낵
+				WHERE	IM.ITYPE		= 'FERT'
+				AND		IM.DIVISION		= '20'
+				AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+			#elseif( "$!{division}" == "04")
+				-- 기타제품
+				WHERE	IM.ITYPE		= 'FERT'
+				AND		IM.DIVISION		NOT IN ('10','20')
+				AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+			#elseif( "$!{division}" == "05")
+				-- 상품(삼다수,냉동제외)
+				WHERE	IM.ITYPE			= 'HAWA'
+				AND		IM.MATERIAL_GROUP 	!= '61310' 			-- 삼다수 제외
+				AND		IM.HR_TY1 			NOT LIKE '606006%' 	-- 냉동제외
+				AND		IM.HR_TY1 			NOT LIKE '9090029000' -- 액기스 제외
+			#elseif( "$!{division}" == "06")
+				-- 삼다수2L
+				WHERE	IM.ITYPE		= 'HAWA'
+				AND		IM.ITEM_ID 		= '901000081'
+			#elseif( "$!{division}" == "061")
+				-- 삼다수0.5L
+				WHERE	IM.ITYPE		= 'HAWA'
+				AND		IM.ITEM_ID 		= '901000082'
+			#elseif( "$!{division}" == "07")
+				-- 수출
+				WHERE	IM.ITYPE		= 'FERT'
+				AND		IM.CAT03		LIKE 'O%'
+			#end	                        
+		        ) CD
+		ORDER BY 1        
+	</query>
+
+
+	<!-- 중장기 물량 점검 - 일간조회  -->
+	<query id="ip_01090_longTermSupplyCheck_day">
+		-- 중장기 물량 점검 - 일간조회-
+		SELECT  CAL.CNFM_DATE,
+		        CAL.DAY,
+		        CAL.HOLIDAY_FLAG,
+		        DW.BASE_STOCK,
+		        DW.IPGO,
+		        DW.CHGO,
+		        CAL.MM,
+		        CAL.WEEK_NO,
+                LM.QTY,     -- 전월동일
+                LY.QTY      -- 전년동일
+		FROM    (
+		        SELECT  DW.CNFM_DATE,
+		                --TO_CHAR(TO_DATE(CNFM_DATE),'YYYY-MM-DD') CNFM_DATE,
+		                SUM(DW.BASE_STOCK)          BASE_STOCK,
+		                SUM(DW.RECEIPT_EXPT)        IPGO,
+                       #if ( "$!{week_flag}" == "3week" ) 
+                       SUM(DW.SALES_MEAN_3WEEK_ETC) CHGO
+                       #elseif ( "$!{week_flag}" == "1week" ) 
+                       SUM(DW.SALES_MEAN_1WEEK_ETC) CHGO
+                       #elseif ( "$!{week_flag}" == "31week" ) 
+                       DECODE(SUM(DW.SALES_MEAN_3WEEK_ETC+DW.SALES_MEAN_1WEEK_ETC), 0, 0,ROUND(SUM((DW.SALES_MEAN_3WEEK_ETC+DW.SALES_MEAN_1WEEK_ETC)/2))) CHGO
+                       #elseif ( "$!{week_flag}" == "simul" ) 
+                        MAX('$!{simul_data}') CHGO
+                       #else
+                         ----   $!{week_flag}
+                       SUM(DW.SALES_MEAN_3WEEK_ETC) CHGO
+                       #end
+		        FROM    DC_DATAWAREHOUSE DW, 
+                        (  -- division = $!{division}
+                        SELECT  *
+                        FROM    ITEM_MST IM
+					#if( "$!{division}" == "01")
+						-- 면 / 스낵
+						WHERE	IM.ITYPE		= 'FERT'
+						AND		IM.DIVISION		IN ('10','20')
+						AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+					#elseif( "$!{division}" == "02")                        
+						-- 면
+						WHERE	IM.ITYPE		= 'FERT'
+						AND		IM.DIVISION		= '10'
+						AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+					#elseif( "$!{division}" == "03")
+						-- 스낵
+						WHERE	IM.ITYPE		= 'FERT'
+						AND		IM.DIVISION		= '20'
+						AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+					#elseif( "$!{division}" == "04")
+						-- 기타제품
+						WHERE	IM.ITYPE		= 'FERT'
+						AND		IM.DIVISION		NOT IN ('10','20')
+						AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+					#elseif( "$!{division}" == "05")
+						-- 상품(삼다수,냉동제외)
+						WHERE	IM.ITYPE			= 'HAWA'
+						AND		IM.MATERIAL_GROUP 	!= '61310' 			-- 삼다수 제외
+						AND		IM.HR_TY1 			NOT LIKE '606006%' 	-- 냉동제외
+						AND		IM.HR_TY1 			NOT LIKE '9090029000' -- 액기스 제외
+					#elseif( "$!{division}" == "06")
+						-- 삼다수2L
+						WHERE	IM.ITYPE		= 'HAWA'
+						AND		IM.ITEM_ID 		= '901000081'
+					#elseif( "$!{division}" == "061")
+						-- 삼다수0.5L
+						WHERE	IM.ITYPE		= 'HAWA'
+						AND		IM.ITEM_ID 		= '901000082'
+					#elseif( "$!{division}" == "07")
+						-- 수출
+						WHERE	IM.ITYPE		= 'FERT'
+						AND		IM.CAT03		LIKE 'O%'
+					#end	                        
+                        --AND	NOT (IM.MATERIAL_GROUP >= '5K000' AND     IM.MATERIAL_GROUP &lt;= '5S999') --수출품
+                        --AND	(IM.SELL_STOP_DATE > TO_CHAR(SYSDATE,'YYYYMMDD') or IM.SELL_STOP_DATE = '00000000') --판매종료일
+                        ) IM,
+                        (
+                        SELECT *
+                        FROM    CAL_MST
+                        WHERE   CAL_DATE BETWEEN TRUNC(SYSDATE) AND TRUNC(SYSDATE) +17
+                        )CAL		        
+		        WHERE   DW.ITEM_ID = IM.ITEM_ID
+		        AND     DW.CNFM_DATE = CAL.YYYYMMDD
+		        AND		DW.DC_ID		IN (SELECT	DC_ID FROM DC_MST WHERE TRIM(EXPORT_FLAG) IS NULL)
+		        AND		IM.SALES_CAT03	LIKE '%'||'$!{cat03}'||'%'
+		        GROUP
+		        BY      DW.CNFM_DATE
+		        ) DW,
+		        (
+		        SELECT  TO_CHAR(CAL_DATE,'YYYYMMDD')		CNFM_DATE,
+		                TO_CHAR(CAL_DATE,'YYYY-MM-DD')		CAL_DATE,
+		                TO_CHAR(CAL_DATE,'MM-DD')||'  ('||TO_CHAR(CAL_DATE,'DY')||')' DAY,
+		                HOLIDAY_FLAG,
+                        MM,
+                        WEEK_NO
+		        FROM    CAL_MST
+		        WHERE   CAL_DATE BETWEEN TRUNC(SYSDATE) AND TRUNC(SYSDATE) +30        
+		        ) CAL,
+		        ( /* 전월동일 */
+                SELECT  SALE_DATE,
+                		ADD_MONTHS(SALE_DATE, +1) LAST_MONTH,
+                		SUM(SA.QTY) QTY 
+                FROM    SALES_ACT SA,
+		        		( -- division = $!{division}
+		        		SELECT	*
+		        		FROM 	ITEM_MST IM
+		        		WHERE	(IM.SELL_STOP_DATE > TO_CHAR(SYSDATE,'YYYYMMDD') or IM.SELL_STOP_DATE = '00000000') --판매종료일
+					#if( "$!{division}" == "01")
+						-- 면 / 스낵
+						AND		IM.ITYPE		= 'FERT'
+						AND		IM.DIVISION		IN ('10','20')
+						AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+					#elseif( "$!{division}" == "02")                        
+						-- 면
+						AND		IM.ITYPE		= 'FERT'
+						AND		IM.DIVISION		= '10'
+						AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+					#elseif( "$!{division}" == "03")
+						-- 스낵
+						AND		IM.ITYPE		= 'FERT'
+						AND		IM.DIVISION		= '20'
+						AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+					#elseif( "$!{division}" == "04")
+						-- 기타제품
+						AND		IM.ITYPE		= 'FERT'
+						AND		IM.DIVISION		NOT IN ('10','20')
+						AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+					#elseif( "$!{division}" == "05")
+						-- 상품(삼다수,냉동제외)
+						AND		IM.ITYPE			= 'HAWA'
+						AND		IM.MATERIAL_GROUP 	!= '61310' 			-- 삼다수 제외
+						AND		IM.HR_TY1 			NOT LIKE '606006%' 	-- 냉동제외
+						AND		IM.HR_TY1 			NOT LIKE '9090029000' -- 액기스 제외
+					#elseif( "$!{division}" == "06")
+						-- 삼다수2L
+						AND		IM.ITYPE		= 'HAWA'
+						AND		IM.ITEM_ID 		= '901000081'
+					#elseif( "$!{division}" == "061")
+						-- 삼다수0.5L
+						AND		IM.ITYPE		= 'HAWA'
+						AND		IM.ITEM_ID 		= '901000082'
+					#elseif( "$!{division}" == "07")
+						-- 수출
+						AND		IM.ITYPE		= 'FERT'
+						AND		IM.CAT03		LIKE 'O%'
+					#end	                        
+                        --AND	NOT (IM.MATERIAL_GROUP >= '5K000' AND     IM.MATERIAL_GROUP &lt;= '5S999') --수출품
+		        		) IM,
+                        (
+                        SELECT *
+                        FROM    CAL_MST
+                        WHERE   CAL_DATE BETWEEN ADD_MONTHS(TRUNC(SYSDATE),-1) AND ADD_MONTHS(TRUNC(SYSDATE),-1)+32
+                        )CAL 		        		
+                WHERE   SA.ITEM_ID = IM.ITEM_ID
+                AND     SA.SALE_DATE = CAL.YYYYMMDD
+                AND		IM.SALES_CAT03 	LIKE '%'||'$!{cat03}'||'%'	
+                --AND        ACT_TYPE = '01'
+                GROUP BY SALE_DATE		        
+		        )LM,
+		        ( /* 전년동일 */
+                SELECT  SALE_DATE,
+                		ADD_MONTHS(SALE_DATE, +12) LAST_YEAR,
+                		SUM(SA.QTY) QTY 
+                FROM    SALES_ACT SA,
+		        		( -- division = $!{division}
+		        		SELECT	*
+		        		FROM 	ITEM_MST IM
+		        		WHERE	(IM.SELL_STOP_DATE > TO_CHAR(SYSDATE,'YYYYMMDD') or IM.SELL_STOP_DATE = '00000000') --판매종료일
+					#if( "$!{division}" == "01")
+						-- 면 / 스낵
+						AND		IM.ITYPE		= 'FERT'
+						AND		IM.DIVISION		IN ('10','20')
+						AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+					#elseif( "$!{division}" == "02")                        
+						-- 면
+						AND		IM.ITYPE		= 'FERT'
+						AND		IM.DIVISION		= '10'
+						AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+					#elseif( "$!{division}" == "03")
+						-- 스낵
+						AND		IM.ITYPE		= 'FERT'
+						AND		IM.DIVISION		= '20'
+						AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+					#elseif( "$!{division}" == "04")
+						-- 기타제품
+						AND		IM.ITYPE		= 'FERT'
+						AND		IM.DIVISION		NOT IN ('10','20')
+						AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+					#elseif( "$!{division}" == "05")
+						-- 상품(삼다수,냉동제외)
+						AND		IM.ITYPE			= 'HAWA'
+						AND		IM.MATERIAL_GROUP 	!= '61310' 			-- 삼다수 제외
+						AND		IM.HR_TY1 			NOT LIKE '606006%' 	-- 냉동제외
+						AND		IM.HR_TY1 			NOT LIKE '9090029000' -- 액기스 제외
+					#elseif( "$!{division}" == "06")
+						-- 삼다수2L
+						AND		IM.ITYPE		= 'HAWA'
+						AND		IM.ITEM_ID 		= '901000081'
+					#elseif( "$!{division}" == "061")
+						-- 삼다수0.5L
+						AND		IM.ITYPE		= 'HAWA'
+						AND		IM.ITEM_ID 		= '901000082'
+					#elseif( "$!{division}" == "07")
+						-- 수출
+						AND		IM.ITYPE		= 'FERT'
+						AND		IM.CAT03		LIKE 'O%'
+					#end	                        
+                        --AND	NOT (IM.MATERIAL_GROUP >= '5K000' AND     IM.MATERIAL_GROUP &lt;= '5S999') --수출품
+		        		) IM,
+                        (
+                        SELECT *
+                        FROM    CAL_MST
+                        WHERE   CAL_DATE BETWEEN ADD_MONTHS(TRUNC(SYSDATE), -12)+00 AND ADD_MONTHS(TRUNC(SYSDATE), -12)+31
+                        )CAL 		        		
+                WHERE   SA.ITEM_ID = IM.ITEM_ID
+                AND     SA.SALE_DATE = CAL.YYYYMMDD
+                AND		IM.SALES_CAT03 	LIKE '%'||'$!{cat03}'||'%'          
+                --AND        ACT_TYPE = '01'
+                GROUP BY SALE_DATE		        
+		        )LY
+		WHERE   CAL.CNFM_DATE = DW.CNFM_DATE(+)
+        AND     CAL.CNFM_DATE = LM.LAST_MONTH(+)
+        AND     CAL.CNFM_DATE = LY.LAST_YEAR(+)
+		ORDER 
+		BY      CAL.CNFM_DATE 		
+	</query>
+
+
+
+
+	<query id="ip_01090_longTermSupplyCheck_week">
+		-- 중장기 물량 점검 - 주간조회-
+        SELECT  CAL.CNFM_DATE,
+                CAL.DAY,
+                CAL.HOLIDAY_FLAG,
+                DW.BASE_STOCK,
+                DW.IPGO,
+                DW.CHGO,
+                COUNT,
+                CAL.MM,
+                CAL.WEEK_NO
+        FROM    (
+                SELECT  TRUNC(TO_DATE(DW.CNFM_DATE),'DY')+1 CNFM_DATE,
+                        MAX(ST.QTY) BASE_STOCK,
+                        SUM(DW.RECEIPT_EXPT)        IPGO,
+                       #if ( "$!{week_flag}" == "3week" ) 
+                       SUM(DW.SALES_MEAN_3WEEK_ETC) CHGO
+                       #elseif ( "$!{week_flag}" == "1week" ) 
+                       SUM(DW.SALES_MEAN_1WEEK_ETC) CHGO
+                       #elseif ( "$!{week_flag}" == "31week" ) 
+                       DECODE(SUM(DW.SALES_MEAN_3WEEK_ETC+DW.SALES_MEAN_1WEEK_ETC), 0, 0,ROUND(SUM((DW.SALES_MEAN_3WEEK_ETC+DW.SALES_MEAN_1WEEK_ETC)/2))) CHGO
+                       #elseif ( "$!{week_flag}" == "simul" ) 
+                        MAX('$!{simul_data}') CHGO
+                       #else
+                         ----   $!{week_flag}
+                       SUM(DW.SALES_MEAN_3WEEK_ETC) CHGO
+                       #end
+                        FROM    DC_DATAWAREHOUSE DW,
+                        (--15951
+                        SELECT  SUM(ST.QTY) QTY
+                        FROM    WMS_STOCK ST, 
+                                (
+		                        SELECT  *
+		                        FROM    ITEM_MST IM
+							#if( "$!{division}" == "01")
+								-- 면 / 스낵
+								WHERE	IM.ITYPE		= 'FERT'
+								AND		IM.DIVISION		IN ('10','20')
+								AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+							#elseif( "$!{division}" == "02")                        
+								-- 면
+								WHERE	IM.ITYPE		= 'FERT'
+								AND		IM.DIVISION		= '10'
+								AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+							#elseif( "$!{division}" == "03")
+								-- 스낵
+								WHERE	IM.ITYPE		= 'FERT'
+								AND		IM.DIVISION		= '20'
+								AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+							#elseif( "$!{division}" == "04")
+								-- 기타제품
+								WHERE	IM.ITYPE		= 'FERT'
+								AND		IM.DIVISION		NOT IN ('10','20')
+								AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+							#elseif( "$!{division}" == "05")
+								-- 상품(삼다수,냉동제외)
+								WHERE	IM.ITYPE			= 'HAWA'
+								AND		IM.MATERIAL_GROUP 	!= '61310' 			-- 삼다수 제외
+								AND		IM.HR_TY1 			NOT LIKE '606006%' 	-- 냉동제외
+								AND		IM.HR_TY1 			NOT LIKE '9090029000' -- 액기스 제외
+							#elseif( "$!{division}" == "06")
+								-- 삼다수2L
+								WHERE	IM.ITYPE		= 'HAWA'
+								AND		IM.ITEM_ID 		= '901000081'
+							#elseif( "$!{division}" == "061")
+								-- 삼다수0.5L
+								WHERE	IM.ITYPE		= 'HAWA'
+								AND		IM.ITEM_ID 		= '901000082'
+							#elseif( "$!{division}" == "07")
+								-- 수출
+								WHERE	IM.ITYPE		= 'FERT'
+								AND		IM.CAT03		LIKE 'O%'
+							#end	                        
+		                        --AND	NOT (IM.MATERIAL_GROUP >= '5K000' AND     IM.MATERIAL_GROUP &lt;= '5S999') --수출품
+		                        --AND	(IM.SELL_STOP_DATE > TO_CHAR(SYSDATE,'YYYYMMDD') or IM.SELL_STOP_DATE = '00000000') --판매종료일
+                                ) IM                                
+                        WHERE   ST.ITEM_ID = IM.ITEM_ID
+                        AND     ST.IF_DTTM = TRUNC(SYSDATE)
+                        AND		ST.LOC_ID	IN (SELECT	DC_ID FROM DC_MST WHERE TRIM(EXPORT_FLAG) IS NULL)
+                        ) ST,
+                        (
+                        SELECT  *
+                        FROM    ITEM_MST IM
+					#if( "$!{division}" == "01")
+						-- 면 / 스낵
+						WHERE	IM.ITYPE		= 'FERT'
+						AND		IM.DIVISION		IN ('10','20')
+						AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+					#elseif( "$!{division}" == "02")                        
+						-- 면
+						WHERE	IM.ITYPE		= 'FERT'
+						AND		IM.DIVISION		= '10'
+						AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+					#elseif( "$!{division}" == "03")
+						-- 스낵
+						WHERE	IM.ITYPE		= 'FERT'
+						AND		IM.DIVISION		= '20'
+						AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+					#elseif( "$!{division}" == "04")
+						-- 기타제품
+						WHERE	IM.ITYPE		= 'FERT'
+						AND		IM.DIVISION		NOT IN ('10','20')
+						AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+					#elseif( "$!{division}" == "05")
+						-- 상품(삼다수,냉동제외)
+						WHERE	IM.ITYPE			= 'HAWA'
+						AND		IM.MATERIAL_GROUP 	!= '61310' 			-- 삼다수 제외
+						AND		IM.HR_TY1 			NOT LIKE '606006%' 	-- 냉동제외
+						AND		IM.HR_TY1 			NOT LIKE '9090029000' -- 액기스 제외
+					#elseif( "$!{division}" == "06")
+						-- 삼다수2L
+						WHERE	IM.ITYPE		= 'HAWA'
+						AND		IM.ITEM_ID 		= '901000081'
+					#elseif( "$!{division}" == "061")
+						-- 삼다수0.5L
+						WHERE	IM.ITYPE		= 'HAWA'
+						AND		IM.ITEM_ID 		= '901000082'
+					#elseif( "$!{division}" == "07")
+						-- 수출
+						WHERE	IM.ITYPE		= 'FERT'
+						AND		IM.CAT03		LIKE 'O%'
+					#end	                        
+                        --AND	NOT (IM.MATERIAL_GROUP >= '5K000' AND     IM.MATERIAL_GROUP &lt;= '5S999') --수출품
+                        --AND	(IM.SELL_STOP_DATE > TO_CHAR(SYSDATE,'YYYYMMDD') or IM.SELL_STOP_DATE = '00000000') --판매종료일
+                        ) IM,
+                        (
+                        SELECT *
+                        FROM    CAL_MST
+                        WHERE   CAL_DATE BETWEEN TRUNC(SYSDATE) AND TRUNC(SYSDATE) +17
+                        )CAL                        
+                WHERE   DW.ITEM_ID = IM.ITEM_ID
+                AND     DW.CNFM_DATE = CAL.YYYYMMDD
+                AND		DW.DC_ID		IN (SELECT	DC_ID FROM DC_MST WHERE TRIM(EXPORT_FLAG) IS NULL)
+                AND		IM.SALES_CAT03	LIKE '%'||'$!{cat03}'||'%'
+                --AND     DW.ITEM_ID = '101000105'
+                GROUP
+                BY      TRUNC(TO_DATE(DW.CNFM_DATE),'DY')+1
+                ORDER BY 2
+                ) DW,
+                (
+                SELECT  TO_CHAR(TRUNC(SYSDATE,'DY')+((ROWNUM - 1) * 7)+1,'YYYYMMDD')    CNFM_DATE,
+                        TO_CHAR(TRUNC(SYSDATE,'DY')+((ROWNUM - 1) * 7)+1,'YYYY-MM-DD')  CAL_DATE,
+                        TO_CHAR(TRUNC(SYSDATE,'DY')+((ROWNUM - 1) * 7)+1,'MM-DD')
+                        ||'일 주' DAY,
+                        --||'  ('||TO_CHAR( (TRUNC(SYSDATE,'DY')+((ROWNUM - 1) * 7)+1) ,'DY')||')' DAY,
+                        '' HOLIDAY_FLAG,
+                        CASE
+                            WHEN ROWNUM = 1
+                            THEN (TRUNC(SYSDATE,'DY')+((ROWNUM - 1) * 7)+1) - TRUNC(SYSDATE) +6
+                            ELSE 6
+                        END COUNT,
+                        SUBSTR(TO_CHAR(TRUNC(SYSDATE,'DY')+((ROWNUM - 1) * 7)+1,'YYYY-MM-DD'),6,2) MM,
+                        F_GET_WEEK_NO(TO_CHAR(TRUNC(SYSDATE,'DY')+((ROWNUM - 1) * 7)+1,'YYYY-MM-DD')) WEEK_NO
+                FROM    CODE_MST
+                WHERE   ROWNUM &lt;= 12
+                ) CAL
+        WHERE   CAL.CNFM_DATE = DW.CNFM_DATE(+)
+        ORDER 
+        BY      CAL.CNFM_DATE
+	</query>
+	
+	<query id="ip_01090_longTermSupplyCheck_month">
+		-- 중장기 물량 점검 - 월간조회-
+        SELECT  CAL.CNFM_DATE,
+                CAL.DAY,
+                CAL.HOLIDAY_FLAG,
+                DW.BASE_STOCK,
+                DW.IPGO,
+                DW.CHGO,
+                COUNT,
+                CAL.MM,
+                CAL.WEEK_NO
+        FROM    (
+                SELECT  TRUNC(TO_DATE(DW.CNFM_DATE),'MM') CNFM_DATE,
+                        MAX(ST.QTY) BASE_STOCK,
+                        SUM(DW.RECEIPT_EXPT)        IPGO,
+                       #if ( "$!{week_flag}" == "3week" ) 
+                       SUM(DW.SALES_MEAN_3WEEK_ETC) CHGO
+                       #elseif ( "$!{week_flag}" == "1week" ) 
+                       SUM(DW.SALES_MEAN_1WEEK_ETC) CHGO
+                       #elseif ( "$!{week_flag}" == "31week" ) 
+                       DECODE(SUM(DW.SALES_MEAN_3WEEK_ETC+DW.SALES_MEAN_1WEEK_ETC), 0, 0,ROUND(SUM((DW.SALES_MEAN_3WEEK_ETC+DW.SALES_MEAN_1WEEK_ETC)/2))) CHGO
+                       #elseif ( "$!{week_flag}" == "simul" ) 
+                        MAX('$!{simul_data}') CHGO
+                       #else
+                         ----   $!{week_flag}
+                       SUM(DW.SALES_MEAN_3WEEK_ETC) CHGO
+                       #end
+                       FROM    DC_DATAWAREHOUSE DW,        
+		                        (--15951
+		                        SELECT  SUM(ST.QTY) QTY
+		                        FROM    WMS_STOCK ST, 
+		                                (
+				                        SELECT  *
+				                        FROM    ITEM_MST IM
+									#if( "$!{division}" == "01")
+										-- 면 / 스낵
+										WHERE	IM.ITYPE		= 'FERT'
+										AND		IM.DIVISION		IN ('10','20')
+										AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+									#elseif( "$!{division}" == "02")                        
+										-- 면
+										WHERE	IM.ITYPE		= 'FERT'
+										AND		IM.DIVISION		= '10'
+										AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+									#elseif( "$!{division}" == "03")
+										-- 스낵
+										WHERE	IM.ITYPE		= 'FERT'
+										AND		IM.DIVISION		= '20'
+										AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+									#elseif( "$!{division}" == "04")
+										-- 기타제품
+										WHERE	IM.ITYPE		= 'FERT'
+										AND		IM.DIVISION		NOT IN ('10','20')
+										AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+									#elseif( "$!{division}" == "05")
+										-- 상품(삼다수,냉동제외)
+										WHERE	IM.ITYPE			= 'HAWA'
+										AND		IM.MATERIAL_GROUP 	!= '61310' 			-- 삼다수 제외
+										AND		IM.HR_TY1 			NOT LIKE '606006%' 	-- 냉동제외
+										AND		IM.HR_TY1 			NOT LIKE '9090029000' -- 액기스 제외
+									#elseif( "$!{division}" == "06")
+										-- 삼다수2L
+										WHERE	IM.ITYPE		= 'HAWA'
+										AND		IM.ITEM_ID 		= '901000081'
+									#elseif( "$!{division}" == "061")
+										-- 삼다수0.5L
+										WHERE	IM.ITYPE		= 'HAWA'
+										AND		IM.ITEM_ID 		= '901000082'
+									#elseif( "$!{division}" == "07")
+										-- 수출
+										WHERE	IM.ITYPE		= 'FERT'
+										AND		IM.CAT03		LIKE 'O%'
+									#end	                        
+				                        --AND	NOT (IM.MATERIAL_GROUP >= '5K000' AND     IM.MATERIAL_GROUP &lt;= '5S999') --수출품
+				                        --AND	(IM.SELL_STOP_DATE > TO_CHAR(SYSDATE,'YYYYMMDD') or IM.SELL_STOP_DATE = '00000000') --판매종료일
+		                                ) IM                                
+		                        WHERE   ST.ITEM_ID = IM.ITEM_ID
+		                        AND     ST.IF_DTTM = TRUNC(SYSDATE)
+		                        AND		ST.LOC_ID	IN (SELECT	DC_ID FROM DC_MST WHERE TRIM(EXPORT_FLAG) IS NULL)
+		                        ) ST,
+		                        (
+		                        SELECT  *
+		                        FROM    ITEM_MST IM
+							#if( "$!{division}" == "01")
+								-- 면 / 스낵
+								WHERE	IM.ITYPE		= 'FERT'
+								AND		IM.DIVISION		IN ('10','20')
+								AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+							#elseif( "$!{division}" == "02")                        
+								-- 면
+								WHERE	IM.ITYPE		= 'FERT'
+								AND		IM.DIVISION		= '10'
+								AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+							#elseif( "$!{division}" == "03")
+								-- 스낵
+								WHERE	IM.ITYPE		= 'FERT'
+								AND		IM.DIVISION		= '20'
+								AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+							#elseif( "$!{division}" == "04")
+								-- 기타제품
+								WHERE	IM.ITYPE		= 'FERT'
+								AND		IM.DIVISION		NOT IN ('10','20')
+								AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+							#elseif( "$!{division}" == "05")
+								-- 상품(삼다수,냉동제외)
+								WHERE	IM.ITYPE			= 'HAWA'
+								AND		IM.MATERIAL_GROUP 	!= '61310' 			-- 삼다수 제외
+								AND		IM.HR_TY1 			NOT LIKE '606006%' 	-- 냉동제외
+								AND		IM.HR_TY1 			NOT LIKE '9090029000' -- 액기스 제외
+							#elseif( "$!{division}" == "06")
+								-- 삼다수2L
+								WHERE	IM.ITYPE		= 'HAWA'
+								AND		IM.ITEM_ID 		= '901000081'
+							#elseif( "$!{division}" == "061")
+								-- 삼다수0.5L
+								WHERE	IM.ITYPE		= 'HAWA'
+								AND		IM.ITEM_ID 		= '901000082'
+							#elseif( "$!{division}" == "07")
+								-- 수출
+								WHERE	IM.ITYPE		= 'FERT'
+								AND		IM.CAT03		LIKE 'O%'
+							#end	                        
+		                        --AND	NOT (IM.MATERIAL_GROUP >= '5K000' AND     IM.MATERIAL_GROUP &lt;= '5S999') --수출품
+		                        --AND	(IM.SELL_STOP_DATE > TO_CHAR(SYSDATE,'YYYYMMDD') or IM.SELL_STOP_DATE = '00000000') --판매종료일
+		                        ) IM,
+		                        (
+		                        SELECT *
+		                        FROM    CAL_MST
+		                        WHERE   CAL_DATE BETWEEN TRUNC(SYSDATE) AND TRUNC(SYSDATE) +17
+		                        )CAL                           
+                WHERE   DW.ITEM_ID = IM.ITEM_ID
+                AND     DW.CNFM_DATE = CAL.YYYYMMDD
+                AND		DW.DC_ID		IN (SELECT	DC_ID FROM DC_MST WHERE TRIM(EXPORT_FLAG) IS NULL)
+                AND		IM.SALES_CAT03 	LIKE '%'||'$!{cat03}'||'%'  
+                GROUP
+                BY      TRUNC(TO_DATE(DW.CNFM_DATE),'MM')
+                ORDER BY 2
+                ) DW,
+                (
+                SELECT  CNFM_DATE,
+                        CAL_DATE,
+                        DAY,
+                        HOLIDAY_FLAG, 
+                        (
+                        SELECT  COUNT(CAL_DATE)
+                                FROM    CAL_MST
+                                WHERE   HOLIDAY_FLAG IS NULL
+                                AND     CAL_DATE > TRUNC(SYSDATE)
+                                AND     YYYYMM = SUBSTR(CNFM_DATE,1,6)
+                        ) COUNT,
+                        MM,
+                        WEEK_NO
+                FROM    (                
+                        SELECT  TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), ROWNUM-1), 'yyyymmdd') CNFM_DATE,
+                                TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), ROWNUM-1), 'yyyy-mm-dd') CAL_DATE,
+                                TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), ROWNUM-1), 'yy-mm')||' 월' DAY,
+                                '' HOLIDAY_FLAG,
+                                SUBSTR(TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), ROWNUM-1), 'yyyy-mm-dd'),6,2) MM,
+                                F_GET_WEEK_NO(TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), ROWNUM-1), 'yyyy-mm-dd')) WEEK_NO
+                        FROM    CODE_MST CD
+                        WHERE   ROWNUM  &lt;= 12
+                        )                
+                ) CAL
+        WHERE   CAL.CNFM_DATE = DW.CNFM_DATE(+)
+        ORDER 
+        BY      CAL.CNFM_DATE	
+	
+	</query>	
+
+
+	
+	<!-- 중장기 물량 점검 - 일간조회  -->
+	<query id="ip_01090_longTermSupplyCheck_day_item">
+		-- 중장기 물량 점검 - 일간조회-
+		SELECT  CAL.CNFM_DATE,
+		        CAL.DAY,
+		        CAL.HOLIDAY_FLAG,
+		        DW.BASE_STOCK,
+		        DW.IPGO,
+		        DW.CHGO
+		FROM    (
+		        SELECT  DW.ITEM_ID,
+		                DW.CNFM_DATE,
+		                --TO_CHAR(TO_DATE(CNFM_DATE),'YYYY-MM-DD') CNFM_DATE,
+		                SUM(DW.BASE_STOCK)          BASE_STOCK,
+		                SUM(DW.RECEIPT_EXPT)        IPGO,
+                       #if ( "$!{week_flag}" == "3week" ) 
+                       SUM(DW.SALES_MEAN_3WEEK_ETC) CHGO
+                       #elseif ( "$!{week_flag}" == "1week" ) 
+                       SUM(DW.SALES_MEAN_1WEEK_ETC) CHGO
+                       #elseif ( "$!{week_flag}" == "31week" ) 
+                       DECODE(SUM(DW.SALES_MEAN_3WEEK_ETC+DW.SALES_MEAN_1WEEK_ETC), 0, 0,ROUND(SUM((DW.SALES_MEAN_3WEEK_ETC+DW.SALES_MEAN_1WEEK_ETC)/2))) CHGO
+                       #elseif ( "$!{week_flag}" == "simul" ) 
+                        MAX('$!{simul_data}') CHGO
+                       #else
+                         ----   $!{week_flag}
+                       SUM(DW.SALES_MEAN_3WEEK_ETC) CHGO
+                       #end
+		        FROM    DC_DATAWAREHOUSE DW, DC_MST DM, ITEM_MST IM
+		        WHERE   DW.DC_ID = DM.DC_ID
+		        AND		DW.ITEM_ID = IM.ITEM_ID
+		        AND     DW.CNFM_DATE BETWEEN TRUNC(SYSDATE) AND TRUNC(SYSDATE) +15
+		        AND     DW.ITEM_ID = '$!{item_id}'
+		        GROUP
+		        BY      DW.ITEM_ID, DW.CNFM_DATE
+		        ) DW,
+		        (
+		        SELECT  TO_CHAR(CAL_DATE,'YYYYMMDD')		CNFM_DATE,
+		                TO_CHAR(CAL_DATE,'YYYY-MM-DD')		CAL_DATE,
+		                TO_CHAR(CAL_DATE,'MM-DD')||'  ('||TO_CHAR(CAL_DATE,'DY')||')' DAY,
+		                HOLIDAY_FLAG
+		        FROM    CAL_MST
+		        WHERE   CAL_DATE BETWEEN TRUNC(SYSDATE) AND TRUNC(SYSDATE) +30        
+		        ) CAL
+		WHERE   CAL.CNFM_DATE = DW.CNFM_DATE(+)
+		ORDER 
+		BY      CAL.CNFM_DATE 		
+	</query>
+
+	<query id="ip_01090_longTermSupplyCheck_week_item">
+		-- 중장기 물량 점검 - 주간조회-
+        SELECT  CAL.CNFM_DATE,
+                CAL.DAY,
+                CAL.HOLIDAY_FLAG,
+                DW.BASE_STOCK,
+                DW.IPGO,
+                DW.CHGO,
+                COUNT
+        FROM    (
+                SELECT  DW.ITEM_ID,
+                        TRUNC(TO_DATE(DW.CNFM_DATE),'DY')+1 CNFM_DATE,
+                        MAX(ST.QTY) BASE_STOCK,
+                        SUM(DW.RECEIPT_EXPT)        IPGO,
+                       #if ( "$!{week_flag}" == "3week" ) 
+                       SUM(DW.SALES_MEAN_3WEEK_ETC) CHGO
+                       #elseif ( "$!{week_flag}" == "1week" ) 
+                       SUM(DW.SALES_MEAN_1WEEK_ETC) CHGO
+                       #elseif ( "$!{week_flag}" == "31week" ) 
+                       DECODE(SUM(DW.SALES_MEAN_3WEEK_ETC+DW.SALES_MEAN_1WEEK_ETC), 0, 0,ROUND(SUM((DW.SALES_MEAN_3WEEK_ETC+DW.SALES_MEAN_1WEEK_ETC)/2))) CHGO
+                       #elseif ( "$!{week_flag}" == "simul" ) 
+                        MAX('$!{simul_data}') CHGO
+                       #else
+                         ----   $!{week_flag}
+                       SUM(DW.SALES_MEAN_3WEEK_ETC) CHGO
+                       #end
+                FROM    DC_DATAWAREHOUSE DW, DC_MST DM, 
+                        (--15951
+                        SELECT  SUM(QTY) QTY
+                        FROM    WMS_STOCK ST
+                        WHERE   ST.IF_DTTM = TRUNC(SYSDATE)
+                        AND     ST.ITEM_ID = '$!{item_id}'
+                        ) ST
+                WHERE   DW.DC_ID = DM.DC_ID
+                --AND     DW.DC_ID = ST.LOC_ID
+                --AND     DW.ITEM_ID = ST.ITEM_ID
+                AND     DW.CNFM_DATE BETWEEN TRUNC(SYSDATE) AND TRUNC(SYSDATE) +12
+                AND     DW.ITEM_ID = '$!{item_id}'
+                GROUP
+                BY      DW.ITEM_ID, TRUNC(TO_DATE(DW.CNFM_DATE),'DY')+1
+                ORDER BY 2
+                ) DW,
+                (
+                SELECT  TO_CHAR(TRUNC(SYSDATE,'DY')+((ROWNUM - 1) * 7)+1,'YYYYMMDD')    CNFM_DATE,
+                        TO_CHAR(TRUNC(SYSDATE,'DY')+((ROWNUM - 1) * 7)+1,'YYYY-MM-DD')  CAL_DATE,
+                        TO_CHAR(TRUNC(SYSDATE,'DY')+((ROWNUM - 1) * 7)+1,'MM-DD')
+                        ||'일 주' DAY,
+                        --||'  ('||TO_CHAR( (TRUNC(SYSDATE,'DY')+((ROWNUM - 1) * 7)+1) ,'DY')||')' DAY,
+                        '' HOLIDAY_FLAG,
+                        CASE
+                            WHEN ROWNUM = 1
+                            THEN (TRUNC(SYSDATE,'DY')+((ROWNUM - 1) * 7)+1) - TRUNC(SYSDATE) +6
+                            ELSE 6
+                        END COUNT
+                FROM    CODE_MST
+                WHERE   ROWNUM &lt;= 12
+                ) CAL
+        WHERE   CAL.CNFM_DATE = DW.CNFM_DATE(+)
+        ORDER 
+        BY      CAL.CNFM_DATE
+	</query>
+	
+	<query id="ip_01090_longTermSupplyCheck_month_item">
+		-- 중장기 물량 점검 - 월간조회-
+        SELECT  CAL.CNFM_DATE,
+                CAL.DAY,
+                CAL.HOLIDAY_FLAG,
+                DW.BASE_STOCK,
+                DW.IPGO,
+                DW.CHGO,
+                COUNT
+        FROM    (
+                SELECT  DW.ITEM_ID,
+                        TRUNC(TO_DATE(DW.CNFM_DATE),'MM') CNFM_DATE,
+                        MAX(ST.QTY) BASE_STOCK,
+                        SUM(DW.RECEIPT_EXPT)        IPGO,
+                       #if ( "$!{week_flag}" == "3week" ) 
+                       SUM(DW.SALES_MEAN_3WEEK_ETC) CHGO
+                       #elseif ( "$!{week_flag}" == "1week" ) 
+                       SUM(DW.SALES_MEAN_1WEEK_ETC) CHGO
+                       #elseif ( "$!{week_flag}" == "31week" ) 
+                       DECODE(SUM(DW.SALES_MEAN_3WEEK_ETC+DW.SALES_MEAN_1WEEK_ETC), 0, 0,ROUND(SUM((DW.SALES_MEAN_3WEEK_ETC+DW.SALES_MEAN_1WEEK_ETC)/2))) CHGO
+                       #elseif ( "$!{week_flag}" == "simul" ) 
+                        MAX('$!{simul_data}') CHGO
+                       #else
+                         ----   $!{week_flag}
+                       SUM(DW.SALES_MEAN_3WEEK_ETC) CHGO
+                       #end
+                FROM    DC_DATAWAREHOUSE DW, DC_MST DM, 
+                        (--15951
+                        SELECT  SUM(QTY) QTY
+                        FROM    WMS_STOCK ST
+                        WHERE   ST.IF_DTTM = TRUNC(SYSDATE)
+                        AND     ST.ITEM_ID  = '$!{item_id}'
+                        ) ST
+                WHERE   DW.DC_ID = DM.DC_ID
+                AND     DW.CNFM_DATE BETWEEN TRUNC(SYSDATE) AND TRUNC(SYSDATE) +12
+                AND     DW.ITEM_ID  = '$!{item_id}'
+                GROUP
+                BY      DW.ITEM_ID, TRUNC(TO_DATE(DW.CNFM_DATE),'MM')
+                ORDER BY 2
+                ) DW,
+                (
+                SELECT  CNFM_DATE,
+                        CAL_DATE,
+                        DAY,
+                        HOLIDAY_FLAG, 
+                        (
+                        SELECT  COUNT(CAL_DATE)
+                                FROM    CAL_MST
+                                WHERE   HOLIDAY_FLAG IS NULL
+                                AND     CAL_DATE > TRUNC(SYSDATE)
+                                AND     YYYYMM = SUBSTR(CNFM_DATE,1,6)
+                        ) COUNT
+                FROM    (                
+                        SELECT  TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), ROWNUM-1), 'yyyymmdd') CNFM_DATE,
+                                TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), ROWNUM-1), 'yyyy-mm-dd') CAL_DATE,
+                                TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), ROWNUM-1), 'yy-mm')||' 월' DAY,
+                                '' HOLIDAY_FLAG
+                        FROM    CODE_MST CD
+                        WHERE   ROWNUM &lt;= 12
+                        )                
+                ) CAL
+        WHERE   CAL.CNFM_DATE = DW.CNFM_DATE(+)
+        ORDER 
+        BY      CAL.CNFM_DATE
+	</query>	
+
+
+	<!-- 재고 및 생산 적합성 분석 팝업 과거 10일 실적  DW2-->  
+	<query id="ip_01090_longTermSupplyCheck_day_DW2" paging="false">
+        -- 과거 30일 실적 
+        SELECT  '과거 30일',  --과거 30일부터 오늘 순으로
+        		ROUND(SUM(SA.QTY)/CNT)  "기간평균",
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+00)    ,SA.QTY,   0))    DAY_31,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+01)    ,SA.QTY,   0))    DAY_30,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+02)    ,SA.QTY,   0))    DAY_29,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+03)    ,SA.QTY,   0))    DAY_28,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+04)    ,SA.QTY,   0))    DAY_27,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+05)    ,SA.QTY,   0))    DAY_26,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+06)    ,SA.QTY,   0))    DAY_25,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+07)    ,SA.QTY,   0))    DAY_24,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+08)    ,SA.QTY,   0))    DAY_23,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+09)    ,SA.QTY,   0))    DAY_22,
+                --
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+10)    ,SA.QTY,   0))    DAY_21,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+11)    ,SA.QTY,   0))    DAY_20,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+12)    ,SA.QTY,   0))    DAY_19,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+13)    ,SA.QTY,   0))    DAY_18,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+14)    ,SA.QTY,   0))    DAY_17,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+15)    ,SA.QTY,   0))    DAY_16,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+16)    ,SA.QTY,   0))    DAY_15,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+17)    ,SA.QTY,   0))    DAY_14,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+18)    ,SA.QTY,   0))    DAY_13,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+19)    ,SA.QTY,   0))    DAY_12,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+20)    ,SA.QTY,   0))    DAY_11,
+                --
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+21)    ,SA.QTY,   0))    DAY_10,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+22)    ,SA.QTY,   0))    DAY_09,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+23)    ,SA.QTY,   0))    DAY_08,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+24)    ,SA.QTY,   0))    DAY_07,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+25)    ,SA.QTY,   0))    DAY_06,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+26)    ,SA.QTY,   0))    DAY_05,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+27)    ,SA.QTY,   0))    DAY_04,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+28)    ,SA.QTY,   0))    DAY_03,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+29)    ,SA.QTY,   0))    DAY_02,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+30)    ,SA.QTY,   0))    DAY_01
+        FROM    (
+                SELECT  SALE_DATE, SUM(SA.QTY) QTY 
+                FROM    SALES_ACT SA,
+		        		( -- division = $!{division}
+		        		SELECT	*
+		        		FROM 	ITEM_MST IM
+		        		WHERE	(IM.SELL_STOP_DATE > TO_CHAR(SYSDATE,'YYYYMMDD') or IM.SELL_STOP_DATE = '00000000') --판매종료일
+					#if( "$!{division}" == "01")
+						-- 면 / 스낵
+						AND		IM.ITYPE		= 'FERT'
+						AND		IM.DIVISION		IN ('10','20')
+						AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+					#elseif( "$!{division}" == "02")                        
+						-- 면
+						AND		IM.ITYPE		= 'FERT'
+						AND		IM.DIVISION		= '10'
+						AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+					#elseif( "$!{division}" == "03")
+						-- 스낵
+						AND		IM.ITYPE		= 'FERT'
+						AND		IM.DIVISION		= '20'
+						AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+					#elseif( "$!{division}" == "04")
+						-- 기타제품
+						AND		IM.ITYPE		= 'FERT'
+						AND		IM.DIVISION		NOT IN ('10','20')
+						AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+					#elseif( "$!{division}" == "05")
+						-- 상품(삼다수,냉동제외)
+						AND		IM.ITYPE			= 'HAWA'
+						AND		IM.MATERIAL_GROUP 	!= '61310' 			-- 삼다수 제외
+						AND		IM.HR_TY1 			NOT LIKE '606006%' 	-- 냉동제외
+						AND		IM.HR_TY1 			NOT LIKE '9090029000' -- 액기스 제외
+					#elseif( "$!{division}" == "06")
+						-- 삼다수2L
+						AND		IM.ITYPE		= 'HAWA'
+						AND		IM.ITEM_ID 		= '901000081'
+					#elseif( "$!{division}" == "061")
+						-- 삼다수0.5L
+						AND		IM.ITYPE		= 'HAWA'
+						AND		IM.ITEM_ID 		= '901000082'
+					#elseif( "$!{division}" == "07")
+						-- 수출
+						AND		IM.ITYPE		= 'FERT'
+						AND		IM.CAT03		LIKE 'O%'
+					#end	                        
+                        --AND	NOT (IM.MATERIAL_GROUP >= '5K000' AND     IM.MATERIAL_GROUP &lt;= '5S999') --수출품
+		        		) IM,
+                        (
+                        SELECT *
+                        FROM    CAL_MST
+                        WHERE   CAL_DATE BETWEEN ADD_MONTHS(TRUNC(SYSDATE),-1) AND ADD_MONTHS(TRUNC(SYSDATE),-1)+30
+                        )CAL                         
+                WHERE   SA.ITEM_ID = IM.ITEM_ID
+                AND     SA.SALE_DATE = CAL.YYYYMMDD
+                AND		IM.SALES_CAT03 	LIKE '%'||'$!{cat03}'||'%'
+		        --AND     ITEM_ID = '$!{item_id}'
+		        --AND		ACT_TYPE = '01'
+                GROUP 
+                BY      SA.SALE_DATE
+                )SA,
+                (
+                SELECT  COUNT(CAL_DATE) CNT
+                FROM    CAL_MST
+                WHERE   CAL_DATE BETWEEN ADD_MONTHS(TRUNC(SYSDATE),-1) AND ADD_MONTHS(TRUNC(SYSDATE),-1)+30
+                AND     HOLIDAY_FLAG IS NULL
+                )
+                GROUP BY CNT
+	</query>
+	
+	<!-- 재고 및 생산 적합성 분석 팝업 전년 동일  실적  DW3 -->  
+	<query id="ip_01090_longTermSupplyCheck_day_DW3" paging="false">	
+        -- 전년 동일 
+        SELECT  '전년 동일', --12
+        		ROUND(SUM(SA.QTY)/CNT)  "기간평균",
+                /* 동일이전 */
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+00)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+01)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+02)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+03)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+04)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+05)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+06)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+07)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+08)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+09)    ,SA.QTY,   0))    DAY,
+                --
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+10)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+11)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+12)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+13)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+14)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+15)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+16)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+17)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+18)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+19)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+20)    ,SA.QTY,   0))    DAY,
+                --
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+21)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+22)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+23)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+24)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+25)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+26)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+27)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+28)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+29)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+30)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+31)    ,SA.QTY,   0))    DAY,
+                /* 동일이후 */
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+32)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+33)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+34)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+35)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+36)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+37)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+38)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+39)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+40)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+41)    ,SA.QTY,   0))    DAY,
+                --
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+42)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+43)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+44)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+45)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+46)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+47)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+48)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+49)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+50)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+51)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+52)    ,SA.QTY,   0))    DAY,
+                --
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+53)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+54)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+55)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+56)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+57)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+58)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+59)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+60)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+61)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+62)    ,SA.QTY,   0))    DAY,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE), -13)+63)    ,SA.QTY,   0))    DAY
+        FROM    (
+                SELECT  SALE_DATE,  SUM(SA.QTY) QTY 
+                FROM    SALES_ACT SA,
+		        		( -- division = $!{division}
+		        		SELECT	*
+		        		FROM 	ITEM_MST IM
+		        		WHERE	(IM.SELL_STOP_DATE > TO_CHAR(SYSDATE,'YYYYMMDD') or IM.SELL_STOP_DATE = '00000000') --판매종료일
+					#if( "$!{division}" == "01")
+						-- 면 / 스낵
+						AND		IM.ITYPE		= 'FERT'
+						AND		IM.DIVISION		IN ('10','20')
+						AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+					#elseif( "$!{division}" == "02")                        
+						-- 면
+						AND		IM.ITYPE		= 'FERT'
+						AND		IM.DIVISION		= '10'
+						AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+					#elseif( "$!{division}" == "03")
+						-- 스낵
+						AND		IM.ITYPE		= 'FERT'
+						AND		IM.DIVISION		= '20'
+						AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+					#elseif( "$!{division}" == "04")
+						-- 기타제품
+						AND		IM.ITYPE		= 'FERT'
+						AND		IM.DIVISION		NOT IN ('10','20')
+						AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+					#elseif( "$!{division}" == "05")
+						-- 상품(삼다수,냉동제외)
+						AND		IM.ITYPE			= 'HAWA'
+						AND		IM.MATERIAL_GROUP 	!= '61310' 			-- 삼다수 제외
+						AND		IM.HR_TY1 			NOT LIKE '606006%' 	-- 냉동제외
+						AND		IM.HR_TY1 			NOT LIKE '9090029000' -- 액기스 제외
+					#elseif( "$!{division}" == "06")
+						-- 삼다수2L
+						AND		IM.ITYPE		= 'HAWA'
+						AND		IM.ITEM_ID 		= '901000081'
+					#elseif( "$!{division}" == "061")
+						-- 삼다수0.5L
+						AND		IM.ITYPE		= 'HAWA'
+						AND		IM.ITEM_ID 		= '901000082'
+					#elseif( "$!{division}" == "07")
+						-- 수출
+						AND		IM.ITYPE		= 'FERT'
+						AND		IM.CAT03		LIKE 'O%'
+					#end	                        
+                        --AND	NOT (IM.MATERIAL_GROUP >= '5K000' AND     IM.MATERIAL_GROUP &lt;= '5S999') --수출품
+		        		) IM,
+                        (
+                        SELECT *
+                        FROM    CAL_MST
+                        WHERE   CAL_DATE BETWEEN ADD_MONTHS(TRUNC(SYSDATE), -13)+00 AND ADD_MONTHS(TRUNC(SYSDATE), -13)+63 
+                        )CAL 		        		
+                WHERE   SA.ITEM_ID = IM.ITEM_ID
+                AND     SA.SALE_DATE = CAL.YYYYMMDD
+                AND		IM.SALES_CAT03 	LIKE '%'||'$!{cat03}'||'%'          
+                --AND        ACT_TYPE = '01'
+                GROUP BY SALE_DATE
+                )SA,
+                (
+                SELECT  COUNT(CAL_DATE) CNT
+                FROM    CAL_MST
+                WHERE   CAL_DATE BETWEEN ADD_MONTHS(TRUNC(SYSDATE), -13)+00 AND ADD_MONTHS(TRUNC(SYSDATE), -13)+63
+                AND     HOLIDAY_FLAG IS NULL
+                )
+                GROUP BY CNT
+	</query>
+
+	<!-- 재고 및 생산 적합성 분석 팝업 월년 동일  실적  DW4 -->  
+	<query id="ip_01090_longTermSupplyCheck_day_DW4" paging="false">	
+		-- 전월 동일 
+        SELECT  '전월 동일', --12
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+00)    ,SA.QTY,   0))    DAY_20,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+01)    ,SA.QTY,   0))    DAY_19,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+02)    ,SA.QTY,   0))    DAY_18,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+03)    ,SA.QTY,   0))    DAY_17,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+04)    ,SA.QTY,   0))    DAY_16,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+05)    ,SA.QTY,   0))    DAY_15,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+06)    ,SA.QTY,   0))    DAY_14,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+07)    ,SA.QTY,   0))    DAY_13,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+08)    ,SA.QTY,   0))    DAY_12,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+09)    ,SA.QTY,   0))    DAY_11,
+                --
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+10)    ,SA.QTY,   0))    DAY_10,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+11)    ,SA.QTY,   0))    DAY_9,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+12)    ,SA.QTY,   0))    DAY_8,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+13)    ,SA.QTY,   0))    DAY_7,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+14)    ,SA.QTY,   0))    DAY_6,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+15)    ,SA.QTY,   0))    DAY_5,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+16)    ,SA.QTY,   0))    DAY_4,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+17)    ,SA.QTY,   0))    DAY_3,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+18)    ,SA.QTY,   0))    DAY_2,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+19)    ,SA.QTY,   0))    DAY_1,
+                SUM(DECODE(SALE_DATE,   TRUNC(ADD_MONTHS(TRUNC(SYSDATE),-1)+10)    ,SA.QTY,   0))    DAY_0
+        FROM    (
+                SELECT  SALE_DATE,  SUM(SA.QTY) QTY 
+                FROM    SALES_ACT SA,
+		        		( -- division = $!{division}
+		        		SELECT	*
+		        		FROM 	ITEM_MST IM
+		        		WHERE	(IM.SELL_STOP_DATE > TO_CHAR(SYSDATE,'YYYYMMDD') or IM.SELL_STOP_DATE = '00000000') --판매종료일
+					#if( "$!{division}" == "01")
+						-- 면 / 스낵
+						AND		IM.ITYPE		= 'FERT'
+						AND		IM.DIVISION		IN ('10','20')
+						AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+					#elseif( "$!{division}" == "02")                        
+						-- 면
+						AND		IM.ITYPE		= 'FERT'
+						AND		IM.DIVISION		= '10'
+						AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+					#elseif( "$!{division}" == "03")
+						-- 스낵
+						AND		IM.ITYPE		= 'FERT'
+						AND		IM.DIVISION		= '20'
+						AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+					#elseif( "$!{division}" == "04")
+						-- 기타제품
+						AND		IM.ITYPE		= 'FERT'
+						AND		IM.DIVISION		NOT IN ('10','20')
+						AND		NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+					#elseif( "$!{division}" == "05")
+						-- 상품(삼다수,냉동제외)
+						AND		IM.ITYPE			= 'HAWA'
+						AND		IM.MATERIAL_GROUP 	!= '61310' 			-- 삼다수 제외
+						AND		IM.HR_TY1 			NOT LIKE '606006%' 	-- 냉동제외
+						AND		IM.HR_TY1 			NOT LIKE '9090029000' -- 액기스 제외
+					#elseif( "$!{division}" == "06")
+						-- 삼다수2L
+						AND		IM.ITYPE		= 'HAWA'
+						AND		IM.ITEM_ID 		= '901000081'
+					#elseif( "$!{division}" == "061")
+						-- 삼다수0.5L
+						AND		IM.ITYPE		= 'HAWA'
+						AND		IM.ITEM_ID 		= '901000082'
+					#elseif( "$!{division}" == "07")
+						-- 수출
+						AND		IM.ITYPE		= 'FERT'
+						AND		IM.CAT03		LIKE 'O%'
+					#end	                        
+                        --AND	NOT (IM.MATERIAL_GROUP >= '5K000' AND     IM.MATERIAL_GROUP &lt;= '5S999') --수출품
+		        		) IM,
+                        (
+                        SELECT *
+                        FROM    CAL_MST
+                        WHERE   CAL_DATE BETWEEN ADD_MONTHS(TRUNC(SYSDATE),-1) AND ADD_MONTHS(TRUNC(SYSDATE),-1)+22
+                        )CAL 		        		
+                WHERE   SA.ITEM_ID = IM.ITEM_ID
+                AND     SA.SALE_DATE = CAL.YYYYMMDD
+                AND		IM.SALES_CAT03 	LIKE '%'||'$!{cat03}'||'%'	
+                --AND        ACT_TYPE = '01'
+                GROUP BY SALE_DATE
+                )SA                
+	</query>
+
+
+
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</queries>

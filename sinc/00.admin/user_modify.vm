@@ -1,0 +1,148 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setTabAutoResize('90')" )
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						#toolbar($_moon_toolbar "" "user_update" "" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr style="display:none; ">
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; ">
+            				<tr id="search_menu" style="display:block; ">
+            					<td width="10%" align="right">
+									&nbsp;
+            					</td>
+            					<td width="90%" align="left">
+									&nbsp;
+            					</td>
+            				</tr> 
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="0"> ## search 조건 부분 높이 
+	##<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>						
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table cellspacing="0" width="100%" class="table2">	
+						<tr> 
+							<td class="td1" width="15%" align="center">계정</td>
+							<td class="td2" width="35%"><input type="text" name="user_id_insert" size="30" value="${user_modify.get(0).get(0)}"
+								readonly class="inputText" onkeydown="enterToTapCheck();" style="padding-left:5px; width:100%; "></td>
+							<td class="td1" width="15%" align="center">비밀번호</td>
+							<td class="td2" width="35%"><input type="password" name="user_pwd_insert" size="30" class="normal"
+								#if( "$!{user_pwd_insert}" == "" ) value="$!{user_modify.get(0).get(6)}" #else value="$!{user_pwd_insert}" #end
+								onkeydown="enterToTapCheck();" style="padding-left:5px; width:100%; "></td>
+						</tr>
+						<tr> 
+							<td class="td1" width="15%" align="center">사용자 명</td>
+							<td class="td2" width="35%"><input type="text" name="user_name_insert" size="30" class="normal" 
+								#if( "$!{user_name_insert}" == "" ) value="$!{user_modify.get(0).get(1)}" #else value="$!{user_name_insert}" #end 
+								onkeydown="enterToTapCheck();" style="padding-left:5px; width:100%; "></td> 
+							<td class="td1" width="15%" align="center">이메일</td>
+							<td class="td2" width="35%"><input type="text" name="user_email_insert" size="30" class="normal" 
+								#if( "$!{user_email_insert}" == "" ) value="$!{user_modify.get(0).get(2)}" #else value="$!{user_email_insert}" #end 
+								onkeydown="enterToTapCheck();" style="padding-left:5px; width:100%; "></td> 
+						</tr>
+						<tr> 
+							<td class="td1" width="15%" align="center">전화번호</td>
+							<td class="td2" width="35%"><input type="text" name="user_phone_insert" size="30" class="normal" 
+								#if( "$!{user_phone_insert}" == "" ) value="$!{user_modify.get(0).get(3)}" #else value="$!{user_phone_insert}" #end 
+								onkeydown="enterToTapCheck();" style="padding-left:5px; width:100%; "></td>
+							<td class="td1" width="15%" align="center">메모</td>
+							<td class="td2" width="35%"><input type="text" name="description_insert" size="30" class="normal" 
+								#if( "$!{description_insert}" == "" ) value="$!{user_modify.get(0).get(4)}" #else value="$!{description_insert}" #end 
+								onkeydown="enterToTapCheck();" style="padding-left:5px; width:100%; "></td>
+						</tr>
+						<tr>
+							<td class="td1" width="15%" align="center">그룹</td>
+							<td class="td2" width="50%" colspan="3">
+								<table width="100%" border="0" cellpadding="0" cellspacing="0">
+									<tr>
+										<td align="left" width="50%" style="border: 0px solid; ">
+											<input type="hidden" name="group_id" value="${user_modify.get(0).get(5)}">
+											<select name="group_id_sel" disabled 
+												onChange="changeGroup('$!{_moon_service}', this, '${user_modify.get(0).get(5)}'); ">
+										       <option value="" >---------</option>
+											    #if( "$!{group_id}" != "" )
+													#foreach($tr in ${user_group_add})  
+													<option value=$tr.get(0) #if("${group_id}"== "$tr.get(0)") selected #else #end> $tr.get(1)</option>
+													#end
+											    #else	
+													#foreach($tr in ${user_group_add})  
+													<option value=$tr.get(0) #if("${user_modify.get(0).get(5)}"== "$tr.get(0)") selected #else #end> $tr.get(1)</option>
+													#end
+												#end
+											</select>
+										</td>
+										#*<td align="right" width="50%" style="border: 0px solid; ">
+											## 비밀번호 변경
+											<input name="btChangePw" type="button" value=" 비밀번호 변경 " style="width:100px; height:20px; text-align:center; " onClick="openChangePw(); "
+												class="button1_1" onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'">
+											## 비밀번호 초기화
+											<input name="btInitPw" type="button" value=" 비밀번호 초기화 " style="width:100px; height:20px; text-align:center; " onClick="initPwd(); "
+												class="button1_1" onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'">
+										</td>*#
+									</tr>
+								</table>
+							</td>
+						</tr>
+					</table>
+					<input type="hidden" name="user_id" value="${user_id}">
+					<input type="hidden" name="user_seq" size="30" class="normal" value="${user_modify.get(0).get(0)}">
+					<input type="hidden" name="user_seq_insert" size="30" class="normal" value="${user_modify.get(0).get(0)}">
+					<input type="hidden" name="old_user_seq_insert" size="30" class="normal" value="${user_modify.get(0).get(0)}">
+					<input type="hidden" name="old_group_seq_insert" size="30" class="normal" value="${user_modify.get(0).get(5)}">	
+					<input type="hidden" name="group_change" value="">
+					<input type="hidden" name="_moon_service" size="30" class="normal" value="$!{_moon_service}">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 수정할 항목들을 입력하고 상단의 저장 버튼을 클릭하여 사용자 정보를 수정합니다.";
+	//helpStr += "<br>◈ ";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+</script> 
+

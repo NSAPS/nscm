@@ -1,0 +1,122 @@
+############################################################
+## 프로그램ID		: ip_02110_hawa_expt_sell_management.vm
+## 프로그램명      	: 네슬레 판매추이 관리
+## 개발자          	: 남웅용
+## 개발일자        	: 2014-01-16
+##
+## 관련 job file   : job_sinc_10_inventoryPlanning_04.xml
+## 관련 query file : query_ip_02110_hawa_expt_sell_management.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2014-01-16  남웅용      create
+##
+############################################################
+
+
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setGridAutoResize('79', '130')" )
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/scheduling.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<script language=javascript for="WiseGrid" event="CellDblClick(strColumnKey, nRow)">
+  GridCellDblClick(strColumnKey, nRow);
+</script>
+
+
+## 등록/수정 화면 이동한 후, 본 화면으로 이동할 때 조회조건을 기억하기 위한 parameter
+<input type="hidden" name="cd_grp_pre" value="$!{cd_grp}">
+<input type="hidden" name="perpage_pre" value="${_moon_perpage}">
+<input type="hidden" name="pagenumber_pre" value="$!{_moon_pagenumber}">
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+    ## 기능 버튼 영역
+    <tr>
+        <td height="25" align="right">
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+                <tr>
+                    <td align="right">
+                        #button("search")
+						<input type="button" name="btnSave" value="  저장" onClick="GoSave();" class="btn_sav_on" >
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>    
+    ## 조회 영역
+## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " ></td>
+					<td width="100%"> 
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" 
+							id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr>
+            					<td width="10%" align="right"> 
+            						작업일자 :
+            					</td>								
+            					<td width="90%" align="left">
+									#date_sole_no_title("cnfm_date" "10" "normal" "btnC" "$date.get('yyyy-MM-dd')")
+            					</td>
+							</tr>
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " ></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " ></td></tr>
+			</table>
+		</td>
+	</tr>
+
+    <input name="search_h" type="hidden" value="45"> ## search 조건 부분 높이 
+    <tr><td height="1"></td></tr>
+    ## TAB 영역
+    <tr>
+        <td valign="top">
+        ## tab 좌측 여백
+        ##tabLeft()               
+            
+            <table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>                    
+
+            <table name="grid" width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+                <tr>
+                    <td align="left" width="100%" >
+                        <script>initWiseGrid("WiseGrid", "100%", "100%");</script>
+                    </td>
+				</tr>
+            </table> 
+            
+            <table height="5"><tr><td></td></tr></table>
+            <table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+                <input type="hidden" name="_moon_service" value="${_moon_service}">
+                <input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+                <input type="hidden" name="_user_id" value="$!{_user_id}">
+            </td></tr></table>
+            
+            </td></tr></table>
+            
+        </td>
+    </tr>
+</table>
+
+<script>
+    
+    // 화면 resize
+    $!{resizeFuncCallCode};
+    function window.onresize() { $!{resizeFuncCallCode}; }
+    
+    // 도움말 내용 입력
+    var helpStr = "◈ Job Change 시간 ";    
+    helpCont.innerHTML = helpStr;
+    hDynamicHeight = 0; 
+           
+</script> 

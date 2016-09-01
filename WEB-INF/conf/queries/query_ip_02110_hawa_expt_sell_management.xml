@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>
+
+<!--
+=====================================================================================================
+	재고운영계획 >> 운영정보 >>
+=====================================================================================================
+-->
+	
+	<!--
+	======================================================================
+		네슬레 판매추이 관리
+	======================================================================
+	-->
+
+	<!-- hearder (와이즈그리드) -->  
+	<query id="ip_02110_hawa_expt_sell_management_header" paging="false">
+		
+		-- 네슬레 판매추이 관리 hearder
+        SELECT	DAY, HD_NAME
+        FROM	(
+                /* 과거 6주 */
+                SELECT	TO_CHAR(CAL_DATE,'MM/DD')	DAY,
+                        'W_P'||LPAD(7-ROWNUM,2,'0') HD_NAME,
+                        CAL_DATE
+                FROM	cal_mst
+                WHERE	cal_date 	BETWEEN TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') -42 + 1
+                                    AND 	TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD') -7	-- 실적은 조회일까지
+                AND		week_day	= '월'
+                UNION	ALL
+                /* 당주부터 26주 */
+                SELECT	TO_CHAR(CAL_DATE,'MM/DD')	DAY,
+                        'W_N'||LPAD(ROWNUM-1,2,'0') 	HD_NAME,
+                        CAL_DATE
+                FROM	cal_mst
+                WHERE	cal_date 	BETWEEN TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 1   -- (-)6주
+                                    AND 	TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 182 + 1 -- 26주
+                AND		week_day	= '월'
+                )
+        ORDER BY	CAL_DATE
+	
+	</query> 
+
+	<!-- main query  -->
+	<query id="ip_02110_hawa_expt_sell_management">
+		
+		SELECT	K1.ITEM_ID,
+				K1.ITEM_NAME,
+		        K1.GUBN,
+		        DECODE(K1.GUBN,	'01','재고(농심)',
+		        			  	'02','재고(네슬레)',
+		                        '03','재고(합계)',
+		                        '04','입고(네슬레)',
+		                        '05','판매예측',
+		                        '06','판매실적') GUBN_NAME,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') - 42 +1,
+		        		DECODE(K1.GUBN,	'01', K2.NS_STOC,
+		                				'02', K2.CUST_STOC,
+		                                '03', K2.NS_STOC + K2.CUST_STOC,
+		                                '04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL,
+		                                '06', K2.SELL_BOX),0))	W_P6,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') - 35 +1,
+		        		DECODE(K1.GUBN,	'01', K2.NS_STOC,
+		                				'02', K2.CUST_STOC,
+		                                '03', K2.NS_STOC + K2.CUST_STOC,
+		                                '04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL,
+		                                '06', K2.SELL_BOX),0))	W_P5,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') - 28 +1,
+		        		DECODE(K1.GUBN,	'01', K2.NS_STOC,
+		                				'02', K2.CUST_STOC,
+		                                '03', K2.NS_STOC + K2.CUST_STOC,
+		                                '04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL,
+		                                '06', K2.SELL_BOX),0))	W_P4,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') - 21 +1,
+		        		DECODE(K1.GUBN,	'01', K2.NS_STOC,
+		                				'02', K2.CUST_STOC,
+		                                '03', K2.NS_STOC + K2.CUST_STOC,
+		                                '04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL,
+		                                '06', K2.SELL_BOX),0))	W_P3,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') - 14 +1,
+		        		DECODE(K1.GUBN,	'01', K2.NS_STOC,
+		                				'02', K2.CUST_STOC,
+		                                '03', K2.NS_STOC + K2.CUST_STOC,
+		                                '04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL,
+		                                '06', K2.SELL_BOX),0))	W_P2,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') - 7 +1,
+		        		DECODE(K1.GUBN,	'01', K2.NS_STOC,
+		                				'02', K2.CUST_STOC,
+		                                '03', K2.NS_STOC + K2.CUST_STOC,
+		                                '04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL,
+		                                '06', K2.SELL_BOX),0))	W_P1,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') 	+1,
+		        		DECODE(K1.GUBN,	'01', K2.NS_STOC,
+		                				'02', K2.CUST_STOC,
+		                                '03', K2.NS_STOC + K2.CUST_STOC,
+		                                '04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL,
+		                                '06', K2.SELL_BOX),0))	W_N0,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 7		+1,
+		        		DECODE(K1.GUBN,	'04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL),0))	W_N1,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 14	+1,
+		        		DECODE(K1.GUBN,	'04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL),0))	W_N2,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 21	+1,
+		        		DECODE(K1.GUBN,	'04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL),0))	W_N3,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 28	+1,
+		        		DECODE(K1.GUBN,	'04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL),0))	W_N4,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 35	+1,
+		        		DECODE(K1.GUBN,	'04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL),0))	W_N5,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 42	+1,
+		        		DECODE(K1.GUBN,	'04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL),0))	W_N6,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 49	+1,
+		        		DECODE(K1.GUBN,	'04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL),0))	W_N7,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 56	+1,
+		        		DECODE(K1.GUBN,	'04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL),0))	W_N8,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 63	+1,
+		        		DECODE(K1.GUBN,	'04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL),0))	W_N9,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 70	+1,
+		        		DECODE(K1.GUBN,	'04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL),0))	W_N10,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 77	+1,
+		        		DECODE(K1.GUBN,	'04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL),0))	W_N11,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 84	+1,
+		        		DECODE(K1.GUBN,	'04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL),0))	W_N12,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 91	+1,
+		        		DECODE(K1.GUBN,	'04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL),0))	W_N13,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 98	+1,
+		        		DECODE(K1.GUBN,	'04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL),0))	W_N14,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 105	+1,
+		        		DECODE(K1.GUBN,	'04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL),0))	W_N15,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 112	+1,
+		        		DECODE(K1.GUBN,	'04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL),0))	W_N16,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 119	+1,
+		        		DECODE(K1.GUBN,	'04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL),0))	W_N17,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 126	+1,
+		        		DECODE(K1.GUBN,	'04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL),0))	W_N18,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 133	+1,
+		        		DECODE(K1.GUBN,	'04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL),0))	W_N19,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 140	+1,
+		        		DECODE(K1.GUBN,	'04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL),0))	W_N20,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 147	+1,
+		        		DECODE(K1.GUBN,	'04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL),0))	W_N21,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 154	+1,
+		        		DECODE(K1.GUBN,	'04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL),0))	W_N22,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 161	+1,
+		        		DECODE(K1.GUBN,	'04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL),0))	W_N23,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 168	+1,
+		        		DECODE(K1.GUBN,	'04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL),0))	W_N24,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 175	+1,
+		        		DECODE(K1.GUBN,	'04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL),0))	W_N25,
+		        SUM(DECODE(K2.CAL_DATE, TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 182	+1,
+		        		DECODE(K1.GUBN,	'04', K2.CUST_IPGO,
+		                                '05', K2.EXPT_SELL),0))	W_N26
+		FROM	(                                
+		        SELECT	T1.ITEM_ID,
+		                T1.ITEM_NAME,
+		                T2.GUBN, T2.SEQ
+		        FROM	(        
+		                /* 대상품목 */
+		                SELECT	ITEM_ID, ITEM_NAME
+		                FROM	ITEM_MST	T1
+		                WHERE	material_group  = '61220' 
+		                AND		SELL_STOP_DATE	= '99991231'  
+		                )	T1,
+		                (
+		                /* 구분 01:재고(농심), 02:재고(네슬레), 03:재고(네슬레), 04:입고(네슬레), 05:판매예측 06:실적 */
+		                SELECT	LPAD(TO_CHAR(ROWNUM),2,'0') GUBN,
+		                        ROWNUM			SEQ
+		                FROM	CODE_MST
+		                WHERE	ROWNUM	&lt;= 6
+		                )	T2
+		        )	K1,
+		        (
+		        SELECT	CAL_DATE,
+		                ITEM_ID,
+		                SUM(NS_STOC)	NS_STOC,
+		                SUM(CUST_STOC)	CUST_STOC,
+		                SUM(CUST_IPGO)	CUST_IPGO,
+		                SUM(EXPT_SELL)	EXPT_SELL,
+		                SUM(SELL_BOX)	SELL_BOX
+		        FROM	(        
+		                /* 농심재고 */
+		                SELECT	t1.if_dttm	cal_date,
+		                        t1.item_id	ITEM_ID,
+		                        sum(t1.qty)	NS_STOC,
+		                        0			CUST_STOC,
+		                        0			CUST_IPGO,
+		                        0			EXPT_SELL,
+		                        0			SELL_BOX
+		                FROM	wms_stock	t1,
+		                        item_mst	t2,
+		                        (
+		                        SELECT	*
+		                        FROM	cal_mst
+		                        WHERE	cal_date 	BETWEEN TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') -42 + 1
+		                        					AND 	TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD')	-- 실적은 조회일까지
+		                        AND		week_day	= '월'
+		                        )	t3
+		                WHERE	t1.if_dttm	= t3.cal_date
+		                AND		t1.item_id	= t2.item_id
+		                AND   	t2.material_group  = '61220'
+		                AND		T2.SELL_STOP_DATE	= '99991231'   
+		                GROUP
+		                BY		t1.if_dttm,
+		                        t1.item_id
+		                UNION	ALL
+		                /* 네슬레 재고,입고, 판매예측  */
+		                SELECT	T3.CAL_DATE,
+		                        T1.ITEM_ID,
+		                        0		NS_STOC,
+		                        T1.CUST_STOC,
+		                        T1.CUST_IPGO,
+		                        T1.EXPT_SELL,
+		                        0		SELL_BOX
+		                FROM	hawa_expt_sell	T1,
+		                		ITEM_MST		T2,
+		                        (
+		                        SELECT	*
+		                        FROM	cal_mst
+		                        WHERE	cal_date 	BETWEEN TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') -42 + 1   -- (-)6주
+		                        					AND 	TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') + 182 + 1 -- 26주
+		                        AND		week_day	= '월'
+		                        )				T3
+		                WHERE	T1.CNFM_DATE	= T3.YYYYMMDD
+		                AND		T1.ITEM_ID		= T2.ITEM_ID
+		                AND   	t2.material_group  = '61220'
+		                AND		T2.SELL_STOP_DATE	= '99991231'  
+		                UNION	ALL
+		                /* 주차별 판매실적 */
+		                SELECT  trunc(t1.sale_date,'D')+1	CAL_DATE,
+		                        t1.item_id	ITEM_ID,
+		                        0			NS_STOC,
+		                        0			CUST_STOC,
+		                        0			CUST_IPGO,
+		                        0			EXPT_SELL,
+		                        sum(t1.qty) SELL_BOX
+		                FROM  	sales_act t1,
+		                     	item_mst  t2,
+		                     	cal_mst	t3
+		                WHERE	t1.domain = 'DO'
+		                AND		t1.sale_date = t3.cal_date
+		                AND		t3.cal_date	BETWEEN TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'D') -42 + 1
+		                        			AND 	TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD')	-- 실적은 조회일까지
+		                AND		t1.item_id = t2.item_id
+		                AND		t2.material_group  = '61220'
+		                AND		T2.SELL_STOP_DATE	= '99991231'
+		                GROUP
+		                BY    	TO_CHAR(trunc(t1.sale_date,'D')+1,'YYYYMMDD'),
+		                        trunc(t1.sale_date,'D')+1,
+		                        t1.item_id
+		                )
+		        GROUP
+		        BY		CAL_DATE,
+		                ITEM_ID        
+				)	K2
+		WHERE	K1.ITEM_ID	= K2.ITEM_ID(+) 
+		GROUP
+		BY		K1.ITEM_ID,
+				K1.GUBN,
+		        K1.ITEM_NAME  
+		ORDER
+		BY		1,3             
+		        
+	</query>
+
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</queries>

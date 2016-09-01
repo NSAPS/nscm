@@ -1,0 +1,229 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수
+#set( $resizeFuncCallCode = "setTabAutoResize('117')" )
+ 
+<script type='text/javascript' src='${project}/dwr/interface/forecast.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/nongshim.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">   
+	## 기능 버튼 영역  
+	<tr>
+		<td height="25" align="right" bgcolor="${toolbar_bgcolor}" class="line">
+			<table align="right" width="100%" height="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+				<tr>
+					<td width="100" align="center"> 
+						<span>삭제대상 코드 </span>
+					</td>
+					<td width="80" align="left">
+						<input type="text" name="del_code" style="width:80;" class="normal">						
+					</td>				
+					<td width="80" align="left">
+						<input type="hidden" name="del_oper_type">
+						<input type="hidden" name="attr01">	
+						<input type="hidden" name="attr02">	
+					</td>
+					<td align="right">											
+						#toolbar_nscm_iframe($_moon_toolbar "" "" "" "fc_03050_confirmFcstSearchResult_delete_action")
+					</td>
+				</tr>
+			</table> 
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<div class="tab-pane" id="fcstConfirmHeadTbp"> 
+				## tab 좌측 여백							 
+				<div class="tab-page" id="tabPage11" style="overflow:hidden; ">
+					<h2 class="tab">확정 Tab</h2>
+        			<table border="0" width="100%" cellpading="0" cellspacing="0">
+        				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+        				
+						<tr>
+        					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>        					
+							<td width="100%">
+                    			<table border="0" width="100%" cellpading="0" cellspacing="0" id="search_menu" style="background-color:#f2f2f2; display:block; ">
+									<tr>
+            							<td align="left">						
+            								<input type="button" name="btnReg" value=" 확정" onClick="doConfirm('fc_03050_confirmFcst_list_confirm_comp')" class="btn1_on" >
+            							</td>
+            						</tr>
+									<tr height=5>
+            							<td align="left"></td>
+            						</tr>
+                    				<tr>            					
+                    					<td width="11%" align="center" class="td1">계획 유형</td> 
+                    					<td width="16%">  
+        									<select name="selected_plan_type" style="width:80px; " onChange="doChangePlanType(this); ">
+                    							<option value="">선택</option> 
+        									#foreach( $condition in $conf_fcst_plan_type )
+        										<option value="$condition.get(0)" #if( "$condition.get(0)" == "$!{selected_plan_type}") selected #end >$condition.get(1)</option>
+        									#end 
+           									</select>									
+           								</td>
+        								<td width="13%" align="center" class="td1">주간 수요예측</td>  
+                    					<td width="30%">  
+        									<select name="selected_week_fcst" style="width:175px; " onChange=""> 				 						
+                        						<option value="">선택</option>	
+        									#foreach( $condition in $conf_fcst_week_fcst )
+        										<option value="$condition.get(0)" #if( "$condition.get(0)" == "$!{selected_week_fcst}") selected #end >$condition.get(1)</option>
+        									#end
+                        					</select>									
+                    					</td>
+        								
+        								<td width="20%" align="left" class="td1">
+        									<input name="checked_forecast" type="checkbox" class="normal" onClick="togle_checkbox(this)"
+        										#if($checked_forecast == "Y") value="Y" checked #else value="N" #end> 일별/요일지수 적용
+        									##checkbox3("checked_forecast" "N") 일별/요일지수 적용
+        									##<script>document.frm.checked_forecast.onClick = function(){ togle_checkbox(this); }(</script>
+        								</td>
+        								<td width="10%"  align="center"></td>								   
+                    				</tr>
+        							<tr>
+        								<td width="11%" align="center" class="td1">시작 월/주</td> 
+                    					<td width="16%">  
+        									<a id="divStartMonthWeek">  
+        										<select name="selected_start_month_week" style="width:80px; " onChange=""> 				 						
+        											<option value="">선택</option>										
+        										</select>
+        									</a>
+        									<input type="hidden" name="selected_start_month_week_pre" value="$!{selected_start_month_week}">
+        									<script>startMonthWeekList(document.frm.selected_plan_type.value);</script>
+           							 	</td>
+        								<td id="divMonthFcstTitle" width="13%" align="center" class="td1"#if($!{selected_plan_type} == "WEEK") style="display:none; " #end>
+        									월간 수요예측
+        								</td>
+        								<td id="divMonthFcstBody" width="30%" #if($!{selected_plan_type} == "WEEK") style="display:none; " #end>									
+        									<select name="selected_month_fcst" style="width:175px; " onChange=""> 				 						
+                        						<option value="">선택</option>	
+        									#foreach( $condition in $conf_fcst_month_fcst )
+        										<option value="$condition.get(0)" #if( "$condition.get(0)" == "$!{selected_month_fcst}") selected #end >$condition.get(1)</option>
+        									#end  
+                        					</select> 									
+                    					</td>
+        								<td id="divWeekFcstTitle" width="20%" align="center" class="td1"#if($!{selected_plan_type} == "WEEK") style="display:none; " #end>
+        									주간 수요예측 반영 
+        								</td>
+        								<td id="divWeekFcst" width="10%" align="left" #if($!{selected_plan_type} == "WEEK") style="display:none; " #end>									
+        									<input name="week_period_forecast" type="text" size="2" class="normal" value="$!{week_period_forecast}" onKeyPress="checkNum(this, 'BLANK_INT_UP'); "> 
+        									개월
+        								</td>					   
+        							</tr>
+									<tr height=10>
+            							<td align="left"></td>
+            						</tr>
+                    			</table> 
+        					</td>
+        					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+        				</tr>
+        				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+        			</table>
+				</div>
+				<div class="tab-page" id="tabPage22" style="overflow:hidden; ">
+					<h2 class="tab">I/F 실행 Tab</h2>
+        			<table border="0" width="100%" cellpading="0" cellspacing="0">
+        				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu1); $!{resizeFuncCallCode}; "></td></tr>        				
+						<tr>
+        					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu1); $!{resizeFuncCallCode}; "></td>        					
+							<td width="100%">
+                    			<table border="0" width="100%" cellpading="0" cellspacing="0" id="search_menu1" style="background-color:#f2f2f2; display:block; ">
+									<tr>
+            							<td align="left">						
+            								<input type="button" name="btnReg1" value=" I/F 실행" onClick="doInterface('fc_03050_confirmFcst_list_interface_comp')" class="btn1_on" >
+            							</td>
+            						</tr>
+									<tr height=5>
+            							<td align="left"></td>
+            						</tr>
+                    				<tr>            					
+                    					<td width="11%" align="center" class="td1">계획 유형</td> 
+                    					<td width="16%">  
+        									<select name="selected_plan_type_if" style="width:80px; " onChange="changeConfimedFcst(this); ">
+                    							
+												<option value="MCONF" #if("$!{selected_plan_type_if}" == "MCONF") selected #end>월간</option>
+												<option value="WCONF" #if("$!{selected_plan_type_if}" == "WCONF") selected #end>주간</option>        									
+											</select>
+											<script>
+												if(document.frm.selected_plan_type_if.value != '') {
+													changeConfimedFcst(document.frm.selected_plan_type_if);
+												}
+											</script>
+           								</td>
+        								<td width="13%" align="center" class="td1">확정된 수요예측</td>  
+                    					<td width="30%">  
+        									<select name="selected_fcst_if" style="width:80%; " onChange="changeFcstStart(selected_plan_type_if, selected_fcst_if);">		 						
+                        						<option value="">---------------------------</option>       									
+                        					</select>									
+                    					</td>
+        							    <td width="11%" align="center" class="td1">시작 월/주</td> 
+                    					<td width="16%">  
+        									<input name="start_if" type="text" class="normal" style="width:70px;" readonly>
+           							 	</td>					   
+                    				</tr>        							
+									<tr height=10>
+            							<td align="left"></td>
+            						</tr>
+                    			</table> 
+        					</td>
+        					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu1); $!{resizeFuncCallCode}; "></td>
+        				</tr>
+        				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu1); $!{resizeFuncCallCode}; "></td></tr>
+        			</table>
+				</div>
+			</div>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="100"> ## search 조건 부분 높이 
+	<tr><td height="10"></td></tr>  
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1"> 
+				## tab 좌측 여백
+							 
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					##상세조회 iframe
+                   	<table id="gridArea" border="0" width="100%" cellpadding="0" cellspacing="0" height="100%">
+                   		<tr> 
+                   			<td valign="top">  
+                   				<iframe name="gridDetailInfo" height="100%" width="100%" border="0" frameSpacing="0" frameBorder="0" 
+                   					src="service.do?_moon_service=fc_03050_confirmFcstSearchResult_list&amp;_moon_perpage=100&amp;_moon_pagenumber=1" 
+                   					scrolling="no" class="iframe">
+                   				</iframe>
+                   			</td>			 				
+                   		</tr>
+                   	</table>
+					<table height="5"><tr><td></td></tr></table>
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+						##$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+						<input type="hidden" name="_moon_service" value="${_moon_service}">
+						<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+						<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+		
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력  
+	var helpStr = "수요예측 된 데이터를 확정 저장하고, 이관한다.<br><br>";	
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;	
+				
+</script>

@@ -1,0 +1,53 @@
+<script type='text/javascript' src='$!{project}/dwr/interface/nongshim.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/engine.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/util.js'></script>
+ 
+## 비정상적 접근 방지 
+#loginCheck()    
+<table id="dataArea" border="0" width="100%" height="100%" cellpading="0" cellspacing="0"> 
+	<tr>
+		<td height="20" align="right" >
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+				<tr>					 
+					<td align="right">     
+						<input type="button" name="btnOk"     value="확인" onClick="returnSelectedItems(); " class="btn1_on">
+						<input type="button" name="btnCancel" value="취소" onClick="window.close(); "        class="btn1_on">
+					</td>  
+				</tr> 
+			</table> 
+		</td>
+	<tr> 
+    	<td width="100%" align=""> 
+    		<table height="100%" border="0" cellpading="0" cellspacing="0"  >									
+    			<tr height="10px" >    
+    				 <td height= "" width="56%" align="center" class="td1">조회기준 </td>  
+					 <td height= "" width="43%" align="center" class="td1">조회대상</td> 	 				 
+                </tr>    
+				<tr> 
+					 <td width="56%" align="center">       
+						<iframe id="child" name="iframe" src="service.do?_moon_service=fc_customer_mCodePopup_tailer&amp;_moon_perpage=10&amp;_moon_pagenumber=1&amp;" width="99%" height="99%" scrolling="no" topmargin="0" leftmargin="0" frameborder="NO" border="0" framespacing="0"></iframe>  
+					 </td>             
+					 <td width="43%" height= "" align="top">          
+							<select name="selectedList" multiple size="14" style="width:99%; " ></select>  
+    				</td>					 
+				</tr>
+    		</table>
+    	</td> 
+	 </tr>	  
+	 <input type="hidden" name="_moon_service" value="${_moon_service}">
+	 <input type="hidden" name="_moon_pagenumber" value="${_moon_pagenumber}">
+</table>
+			 
+## waiting 표시 영역
+<table width="100%" height="100%" id="waitArea" style="display:none; ">
+	<tr>
+		<td valign="middle" align="center">
+			<img src="sinc/template/basic/skin/nongshim/images/common/progress_waiting.gif" 
+				align="absmiddle" border="0" width="200px" height="60px">
+			<img src="sinc/template/basic/skin/nongshim/images/common/loading_icon.gif" 
+				align="absmiddle" border="0" width="60px" height="60px">
+			<br><h1>&nbsp;</h1><br><h1>&nbsp;</h1><br>
+		</td>
+	</tr>  
+</table>
+  

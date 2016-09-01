@@ -1,0 +1,153 @@
+## 비정상적 접근 방지
+#loginCheck()
+
+## 화면 resizing 을 위한 function 호출 코드
+#set( $resizeFuncCallCode = "setTabAutoResize('60')" )
+
+## 컨트롤 보드 제어 관련 dwr 선언
+<script type='text/javascript' src='${project}/dwr/interface/controlBoard.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<input type="hidden" name="rowIdx" 		value="$!{rowIdx}"> 		## 클릭한 버튼의 라인 인덱스
+<input type="hidden" name="cat_id" 		value="$!{cat_id}"> 		## 클릭한 버튼의 라인의 계획부문
+<input type="hidden" name="sub_cat" 	value="$!{sub_cat}"> 		## 클릭한 버튼의 라인의 하위계획부문
+<input type="hidden" name="period_type" value="$!{period_type}"> 	## 클릭한 버튼의 라인의 계획주기
+<input type="hidden" name="run_date" 	value="$!{run_date}"> 		## 클릭한 버튼의 라인의 계획수행일
+<input type="hidden" name="run_seq" 	value="$!{run_seq}"> 		## 클릭한 버튼의 라인의 계획수행일기준 차수
+<input type="hidden" name="plan_step" 	value="$!{plan_step}"> 		## 클릭한 버튼의 라인의 CAT_ID - PLANT_ID - VERSION - SEQ 에 대한 KEY FIELD
+<input type="hidden" name="plant_id" 	value="$!{plant_id}"> 		## 클릭한 버튼의 라인의 PLANT_ID
+<input type="hidden" name="_user_id" 	value="$!{_user_id}">
+<input type="hidden" name="batOption" 	value="$!{batOption}"> 		## 일괄진행 OPTION(1:normal, 2:batch)
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<script>
+		var areaBtnStr = "&nbsp; ";
+		areaBtnStr += "<input type=\"button\" name=\"btnExecPlan\" id=\"btnExecPlan\" value=\" 계획수립\" onClick=\"execPlan(); \" ";
+		areaBtnStr += "class=\"btn1_on\">";
+		//areaBtnStr += "&nbsp; ";
+		//areaBtnStr += "<input type=\"button\" name=\"btnInitPlan\" id=\"btnInitPlan\" value=\" 초기화\" onClick=\"initPlan(); \" ";
+		//areaBtnStr += "class=\"btn1_on\">";
+		areaBtn.innerHTML = areaBtnStr;
+	</script>
+	## 조회 영역
+	<tr style="display:none; ">
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2">
+					<td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" 
+							id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr>
+								<td width="15%" align="right">
+								</td>
+								<td width="70%" align="left">
+								</td>
+                            	<td width="15%" align="right">
+            						#button("search")
+            					</td>
+            				</tr>
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="0"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1"
+						style="scrollbar-face-color:#FFFFFF; scrollbar-shadow-color:#666666; scrollbar-highlight-color:#666666;
+						scrollbar-3dlight-color:#FFFFFF; scrollbar-darkshadow-color:#FFFFFF; scrollbar-track-color:#FFFFFF; 
+						scrollbar-arrow-color:#666666; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table><tr height"10px"><td></td></tr></table>
+					<table id="mainArea" width="100%" border="0" cellpadding="0" cellspacing="0">
+						<tr>
+							<td align="left" width="50%" height="30px" colspan="2">
+								#if( $md_00010_controlBoardDaily_execPlan_pop.size() > 0 )
+									#set( $engineName = "$md_00010_controlBoardDaily_execPlan_pop.get(0).get(1)" )
+									#set( $ipPort = "$md_00010_controlBoardDaily_execPlan_pop.get(0).get(2)" )
+									#set( $pdbUser = "$md_00010_controlBoardDaily_execPlan_pop.get(0).get(3)" )
+								#end
+								<input type="hidden" name="engn_ip" value="$!{ipPort}">
+								<input type="hidden" name="pdb_user" value="$!{pdbUser}">
+								&nbsp; <font color="black">◈ <b>$!{engineName}</b></font>
+							</td>
+							<td align="left" width="50%" height="30px">
+								<b><font color="BLUE"><a id="areaStat"></a></font></b>
+								<input type="hidden" name="status">
+							</td>
+						</tr>
+						<tr>
+							<td width="15%" align="left" valign="middle">
+								&nbsp; &nbsp; 메모
+							</td>
+							<td width="85%" align="center" colspan="2">
+								<textarea name="commts" style="width:95%; height:40px; " onBlur="checkLen(this); "></textarea>
+							</td>
+						</tr>
+					</table>
+					
+					<table width="100%" height="120px" id="waitArea" style="display:none; ">
+                    	<tr>
+                    		<td valign="middle" align="center">
+                    			<img src="sinc/template/basic/skin/nongshim/images/common/progress_planning.gif" 
+                    				align="absmiddle" border="0" width="200px" height="60px">
+                    			<img src="sinc/template/basic/skin/nongshim/images/common/loading_icon.gif" 
+                    				align="absmiddle" border="0" width="60px" height="60px">
+                    		</td>
+                    	</tr>
+                    </table>
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 컨트롤보드 계획 실행 화면입니다.";
+	helpStr += "<br>◈ 계획수립 버튼을 클릭하여 계획수립을 실행합니다.";
+	helpStr += "<br>◈ 계획이 수립되는 동안 진행 상태가 표시됩니다.";
+	//helpStr += "<br>◈ 계획 수립이 비정상적으로 종료되는 경우 초기화 버튼을 클릭하여 상태를 초기화 시킨 후, 계획 수립을 다시 진행합니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+	// batOption - 1 : normal
+    //             2 : batch 수행
+	#if( "$!{period_type}" == "DAILY" )
+		#set( $period_type_name = "일간" )
+	#elseif( "$!{period_type}" == "WEEKLY" )
+		#set( $period_type_name = "주간" )
+	#elseif( "$!{period_type}" == "MONTHLY" )
+		#set( $period_type_name = "월간" )
+	#elseif( "$!{period_type}" == "YEARLY" )
+		#set( $period_type_name = "연간" )
+	#end
+	if( "$!{batOption}" == "2" ) {
+		document.frm.commts.value = "$date.get('yyyy-MM-dd H:m:s') $!{period_type_name} $!{engineName} 일괄 계획 수립";
+		execPlan();
+	}
+	
+</script> 

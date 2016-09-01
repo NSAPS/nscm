@@ -1,0 +1,299 @@
+############################################################
+## 프로그램ID      : rp_01170_transOrderChange_list.vm
+## 프로그램명      : 수송오더 변경요청
+## 개발자          : 권용찬
+## 개발일자        : 2009-11-20
+##
+## 관련 job file   : job_sinc_10_inventoryPlanning_04.xml
+## 관련 query file : query_sinc_10_inventoryPlanning_04.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2009-07-16  남웅용      create
+##
+## CODE_MST   실행구분  : ACT_GUBN
+##			    변경사유  : CHNG_RESN
+############################################################
+
+
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+##set( $resizeFuncCallCode = "setGridAutoResize('79', '140')" ) 원본 
+#set( $resizeFuncCallCode = "setGridAutoResize('79', '240')" )  
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/scheduling.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/replenishPlan.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+## 등록/수정 화면 이동한 후, 본 화면으로 이동할 때 조회조건을 기억하기 위한 parameter
+<input type="hidden" name="cd_grp_pre" value="$!{cd_grp}">
+<input type="hidden" name="perpage_pre" value="${_moon_perpage}">
+<input type="hidden" name="pagenumber_pre" value="$!{_moon_pagenumber}">
+
+<script language=javascript for="WiseGrid" event="CellDblClick(strColumnKey, nRow)">
+  GridCellDblClick(strColumnKey, nRow);
+</script>
+<!--  	서버와의 통신이 정상적으로 완료되면 발생한다.   -->
+<script language="javascript" for="WiseGrid2" event="Initialize()">
+	init2();
+</script>
+<script language="javascript" for="WiseGrid2" event="EndQuery()">
+	GridEndQuery2();
+</script>
+
+<!--  	서버와의 통신이 정상적으로 완료되면 발생한다.   -->
+<script language="javascript" for="WiseGrid3" event="Initialize()">
+	init3();
+</script>
+<script language="javascript" for="WiseGrid3" event="EndQuery()">
+	GridEndQuery3();
+</script>
+## WiseGrid의 셀을 클릭했을때 발생한다. 
+<script language=javascript for="WiseGrid3" event="CellDblClick(strColumnKey, nRow)">
+  	GridCellDblClickHandler(strColumnKey, nRow);
+</script>
+
+
+## 그리드의 스크롤 이동시에 발생하는 이벤트 
+##<script language=javascript for="WiseGrid" event="RowScroll(nFirstVisibleRowIndex, nEndVisibleRowIndex)">
+####  	GridRowScrollHandler(nFirstVisibleRowIndex, nEndVisibleRowIndex);
+####</script>
+<!--	 WiseGrid의 셀의 내용이 변경되었을때 발생한다. -->
+<script language="javascript" for="WiseGrid2" event="ChangeCell(strColumnKey,nRow,nOldValue,nNewValue)">
+	Grid2ChangeCell(strColumnKey, nRow,nOldValue,nNewValue);
+</script>
+
+<!--	 WiseGrid의 셀의 내용이 변경되었을때 발생한다. -->
+<script language="javascript" for="WiseGrid3" event="ChangeCell(strColumnKey,nRow,nOldValue,nNewValue)">
+	Grid3ChangeCell(strColumnKey, nRow,nOldValue,nNewValue);
+</script>
+
+
+
+
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+    ## 기능 버튼 영역
+    <tr>
+        <td height="25" align="right">
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+                <tr>
+                    <td align="right">
+                        #button("search")
+						##toolbar_nscm($_moon_toolbar "" "" "" "")
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>    
+    ## 조회 영역
+    <tr>
+        <td width="100%" valign="top">
+            <table border="0" width="100%" cellpading="0" cellspacing="0">
+                <tr height="2">
+                    <td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+                </tr>
+                <tr>
+                    <td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+                    <td width="100%">
+                        <table border="0" width="100%" cellpading="0" cellspacing="0" id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr>  
+								<td width="80px" align="right">
+									<select name="period_type" style="width:75px;">
+										<option value="">전체</option>
+									#foreach( $tr in $trans_class_list )
+										<option value="${tr.get(0)}" #if( "$!{period_type}" == "${tr.get(0)}" ) selected #end)>
+											${tr.get(1)}
+										</option>
+									#end
+									</select>
+								</td>    
+								<td width="250px">									 
+									#date_sole_no_title("trans_start" "10" "normal" "btnS" $date.get('yyyy-MM-dd'))
+									~ #date_sole_no_title("trans_end" "10" "normal" "btnE" $date.get('yyyy-MM-dd')) 	  							  
+   								</td> 
+								<td width="50px" align="right">출고장 :</td>    
+            					<td width="80px">									 
+									<select name="selected_src_loc" style="width:100px; ">
+										##<option value="">전체</option>
+									#foreach( $condition in $do_cdc_id_and_name_list )  
+										<option value="$condition.get(0)" #if($!{selected_src_loc} == "$condition.get(0)") selected #else #end >$condition.get(1)</option>											
+									#end
+   									</select>	 	  							  
+   								</td> 
+								<td width="50px" align="right">입고장 :</td>    
+            					<td width="80px">									 
+									<select name="selected_tgt_loc" style="width:100px; ">
+										<option value="">전체</option>
+									#foreach( $condition in $dc_id_and_short_name_list )
+										<option value="$condition.get(0)" #if($!{selected_tgt_loc} == "$condition.get(0)") selected #else #end >$condition.get(1)</option>											
+									#end
+   									</select>	 	  							  
+   								</td>
+								<td width="60px" align="right">실행구분 :</td>    
+            					<td width="80px">									 
+									<select name="act_gubn" style="width:100px;" onChange="doChangeCombo(this); ")> 
+    									#foreach( $condition in $rp_01170_act_gubn_list )  
+    										<option value="$condition.get(0)" #if($!{act_gubn} == "$condition.get(0)") selected #else #end >$condition.get(1)</option>											
+    									#end 										
+   									</select>	 	  							  
+   								</td>
+								<td width="70px" align="right">
+									전표번호 :
+								</td> 
+								<td width="10px" align="left">
+									<input type="text" name="brand_no" size="20" class="normal" onKeyPress="enterCheck('$_moon_service'); " 
+										style="width:100px; padding-left:5px; " onBlur="strCheck(); " ondblClick="select(); " 
+										onChange="strCheck(this); " value="$commonUtil.replaceQuot($!{brand_no})">
+									<input type="hidden" name="brand_no_pre" value ="$!{brand_no}" >
+								</td>								<td>
+								</td>
+							</tr>
+                        </table> 
+                    </td>
+                    <td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+                </tr>
+                <tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+            </table>
+        </td> 
+    </tr>
+
+    <input name="search_h" type="hidden" value="45"> ## search 조건 부분 높이 
+    <tr><td height="1"></td></tr>
+	#############################################################################################################
+    ## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+			
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">수송오더 변경</h2>
+					
+					<table id="gridArea1" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+                        <table name="grid" width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+                            <tr height="150" >
+                                <td align="left" width="100%" >
+                                    <script>initWiseGrid("WiseGrid", "100%", "150");</script>
+                                </td>
+            				</tr>
+                            <tr height="40" >  
+                                <td align="left" width="100%" >
+                					<table border="0" width="100%" cellpadding="0" cellspacing="0" width="100%" height="100%">
+                                        <tr height="2"> 
+                                            <td colspan="7" style="background-color:#d0d0d0; "></td>
+                                        </tr>
+                    					<tr height="80px" style="background-color:#f2f2f2; display:block; "> 
+											<td width="480px">
+											</td>             								
+											<td width="50px" align="right">사유 :</td>    
+                        					<td id="divStage" width="80px">
+                                            	<script>
+            										// 화면 reload 없이 제품그룹 입력 값에 따라 공정 combo box 채움 
+                                                	function doChangeCombo(obj){
+            											var 	div_code = "<select name=\"chng_resn\"> "; 
+                                                		#foreach( $condition in $rp_01170_chng_resn_list )
+                                                			if ( obj.value == "$condition.get(2)" ) {
+                                                				div_code += "<option value=\"$condition.get(0)\">$condition.get(1)</option>"; 
+                                                			}
+                                                		#end 
+                                            			div_code += "</select>"; 
+                                            			divStage.innerHTML = div_code; 
+                                                	}
+            										// 처음에는 한번 강제로 호출해야 한다.
+            										doChangeCombo(document.frm.act_gubn); 
+            						        		if( "$!{act_gubn}" != "" ) {
+                                    					document.frm.act_gubn.value = "$!{act_gubn}";
+            										}
+                                            	</script>
+												
+												##<select name="chng_resn" style="width:100px; ">
+
+            										##<option value="01" #if($!{chng_resn} == "01") selected #else #end >생산변경</option>											
+            										##<option value="03" #if($!{chng_resn} == "02") selected #else #end >생산지연</option>											
+            										##<option value="02" #if($!{chng_resn} == "03") selected #else #end >생산중단</option>											
+               									##</select>	 	  							  
+               								</td> 
+            								<td width="80px" align="right">추가요쳥 :</td>    
+                        					<td width="80px">									 
+            									<select name="plt_unit" style="width:100px; ">
+            										<option value="0.5" #if($!{plt_unit} == "0.5") selected #else #end >0.5</option>											
+            										<option value="1" #if($!{plt_unit} == "1") selected #else #end >1</option>											
+            										<option value="2" #if($!{plt_unit} == "2") selected #else #end >2</option>											
+            										<option value="3" #if($!{plt_unit} == "3") selected #else #end >3</option>											
+            										<option value="4" #if($!{plt_unit} == "4") selected #else #end >4</option>											
+               									</select>	 	  							  
+               								</td>
+            								<td width="60px" align="right">
+												<input type="button" name="transOrderAdd" value="실행" onClick="GoTransOrderAdd(); " width="40" class="btn1_on">
+											</td>    
+											<td>
+											</td> 
+                						</tr>
+                                        <tr height="2">
+											<td style="background-color:#d0d0d0; ">
+											</td> 
+                                            <td  colspan="6"  style="background-color:#d0d0d0; ">
+        									<input name="btnInsertRow" type="button" value="추가" style="width:30px; text-align:center;" onClick="rowInsDel(this); " ##clickLine(this,1); 
+                    							class="button1_1" onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'">
+        									<input name="btnDeleteRow" type="button" value="삭제" style="width:30px; text-align:center;" onClick="rowInsDel(this); " ##clickLine(this,1); 
+                    							class="button1_1" onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'">
+											</td>
+                                        </tr>
+                					</table>
+                                </td>
+            				</tr>            				
+							<tr> 
+            					<td align="right">
+                					<table border="0" width="100%" cellpadding="0" cellspacing="0" width="100%" height="100%">
+                    					<tr>
+                    						<td align="left" width=350>  
+                								<script>initWiseGrid("WiseGrid2", "480", "200");</script>
+                        					</td>
+											<td  colspan="6" style="background-color:#d0d0d0; ">		
+    											<script>initWiseGrid("WiseGrid3", "100%", "100%");</script>
+    										</td>											
+                						</tr>
+                					</table>
+            					</td>
+                            </tr>
+                        </table>
+					
+					</td></tr></table>
+				</div>
+            
+            <table height="5"><tr><td></td></tr></table>
+            <table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+                <input type="hidden" name="_moon_service" value="${_moon_service}">
+                <input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+                <input type="hidden" name="_user_id" value="$!{_user_id}">
+            </td></tr></table>
+            
+            </td></tr></table>
+            
+            ## waiting 표시영역
+            ##waitingArea()
+                    
+        </td>
+    </tr>
+</table>
+
+<script>
+    
+    // 화면 resize
+    $!{resizeFuncCallCode};
+    function window.onresize() { $!{resizeFuncCallCode}; }
+    
+    // 도움말 내용 입력
+    var helpStr = "◈ Job Change 시간 ";
+    helpCont.innerHTML = helpStr;
+    hDynamicHeight = 0; 
+	
+
+	
+           
+</script> 

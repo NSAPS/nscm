@@ -1,0 +1,320 @@
+############################################################
+## 프로그램ID : sc_11020_dailyProductionPlanAnalysisNew_reg.vm
+## 프로그램명 : 일간생산계획 분석(재구성) - 등록화면(POPUP)
+## 개발자  : 정재교
+## 개발일자 : 2008-11-27 목요일
+##
+##관련 job file : job_sinc_20_scheduling_00.xml
+##
+##관련 query file : query_sinc_20_scheduling_00.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2008-11-27  정재교          sc_11020_dailyProductionPlanAnalysisNew_reg.vm 개발
+##
+##
+############################################################
+## 비정상적 접근 방지 
+#loginCheck() 
+## 화면 resizing 을 위한 function 호출 코드
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('102', '152')" )
+
+#if( $sc_11020_dailyProductionPlanAnalysisNew_reg.size() == 0 )
+	#set( $plant_name = "" )
+    #set( $item_name = "" )
+#else
+    #set( $plant_name = $sc_11020_dailyProductionPlanAnalysisNew_reg.get(0).get(2) )
+    #set( $item_name = $sc_11020_dailyProductionPlanAnalysisNew_reg.get(0).get(7) )
+#end
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/scheduling.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<input type="hidden" name="plant_id" value="$!{plant_id}">
+<input type="hidden" name="version"  value="$!{version}">
+<input type="hidden" name="seq"  value="$!{seq}">
+<input type="hidden" name="prod_dates"  value="$!{prod_dates}">
+<input type="hidden" name="shift_type"  value="$!{shift_type}">
+<input type="hidden" name="item_id" value="$!{item_id}">
+<input type="hidden" name="proc_id"  value="$!{proc_id}">
+<input type="hidden" name="plant_version" value="$!{plant_version}">
+<input type="hidden" name="date_form" value="$!{date_form}">
+<input type="hidden" name="ord_no" value="$!{ord_no}">
+<input type="hidden" name="ord_item_no" value="$!{ord_item_no}">
+<input type="hidden" name="flag" value="$!{flag}"> 
+ 
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<script>
+		areaBtn.innerHTML = " &nbsp; <input type=\"button\" name=\"btnSave\" value=\"  저장\" onClick=\"GoSave('sc_11020_dailyProductionPlanAnalysisNew_reg_save01_comp')\" class=\"btn_sav_on\" >";
+	</script>
+	## 조회 영역
+	<tr>
+		<td width="90%" valign="top"> 
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2">
+					<td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" 
+							id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr> 
+								<td width="5%" align="right">공장 :</td> 
+								<td width="10%" align="left"> 
+									<input type="text" name="plant_name" size="15"  style="text-align:center; " class="normal" 
+										value="$plant_name" readOnly >
+								</td>
+								<td width="10%" align="right">계획 버전 :</td> 
+								<td width="10%" align="left"> 
+									<input type="text" name="plan_version" size="20"  style="text-align:center; " class="normal" value="$!{version}" readOnly>
+								</td>
+								<td width="15%" align="right">제품 코드 :</td> 
+								<td width="15%" align="left">  
+									<input type="text" name="item" style="text-align:center; width:70px;" class="normal" value="$!{item_id}" readOnly>
+								</td>
+								<td width="10%" align="right">제품 명 :</td> 
+								<td width="25%" align="left">  
+									<input type="text" name="item_name" size="30"  style="text-align:center; " class="normal" value="$!{item_name}" readOnly>
+								</td>
+							</tr> 
+						</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr> 
+	<input name="search_h" type="hidden" value="46"> ## search 조건 부분 높이  
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+								<img src="/nscm/sinc/template/basic/skin/nongshim/images/common/dot_sub6.gif" width="16" height="13">Total :
+								<span id="areaTot" class="f_color_o b">$!{_moon_service_count}</span>
+							</td> 
+						</tr>
+					</table>
+					
+					#set( $topLeft1 = 30 )##번호
+					#set( $topLeft2 = 170 )##작업장
+					#set( $topLeft3 = 300 )##계획 오더 번호    
+					#set( $topLeft4 = 70 )##생산일자 
+					#set( $topLeft5 = 45 )##SHIFT   
+					#set( $leftWidth = $topLeft1 + $topLeft2 + $topLeft3 + $topLeft4 + $topLeft5 ) ## 
+					#set( $height = 35 )##높이
+					<table id="tbMain" border="0" width="100%" cellpadding="0" cellspacing="0" ><tr><td>
+						<div id="topLeft" style="height:$!{height}px; width:$!{leftWidth}px; overflow:hidden; ">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead> 
+									<tr height="$!{height}px">   
+										<td width="$!{topLeft1}px">번호</td>		## 1
+										<td width="$!{topLeft2}px">작업장</td>	## 2
+										<td width="$!{topLeft3}px">계획 오더 번호</td>		## 3
+										<td width="$!{topLeft4}px">생산 일자</td>	## 4
+										<td width="$!{topLeft5}px">SHIFT</td>
+									</tr> 
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td>  
+					<td> 
+						#set( $sDate = 60 ) 
+						#set( $sTime = 50 )
+						#set( $topLine1 = $sDate + $sTime )##시작 일시
+						#set( $eDate = 60 )
+						#set( $eTime = 50 ) 
+						#set( $topLine2 = $eDate + $eTime )##종료 일시
+						#set( $topLine3 = 60 )##수량 
+						#set( $topLine4 = 55 )##UOM 
+						#set( $topLine5 = 70 )##오더 번호
+						#set( $topLine6 = 70 )##오더 항목 번호
+						#set( $rightWidth = $topLine1 + $topLine2 + $topLine3 + $topLine4 + $topLine5 + $topLine6 ) ## 
+						<div id="topLine" style="height:$!{height}px; width:$!{rightWidth}px;overflow:hidden;">  
+							<table width="$!{rightWidth}px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead>  
+									<tr height="$!{height}px">	 
+										<td width="$!{topLine1}px">시작 일시 </td>				## 1
+										<td width="$!{topLine2}px">종료 일시</td>					## 2
+										<td width="$!{topLine3}px">수량</td>						## 3
+										<td width="$!{topLine4}px">UOM</td>						## 4
+										<td width="$!{topLine5}px">오더 번호</td>					## 5
+										<td width="$!{topLine6}px" class="right">오더 항목 번호</td>				##6
+									</tr>									
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td></tr>	
+					<tr><td valign="top">
+						<div id="leftDisplay" style="width:$!{leftWidth}px; overflow:hidden; ">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="left_tbody"> ## 30/40/100/270/90
+								#if( $sc_11020_dailyProductionPlanAnalysisNew_reg.size() == 0 ) 
+									<tr><td></td></tr>
+								#else
+								#foreach( $tr in $sc_11020_dailyProductionPlanAnalysisNew_reg )
+									<tr id="left_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+										## 번호
+										<td width="$!{topLeft1}px" align="center" style="background-color:${search_bgcolor}; ">
+											<a id="divRowNo">$velocityCount</a>
+										</td>
+										## 작업장
+										<td width="$!{topLeft2}px" align="left">
+											<a id="divProc">&nbsp;$tr.get(11)</a>
+											<input type="hidden" name="input_proc_id" value="$tr.get(10)">
+										</td>										
+										## 계획 오더 번호 
+										<td width="$!{topLeft3}px" align="center" >  
+											<a id="divWoId">$tr.get(5)</a>
+											<input type="hidden" name="input_wo_id" value="$tr.get(5)">
+										</td>
+										## 생산일자 
+										<td width="$!{topLeft4}px" align="center" >
+											<a id="divProdDates">$tr.get(12)</a>
+											<input type="hidden" name="input_prod_dates" value="$tr.get(12)">
+										</td>
+										## SHIFT
+										<td width="$!{topLeft5}px" align="center" >
+											<a id="divShiftType">#if($tr.get(13) == "1") 조
+    														     #elseif($tr.get(13) == "3") 주
+    															 #elseif($tr.get(13) == "5") 야
+    															 #end</a>
+											<input type="hidden" name="input_shift_type" value="$tr.get(13)">
+										</td>
+									</tr>
+								#end
+								#end
+								</tbody> 
+							</table> 
+						</div> 
+					</td>  
+					<td valign="top">  
+						<div id="mainDisplay" class="ns_scroll" style="border:0; width:645px; overflow-y:scroll; overflow-x:scroll; " onscroll="scrollX(); scrollY(); ">
+							<table width="$!{rightWidth}px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="main_tbody">
+								#if( $sc_11020_dailyProductionPlanAnalysisNew_reg.size() == 0 )
+									<tr><td></td></tr>
+								#else
+								#foreach( $tr in $sc_11020_dailyProductionPlanAnalysisNew_reg )
+									<tr id="main_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+										## 시작 일시
+										## date
+										<td width="$!{sDate}px" align="center" >
+											##<a id="divStartDate">$tr.get(12)</a>
+											<input type="text" name="input_start_date" class="normal"  value="$!{tr.get(23)}"
+												onChange="dateFormatCheck(this); " style="width:100%; border:0px; text-align:center; " tabindex="1" >							
+										</td>
+										## time
+										<td width="$!{sTime}px" align="center" >
+											<input type="text" name="input_start_time" class="normal" value="$!{tr.get(24)}"
+												onChange="timeFormatCheck(this); " style="width:100%; border:0px; text-align:center; " tabindex="2" >
+										</td>
+										## 종료 일시
+										## date
+										<td width="$!{eDate}px" align="center" >
+											<input type="text" name="input_end_date" class="normal" value="$!{tr.get(25)}"
+												onChange="dateFormatCheck(this); " style="width:100%; border:0px; text-align:center; " tabindex="3" >
+										</td>
+										## time
+										<td width="$!{eTime}px" align="center" >
+											<input type="text" name="input_end_time" class="normal" value="$!{tr.get(26)}"
+												onChange="timeFormatCheck(this); " style="width:100%; border:0px; text-align:center; " tabindex="4" >
+										</td>
+										## 수량
+										<td width="$!{topLine3}px" align="right" >
+											<input type="text" name="input_shift_qty" class="normal" value="$!{tr.get(16)}"
+												onChange="checkNum(this,'BLANK_INT_UP'); " style="width:100%; border:0px; text-align:right; padding-right:5px; " tabindex="5" >
+										</td>
+										## UOM
+										<td width="$!{topLine4}px" align="center" > 
+											<select type="text" name="input_qty_uom" 
+												onChange="" style="width:100%; border:0px; text-align:center; " tabindex="6" >
+												<option value="BAG" #if("$tr.get(17)" == "BAG") selected #end>BAG</option>
+												<option value="BAT" #if("$tr.get(17)" == "BAT") selected #end>BAT</option>
+												<option value="BOX" #if("$tr.get(17)" == "BOX") selected #end>BOX</option>
+												<option value="EA" #if("$tr.get(17)" == "EA") selected #end>EA</option>
+												<option value="G" #if("$tr.get(17)" == "G") selected #end>G</option>
+												<option value="KG" #if("$tr.get(17)" == "KG") selected #end>KG</option>
+											</select>
+										</td> 
+										## 오더 번호
+										<td width="$!{topLine5}px" align="center" >
+											<input type="text" name="input_ord_no" class="normal" value="$!{tr.get(19)}"
+												onChange="" style="width:100%; border:0px; text-align:center; " tabindex="7" >
+										</td> 
+										## 오더 항목 번호
+										<td width="$!{topLine6}px" align="right" class="center">
+											<input type="text" name="input_ord_item_no" class="normal" value="$!{tr.get(20)}"
+												onChange="" style="width:100%; border:0px; text-align:center; " tabindex="8" >
+										</td> 
+										<input type="hidden" name="input_cat_id" value="$tr.get(0)">
+										<input type="hidden" name="input_plant_id" value="$tr.get(1)">
+										<input type="hidden" name="input_version" value="$tr.get(3)">
+										<input type="hidden" name="input_seq" value="$tr.get(4)">
+										<input type="hidden" name="input_item_id" value="$tr.get(6)">  
+										<input type="hidden" name="input_line_id" value="$tr.get(8)"> 
+										<input type="hidden" name="input_priority" value="$tr.get(18)">
+										<input type="hidden" name="input_prod_ver" value="$tr.get(21)">
+										<input type="hidden" name="input_grp_wo_id" value="$tr.get(22)">
+										<input type="hidden" name="input_wo_id" value="$tr.get(5)">
+									</tr>
+								#end
+								#end
+								</tbody>
+							</table>
+						</div>
+					</td></tr></table>
+					
+					<table border="0" width="100%" cellpadding="0" cellspacing="0" height="5px"><tr><td></td></tr></table>
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+						
+					<input type="hidden" name="_moon_service" value="$!{_moon_service}">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					<input type="hidden" name="_user_id" value="$!{_user_id}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+																				
+				</div>
+			</div> 
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 수정 할 라인의 좌측 체크박스를 선택하고 시작일시 항목을 수정 후 상단의 저장 버튼을 클릭하면 변경된 값이 저장이<br>&nbsp;&nbsp;&nbsp;&nbsp;됩니다.";
+	helpStr += "<br>◈ 그리드의 헤더(타이틀) 중, 전체 항목의 체크 박스를 선택하면 모든 라인의 체크 박스를 선택/해제 할 수 있습니다.";
+	helpStr += "<br>◈ 저장시 체크박스가 선택이된 라인만이 저장이 됩니다.";
+	helpStr += "<br>◈ 체크박스가 선택이된 라인의 생산량들의 합계가 우측 상단의 생산량 합계 부분에 표시 됩니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+	//transferChar1();
+	
+</script> 

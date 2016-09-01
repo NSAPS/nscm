@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>
+
+<!--
+=====================================================================================================
+	수송계획 >> 운영정보
+=====================================================================================================
+-->
+	
+	<!--
+	======================================================================
+		자동공급계획 
+	======================================================================
+	-->
+	
+	<!-- DPCAL 콤보  -->
+	<query id="md_10010_DPCAL_list">
+		
+		SELECT	CD, CD_NAME
+		FROM	CODE_MST	
+		WHERE	CD_GRP	= 'DPCAL'
+		
+   		 
+	</query>
+
+	<!-- MPSRULE 콤보  -->
+	<query id="md_10010_MPSRULE_list">
+		
+		SELECT	CD, CD_NAME
+		FROM	CODE_MST	
+		WHERE	CD_GRP	= 'MPSRULE'	
+   		 
+	</query>
+
+	<!-- ALLOCCAL 콤보  -->
+	<query id="md_10010_ALLOCCAL_list">
+		
+		SELECT	CD, CD_NAME
+		FROM	CODE_MST	
+		WHERE	CD_GRP	= 'ALLOCCAL'				
+		   		 
+	</query>
+
+	<!-- SSRULE 콤보  -->
+	<query id="md_10010_SSRULE_list">
+		
+		SELECT	CD, CD_NAME
+		FROM	CODE_MST	
+		WHERE	CD_GRP	= 'SSRULE'
+   		 
+	</query>
+
+	
+	<!-- SSRULE 콤보  -->
+	<query id="md_10010_DOMAIN_list">
+		-- manugestics master
+		SELECT	CD, CD_NAME
+		FROM	CODE_MST	
+		WHERE	CD_GRP	= 'DOMAIN'		
+		ORDER
+		BY		TO_NUMBER(CAT01)
+	</query>
+	
+	<!-- 중장기 자재 발주계획 자재유형 콤보  -->
+	<query id="md_10010_DOMAIN_list_2">
+	-- 중장기 자재발주 계획 사용
+		SELECT	CD, CD_NAME
+		FROM	CODE_MST	
+		WHERE	CD_GRP	= 'DOMAIN'
+		AND		TO_NUMBER(CAT02) = 1
+		ORDER
+		BY		TO_NUMBER(CAT01)
+   		 
+	</query>
+	
+	
+
+	<!-- manugistics 마스터관리 조회 -->
+	<query id="md_10010_manugistics_master_management" paging="false">
+
+		SELECT	T1.ITEM_ID,		
+				ITEM_NAME,
+				-- ''	AS MATR_GROUP,
+				CASE
+					WHEN USE_PR_PLAN = 'Y' THEN 1--'Y'
+					ELSE 0	--'N'
+				END		USE_PR_PLAN,
+				CASE
+					WHEN RC_FLAG = 'Y' THEN 1--'Y'
+					ELSE 0	--'N'
+				END		RC_FLAG,
+				CASE
+					WHEN SEMI_FLAG = 'Y' THEN 1--'Y'
+					ELSE 0	--'N'
+				END		SEMI_FLAG,
+				PR_TO_PO, 
+				PO_TO_LC,
+				LC_TO_PORT,
+				PORT_TO_CUST,
+				STD_VAR_FR,
+				STD_VAR_TO,
+				PRE_MONTH_FR,
+				PRE_MONTH_TO,	    
+				CASE
+					WHEN TO_DATE(USE_DP_DATE,'YYYY-MM-DD') > TRUNC(SYSDATE) THEN 1--'Y'
+					ELSE 0	--'N'
+				END		USE_DP_FLAG,	
+				TO_CHAR(TO_DATE(USE_DP_DATE,'YYYY-MM-DD'),'YYYY-MM-DD')		USE_DP_DATE,	
+				DPCAL,		    
+				DECODE(USE_TAGE_FLAG,'Y',1,0)	USE_TAGE_FLAG,   
+				CASE
+					WHEN TO_DATE(USE_FF_DATE,'YYYY-MM-DD') > TRUNC(SYSDATE) THEN 1--'Y'
+					ELSE 0	--'N'
+				END		USE_FF_FLAG,	
+				TO_CHAR(TO_DATE(USE_FF_DATE,'YYYY-MM-DD'),'YYYY-MM-DD')		USE_FF_DATE,	
+				DECODE(ORDER_FLAG,'Y',1,0)		ORDER_FLAG,	    
+				ROUND(CUSTORDERDUR/1440,0)		CUSTORDERDUR,   
+				MPSRULE,		
+				ROUND(MPSCOVDUR/1440,0)			MPSCOVDUR,	    
+				MAXOH,		    
+				ALLOCCAL,	    
+				ROUND(PLANDUR/1440,0)			PLANDUR,		
+				ROUND(TIMEFENSEDUR/1440/7,0)	TIMEFENSEDUR,	--주간단위,   
+				CPPPRIORITY,	
+				SSRULE,		    
+				SSCOV,		    
+				MINSS,		    
+				MAXSS,		    
+				SSTEMPLATE,	    
+				INCMPSQTY,	    
+				MINMPSQTY,	    
+				ROUND(MANU_DEL_DUR/1440,0)	MANU_DEL_DUR,
+				CONTAINER_BOX,
+				T2.P1110,
+				T2.P1120,
+				T2.P1130,
+				T2.P1140,
+				T2.P1150,
+				T2.P1160,
+				T2.P1170, 
+				T2.P1180,
+				T1.DOMAIN,
+				T1.MIN_PICK_QTY,	
+				MFS_FLAG,	--2013-04-18 발주그룹 추가 우종균
+				CASE
+					WHEN BS_FLAG = '1' THEN 1--'Y'
+					ELSE 0	--'N'
+				END		BS_FLAG1,	
+				CASE
+					WHEN BS_FLAG = '2' THEN 1--'Y'
+					ELSE 0	--'N'
+				END		BS_FLAG2,
+				CASE
+					WHEN BS_FLAG = '3' THEN 1--'Y'
+					ELSE 0	--'N'
+				END		BS_FLAG3,
+				CASE
+					WHEN BS_FLAG = '4' THEN 1--'Y'
+					ELSE 0	--'N'
+				END		BS_FLAG4,
+				CASE
+					WHEN PR_FLAG = 'Y' THEN 1--'Y'
+					ELSE 0	--'N'
+				END		PR_FLAG,
+				CASE
+					WHEN ST_FLAG = 'Y' THEN 1--'Y'
+					ELSE 0	--'N'
+				END		ST_FLAG				
+		FROM	ITEM_MST	T1,
+				( 
+				SELECT	ITEM_ID,
+						ITYPE,
+						MAX(DECODE(PLANT_ID,'1110',NVL(ALLOC_RATE,0)))	P1110,
+						MAX(DECODE(PLANT_ID,'1120',NVL(ALLOC_RATE,0)))	P1120,
+						MAX(DECODE(PLANT_ID,'1130',NVL(ALLOC_RATE,0)))	P1130,
+						MAX(DECODE(PLANT_ID,'1140',NVL(ALLOC_RATE,0)))	P1140,
+						MAX(DECODE(PLANT_ID,'1150',NVL(ALLOC_RATE,0)))	P1150,
+						MAX(DECODE(PLANT_ID,'1160',NVL(ALLOC_RATE,0)))	P1160,
+						MAX(DECODE(PLANT_ID,'1170',NVL(ALLOC_RATE,0)))	P1170,
+						MAX(DECODE(PLANT_ID,'1180',NVL(ALLOC_RATE,0)))	P1180
+				FROM	ITEM_DTL
+				GROUP	BY		ITEM_ID, ITYPE
+				)		T2,
+				-- SCM팀 박경열 부장님 요청으로 추가 2013-50-14
+				(
+				SELECT	DISTINCT	MATNR
+				FROM	SAPZMMT0023
+				#if ( "$!{com_code}" == "0001000050" )	--  태경농산 변수 바인딩
+				WHERE	name1 LIKE '%태경%'
+				#elseif ( "$!{com_code}" == "0001000021" )	--  율촌화학  변수 바인딩
+				WHERE	name1 LIKE '%율촌%'
+				#end
+				)	T3
+		WHERE	T1.ITEM_ID	= T2.ITEM_ID
+		#if("$!{sale_code}" == "")	
+		#elseif("$!{sale_code}" == "01")	
+		AND		T1.SELL_STOP_DATE &gt;= TO_CHAR(SYSDATE,'YYYYMMDD')
+		#else
+		AND		T1.SELL_STOP_DATE &lt; TO_CHAR(SYSDATE,'YYYYMMDD')
+		#end
+		#if("$!{itype}" == "ROH")
+		AND		T1.ITEM_ID	= T3.MATNR
+		#else
+		AND		T1.ITEM_ID	= T3.MATNR(+)
+		#end
+		AND		T1.ITYPE	= T2.ITYPE
+		
+	#if("$!{itype}" == "FERT")	
+		AND		T1.ITYPE	IN ('FERT')
+		AND		NVL(CAT03,'XX') NOT LIKE 'O%' -- 수출제외
+		#if("$!{in_input_gubn}" == "01") 
+			AND	(SELL_STOP_DATE = '00000000' OR SELL_STOP_DATE &gt;= TO_CHAR(SYSDATE,'YYYYMMDD')
+					OR USE_DP_DATE &gt;= TO_CHAR(SYSDATE,'YYYYMMDD') )
+		#elseif("$!{in_input_gubn}" == "02") 
+			AND	USE_DP_DATE &gt;= TO_CHAR(SYSDATE,'YYYYMMDD')
+		#elseif("$!{in_input_gubn}" == "03")
+			AND	USE_DP_DATE &lt; TO_CHAR(SYSDATE,'YYYYMMDD')
+		#elseif("$!{in_input_gubn}" == "04")
+			AND	TO_DATE(USE_DP_DATE,'YYYY-MM-DD') + MANU_DEL_DUR &gt;= TRUNC(SYSDATE)
+		#elseif("$!{in_input_gubn}" == "05")
+			AND		USE_PR_PLAN = 'Y'
+		#end
+	
+	#elseif("$!{itype}" == "HAWA")			
+		AND		T1.ITYPE	IN ('HAWA')
+		AND		NVL(CAT03,'XX') NOT LIKE 'O%' -- 수출제외
+		#if("$!{in_input_gubn}" == "01") 
+			AND	(SELL_STOP_DATE = '00000000' OR SELL_STOP_DATE &gt;= TO_CHAR(SYSDATE,'YYYYMMDD')
+					OR USE_DP_DATE &gt;= TO_CHAR(SYSDATE,'YYYYMMDD') )
+		#elseif("$!{in_input_gubn}" == "02") 
+			AND	USE_DP_DATE &gt;= TO_CHAR(SYSDATE,'YYYYMMDD')
+		#elseif("$!{in_input_gubn}" == "03")
+			AND	USE_DP_DATE &lt; TO_CHAR(SYSDATE,'YYYYMMDD')
+		#elseif("$!{in_input_gubn}" == "04")
+			AND	TO_DATE(USE_DP_DATE,'YYYY-MM-DD') + MANU_DEL_DUR &gt;= TRUNC(SYSDATE)
+		#elseif("$!{in_input_gubn}" == "05")
+			AND		USE_PR_PLAN = 'Y'
+		#end
+
+	#elseif("$!{itype}" == "EXPO")	
+		AND		NVL(CAT03,'XX') LIKE 'O%' 		-- 수출
+		#if("$!{in_input_gubn}" == "01") 
+			AND	(SELL_STOP_DATE = '00000000' OR SELL_STOP_DATE &gt;= TO_CHAR(SYSDATE,'YYYYMMDD')
+					OR USE_DP_DATE &gt;= TO_CHAR(SYSDATE,'YYYYMMDD') )
+		#elseif("$!{in_input_gubn}" == "02") 
+			AND	USE_DP_DATE &gt;= TO_CHAR(SYSDATE,'YYYYMMDD')
+		#elseif("$!{in_input_gubn}" == "03")
+			AND	USE_DP_DATE &lt; TO_CHAR(SYSDATE,'YYYYMMDD')
+		#elseif("$!{in_input_gubn}" == "04")
+			AND	TO_DATE(USE_DP_DATE,'YYYY-MM-DD') + MANU_DEL_DUR &gt;= TRUNC(SYSDATE)
+		#elseif("$!{in_input_gubn}" == "05")
+			AND		USE_PR_PLAN = 'Y'
+		#end
+	
+	#elseif("$!{itype}" == "ROH")			
+		AND		T1.ITYPE	IN ('ROH1','ROH2')
+		#if("$!{in_input_gubn}" == "01") 
+			AND	(SELL_STOP_DATE = '00000000' OR SELL_STOP_DATE &gt;= TO_CHAR(SYSDATE,'YYYYMMDD')
+					OR USE_DP_DATE &gt;= TO_CHAR(SYSDATE,'YYYYMMDD') )
+		#elseif("$!{in_input_gubn}" == "02") 
+			AND	USE_DP_DATE &gt;= TO_CHAR(SYSDATE,'YYYYMMDD')
+		#elseif("$!{in_input_gubn}" == "03")
+			AND	USE_DP_DATE &lt; TO_CHAR(SYSDATE,'YYYYMMDD')
+		#elseif("$!{in_input_gubn}" == "04")
+			AND	TO_DATE(USE_DP_DATE,'YYYY-MM-DD') + MANU_DEL_DUR &gt;= TRUNC(SYSDATE)
+		#elseif("$!{in_input_gubn}" == "05")
+			AND		USE_PR_PLAN = 'Y'
+		#end
+
+	#end
+		ORDER
+		BY		T1.ITEM_ID
+			
+		
+	</query>
+	
+
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</queries>

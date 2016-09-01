@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+	<!-- 
+	===============================
+		Capacity 기준정보
+	===============================
+	-->
+		
+	<!--Capacity 기준정보  조회--> 
+	<job id="md_05170_capaMaster_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>기준정보 >> 생산계획 >> Capacity 기준정보</navigation>
+		<toolbars>0010</toolbars>
+		<title>Capacity 기준정보 조회</title>
+		<authority>1</authority>		
+		<description>Capacity 기준정보</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="combo_plant_list" datasource="t3sinc"/>
+			<query idref="combo_line_list" datasource="t3sinc"/>
+			<query idref="sch_capa_rate_combo_proc_list" datasource="t3sinc"/>
+			<query idref="md_05170_capaMaster_list" datasource="t3sinc"/>									
+		</queries>
+	</job>
+	
+	<!-- Capacity 기준정보: 저장-->	
+	<job id="md_05170_capaMaster_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_05170_capaMaster_list_save"/>		
+		<sub_job id="md_05170_capaMaster_list"/>
+		<permission_desc>Capacity 기준정보-저장</permission_desc>
+	</job>
+	<job id="md_05170_capaMaster_list_save" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>
+			<!-- 01. 화면에 있는 데이터 모두 삭제 -->
+			<query idref="md_05170_capaMaster_list_save_01" datasource="t3sinc"/>
+			<!-- 02. 화면에 있는 데이터 모두 INSERT-->
+			<query idref="md_05170_capaMaster_list_save_02" datasource="t3sinc"/>			
+		</queries>
+	</job>
+	
+	<!-- 
+	===============================
+		최소생산량 정보관리
+	===============================
+	-->
+		
+	<!--최소생산량 정보관리  조회--> 
+	<job id="md_05190_itemShiftLot_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>기준정보 >> 생산계획 >> 최소생산량 정보관리</navigation>
+		<toolbars>1010</toolbars>
+		<title>최소생산량 정보관리 조회</title>
+		<authority>1</authority>		
+		<description>최소생산량 정보관리</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="combo_plant_list" datasource="t3sinc"/>
+			<query idref="md_05190_itemShiftLot_list" datasource="t3sinc"/>									
+		</queries>
+	</job>
+	
+	<!-- 최소생산량 정보관리 : 저장 -->
+	<job id="md_05190_itemShiftLot_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_05190_itemShiftLot_list_save"/>		
+		<sub_job id="md_05190_itemShiftLot_list"/>
+		<permission_desc>최소생산량 정보관리- 등록 저장</permission_desc>
+	</job>
+	<job id="md_05190_itemShiftLot_list_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="md_05190_itemShiftLot_list_save_01" datasource="t3sinc"/>
+			<query idref="md_05190_itemShiftLot_list_save_02" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 최소생산량 정보관리 : 등록 -->
+	<job id="md_05190_itemShiftLot_reg" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>기준정보 >> 생산계획 >> 최소생산량 정보관리 >> 등록</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>최소생산량 정보관리 등록</title>
+		<authority>1</authority>		
+		<description>최소생산량 정보관리 등록</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="combo_plant_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 최소생산량 정보관리 : 등록 저장 -->
+	<job id="md_05190_itemShiftLot_reg_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_05190_itemShiftLot_reg_save"/>		
+		<sub_job id="md_05190_itemShiftLot_reg"/>
+		<permission_desc>최소생산량 정보관리- 등록 저장</permission_desc>
+	</job>
+	<job id="md_05190_itemShiftLot_reg_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="md_05190_itemShiftLot_reg_save" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 
+	===============================
+		설비정보 관리
+	===============================
+	-->
+		
+	<!--설비정보 관리  조회--> 
+	<job id="md_05180_extraProcMc_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>기준정보 >> 생산계획 >> 설비정보 관리</navigation>
+		<toolbars>1010</toolbars>
+		<title>설비정보 관리 조회</title>
+		<authority>1</authority>		
+		<description>설비정보 관리</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="combo_plant_list" datasource="t3sinc"/> <!-- 공장 조회조건 -->
+			<query idref="combo_line_list" datasource="t3sinc"/>  <!-- 라인 조회조건 -->
+			<query idref="sch_capa_rate_combo_proc_list" datasource="t3sinc"/> <!-- 작업장 조회조건  -->
+			<query idref="mc_kind_in_code_mst" datasource="t3sinc"/> <!-- MC_KIND -->
+			<query idref="md_05180_extraProcMc_list" datasource="t3sinc"/>									
+		</queries>
+	</job>
+	
+	<!-- 설비정보 관리 : 저장 -->
+	<job id="md_05180_extraProcMc_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_05180_extraProcMc_list_save"/>		
+		<sub_job id="md_05180_extraProcMc_list"/>
+		<permission_desc>설비정보 관리- 등록 저장</permission_desc>
+	</job>
+	<job id="md_05180_extraProcMc_list_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="md_05180_extraProcMc_list_save_01" datasource="t3sinc"/>
+			<query idref="md_05180_extraProcMc_list_save_02" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 설비정보 관리 : 등록 -->
+	<job id="md_05180_extraProcMc_reg" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>기준정보 >> 생산계획 >> 설비정보 관리 >> 등록</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>설비정보 관리 등록</title>
+		<authority>1</authority>		
+		<description>설비정보 관리 등록</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="combo_plant_list" datasource="t3sinc"/>
+			<query idref="combo_line_list" datasource="t3sinc"/>  <!-- 라인 조회조건 -->
+			<query idref="sch_capa_rate_combo_proc_list" datasource="t3sinc"/> <!-- 작업장 조회조건  -->
+			<query idref="mc_kind_in_code_mst" datasource="t3sinc"/> <!-- MC_KIND -->
+		</queries>
+	</job>
+	
+	<!-- 설비정보 관리 : 등록 저장 -->
+	<job id="md_05180_extraProcMc_reg_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_05180_extraProcMc_reg_save"/>		
+		<sub_job id="md_05180_extraProcMc_reg"/>
+		<permission_desc>최소생산량 정보관리- 등록 저장</permission_desc>
+	</job>
+	<job id="md_05180_extraProcMc_reg_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="md_05180_extraProcMc_reg_save_01" datasource="t3sinc"/>
+			<query idref="md_05180_extraProcMc_reg_save_02" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 
+	===============================
+		수출오더 생산요청일 관리
+	===============================
+	-->
+	<!-- NFOS오더 생산요청일 관리 -->
+	<job id="sc_03010_Nfos_Order_Prod_Reqt" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>기준정보 >> 생산계획 >> 수출오더 생산요청일 관리</navigation>
+		<toolbars>1010</toolbars>
+		<title>수출오더 생산요청일 관리</title>
+		<authority>1</authority>		
+		<description>수출오더 생산요청일 관리</description>		
+		<request_type>list</request_type>
+	</job>
+
+
+	<!-- 
+	===============================
+		생산의뢰 기초자료
+	===============================
+	-->
+	<!-- 생산의뢰 기초자료 -->
+	<job id="sc_17010_Production_base_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >>생산의뢰 기초자료(제거)</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>생산의뢰 기초자료</title>
+		<authority>1</authority>		
+		<description>생산의뢰 기초자료</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="sc_17010_ColHeader" datasource="t3sinc"/>
+			<query idref="sc_17010_Production_base_list" datasource="t3sinc"/> <!-- MC_KIND -->
+		</queries>
+	</job>
+
+	<!-- 
+	===============================
+		차주 수출판매계획 등록
+	===============================
+	-->
+	<!-- 차주 수출판매계획 등록 -->
+	<job id="sc_01120_plantAllocationPlanResult_export" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>해외영업시스템 >> 해외영업 >>차주 수출판매계획 등록</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>차주 수출판매계획 등록</title>
+		<authority>1</authority>		
+		<description>차주 수출판매계획 등록</description>
+		<request_type>list</request_type>
+	</job>
+
+	<!-- 수출오더조회Popup -->
+	<job id="sc_01120_Export_Order_List_Popup" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >>수출오더조회Popup</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>수출오더조회Popup</title>
+		<authority>1</authority>		
+		<description>수출오더조회Popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="sc_01120_Export_Order_List_Popup" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+	<!-- 
+	===============================
+		수출생산의뢰 물량조회
+	===============================
+	-->
+	<!-- 수출생산의뢰 물량조회 -->
+	<job id="sc_17020_Export_volumn_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >>수출생산의뢰 물량조회</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>수출생산의뢰 물량조회</title>
+		<authority>1</authority>		
+		<description>수출생산의뢰 물량조회</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="sc_17020_Export_volumn_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+			
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+
+
+</jobs>	

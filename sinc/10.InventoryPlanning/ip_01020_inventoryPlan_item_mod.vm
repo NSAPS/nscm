@@ -1,0 +1,501 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('142', '235')" )##142. 195 
+##set( $resizeFuncCallCode = "setHtmlGridAutoResize('142', '260')" )  
+##set( $resizeFuncCallCode = "setHtmlGridAutoResize('140', '155')" ) 
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="left">
+						<input type="button" name="btnSearch" value="신규 등록" onClick="GoSearch('ip_01020_inventoryPlan_item_reg'); " class="btn2_on">
+					</td>
+                	<td align="right">
+						##button("search")
+						#button("search")
+						##<input type="button" name="btnSearch" value="찾기" onClick="GoSearch('ip_02020_dcAllocatonItemMgmt_mod'); " class="btn1_on">
+						#toolbar_nscm($_moon_toolbar "ip_01020_inventoryPlan_item_reg" "" "ip_01020_inventoryPlan_item_save_comp" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" 
+							id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr>
+		           				<td width="100px" align="right">
+            						조 회 품 목 :
+            					</td> 
+								<td width="500px" colspan = "8">
+									<input name="item_id" class="normal" style="width:70px; " onChange="getItemName(this); "
+										onkeypress="enterCheck('${_moon_service}'); " value="$!{item_id}">
+									<input name="item_name" class="normal" readOnly style="width:230px; " value="$!{item_name}"><img
+										name="imgItem" src="sinc/template/basic/skin/nongshim/images/common/icon_search.gif"
+										align="absmiddle" border="0" style="cursor:pointer;"  
+										onClick="openCodeSearchPop('item_id', 'item_name', '400', '300'); ">
+								</td>
+								<td>
+								</td>
+            				</tr>
+							<tr>
+								<td width="100px" align="right">
+									할 당 대 상 :
+								</td>
+            					<td width="230px">  
+									<input type="radio" name="checked_button" value="safety" style="border:0px; "
+            							onClick="this.checked" #if($!{checked_button} == "safety") checked #else #end>안전 재고</input>&nbsp;
+									<input type="radio" name="checked_button" value="3week" style="border:0px; "
+            							onClick="this.checked" #if($!{checked_button} == "3week") checked #else #end>3주 평균</input>&nbsp;
+            						<input type="radio" name="checked_button" value="1week" style="border:0px; "
+            							onClick="this.checked" #if($!{checked_button} == "1week") checked #else #end>1주 평균</input>&nbsp;
+            					</td>
+								<td width="40px" align="right"> 
+									비율 :
+								</td> 
+								<td width="50px" align="left">
+									<input type="text" name="rate" size="20" class="normal" 
+										##onKeyPress="enterCheck('$_moon_service'); " 
+										style="width:50px; padding-left:5px; " onBlur="strCheck(); " ondblClick="select(); " 
+										onChange="strCheck(this); " value="$commonUtil.replaceQuot($!{rate})">%
+									<input type="hidden" name="rate_pre" value ="$!{rate}" >
+								</td>
+								<td>
+									<input type="button" name="btnSearch" value="적용" onClick="doChange2(this, 0, $ip_01020_inventoryPlan_item_mod.size());"  class="btn1_on">
+								</td>
+							</tr>
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="47"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>#page_info()</td>
+							<td align="right">#table_display()</td>
+						</tr>
+					</table>
+					  
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table id="tbMain" border="0"  width="100%" cellpadding="0" cellspacing="0" >
+						<tr>
+							<td> 
+                				<div id="topLeft" style=" width:160px; overflow:hidden; "> 
+                					<table width="160px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+                						<thead>
+                							<tr align="center" height="35px"> 
+                								<td align="center" width="30px"></td>
+                								<td align="center" width="50px">번 호</td>
+                								<td align="center" width="80px">출고장 명</td>
+                							</tr>
+                	   					 </thead>
+                	   				</table>
+                	   			</div>
+							</td>
+							<td> 
+                				<div id="topLine" style=" width:1000px;overflow:hidden;"> 
+                					<table width="1000px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+                						<thead>
+                							<tr height="35px">
+                								<td align="center" width="60px">생산 LT</td>
+                								<td align="center" width="60px">입고 LT</td>
+                								<td align="center" width="60px">안전계수</td>
+                								<td align="center" width="70px">표준편차<br>(박스)</td>
+												<td align="center" width="30px">C.D</td>
+                								<td align="center" width="70px">3주 평균<br>판매(일)</td>
+                								<td align="center" width="70px">1주 평균<br>판매(일)</td>
+                								<td align="center" width="70px">안전재고<br>(박스)</td>
+												<td align="center" width="70px">임시재고<br>(박스)</td>
+                								<td align="center" width="70px">비축재고<br>(박스)</td>
+												<td align="center" width="220px">비축기간
+                									<input type="button" name="btnReset" value="초기화" 
+                										onClick="ResetDate(this, 0, $ip_01020_inventoryPlan_item_mod.size()); " class="btn1_on">
+												</td>
+                								<td align="center" width="70px">공장할당용<br>안전재고</td>
+                								<td align="center" width="70px">안전+비축<br>(박스)</td>
+                							</tr>
+										 </thead>
+                	   				</table>
+                	   			</div>
+							</td>  
+						</tr>	
+						
+						<tr>
+							<td valign="top"> 
+								<div id="leftDisplay" style="width:160px; overflow:hidden; ">
+									<table width="160px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="left_tbody">
+											<tr id="left_tr" height="20px"> 
+												<td width="30px"></td>
+												<td width="50px"></td>
+												<td width="80px"></td> 
+											</tr> 
+											<tr id="left_tr" height="20px" style="background-color:${search_bgcolor}; "> ## 번호 
+												<td width="30px"></td>
+												<td width="50px"></td>
+												<td width="80px"></td> 
+											</tr>  
+											#foreach( $tr in $ip_01020_inventoryPlan_item_mod )
+											<tr  height="20px" onMouseOver="bgOver(this);" onMouseOut="bgOut(this);">
+												<td width="30px" align="center" style="background-color:${search_bgcolor}; "> ## 번호
+													<a id="divRowNo">$velocityCount</a>
+												</td>
+                    							## 품목 코드
+                    							<td width="50px" align="center" >
+                    								<a id="divDcId">$tr.get(0)</a><input
+                    									type="text" name="dc_id" class="normal" size="20" value="$tr.get(0)"
+                    									style="width:60PX; padding-right:5px; text-align:cneter; display:none;"  >
+                    							</td>
+                    							## 출고장 명
+                    							<td width="80px" align="left" >
+                    								<a id="divDcName">&nbsp;$tr.get(1)</a><input
+                    									type="text" name="dc_name" class="normal" size="20" value="$tr.get(1)"
+                    									style="width:100%; padding-right:5px; display:none; text-align:left; ">
+                    							</td>												
+											</tr>
+										#end
+										</tbody> 
+									</table> 
+								</div> 	
+							</td> 
+							<td valign="top"> 
+								<div id="mainDisplay" class="ns_scroll" style="border:0; width:1000px; overflow-y:scroll; overflow-x:scroll; " onscroll="scrollX(); scrollY(); ">
+									<table width="1000px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="main_tbody">
+											##################### 입력 라인
+											<tr id="main_tr" height="20px">
+												##생산LT
+												<td align="center" width="60px" onClick="setEditMode1(this)">
+        											<input type="text" name="in_prdt_lt"  class="normal" size="20" align="right" 
+        												onChange="doChange1(this, 0, $ip_01020_inventoryPlan_item_mod.size());" 
+        												value="" style="width:100%; height:100%; padding-left:1px; text-align:right">
+												</td>
+												##입고LT
+												<td align="center" width="60px" onClick="setEditMode1(this)">
+        											<input type="text" name="in_inpt_lt"  class="normal" size="20" align="right" 
+        												onChange="doChange1(this, 0, $ip_01020_inventoryPlan_item_mod.size());" 
+        												value="" style="width:100%; height:100%; padding-left:1px; text-align:right">
+												</td>
+												##안전계수
+												<td align="center" width="60px" onClick="setEditMode1(this)">
+        											<input type="text" name="in_safety_parm"  class="normal" size="20" align="right" 
+        												onChange="doChange1(this, 0, $ip_01020_inventoryPlan_item_mod.size());" 
+        												value="" style="width:100%; height:100%; padding-left:1px; text-align:right">
+												</td>
+												##표준편차
+												<td align="center" width="70px" >
+##        											<input type="text" name="in_std_dev"  class="normal" size="20" align="right" 
+##        												onChange="doChange1(this, 0, $ip_01020_inventoryPlan_item_mod.size());" 
+##        												value="" style="width:100%; height:100%; padding-left:1px; text-align:right">
+												</td>
+												<td align="center" width="30px"></td>
+												##3주평균판매
+												<td align="center" width="70px" >
+##        											<input type="text" name="in_dev_rate"  class="normal" size="20" align="right" 
+##        												onChange="doChange1(this, 0, $ip_01020_inventoryPlan_item_mod.size());" 
+##        												value="" style="width:100%; height:100%; padding-left:1px; text-align:right">
+												</td>
+												##1주평균판매
+												<td align="center" width="70px" >
+##        											<input type="text" name="in_dev_rate"  class="normal" size="20" align="right" 
+##        												onChange="doChange1(this, 0, $ip_01020_inventoryPlan_item_mod.size());" 
+##        												value="" style="width:100%; height:100%; padding-left:1px; text-align:right">
+												</td>
+												##안전제고
+												<td align="center" width="70px" >
+##        											<input type="text" name="in_dev_rate"  class="normal" size="20" align="right" 
+##        												onChange="doChange1(this, 0, $ip_01020_inventoryPlan_item_mod.size());" 
+##        												value="" style="width:100%; height:100%; padding-left:1px; text-align:right">
+												</td>
+												##임시 안전재고
+												<td align="center" width="70px" onClick="setEditMode1(this)">
+        											<input type="text" name="in_camp_stoc"  class="normal" size="20" align="right" 
+        												onChange="doChange1(this, 0, $ip_01020_inventoryPlan_item_mod.size());" 
+        												value="" style="width:100%; height:100%; padding-left:1px; text-align:right">
+												</td>
+												##비축재고
+												<td align="center" width="70px" onClick="setEditMode1(this)">
+        											<input type="text" name="in_save_stoc"  class="normal" size="20" align="right" 
+        												onChange="doChange1(this, 0, $ip_01020_inventoryPlan_item_mod.size());" 
+        												value="" style="width:100%; height:100%; padding-left:1px; text-align:right">
+												</td>
+												##비축기간
+                								<td width="100px" align="center" >
+                								</td>
+                								<td width="20px" align="center">
+                									~
+                								</td>
+                								## END_DATE
+                								<td width="100px" align="center" >
+                								</td>
+												
+##												<td align="center" width="220px" onClick="setEditMode(this)" colspan='3'>
+##        											<input type="text" name="in_save_period"  class="normal" size="20" align="right" 
+##        												onChange="doChange1(this, 0, $ip_01020_inventoryPlan_item_mod.size());" 
+##        												value="" style="width:100%; height:100%; padding-left:1px; text-align:right">
+												</td>
+												##최공장할당용 안전재고
+												<td align="center" width="70px" >
+##        											<input type="text" name="in_opti_save_lvl"  class="normal" size="20" align="right" 
+##        												onChange="doChange1(this, 0, $ip_01020_inventoryPlan_item_mod.size());" 
+##        												value="" style="width:100%; height:100%; padding-left:1px; text-align:right">
+												</td>
+												##최적재고수준
+												<td align="center" width="70px" >
+##        											<input type="text" name="in_opti_save_lvl"  class="normal" size="20" align="right" 
+##        												onChange="doChange1(this, 0, $ip_01020_inventoryPlan_item_mod.size());" 
+##        												value="" style="width:100%; height:100%; padding-left:1px; text-align:right">
+												</td>
+											</tr>											
+											##################### 계산 라인
+											<tr id="main_tr" height="20px" style="background-color:${search_bgcolor}; "> ## 번호
+												##생산LT
+												<td align="center" width="60px" onClick="setEditMode1(this)">
+##        											<input type="text" name="in_prdt_lt"  class="normal" size="20" align="right" 
+##        												onChange="doChange1(this, 0, $ip_01020_inventoryPlan_item_mod.size());" 
+##        												value="" style="width:100%; height:100%; padding-left:1px; text-align:right">
+												</td>
+												##입고LT
+												<td align="center" width="60px" onClick="setEditMode1(this)">
+##        											<input type="text" name="in_inpt_lt"  class="normal" size="20" align="right" 
+##        												onChange="doChange1(this, 0, $ip_01020_inventoryPlan_item_mod.size());" 
+##        												value="" style="width:100%; height:100%; padding-left:1px; text-align:right">
+												</td>
+												##안전계수
+												<td align="center" width="60px" onClick="setEditMode1(this)">
+##        											<input type="text" name="in_safety_parm"  class="normal" size="20" align="right" 
+##        												onChange="doChange1(this, 0, $ip_01020_inventoryPlan_item_mod.size());" 
+##        												value="" style="width:100%; height:100%; padding-left:1px; text-align:right">
+												</td>
+												##표준편차
+												<td align="right" width="70px" >
+                									<a id="divStdDev_total"></a><input 
+                										type="hidden" name="std_dev_total"  class="normal" size="20" align="right" 
+                										value="" style="width:100%; height:100%; padding-left:1px; text-align:right; display:none;"  >
+												</td>
+												<td align="center" width="30px"></td>
+												##3주평균판매
+												<td align="right" width="70px" >
+                									<a id="div3weekTotal"></a><input 
+                										type="hidden" name="avg3week_total"  class="normal" size="20" align="right" 
+                										value="" style="width:100%; height:100%; padding-left:1px; text-align:right; display:none;"  >
+												</td>
+												##1주평균판매
+												<td align="right" width="70px" >
+                									<a id="div1weekTotal"></a><input 
+                										type="hidden" name="avg1week_total"  class="normal" size="20" align="right" 
+                										value="" style="width:100%; height:100%; padding-left:1px; text-align:right; display:none;"  >
+												</td>
+												##안전제고
+												<td align="right" width="70px" >
+                									<a id="divSafetyTotal"></a><input  
+                										type="hidden" name="safety_total"  class="normal" size="20" align="right" 
+                										value="" style="width:100%; height:100%; padding-left:1px; text-align:right; display:none;"  >
+												</td>
+												##임시 안전재고
+												<td align="right" width="70px">
+                									<a id="divCampTotal"></a><input 
+                										type="hidden" name="camp_total"  class="normal" size="20" align="right" 
+                										value="" style="width:100%; height:100%; padding-left:1px; text-align:right; display:none;"  >
+												</td>
+												##비축재고
+												<td align="right" width="70px" >
+                									<a id="divSaveTotal"></a><input 
+                										type="hidden" name="save_total"  class="normal" size="20" align="right" 
+                										value="" style="width:100%; height:100%; padding-left:1px; text-align:right; display:none;"  >
+												</td>
+												##비축기간
+                								<td width="100px" align="center" >
+                								</td>
+                								<td width="20px" align="center">
+                									~
+                								</td>
+                								## END_DATE
+                								<td width="100px" align="center" >
+                								</td>
+												
+##												<td align="center" width="220px" onClick="setEditMode(this)" colspan='3'>
+##        											<input type="text" name="in_save_period"  class="normal" size="20" align="right" 
+##        												onChange="doChange1(this, 0, $ip_01020_inventoryPlan_item_mod.size());" 
+##        												value="" style="width:100%; height:100%; padding-left:1px; text-align:right">
+												</td>
+												##공장할당용 안전재고
+												<td align="right" width="70px" >
+        											<a id="div_fa_stock_total"></a><input 
+                										type="hidden" name="fa_stock_total"  class="normal" size="20" align="right" 
+                										value="" style="width:100%; height:100%; padding-left:1px; text-align:right; display:none;"  >
+												</td>
+												##최적재고수준
+												<td align="right" width="70px" >
+        											<a id="div_opti_save_total"></a><input 
+                										type="hidden" name="opti_save_total"  class="normal" size="20" align="right" 
+                										value="" style="width:100%; height:100%; padding-left:1px; text-align:right; display:none;"  >
+												</td>
+											</tr>											
+											##################### 출력 라인
+											#foreach( $tr in $ip_01020_inventoryPlan_item_mod )
+											<tr  height="20px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+                 								## 생산LT
+                								<td width="60px" onClick="setEditMode1(this);" align="right"> ## 
+                									<input type="text" name="prdt_lt"  class="normal" size="20" align="right" 
+                										onChange="doChange(this, $math.sub($velocityCount, 1));"
+                										value="$tr.get(2)" style="width:100%; height:100%; padding-left:1px; text-align:right">
+                								</td>
+                								## 입고LT
+                								<td width="60px" onClick="setEditMode1(this);"align="right"> ## 
+                									<input type="text" name="inpt_lt"  class="normal" size="20" align="right" 
+                										onChange="doChange(this, $math.sub($velocityCount, 1));"
+                										value="$tr.get(3)" style="width:100%; height:100%; padding-left:1px; text-align:right">
+                								</td>												
+                								## 안전계수
+                								<td width="60px" onClick="setEditMode1(this); " align="right"> ## 
+                									<input type="text" name="safety_parm"  class="normal" size="20" align="right" 
+                										onChange="doChange(this, $math.sub($velocityCount, 1));"
+                										value="$tr.get(4)" style="width:100%; height:100%; padding-left:1px; text-align:right">
+                								</td>
+                								## 표준편차
+                								<td width="70px" align="right"> ## 
+                									<a id="divStdDev">$number.format($tr.get(5))&nbsp;&nbsp;</a><input 
+                										type="text" name="std_dev"  class="normal" size="20" align="right"
+                										value="$tr.get(5)" style="width:100%; height:100%; padding-left:1px; text-align:right; display:none;"  >
+                								</td>													
+                        						##안전제고 플래그!!
+                        						<td width="30px" align="center"> ## 공급할당설정
+                        							<input name="safe_stoc_chk" style="border=0" type="checkbox" class="normal" 
+                        								onClick="SetFlag(this, $math.sub($velocityCount, 1));" 
+                        								#if($tr.get(6) == "01")checked #end >
+														<input type="hidden" name="safe_stoc_flag" value="$tr.get(6)" >
+	                       						</td>
+                								## 3주평균판매
+                								<td width="70px" align="right"> ## 
+                									<a id="divAvg3week">$number.format($tr.get(7))&nbsp;&nbsp;</a><input 
+                										type="text" name="avg3week"  class="normal" size="20" align="right" 
+                										value="$tr.get(7)" style="width:100%; height:100%; padding-left:1px; text-align:right; display:none;"  >
+                								</td>								
+                								## 1주평균판매
+                								<td width="70px" align="right"> ## 
+                									<a id="divAvg1week">$number.format($tr.get(8))&nbsp;&nbsp;</a><input 
+                										type="text" name="avg1week"  class="normal" size="20" align="right" 
+                										value="$tr.get(8)" style="width:100%; height:100%; padding-left:1px; text-align:right; display:none;"  >
+                								</td>
+												## 안전재고
+                								<td width="70px" align="right"> ## 
+                									<a id="divSafetyStoc">$number.format($tr.get(9))&nbsp;&nbsp;</a><input 
+                										type="text" name="safety_stoc"  class="normal" size="20" align="right" 
+                										value="$tr.get(9)" style="width:100%; height:100%; padding-left:1px; text-align:right; display:none;"  >
+                								</td>								
+                								## 임시 안전재고
+                								<td width="70px" onClick="setEditMode1(this); " align="center"> ## 
+                									 <input type="text" name="camp_stoc"  class="normal" size="20" align="right" 
+                										onChange="doChange(this, $math.sub($velocityCount, 1));"
+                										value="$tr.get(10)" style="width:100%; height:100%; padding-left:1px; text-align:right">
+                								</td>
+                								## 비축재고
+                								<td width="70px" onClick="setEditMode1(this); " align="center"> ## 
+                									 <input type="text" name="save_stoc"  class="normal" size="20" align="right" 
+                										onChange="doChange(this, $math.sub($velocityCount, 1));"
+                										value="$tr.get(11)" style="width:100%; height:100%; padding-left:1px; text-align:right">
+                								</td>
+                								## 비축기간
+                								## START_DATE
+                								<td width="100px" align="center" onClick="setEditMode(this); " >
+                									<a id="divStartDate">$tr.get(12)&nbsp;</a><input type="hidden" name="start_date" value="$tr.get(12)" >
+                								</td>
+                								<td width="20px" align="center">
+                									~
+                								</td>
+                								## END_DATE
+                								<td width="100px" align="center" onClick="setEditMode(this); " >
+                									<a id="divEndDate">$tr.get(13)&nbsp;</a><input type="hidden" name="end_date" value="$tr.get(13)">
+                								</td>
+                								## 공장할당용 안전재고
+                								<td width="70px" onClick="setEditMode1(this); " align="center"> ## 
+                									 <input type="text" name="fa_stock"  class="normal" size="20" align="right" 
+                										onChange="doChange(this, $math.sub($velocityCount, 1));"
+                										value="$tr.get(15)" style="width:100%; height:100%; padding-left:1px; text-align:right">
+                								</td>
+                								## 최적재고수준
+                								<td width="70px" align="right"> ## 비고
+                									<a id="divOptiSaveLvl">$number.format($tr.get(14))&nbsp;&nbsp;</a><input
+                										type="text" name="opti_save_lvl"  class="normal" size="20" align="right" 
+                										value="$tr.get(14)" style="width:100%; height:100%; padding-left:1px; text-align:right; display:none;"  >
+                								</td>
+											</tr>
+										#end
+										</tbody>
+									</table>
+								</div>
+							</td>
+						</tr>
+					</table>
+						
+					<table border="0" width="100%" cellpadding="0" cellspacing="0" height="5px"><tr><td></td></tr></table>
+					</td></tr></table>
+											
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+						$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+						<input type="hidden" name="_moon_service" value="${_moon_service}">
+						<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">						
+						<input type="hidden" name="_user_id" value="$!{_user_id}">
+					</td></tr></table>
+										
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">					
+							
+					## waiting 표시영역
+					#waitingArea()
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	CalculTotal($ip_01020_inventoryPlan_item_mod.size());
+
+	// 도움말 내용 입력
+	//var helpStr = "◈ 각 항목을 입력한 후 상단의 저장 버튼을 클릭하여 코드를 수정합니다.";
+	//helpStr += "<br>◈ 한 코드 그룹 내에 중복되는 코드는 존재할 수 없습니다.";
+	//helpStr += "<br>◈ 코드는 반드시 영문, 숫자 그리고 _ (underscore) 로만 입력합니다.";
+	//helpStr += "<br>◈ 상단의 삭제 버튼을 클릭하여 조회된 코드 그룹을 삭제합니다.";
+	//helpStr += "<br>◈ 코드 그룹을 수정할 수 없고, 수정하려면 삭제 후 재생성 하시기 바랍니다.";
+	//helpCont.innerHTML = helpStr;
+	//hDynamicHeight = 0;
+
+	
+</script>

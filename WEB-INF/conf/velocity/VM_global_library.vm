@@ -1,0 +1,543 @@
+
+## 기본 html 테이블
+#macro(table_sort $table_id $style $thead $tbody)
+	<table id="${table_id}" border="0" width="100%" cellspacing="0" cellpadding="0" class="${style}">
+	  	<thead>
+		  	<tr>
+	  		#foreach( $td in $thead)
+				<td width="${td.get(1)}" align="${td.get(2)}">${td.get(0)}</td>				
+			#end
+		  	</tr>
+	  	</thead>
+	  	<tbody>
+	  	#foreach( $tr in $tbody)
+			<tr onMouseOver="this.style.backgroundColor='#eeeeee'" onMouseOut="this.style.backgroundColor='#ffffff'">
+				<td align="center">$math.add($math.mul($_moon_perpage, $math.sub($_moon_pagenumber, 1)), $velocityCount)</td>	
+				#foreach( $td in $tr)
+				<td>&nbsp; $td</td>
+				#end
+			</tr>
+		#end
+	  	</tbody>
+	</table>
+	
+	<script>
+		initTable("${table_id}")
+	</script>
+#end
+
+## input box
+## 2006.07.26 by TJ 
+## onkeypress="enterCheck('$_moon_service')" 추가 
+#macro(input $title $name $size $style)
+	#if($style)
+		$title : <input type="text" name="${name}" size="${size}" class="${style}" value="$!params.get("${name}")"  onkeypress="enterCheck('$_moon_service')"  >
+	#else
+		$title : <input type="text" name="${name}" size="${size}" class="normal" value="$!params.get("${name}")"  onkeypress="enterCheck('$_moon_service')" >
+	#end
+#end
+
+## 날짜 입력 box
+## size 값에 따라 date type 결정 
+## size = 4 : yyyy
+## size = 6 : yyyyMM, size = 7 : yyyy-MM 
+## size = 8 : yyyyMMdd, size = 10 : yyyy-MM-dd 
+#macro(date_sole $title $name $size $style $btnid $this_date)
+	#if($!params.get("${name}"))
+		#if($style)
+			$title : <input type="text" name="${name}" size="${size}" class="${style}" value="$!params.get("${name}")" maxlength="${size}" onBlur="chkDate(this, '${size}')" 
+				onkeypress="enterCheckDate('$_moon_service', this, '${size}')" style="text-align:center; "><img src="sinc/template/basic/skin/nongshim/images/common/icon_cal.gif" 
+				id="${btnid}" align="absmiddle" border="0" style="cursor:pointer;"> 
+		#else
+			$title : <input type="text" name="${name}" size="${size}" class="normal" value="$!params.get("${name}")" maxlength="${size}" onBlur="chkDate(this, '${size}')" 
+				onkeypress="enterCheckDate('$_moon_service', this, '${size}')" style="text-align:center; "><img src="sinc/template/basic/skin/nongshim/images/common/icon_cal.gif" 
+				id="${btnid}" align="absmiddle" border="0" style="cursor:pointer;"> 
+		#end
+	#else
+		#if($style)
+			$title : <input type="text" name="${name}" size="${size}" class="${style}" value="$this_date" maxlength="${size}" onBlur="chkDate(this, '${size}')" 
+				onkeypress="enterCheckDate('$_moon_service', this, '${size}')" style="text-align:center; "><img src="sinc/template/basic/skin/nongshim/images/common/icon_cal.gif" 
+				id="${btnid}" align="absmiddle" border="0" style="cursor:pointer;"> 
+		#else
+			$title : <input type="text" name="${name}" size="${size}" class="normal" value="$this_date" maxlength="${size}" onBlur="chkDate(this, '${size}')" 
+				onkeypress="enterCheckDate('$_moon_service', this, '${size}')" style="text-align:center; "><img src="sinc/template/basic/skin/nongshim/images/common/icon_cal.gif" 
+				id="${btnid}" align="absmiddle" border="0" style="cursor:pointer;"> 
+		#end
+	#end
+	<script type="text/javascript">
+	    Calendar.setup({
+	        inputField     :    "${name}",     // id of the input field
+			#if( "${size}" == "4" ) 
+	        ifFormat       :    "%Y",      // format of the input field 
+			#elseif( "${size}" == "6" ) 
+	        ifFormat       :    "%Y%m",      // format of the input field 
+			#elseif( "${size}" == "7" ) 
+	        ifFormat       :    "%Y-%m",      // format of the input field 
+			#elseif( "${size}" == "8" ) 
+	        ifFormat       :    "%Y%m%d",      // format of the input field 
+			#elseif( "${size}" == "10" ) 
+	        ifFormat       :    "%Y-%m-%d",      // format of the input field 
+			#end 
+	        button         :    "${btnid}",  // trigger for the calendar (button ID)
+	        align          :    "Tl",           // alignment (defaults to "Bl")
+	        singleClick    :    true  
+	    });
+	</script>
+#end
+
+## 타이틀이 없는 날짜 입력 box
+#macro(date_sole_no_title $name $size $style $btnid $this_date)
+	#if($!params.get("${name}"))
+		#if($style)
+			#*<input type="text" name="${name}" size="${size}" class="${style}" value="$!params.get("${name}")" maxlength="${size}" onBlur="chkDate(this, '${size}')" 
+				onkeypress="enterCheckDate('$_moon_service', this, '${size}')" style="text-align:center; "><img src="sinc/template/basic/images/common/bt_date.gif" id="${btnid}" 
+				align="absmiddle" border="0" style="cursor:pointer;">*#
+			<input type="text" name="${name}" size="${size}" class="${style}" value="$!params.get("${name}")" maxlength="${size}" onBlur="chkDate(this, '${size}')" 
+				onkeypress="enterCheckDate('$_moon_service', this, '${size}')" style="text-align:center; "><img src="sinc/template/basic/skin/nongshim/images/common/icon_cal.gif"
+				id="${btnid}" align="absmiddle" border="0" style="cursor:pointer;">
+		#else
+			<input type="text" name="${name}" size="${size}" class="normal" value="$!params.get("${name}")" maxlength="${size}" onBlur="chkDate(this, '${size}')" 
+				onkeypress="enterCheckDate('$_moon_service', this, '${size}')" style="text-align:center; "><img src="sinc/template/basic/skin/nongshim/images/common/icon_cal.gif"
+				id="${btnid}" align="absmiddle" border="0" style="cursor:pointer;"> 
+		#end
+	#else
+		#if($style)
+			<input type="text" name="${name}" size="${size}" class="${style}" value="$this_date"  maxlength="${size}" onBlur="chkDate(this, '${size}')" 
+				onkeypress="enterCheckDate('$_moon_service', this, '${size}')" style="text-align:center; "><img src="sinc/template/basic/skin/nongshim/images/common/icon_cal.gif"
+				id="${btnid}" align="absmiddle" border="0" style="cursor:pointer;"> 
+		#else
+			<input type="text" name="${name}" size="${size}" class="normal" value="$this_date"  maxlength="${size}" onBlur="chkDate(this, '${size}')" 
+				onkeypress="enterCheckDate('$_moon_service', this, '${size}')" style="text-align:center; "><img src="sinc/template/basic/skin/nongshim/images/common/icon_cal.gif"
+				id="${btnid}" align="absmiddle" border="0" style="cursor:pointer;"> 
+		#end
+	#end
+	<script type="text/javascript">
+	    Calendar.setup({
+	        inputField     :    "${name}",     // id of the input field
+			#if( "${size}" == "4" ) 
+	        ifFormat       :    "%Y",      // format of the input field 
+			#elseif( "${size}" == "6" ) 
+	        ifFormat       :    "%Y%m",      // format of the input field 
+			#elseif( "${size}" == "7" ) 
+	        ifFormat       :    "%Y-%m",      // format of the input field 
+			#elseif( "${size}" == "8" ) 
+	        ifFormat       :    "%Y%m%d",      // format of the input field 
+			#elseif( "${size}" == "10" ) 
+	        ifFormat       :    "%Y-%m-%d",      // format of the input field 
+			#end 
+	        button         :    "${btnid}",  // trigger for the calendar (button ID)
+	        align          :    "Tl",           // alignment (defaults to "Bl")
+	        singleClick    :    true
+	    });
+	</script>
+#end
+
+## 구간 날짜 입력 box (from ~ to)
+#macro(date_both $title $size $style $btnid $btnid2)
+	#if($style)
+		$title : <input type="text" name="sdate" size="${size}"  class="${style}" value="$!params.get("sdate")" maxlength="${size}" onBlur="chkDate(this, '${size}')" 
+					onkeypress="enterCheckDate('$_moon_service', this, '${size}')" style="text-align:center; "><img 
+					src="sinc/template/basic/skin/nongshim/images/common/icon_cal.gif" id="${btnid}" align="absmiddle" border="0" style="cursor:pointer;"> 
+		 ~ <input type="text" name="edate" size="${size}" class="${style}" value="$!params.get("edate")" maxlength="${size}" onBlur="chkDate(this, '${size}')" 
+			onkeypress="enterCheckDate('$_moon_service', this, '${size}')" style="text-align:center; "><img 
+			src="sinc/template/basic/skin/nongshim/images/common/icon_cal.gif" id="${btnid2}" align="absmiddle" border="0" style="cursor:pointer;"> 
+	#else
+		$title : <input type="text" name="sdate"  size="${size}" class="normal" value="$!params.get("sdate")" maxlength="${size}" onBlur="chkDate(this, '${size}')" 
+			onkeypress="enterCheckDate('$_moon_service', this, '${size}')" style="text-align:center; "><img 
+			src="sinc/template/basic/skin/nongshim/images/common/icon_cal.gif" id="${btnid}" align="absmiddle" border="0" style="cursor:pointer;"> 
+		~ <input type="text" name="edate"  size="${size}"  class="normal" value="$!params.get("edate")" maxlength="${size}" onBlur="chkDate(this, '${size}')" 
+			onkeypress="enterCheckDate('$_moon_service', this, '${size}')" style="text-align:center; "><img 
+			src="sinc/template/basic/skin/nongshim/images/common/icon_cal.gif" id="${btnid2}" align="absmiddle" border="0" style="cursor:pointer;"> 
+	#end
+	<script type="text/javascript">
+	    Calendar.setup({
+	        inputField     :    "sdate",     // id of the input field
+			#if( "${size}" == "4" ) 
+	        ifFormat       :    "%Y",      // format of the input field 
+			#elseif( "${size}" == "6" ) 
+	        ifFormat       :    "%Y%m",      // format of the input field 
+			#elseif( "${size}" == "7" ) 
+	        ifFormat       :    "%Y-%m",      // format of the input field 
+			#elseif( "${size}" == "8" ) 
+	        ifFormat       :    "%Y%m%d",      // format of the input field 
+			#elseif( "${size}" == "10" ) 
+	        ifFormat       :    "%Y-%m-%d",      // format of the input field 
+			#end 
+	        button         :    "${btnid}",  // trigger for the calendar (button ID)
+	        align          :    "Tl",           // alignment (defaults to "Bl")
+	        singleClick    :    true  
+	    });
+	</script>
+	<script type="text/javascript">
+	    Calendar.setup({
+	        inputField     :    "edate",     // id of the input field
+			#if( "${size}" == "4" ) 
+	        ifFormat       :    "%Y",      // format of the input field 
+			#elseif( "${size}" == "6" ) 
+	        ifFormat       :    "%Y%m",      // format of the input field 
+			#elseif( "${size}" == "7" ) 
+	        ifFormat       :    "%Y-%m",      // format of the input field 
+			#elseif( "${size}" == "8" ) 
+	        ifFormat       :    "%Y%m%d",      // format of the input field 
+			#elseif( "${size}" == "10" ) 
+	        ifFormat       :    "%Y-%m-%d",      // format of the input field 
+			#end 
+	        button         :    "${btnid2}",  // trigger for the calendar (button ID)
+	        align          :    "Tl",           // alignment (defaults to "Bl")
+	        singleClick    :    true  
+	    });
+	</script>
+#end
+
+## 타이틀이 없는 구간 날짜 입력 box (from ~ to)
+## start date 와 end date 의 이름을 직접 지정 
+#macro(date_both_no_title $size $style $btnid $btnid2)
+	#if($style)
+		<input type="text" name="sdate" size="${size}"  class="${style}" value="$!params.get("sdate")" maxlength="${size}" onBlur="chkDate(this, '${size}')" 
+			onkeypress="enterCheckDate('$_moon_service', this, '${size}')" style="text-align:center; "><img src="sinc/template/basic/skin/nongshim/images/common/icon_cal.gif"
+			id="${btnid}" align="absmiddle" border="0" style="cursor:pointer;"> 
+		 ~ <input type="text" name="edate" size="${size}" class="${style}" value="$!params.get("edate")" maxlength="${size}" onBlur="chkDate(this, '${size}')" 
+			onkeypress="enterCheckDate('$_moon_service', this, '${size}')" style="text-align:center; "><img src="sinc/template/basic/skin/nongshim/images/common/icon_cal.gif"
+			id="${btnid2}" align="absmiddle" border="0" style="cursor:pointer;"> 
+	#else
+		<input type="text" name="sdate"  size="${size}" class="normal" value="$!params.get("sdate")" maxlength="${size}" onBlur="chkDate(this, '${size}')" 
+			onkeypress="enterCheckDate('$_moon_service', this, '${size}')" style="text-align:center; "><img src="sinc/template/basic/skin/nongshim/images/common/icon_cal.gif"
+			id="${btnid}" align="absmiddle" border="0" style="cursor:pointer;"> 
+		~ <input type="text" name="edate"  size="${size}"  class="normal" value="$!params.get("edate")" maxlength="${size}" onBlur="chkDate(this, '${size}')" 
+			onkeypress="enterCheckDate('$_moon_service', this, '${size}')" style="text-align:center; "><img src="sinc/template/basic/skin/nongshim/images/common/icon_cal.gif"
+			id="${btnid2}" align="absmiddle" border="0" style="cursor:pointer;"> 
+	#end
+	<script type="text/javascript">
+	    Calendar.setup({
+	        inputField     :    "sdate",     // id of the input field
+			#if( "${size}" == "4" ) 
+	        ifFormat       :    "%Y",      // format of the input field 
+			#elseif( "${size}" == "6" ) 
+	        ifFormat       :    "%Y%m",      // format of the input field 
+			#elseif( "${size}" == "7" ) 
+	        ifFormat       :    "%Y-%m",      // format of the input field 
+			#elseif( "${size}" == "8" ) 
+	        ifFormat       :    "%Y%m%d",      // format of the input field 
+			#elseif( "${size}" == "10" ) 
+	        ifFormat       :    "%Y-%m-%d",      // format of the input field 
+			#end 
+	        button         :    "${btnid}",  // trigger for the calendar (button ID)
+	        align          :    "Tl",           // alignment (defaults to "Bl")
+	        singleClick    :    true  
+	    });
+		//alert(Calendar._C);
+	</script>
+	<script type="text/javascript">
+	    Calendar.setup({
+	        inputField     :    "edate",     // id of the input field
+			#if( "${size}" == "4" ) 
+	        ifFormat       :    "%Y",      // format of the input field 
+			#elseif( "${size}" == "6" ) 
+	        ifFormat       :    "%Y%m",      // format of the input field 
+			#elseif( "${size}" == "7" ) 
+	        ifFormat       :    "%Y-%m",      // format of the input field 
+			#elseif( "${size}" == "8" ) 
+	        ifFormat       :    "%Y%m%d",      // format of the input field 
+			#elseif( "${size}" == "10" ) 
+	        ifFormat       :    "%Y-%m-%d",      // format of the input field 
+			#end 
+	        button         :    "${btnid2}",  // trigger for the calendar (button ID)
+	        align          :    "Tl",           // alignment (defaults to "Bl")
+	        singleClick    :    true  
+	    });
+	</script>
+#end
+
+## name 지정 날짜 입력 box (from ~ to)
+## start date 와 end date 의 이름을 직접 지정 
+#macro(date_both_name $title $size $style $sdate $edate $btnid $btnid2)
+	#if($style)
+		$title : <input type="text" name="${sdate}" size="${size}"  maxlength="${size}" class="${style}" value="$!params.get("${sdate}")"  onBlur="chkDate('${sdate}')" ><img 
+			src="sinc/template/basic/skin/nongshim/images/common/icon_cal.gif" id="${btnid}" align="absmiddle" border="0" style="cursor:pointer;">
+		 ~ <input type="text" name="${edate}" size="${size}"  maxlength="${size}" class="${style}" value="$!params.get("${edate}")"  onBlur="chkDate('${edate}')" ><img 
+			src="sinc/template/basic/skin/nongshim/images/common/icon_cal.gif" id="${btnid2}" align="absmiddle" border="0" style="cursor:pointer;">
+	#else
+		$title : <input type="text" name="${sdate}"  size="${size}"  maxlength="${size}" class="normal" value="$!params.get("${sdate}")"  onBlur="chkDate('${sdate}')" ><img 
+			src="sinc/template/basic/skin/nongshim/images/common/icon_cal.gif" id="${btnid}" align="absmiddle" border="0" style="cursor:pointer;">
+		~ <input type="text" name="${edate}"  size="${size}"  maxlength="${size}"  class="normal" value="$!params.get("${edate}")"  onBlur="chkDate('${edate}')" ><img 
+			src="sinc/template/basic/skin/nongshim/images/common/icon_cal.gif" id="${btnid2}" align="absmiddle" border="0" style="cursor:pointer;">
+	#end
+	<script type="text/javascript">
+	    Calendar.setup({
+	        inputField     :    "${sdate}",     // id of the input field
+	        ifFormat       :    "%Y-%m-%d",      // format of the input field
+	        button         :    "${btnid}",  // trigger for the calendar (button ID)
+	        align          :    "Tl",           // alignment (defaults to "Bl")
+	        singleClick    :    true  ,
+			firstDay	   :    1
+	    });
+	</script>
+	<script type="text/javascript">
+	    Calendar.setup({
+	        inputField     :    "${edate}",     // id of the input field
+	        ifFormat       :    "%Y-%m-%d",      // format of the input field
+	        button         :    "${btnid2}",  // trigger for the calendar (button ID)
+	        align          :    "Tl",           // alignment (defaults to "Bl")
+	        singleClick    :    true ,
+			firstDay	   :    1
+	    });
+	</script>
+#end
+
+## T3WEB 기본 스타일 버튼
+#macro(button $type)
+	#if($type == "search")
+		## 조회
+		##<a href="#"><img src="sinc/template/basic/skin/nongshim/images/btn/btn_search.gif" width="66" height="22" align="absmiddle"
+		##	onClick="GoSearch('${_moon_service}')"></a>
+		<input type="button" name="btnReg" value="  조회" onClick="GoSearch('${_moon_service}')" class="btn_search_on">
+	#elseif($type == "register_down")
+		<input type="button" value=" $text.get("template.button.register") "  class="button2_3" disabled> 	
+	#elseif($type == "save_down")
+		<input type="button" value=" $text.get("template.button.save") "  class="button2_3" disabled> 	
+	#elseif($type == "edit_down")
+		<input type="button" value=" $text.get("template.button.edit") "  class="button2_3" disabled> 		
+	#elseif($type == "delete_down")
+		<input type="button" value=" $text.get("template.button.delete") "  class="button2_3" disabled>
+	#end
+#end
+
+## Target Service 지정 T3WEB 기본 스타일 버튼
+## 2006.10.17 
+## else 추가 : 버튼 value 가 미리 정의된 type 이 아닌 경우 
+#macro(button_target $type $target_service)
+	#if($type == "excel")
+		<input type="button" onClick="GoExcel('$target_service')" value=" $text.get("template.button.excel") "  class="button1_1" 
+			onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"> 
+	#elseif($type == "print")
+		<input type="button" onClick="GoPrint('$target_service')" value=" $text.get("template.button.print") "  class="button1_1" 
+			onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"> 
+	#elseif($type == "list")
+		<input type="button" onClick="GoList('$target_service')" value=" $text.get("template.button.list") "  class="button1_1" 
+			onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"> 
+	#elseif($type == "search")
+		<input type="button" onClick="GoSearch('${target_service}')" value=" $text.get("template.button.search") "  class="button1_1" 
+			onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"> 	
+	#elseif($type == "register")
+		<input type="button" onClick="GoRegister('$target_service')" value=" $text.get("template.button.register") "  class="button2_1" 
+			onmouseover="this.className='button2_2'" onmouseout="this.className='button2_1'"> 	
+	#elseif($type == "save")
+		<input type="button" onClick="GoSave('$target_service')" value=" $text.get("template.button.save") "  class="button2_1" 
+			onmouseover="this.className='button2_2'" onmouseout="this.className='button2_1'">
+	#elseif($type == "edit")
+		<input type="button" onClick="GoEdit('$target_service')" value=" $text.get("template.button.edit") "  class="button2_1" 
+			onmouseover="this.className='button2_2'" onmouseout="this.className='button2_1'"> 	
+	#elseif($type == "delete")
+		<input type="button" onClick="GoDelete('$target_service')" value=" $text.get("template.button.delete") "  class="button2_1" 
+			onmouseover="this.className='button2_2'" onmouseout="this.className='button2_1'">
+	#elseif($type == "reply")
+		<input type="button" onClick="GoReply('$target_service')" value=" $text.get("template.button.reply") "  class="button1_1" 
+			onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"> 
+	#else 
+		<input type="button" name="$type" onClick="GoType('$target_service')" value=" $type "  class="button1_1" 
+			onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"> 
+	#end
+#end
+
+## 테이블 페이지 당 리스트 건수 combo box
+## perpage : 100, 200 추가 
+## 2006.11.24 by TJ : 500 건 이상인 경우 all 삭제, 대신 500 추가 
+#macro(table_display)
+	<table cellspacing="0" cellpadding="0" class="normal-table">
+		<tr>
+			<td>$text.get("template.text.display_count")</td>
+			<td>
+				<table border="0" cellspacing="0" cellpadding="0" valign="top">
+					<tr>
+						##<td width="60">&nbsp;
+						<td>&nbsp;
+							#if(!$!_moon_pagenumber)
+								#set($_moon_pagenumber = "1")
+							#end
+							<select name="_moon_perpage" onChange="GoPagingOption('$_moon_service', this.value, '$_moon_pagenumber')" 
+								style="BORDER-RIGHT: silver 1px solid; BORDER-TOP: silver 1px solid; BORDER-LEFT: silver 1px solid; COLOR: #666666; BORDER-BOTTOM: silver 1px solid; 
+										FONT-FAMILY: 돋움; BACKGROUND-COLOR=${search_bgcolor}; TEXT-ALIGN: center">
+								#if(!$!_moon_perpage)
+									#set($_moon_perpage = "10")
+								#end
+								<option value="10" #if($_moon_perpage == "10") selected #else #end>10</option>
+								<option value="20" #if($_moon_perpage == "20") selected #else #end>20</option>
+								<option value="30" #if($_moon_perpage == "30") selected #else #end>30</option>
+								<option value="50" #if($_moon_perpage == "50") selected #else #end>50</option>
+								<option value="100" #if($_moon_perpage == "100") selected #else #end>100</option>
+								<option value="200" #if($_moon_perpage == "200") selected #else #end>200</option>
+							#if( $math.min($number.toNumber("$!{_moon_service_count}"), 501) == 501 ) 
+								<option value="500" #if($_moon_perpage == "500" || $_moon_perpage == "-1") selected #else #end>500</option>
+							#else 
+								<option value="-1" #if($_moon_perpage == "-1" || $_moon_perpage == "500") selected #else #end>All</option>
+							#end 
+							</select>
+						</td>
+					</tr>
+				</table>
+			</td>
+			##<td>&nbsp;</td>
+		</tr>
+	</table>
+#end
+
+## DEFAULT 버튼(등록/저장/수정/삭제) ==> 등록/수정/저장/삭제
+#macro(toolbar $toolbar $target_register $target_save $target_edit $target_delete)
+	## 등록
+	#if($toolbar.substring(0,1) == "0")
+		<img src="sinc/template/basic/skin/nongshim/images/btn/btn_wrt_off.gif" width="55" height="22" align="absmiddle">
+	#else
+		##<a href="#"><img src="sinc/template/basic/skin/nongshim/images/btn/btn_wrt.gif" width="55" height="22" align="absmiddle"
+		##	onClick="GoRegister('$target_register')"></a>
+		<input type="button" name="btnReg" value="  등록" onClick="GoRegister('$target_register')" class="btn_reg_on" >
+	#end
+	
+	## 수정
+	#if($toolbar.substring(2,3) == "0")
+		<img src="sinc/template/basic/skin/nongshim/images/btn/btn_mod_off.gif" width="55" height="22" align="absmiddle">
+	#else
+		##<a href="#"><img src="sinc/template/basic/skin/nongshim/images/btn/btn_mod.gif" width="55" height="22" align="absmiddle"
+		##	onClick="GoEdit('$target_edit')"></a>
+		<input type="button" name="btnMod" value="  수정" onClick="GoEdit('$target_edit')" class="btn_mod_on" >
+	#end
+	
+	## 저장
+	#if($toolbar.substring(1,2) == "0")
+		<img src="sinc/template/basic/skin/nongshim/images/btn/btn_save_off.gif" width="55" height="22" align="absmiddle">
+	#else
+		##<a href="#"><img src="sinc/template/basic/skin/nongshim/images/btn/btn_save.gif" width="55" height="22" align="absmiddle"
+		##	onClick="GoSave('$target_save')"></a>
+		<input type="button" name="btnSave" value="  저장" onClick="GoSave('$target_save')" class="btn_sav_on" >
+	#end
+	
+	## 삭제
+	#if($toolbar.substring(3,4) == "0")
+		<img src="sinc/template/basic/skin/nongshim/images/btn/btn_del_off.gif" width="55" height="22" align="absmiddle">
+	#else
+		##<a href="#"><img src="sinc/template/basic/skin/nongshim/images/btn/btn_del.gif" width="55" height="22" align="absmiddle"
+		##	onClick="GoDelete('$target_delete')"></a>
+		<input type="button" name="btnDel" value="  삭제" onClick="GoDelete('$target_delete')" class="btn_del_on" >
+	#end
+#end
+
+## 전체 페이지 수
+## 2006.07.26 by TJ 
+## $_moon_perpage = -1 ( all ) 인 경우 
+## $allPageNumber = 1 추가 
+#macro(allPageNumber $allCount $perpage)
+	#set($addition = 0)
+	#set($temp = $math.toInteger($allCount) % $math.toInteger($perpage))
+	#if($math.toInteger($temp) > 0)
+		#set($addition = 1)
+	#end
+	#set($temp2 = $math.toInteger($_moon_service_count) / $math.toInteger($_moon_perpage))
+	#set($allPageNumber = $temp2 + $addition)	
+	
+	#if( $math.toInteger($_moon_perpage) >  0 ) 
+		$allPageNumber
+	#else 
+		1
+	#end 
+#end
+
+## check box
+#macro(checkbox $name)
+	<input type="checkbox" name="${name}" value="1">
+#end
+
+## checked 설정 check box
+#macro(checkbox2 $name $checked)
+	#if($checked == "1")
+		<input type="checkbox" name="${name}" value="1" checked>
+	#else
+		<input type="checkbox" name="${name}" value="1">
+	#end
+#end
+
+## value 설정 check box
+#macro(checkbox3 $name $value)
+	<input type="checkbox" name="${name}" value="${value}">
+#end
+
+## 파일 include
+#macro(cinclude)
+	#set($file_name = "${_moon_path}/${_moon_target}.jsp")
+
+	#if($support.exists($file_name))
+		#include($file_name)
+	#else
+		
+	#end
+#end
+
+## 파일 parse
+#macro(cparse)
+	#if($support.exists($file_name))#parse($file_name)#end
+#end
+
+## combo box
+#macro(select $name $title $choicelist )
+	$title : 
+    <select name=$name>
+    #foreach( $choice in $choicelist )
+      <option value="$choice">$choice</option>
+    #end
+    </select>
+#end
+
+## selected 설정 combo box
+#macro(select $name $title $choicelist $selected)
+	$title : 
+    <select name=$name>
+    #foreach( $choice in $choicelist )
+      <option value="$choice" #if($choice==$selected) selected #end >$choice</option>
+    #end
+    </select>
+#end
+
+## value 설정 combo box
+#macro(select_default $name $choicelist $selected $valueCount $textCount)
+    <select name=$name>
+		<option value="">---</option>
+    #foreach( $choice in $choicelist )
+      <option value="$choice.get($valueCount)" #if($choice.get($valueCount)==$selected) selected #end >$choice.get($textCount)</option>
+    #end
+    </select>
+#end
+
+## script 지정 버튼
+## 2006.11.22 
+#macro(button_script $type $script)
+	#if($type == "excel")
+		<input type="button" onClick="$script" value=" $text.get("template.button.excel") "  class="button1_1" 
+			onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"> 
+	#elseif($type == "print")
+		<input type="button" onClick="$script" value=" $text.get("template.button.print") "  class="button1_1" 
+			onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"> 
+	#elseif($type == "list")
+		<input type="button" onClick="$script" value=" $text.get("template.button.list") "  class="button1_1" 
+			onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"> 
+	#elseif($type == "search")
+		<input type="button" onClick="$script" value=" $text.get("template.button.search") "  class="button1_1" 
+			onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"> 	
+	#elseif($type == "register")
+		<input type="button" onClick="$script" value=" $text.get("template.button.register") "  class="button2_1" 
+			onmouseover="this.className='button2_2'" onmouseout="this.className='button2_1'"> 	
+	#elseif($type == "save")
+		<input type="button" onClick="$script" value=" $text.get("template.button.save") "  class="button2_1" 
+			onmouseover="this.className='button2_2'" onmouseout="this.className='button2_1'">
+	#elseif($type == "edit")
+		<input type="button" onClick="$script" value=" $text.get("template.button.edit") "  class="button2_1" 
+			onmouseover="this.className='button2_2'" onmouseout="this.className='button2_1'"> 	
+	#elseif($type == "delete")
+		<input type="button" onClick="$script" value=" $text.get("template.button.delete") "  class="button2_1" 
+			onmouseover="this.className='button2_2'" onmouseout="this.className='button2_1'">
+	#elseif($type == "reply")
+		<input type="button" onClick="$script" value=" $text.get("template.button.reply") "  class="button1_1" 
+			onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"> 
+	#else 
+		<input type="button" name="$type" onClick="$script" value=" $type "  class="button1_1" onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"> 
+	#end
+#end
+
+

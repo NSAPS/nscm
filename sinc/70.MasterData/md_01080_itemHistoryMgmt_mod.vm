@@ -1,0 +1,191 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize2('100', '180')" )
+
+## DWR 사용을 위한 js
+<script type='text/javascript' src='$!{project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/engine.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/util.js'></script>
+
+## 이전 화면으로 이동할 때 조회조건을 기억하기 위한 parameter
+<input type="hidden" name="chk_item_group" value="$!{chk_item_group}">
+<input type="hidden" name="pre_item_id" value="$!{pre_item_id}">
+<input type="hidden" name="new_item_id" value="$!{new_item_id}">
+<input type="hidden" name="new_start_date" value="$!{item_hist_start}">
+<input type="hidden" name="perpage_pre" value="$!{perpage_pre}">
+<input type="hidden" name="pagenumber_pre" value="$!{pagenumber_pre}">
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						<input type="button" name="btnBack" value=" 이전화면" onClick="moveBack(); " class="btn1_on">
+						<input type="button" name="btnBack" value=" 행추가" onClick="addRows(1); "  class="btn1_on">
+						#toolbar_nscm($_moon_toolbar "" "" "md_01080_itemHistoryMgmt_mod_save_comp" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; ">
+            				<tr id="search_menu" style="display:block; ">
+            					<td width="15%" align="right">
+            						신규 품목 :
+            					</td>
+            					<td width="30%" align="left">
+									<input name="item_id" class="normal" style="width:60px; " onClick="setClearText(this);" onChange="getItemName2(this); " value="$!{new_item_id}">
+            						<input name="item_name" class="normal" readOnly style="width:120px; " value="$!{item_name}"><img
+            							name="imgItem" src="sinc/template/basic/skin/nongshim/images/common/icon_search.gif"
+            							align="absmiddle" border="0" style="cursor:pointer;"
+            							onClick="openItemHistCodeSearchPop('item_id', 'item_name', '400', '400', 'MOD'); ">
+	           					</td>
+								<td width="15%" align="right">
+									적용 시작일 :
+								</td>
+								<td width="40%" align="left">
+									#date_sole_no_title("item_hist_start" "10" "normal" "btnS" "$date.get('yyyy-MM-dd')")
+									<script>
+									document.frm.item_hist_start.onchange = function()
+									{
+										chkDate(document.frm.item_hist_start,10);
+									};
+									</script>
+								</td>
+							</tr> 
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="47"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>#page_info()</td>
+							<td align="right">#table_display()</td>
+						</tr>
+					</table>
+					
+					<table id="tbMain" border="0" width="100%" cellpadding="0" cellspacing="0" >
+						<tr> 
+							<td width="100%"> 
+								<div id="topLine" style="height:28px; width:800px; overflow:hidden; "> 
+									<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">			
+										<thead>
+											<tr height="28px">
+												<td width="5%">No</td>
+												<td width="5%">삭제</td>
+												<td width="20%">품목 코드</td>
+												<td width="50%">품목 명</td>
+												<td width="20%">적용 시작일</td>
+											</tr> 
+					   					 </thead>
+					   				</table>
+					   			</div>
+							</td>
+						</tr>	
+						<tr>
+							<td valign="top"> 
+								<div id="mainDisplay" class="table_scroll" style="border:0; width:800px; overflow-y:scroll; overflow-x:scroll; " onscroll="scrollX(); scrollY(); ">
+									<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="main_tbody">
+										#foreach( $tr in $md_01080_itemHistoryMgmt_mod ) 
+											<tr id="main_tr" height="20px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+												<td width="5%" align="center" style="background-color:${search_bgcolor}; "> ## 번호
+													<a id="divRowNo">$velocityCount</a>
+												</td>
+												<td align="center" width="5%"> 
+													#if( $tr.get(0) == "S" )
+														<input name="btnDelRow" type="checkbox" onClick="delCheck(this, $velocityCount);" size="20px">
+													#else
+														<input name="btnDelRow" type="button"  value="X" size="20px" onClick="delRow(this);">
+													#end
+												</td>
+												<td align="center" width="20%" >
+													<a id="divOldItemID">&nbsp;$tr.get(1)</a><input name="old_item_id" type="hidden" value="$tr.get(1)" size="0"> 
+												</td>
+												<td width="50%" >
+													<a id="divOldItemName">&nbsp;$tr.get(2)</a><input name="old_item_name" type="hidden" value="$tr.get(2)" size="0">
+												</td>
+												<td align="center" width="20%" >
+													<a id="divStartDate">&nbsp;$tr.get(3)</a><input name="start_date" type="hidden" value="$tr.get(3)" size="0">
+												</td>
+												<td width="0%">
+													<input name="idu_flag" type="hidden"  value="$tr.get(0)" size="0">
+												</td>
+											</tr> 
+										#end 
+										</tbody> 
+									</table> 
+								</div> 	
+							</td> 
+						</tr>
+					</table>
+					
+					<table height="5"><tr><td></td></tr></table>
+					
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+						$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+						<input type="hidden" name="_moon_service" value="${_moon_service}">
+						<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+						<input type="hidden" name="_user_id" value="$!{_user_id}">
+						## 번호 배경색
+						<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+					</td></tr></table>
+					
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+					<script>
+						addRows(1);
+					</script>
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+
+ 	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 해당 출고 물류거점과 입고 물류거점에 새로운 품목을 추가합니다.";
+	helpStr += "<br>◈ 새로운 입고거점 추가는 신규버튼을 누른 후 작업하세요.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+	// 최초 화면 로드 시, 5 LINE DISPLAY
+	//addRows(5);
+	
+</script>

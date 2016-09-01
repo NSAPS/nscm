@@ -1,0 +1,278 @@
+############################################################
+## 프로그램ID : rp_01120_outOderAdjust_list_test.vm
+## 프로그램명 : 출고 물량 조회 및 조정
+## 개발자  : 정재교
+## 개발일자 : 2009-04-01 목요일
+##
+##관련 job file : 
+##
+##관련 query file : 
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2009-04-01  정재교     rp_01120_outOderAdjust_list.vm 개발
+##
+##
+############################################################
+
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수
+#set( $resizeFuncCallCode = "setWiseGridAutoResize('150', '273')" )
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/replenishPlan.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+############################ Index ###################################
+## 전월실적(0)      입고사업장ID(1)  입고사업장(2)    당일재고(3) 
+## 판매누계(4)     판매오더(5)       1주평균판매(6)    3주평균판매(7)  
+## 입고예정(8)     출고예정(9)       예상재고(10)    ,  재고기간(25)
+## 익일판매계획(12) 안전재고(13)      보충요구량(14)  공급량PLT(15)  
+## 공급량BOX(16)   출고사업장ID(17)  출고사업장(18)   예상재고2(19)
+## 최소수송단위(20) 전일판매(21)    CRDC_FLAG(22)	당일판매계획(23)	익일판매오더 (24)
+
+
+#########################################    WiseGrid Event     #####################################################			
+######################################### 기본 Event외 추가 Event #####################################################
+
+## WiseGrid에 Mouse Over 되었을때 이벤트가 발생한다. 
+<script language=javascript for="WiseGrid" event="MouseOver(strType ,strColumnKey, nRow)">
+  	GridMouseOverHandler(strType, strColumnKey, nRow);
+</script>
+
+## WiseGrid의 컨텍스트 메뉴의 사용자 컨텍스트 메뉴를 클릭했을때 발생한다. 
+<script language=javascript for="WiseGrid" event="UserContextMenuClick(strMenuKey, strMenuItemKey, strColumnKey, nRow)">
+  	GridUserContextMenuClickHandler(strMenuKey, strMenuItemKey, strColumnKey, nRow);
+</script>
+
+##  WiseGrid의 t_combo타입의 컬럼내용이 변경되었을때 발생합니다  
+<script language=javascript for="WiseGrid" event="ChangeCombo(strColumnKey,nRow,nOldIndex,nNewIndex)">
+	GridChangeComboHandler(strColumnKey, nRow, nOldIndex, nNewIndex);
+</script>
+
+## WiseGrid가 생성됨과 동시에 발생한다. 
+<script language="javascript" for="WiseGrid2" event="Initialize()">
+	init2();
+</script>
+
+## DoQuery 메소드가 실행되고 서버와의 통신이 정상적으로 완료되면 발생한다. 
+<script language="javascript" for="WiseGrid2" event="EndQuery()">
+	GridEndQuery2();
+</script>
+
+## 그리드의 스크롤 이동시에 발생하는 이벤트 
+<script language=javascript for="WiseGrid" event="RowScroll(nFirstVisibleRowIndex, nEndVisibleRowIndex)">
+  	GridRowScrollHandler(nFirstVisibleRowIndex, nEndVisibleRowIndex);
+</script>
+
+############################################ WiseGrid Event #########################################################
+
+<input type="hidden" name="sales_yyyy" value="${nfos_sales_plan_weekly_version_list.get(0).get(0)}"> ##판매계획 YYYY
+<input type="hidden" name="sales_version" value="${nfos_sales_plan_weekly_version_list.get(0).get(1)}"> ##판매계획 version
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+					<td align="left" >
+						<input type="button" name="btnCreate" value="차기버전 계획반영" onClick="GoCreate('rp_01120_outOrderAdjust_list_create_comp')" class="btn4_on">
+						##<input type="button" name="btnCreate" value="동기화" onClick="GoTransPlanSync()" class="btn1_on">
+					</td>
+                	<td align="right">
+						#button("search")
+						#toolbar_nscm($_moon_toolbar "" "" "rp_01120_outOrderAdjust_list_save_comp" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2">
+					<td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" 
+							id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr>
+            					<td width="10%" align="right">
+            						계획주기 :
+            					</td>
+            					<td width="20%" align="left">
+									<select name="period_type" style="width:130px; " onChange="doChange(this); ">
+									#foreach( $tr in $dailyTransportPlan_period_type_list )
+										<option value="${tr.get(0)}" #if( "$!{period_type}" == "${tr.get(0)}" ) selected #end)>
+											${tr.get(1)}
+										</option>
+									#end
+									</select> 
+            					</td>
+								<td width="12%" align="right">
+            						수송일자 :
+            					</td>
+            					<td width="30%" align="left">
+									#date_sole_no_title("trans_start" "10" "normal" "btnS" "$date.get('yyyy-MM-dd')")
+            					</td>
+								<td width="10%" align="right">
+									상차유형 :
+								</td>
+								<td width="18%" align="left">
+									<input type="radio" name="stock_type" class="normal" value="base" checked="on">기본상차</intput>
+									<input type="radio" name="stock_type" class="normal" value="prod" >생산상차</intput> 
+								</td>
+            				</tr> 
+            				<tr>
+            					<td width="10%" align="right">
+            						계획버전 :
+            					</td>
+            					<td width="20%" align="left">
+            						<a id="divVersion"> 
+                						<select name="plan_version" style="width:130px; " >
+                							<option value="">선택</option>									
+                						</select>		
+            						</a>
+									<script>
+                                    	function doChange(obj){ 
+                                    		var divStr = "<select name=\"plan_version\" style=\"width:130px; \" onChange=\"setVersions(this.value);\"> ";
+                                    	#foreach( $condition in $outOrderAdjDailyTransportPlan_version_list )
+                                    		if ( obj.value == "$condition.get(2)" ) { 
+                                    			divStr += "<option value=\"${condition.get(0)}!%!${condition.get(1)}\" ";
+												if("$condition.get(4)" == "27") // confrim 된 버전인 경우.
+													if("$!{plan_version}" == "${condition.get(0)}!%!${condition.get(1)}")
+														divStr += "style=\"background-color:#ffffaa; \" selected>";
+													else
+														divStr += "style=\"background-color:#ffffaa; \">";
+												else if("$condition.get(4)" == "99") // 차기버전 계획적용인 버전인 경우.
+													if("$!{plan_version}" == "${condition.get(0)}!%!${condition.get(1)}")
+														divStr += "style=\"background-color:#ffcecd; \" selected>";
+													else
+														divStr += "style=\"background-color:#ffcecd; \">";
+												else
+													if("$!{plan_version}" == "${condition.get(0)}!%!${condition.get(1)}")
+														divStr += " selected>";
+													else
+														divStr += ">";
+                                    			divStr += "$condition.get(0) - $condition.get(1)</option>"; 
+                                    		}
+                                    	#end 
+                                    		divStr += "</select>"; 
+                                    		divVersion.innerHTML = divStr;	
+											setVersions(document.frm.plan_version.value);
+                                    	}        
+									</script>
+									<input type="hidden" name="version" value="$!{version}">
+									<input type="hidden" name="seq" value="$!{seq}">
+            					</td>	
+								<td width="12%" align="right">
+									제품 :
+            					</td> 
+								<td width="30%" align="left">
+									<input name="item_id" class="normal" style="width:70px; " onChange="getItemName(this); "
+										onkeypress="enterCheck('${_moon_service}'); " value="$!{item_id}">
+									<input name="item_name" class="normal" readOnly style="width:180px; " value="$!{item_name}"><img
+										name="imgItem" src="sinc/template/basic/skin/nongshim/images/common/icon_search.gif"
+										align="absmiddle" border="0" style="cursor:pointer;"  
+										onClick="openItemSearchPop('item_id', '450', '300'); ">
+								</td>
+								<td width="10%" align="right">
+									 
+								</td>
+								<td width="18%" align="left"> 
+									 
+								</td>
+            				</tr>
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2">
+					<td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="50"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table name="grid" width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						 
+						<tr>
+							<td align="left" > 
+								<script>initWiseGrid("WiseGrid", "100%", "450");</script>  
+							</td> 
+						</tr>
+					</table> 
+					
+					<table border="0" width="100%" cellpadding="0" cellspacing="0" height="5px"><tr><td></td></tr></table>
+					
+					<table id="tbBottom" border="0" width="100%" cellpadding="0" cellspacing="0" width="100%" height="120px">
+						<tr height="100%">
+							<td align="left" width="100%" id="tdBLeft"> ## 판매정보영역
+								<script>initWiseGrid("WiseGrid2", "100%", "100%");</script> 
+							</td>
+						</tr> 
+					</table>
+					
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+						
+					<input type="hidden" name="_moon_service" value="$!{_moon_service}">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					<input type="hidden" name="_user_id" value="$!{_user_id}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+						
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 계획버전, 수송일자, 품목코드를 반드시 입력하고 조회해야 합니다.";
+	helpStr += "<br>◈ 각 항목을 입력한 후 상단의 저장 버튼을 클릭하여 수정 내용을 저장합니다.";
+	helpStr += "<br>◈ PLT, BOX를 수정하기 전에 출고장을 먼저 선택하셔야 합니다.";
+	helpStr += "<br>◈ 수정가능한 컬럼은 PLT, BOX, 출고사업장, 최소수송단위 입니다.";
+	helpStr += "<br>◈ PLT나 BOX를 0으로 변경하면 해당 수송계획은 삭제됩니다.";
+	helpStr += "<br>◈ PLT값을 수정하면 BOX 수량이 자동 셋팅되고, BOX값을 수정하면 PLT값이 자동 셋팅됩니다.";
+	helpCont.innerHTML = helpStr;
+	// 도움말 zoomOut 높이 조절 변수
+	hDynamicHeight = 0;
+	
+	// 버전 초기값 세팅
+	//setVersions(document.frm.plan_version.value);
+	doChange(document.frm.period_type);
+	if( "$!{plan_version}" != "" ) {
+		document.frm.plan_version.value = "$!{plan_version}";
+	}
+	
+</script>

@@ -1,0 +1,296 @@
+############################################################
+## 프로그램ID : rp_02060_transPlanAnaly_list.vm
+## 프로그램명 : 수송계획검증
+## 개발자  : 허준성
+## 개발일자 : 2008-10-05 일요일
+##
+##관련 job file : job_sinc_40_replenishmentPlanning_00.xml
+##
+##관련 query file : query_sinc_40_replenishmentPlanning_00.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2008-10-05  허준성    rp_02060_transPlanAnaly_list.vm 개발
+##
+##
+############################################################
+
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setGridAutoResize('180', '227')" )
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/replenishPlan.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						#button("search")
+						#toolbar_nscm($_moon_toolbar "" "" "" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; " id="search_menu">
+            				<tr>
+								<td width="18%" align="right">
+            						수송 계획주기 :
+            					</td>
+            					<td width="32%" align="left">
+									<select name="period_type" style="width:130px; " onChange="doChange(this); ">
+									#foreach( $tr in $dailyTransportPlan_period_type_list )
+										<option value="${tr.get(0)}" #if( "$!{period_type}" == "${tr.get(0)}" ) selected #end)>
+											${tr.get(1)}
+										</option>
+									#end
+									</select>
+            					</td>
+								<td width="18%" align="right">
+            						수송 계획버전 :
+            					</td>
+            					<td width="32%" align="left">
+									<a id="divTransVersion"> 
+                						<select name="plan_version" style="width:130px; " >
+                							<option value="">선택</option>									
+                						</select>		
+            						</a>
+									<script>
+										function doChange(obj){ 
+                                    		var divStr = "<select name=\"plan_version\" onChange=\"setTransVersions(this.value);\" style=\"width:130px; \"> ";
+                                    	#foreach( $condition in $dailyTransportPlan_version_list )
+                                    		if ( obj.value == "$condition.get(2)" ) { 
+                                    			divStr += "<option value=\"${condition.get(0)}!%!${condition.get(1)}\" ";
+												if($condition.get(4) == 27)
+													if("$!{plan_version}" == "${condition.get(0)}!%!${condition.get(1)}")
+														divStr += "style=\"background-color:#ffffaa; \" selected>";
+													else
+														divStr += "style=\"background-color:#ffffaa; \">";
+												else
+													if("$!{plan_version}" == "${condition.get(0)}!%!${condition.get(1)}")
+														divStr += " selected>";
+													else
+														divStr += ">";
+                                    			divStr += "$condition.get(0) - $condition.get(1)</option>"; 
+                                    		}
+                                    	#end 
+                                    		divStr += "</select>"; 
+                                    		divTransVersion.innerHTML = divStr;	
+											setTransVersions(document.frm.plan_version.value);
+                                    	}                             
+									</script>
+									<input type="hidden" name="trans_version">
+									<input type="hidden" name="trans_seq">
+            					</td>
+							</tr>							
+							<tr >      
+								<td width="18%" align="right">NFOS 주문정보 버전 :</td>  
+            					<td width="32%">									
+									<select name="nfos_order_version" style="width:130px; ">
+									#foreach( $condition in $nfos_order_version_list )  
+										<option value="$condition.get(0)" #if($!{nfos_order_version} == "$condition.get(0)") selected #else #end >$condition.get(0)</option>											
+									#end
+   									</select>	
+   								</td>            					
+								<td width="18%" align="right">판매계획  버전 :</td> 
+            					<td width="32%"> 
+            						<select name="sales_plan_version" style="width:130px; " onChange="setSalesVersions(this.value); ">
+									#foreach( $condition in $nfos_sales_plan_weekly_version_list )  
+										<option value="$condition.get(0)!%!$condition.get(1)" #if($!{sales_plan_version} == "$condition.get(0)!%!$condition.get(1)") selected #else #end >$condition.get(1)</option>											
+									#end
+   									</select>									
+									<input type="hidden" name="sales_yyyy" value="$!{sales_yyyy}">
+									<input type="hidden" name="sales_version" value="$!{sales_version}">
+            					</td>						
+							</tr>
+							<tr >            					
+            					<td width="18%" align="right">
+									제품 :
+            					</td>
+								<td width="32%" align="left">
+									<input name="item_id" class="normal" style="width:70px; " onChange="getItemName(this); "
+										onkeypress="enterCheck('${_moon_service}'); " value="$!{item_id}">
+									<input name="item_name" class="normal" style="width:180px;" value="$!{item_name}" readOnly><img
+										name="imgItem" src="sinc/template/basic/skin/nongshim/images/common/icon_search.gif" 
+										align="absmiddle" border="0" style="cursor:pointer;"  
+										onClick="openItemSearchPop('item_id', '450', '300'); ">
+								</td>									
+								<td width="18%" align="right">일자 :</td>          
+            					<td width="32%">				 	 									    
+									#date_sole_no_title( "select_date" "10" "normal" "startBtn" $date.get('yyyy-MM-dd'))
+            					</td>
+							</tr>
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="43"> ## search 조건 부분 높이 
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>#page_info()</td>
+							<td align="right">#table_display()</td>
+						</tr>
+					</table>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+								
+								#set( $header = "입고장\n코드!%!입고장!%!제품코드!%!제품명!%!재고!%!생산계획!%!수송\n입고계획!%!판매계획!%!수송\n출고계획!%!주문!%!구매\n예정정보!%!물류\n타계정!%!안전재고!%!예상재고!%!명일\n판매계획!%!명일주문!%!보충\n요구량!%!수송\n계획량!%!출고장!%!최소\n수송단위" )
+								#set( $headerType = "TEXT!%!TEXT!%!TEXT!%!TEXT!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!TEXT!%!TEXT" )
+								#set( $colwidth = "60!%!80!%!0!%!0!%!60!%!60%!60!%!60!%!60!%!60!%!60!%!60!%!60!%!60!%!60!%!60!%!60!%!60!%!60!%!80!%!60" )
+								#set( $colalign = "CENTER!%!LEFT!%!CENTER!%!LEFT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!TEXT!%!RIGHT" )
+								##set( $colCor = "3=eeeeee&4=eeeeee" ) 
+								#set( $rowCol = "2,전체합계=dfdfdf" )
+								
+								#set( $data = $zlattice.getBody($!{rp_02060_transPlanAnaly_list},"!%!", "/%/") )
+								
+								<textarea id="txt1" style="display:none;" rows="0" cols="0"> 
+									<object name='grid'
+										classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93" width="100%" height="375"
+										##codebase="http://java.sun.com/update/1.5.0/jinstall-1_5_0_03-windows-i586.cab#Version=1,5,3,0">
+										codebase="http://javadl.sun.com/webapps/download/AutoDL?BundleId=19588#Version=6,0,050,13">
+										<!--Necessary--> 
+										<param name="code" value="com.zionex.t3sinc.ui.ZLattice">
+										<param name="archive" value="zLattice.jar">
+										<param name="headertypes" value= "$headerType">
+										<param name="headers"  value= "$header">
+										<param name="data" value= "$data">
+										<!--Necessary for Modification Grid -->
+										<param name="names" value= "" >
+										<!--Necessary for Cookie -->
+										<param name="identity" value="rp_02060_transPlanAnaly_list">
+										<!--Necessary in TYPE COMBO 
+										<param name="combo9" value="DATA1!%!DATA2!%!DATA3">-->
+										<!--optional - Default Value 있음-->
+										<param name="columndelimeter" value="!%!"> <!-- defalut : !%! -->
+										<param name="rowdelimeter" value="/%/"> <!-- defalut : /%/ -->
+										<param name="showgroupingfunction" value="false">  <!-- defalut : true -->
+										<param name="showprintingfunction" value="false">   <!-- defalut : true -->
+										<param name="showlockingfunction" value="false"> <!-- defalut : true -->
+										<param name="showpagingfunction" value="false"> <!-- defalut : true -->
+										<param name="enablesorting" value="true">   <!-- defalut : true -->
+										<param name="groupingcolumn" value="17"> <!-- defalut : 그루핑 없음 -->
+										<param name="groupsumcolumn" value="0"> <!-- defalut : 그루핑 없음 -->
+										<param name="lockedcolumn" value="0"> <!-- defalut : 락킹 없음 -->
+										<param name="presentpage" value="$_moon_pagenumber">   <!-- defalut : 1 -->
+										<param name="listinpage" value="$_moon_perpage">   <!-- defalut : 40 -->
+										<param name="bordertype" value="PLANE"> <!-- default - PLANE -->
+										<param name="indateformat" value="yyyy-MM-dd"> <!-- default - yyyyMMdd -->
+										<param name="outdateformat" value="yyyy-MM-dd">  <!-- default - yyyyMMdd -->									
+										<param name="outnumberformat" value="&#035;,&#035;&#035;0"> 									 
+										<param name="columnwidth" value="$colwidth"> <!-- default -80 -->
+										<param name="hasverticaltotal" value="false"> <!-- default -true -->
+										<param name="hashorizontaltotal" value="false"> <!-- default -true -->
+										<param name="totalrowcolor" value="eeeeee"> <!-- default ? E6E6FA -->
+										<param name="totalverticalrowcolor" value="eeeeee"> <!-- default ? E6E6FF -->
+										<param name="totalhorizontalrowcolor" value="eeeeee"> <!-- default ? E6E6FF -->
+										<param name="hascookie" value="false"> <!-- default -false -->
+										<param name="enableinserting" value="false"> <!-- default -false -->
+										<param name="enabledeleting" value="false"> <!-- default -false -->
+										<param name="enableediting" value="false"> <!-- default -false -->
+										<!--optional - Default Value 없음-->
+										##set( $colCor = "12=dfdfdf&13=dfdfdf&14=dfdfdf&18=dfdfdf&19=dfdfdf&20=dfdfdf" ) 
+										<param name="columncolor" value="$!{colCor}">
+										<param name="rowcolor" value="$!{rowCol}">
+										<param name="onclickrowfunc" value="onclickfunc">
+										<param name="callingfunction" value="DOUBLECLICKED_CALLING">
+										<param name="disablecolumns" value="">
+										<param name="columnalign" value="$colalign">
+										<param name="font" value="굴림">
+										<param name="fontsize" value="12">
+										<param name="columnheight" value="40">
+										<param name="headertype" value="HORIZONTAL_HEADER">
+										
+										## 이중 헤더
+										<param name="hasnestedsubheader" value="true"> 
+										<param name="topheaders" value="$!{topheader}">
+										<param name="topheaderposition" value="$!{topheaderPosition}">
+										<param name="enabledragging" value="true">
+									</object>
+								</textarea> 
+								<script language="javascript" src="${project}/object_activity.jsp?txtID=txt1"></script>
+							</td>
+						</tr>
+					</table> 
+					
+					<table height="5"><tr><td></td></tr></table>
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+						$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+						<input type="hidden" name="_moon_service" value="${_moon_service}">
+						<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+						<input type="hidden" name="_user_id" value="$!{_user_id}">
+					</td></tr></table>
+					
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 계획버전, 시작일자, 품종구분을  선택하신 후 조회 버튼을 클릭하면 데이타가 조회 됩니다.";
+	helpStr += "<br>◈ 각 RDC별 총재고 보유 예상 현황을 조회하는 화면입니다.";
+	helpStr += "<br>◈ 시작일자는 예상재고를 보고싶은 시작일자입니다.(일반적으로 수송계획 시작일자)";
+	helpStr += "<br>◈ 화면의 수량 컬럼은 RDC에서 보유할 예상 마감 재고 수량을 나타냅니다.";
+	helpStr += "<br>◈ 화면의 일수 컬럼은 RDC에서 보유할 예상 마감 재고 수량를 해당 RDC 3주 평균 판매실적으로 나눈 값입니다.";
+	helpCont.innerHTML = helpStr;
+	// 도움말 zoomOut 높이 조절 변수
+	var hDynamicHeight = 0;
+	
+	// 계획 주기 셋팅 및 계획버전 셋팅 
+	doChange(document.frm.period_type);
+	
+	if( "$!{plan_version}" != "" ) {
+		document.frm.plan_version.value = "$!{plan_version}";
+	}
+	
+	// 버전 초기값 세팅
+	setSalesVersions(document.frm.sales_plan_version.value);
+	
+	
+</script> 

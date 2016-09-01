@@ -1,0 +1,702 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+<!--
+=====================================================================================================
+	생산계획 >> 운영정보
+=====================================================================================================
+-->
+	<!-- 
+	=======================
+	  공장할당 결과 조정
+	=======================
+	-->
+	
+	<!--  공장할당 결과 조정  조회 -->
+	<job id="sc_01060_plantAllocationPlanResultAnalysis_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 공장할당 결과 조정</navigation>
+		<toolbars>0010</toolbars><!--(등록/수정/저장/삭제)-->
+		<title>공장할당 결과 조정</title>
+		<authority>1</authority>		
+		<description>공장할당 결과 조정</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="plant_alloc_version" datasource="t3sinc"/>																
+			<query idref="sc_01060_plantAllocationPlanResultAnalysis_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 공장할당 결과 조정: 저장 --> 
+	<job id="sc_01060_plantAllocationPlanResultAnalysis_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_01060_plantAllocationPlanResultAnalysis_list_save"/>		
+		<sub_job id="sc_01060_plantAllocationPlanResultAnalysis_list"/>
+		<permission_desc>공장할당 결과 조정-저장</permission_desc>
+	</job>
+	<job id="sc_01060_plantAllocationPlanResultAnalysis_list_save" job_type="single" check_permission="no">				
+		<request_type>insert</request_type>
+		<queries>
+			<!-- 01. PLANT_ALLOC_ITEM_ADJ 테이블에 수정한 VERSION의 데이터 DELETE  -->	
+			<!-- 02. 수정된 데이터 PLANT_ALLOC_ITEM_ADJ 테이블에 INSERT( 생산 필요량이 0 이 아닌것 만 )  -->		
+			<query idref="sc_01060_plantAllocationPlanResultAnalysis_list_save_01" datasource="t3sinc"/>
+			<query idref="sc_01060_plantAllocationPlanResultAnalysis_list_save_02" datasource="t3sinc"/>
+		</queries>	
+	</job>
+	
+	<!-- 
+	=======================
+	  일간생산계획 분석(재구성)
+	=======================
+	-->
+	
+	<!--  일간생산계획 분석(재구성)  조회 -->
+	<job id="sc_11020_dailyProductionPlanAnalysisNew_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 일간생산계획 분석(재구성)</navigation>
+		<toolbars>1010</toolbars><!--(등록/수정/저장/삭제)-->
+		<title>일간생산계획 분석(재구성)</title>
+		<authority>1</authority>		
+		<description>일간생산계획 분석(재구성)</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="plant_and_version_list" datasource="t3sinc"/>
+			<query idref="weekly_3_start_end_date" datasource="t3sinc"/>
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 일간생산계획 분석(재구성) : POPUP : 공장, 버전 선택 화면 --> 
+	<job id="sc_11020_dailyProductionPlanAnalysisNewSelectPlantAndVersion_popup" job_type="single">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 일간생산계획 분석(재구성)</navigation>
+		<toolbars>0000</toolbars>
+		<title>공장 및 버전 선택</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="daily_prod_analysis_new_plant_list" datasource="t3sinc"/>
+			<query idref="daily_prod_analysis_new_version_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 일간생산계획 분석(재구성) : 저장 --> 
+	<job id="sc_11020_dailyProductionPlanAnalysisNew_list_save_comp" job_type="composite" check_permission="no">
+		<!--sub_job id="sc_11020_dailyProductionPlanAnalysisNew_list_save01"/-->
+		<sub_job id="sc_11020_dailyProductionPlanAnalysisNew_list_save"/>		
+		<sub_job id="sc_11020_dailyProductionPlanAnalysisNew_list"/>
+		<permission_desc>일간생산계획 분석(재구성)-저장</permission_desc>
+	</job>                                                      
+	<job id="sc_11020_dailyProductionPlanAnalysisNew_list_save01" job_type="single" check_permission="no">				
+		<request_type>insert</request_type>
+		<queries>
+			<!-- V_POST_PRE_PROC 테이블 삭제 -->
+			<query idref="V_POST_PRE_PROC_DELETE" datasource="t3sinc"/>
+			<!-- V_POST_PRE_PROC 테이블에 V_POST_PRE_PROC_TMP VIEW 데이터 INSERT -->
+			<query idref="V_POST_PRE_PROC_INSERT" datasource="t3sinc"/>			
+		</queries>	
+	</job>
+	<job id="sc_11020_dailyProductionPlanAnalysisNew_list_save" job_type="single" check_permission="no">				
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_list_temp_save" datasource="t3sinc"/>
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_list_sp"        datasource="t3sinc"/>
+		</queries>	
+	</job>
+	
+	<!-- 일간생산계획 분석(재구성) : POPUP : 수정화면 조회 --> 
+	<job id="sc_11020_dailyProductionPlanAnalysisNew_popup" job_type="single">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 일간생산계획 분석(재구성)</navigation>
+		<toolbars>0000</toolbars>
+		<title>계획 수정</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="if_dttm_list" datasource="t3sinc"/>
+			<query idref="daily_prod_analysis_new_popup_plant_list" datasource="t3sinc"/>
+			<query idref="daily_prod_analysis_new_popup_proc_list" datasource="t3sinc"/>
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_popup_01" datasource="t3sinc"/>
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_popup_02" datasource="t3sinc"/>
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_popup" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 일간생산계획 분석(재구성) : POPUP : 저장 : 이동처리(이동 할 곳에 물량이 없을 경우) --> 
+	<job id="sc_11020_dailyProductionPlanAnalysisNew_popup_save01_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_11020_dailyProductionPlanAnalysisNew_popup_save01"/>		
+		<sub_job id="sc_11020_dailyProductionPlanAnalysisNew_popup"/>
+		<permission_desc>일간생산계획 분석(재구성)POPUP-저장</permission_desc>
+	</job>
+	<job id="sc_11020_dailyProductionPlanAnalysisNew_popup_save01" job_type="single" check_permission="no">				
+		<request_type>insert</request_type>
+		<queries>
+			<!-- 이동처리(이동 할 곳에 물량이 없을 경우)  -->	
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_popup_save01" datasource="t3sinc"/>
+		</queries>	
+	</job>
+	
+	<!-- 일간생산계획 분석(재구성) : POPUP : 저장 : 수량통합처리(이동 할 곳에 물량이 있을 경우) --> 
+	<job id="sc_11020_dailyProductionPlanAnalysisNew_popup_save02_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_11020_dailyProductionPlanAnalysisNew_popup_save02"/>		
+		<sub_job id="sc_11020_dailyProductionPlanAnalysisNew_popup"/>
+		<permission_desc>일간생산계획 분석(재구성)POPUP-저장</permission_desc>
+	</job>
+	<job id="sc_11020_dailyProductionPlanAnalysisNew_popup_save02" job_type="single" check_permission="no">				
+		<request_type>insert</request_type>
+		<queries>
+			<!-- 수량통합처리(이동 할 곳에 물량이 있을 경우)  -->	
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_popup_save02" datasource="t3sinc"/>
+			<!-- 이동한 WO_ID 삭제 -->
+			<query idref="delete_wo_id" datasource="t3sinc"/>			
+		</queries>	
+	</job>
+	
+	<!-- 일간생산계획 분석(재구성) : POPUP : 삭제  --> 
+	<job id="sc_11020_dailyProductionPlanAnalysisNew_popup_del_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_11020_dailyProductionPlanAnalysisNew_popup_del"/>		
+		<sub_job id="sc_11020_dailyProductionPlanAnalysisNew_popup"/>
+		<permission_desc>일간생산계획 분석(재구성)POPUP-삭제</permission_desc>
+	</job>
+	<job id="sc_11020_dailyProductionPlanAnalysisNew_popup_del" job_type="single" check_permission="no">				
+		<request_type>insert</request_type>
+		<queries>
+			<!-- WO_ID 삭제 -->
+			<query idref="delete_wo_id" datasource="t3sinc"/>			
+		</queries>	
+	</job>
+	
+	<!-- 일간생산계획 분석(재구성) : POPUP : 등록화면 조회(생산계획에 존재하는 제품) --> 
+	<job id="sc_11020_dailyProductionPlanAnalysisNew_reg" job_type="single">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 일간생산계획 분석(재구성)</navigation>
+		<toolbars>0000</toolbars>
+		<title>등록</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_reg" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 일간생산계획 분석(재구성) : POPUP : 등록화면 수정(생산계획에 존재하는 제품) --> 
+	<job id="sc_11020_dailyProductionPlanAnalysisNew_reg_save01_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_11020_dailyProductionPlanAnalysisNew_reg_save01"/>		
+		<sub_job id="sc_11020_dailyProductionPlanAnalysisNew_reg"/>
+		<permission_desc>일간생산계획 분석(재구성)POPUP-저장</permission_desc>
+	</job>
+	<job id="sc_11020_dailyProductionPlanAnalysisNew_reg_save01" job_type="single" check_permission="no">				
+		<request_type>insert</request_type>
+		<queries>
+			<!-- DATA INSERT -->
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_reg_save01" datasource="t3sinc"/>	
+			<!-- GRP_WO_ID 시퀀스 UPDATE -->
+			<!--query idref="update_grp_wo_id_seq" datasource="t3sinc"/-->	
+		</queries>	
+	</job>
+	
+	<!-- 일간생산계획 분석(재구성) : POPUP : 등록화면 저장(생산계획에 존재하는 제품) --> 
+	<job id="sc_11020_dailyProductionPlanAnalysisNew_reg_save02_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_11020_dailyProductionPlanAnalysisNew_reg_save02"/>		
+		<sub_job id="sc_11020_dailyProductionPlanAnalysisNew_reg"/>
+		<permission_desc>일간생산계획 분석(재구성)POPUP-저장</permission_desc>
+	</job>
+	<job id="sc_11020_dailyProductionPlanAnalysisNew_reg_save02" job_type="single" check_permission="no">				
+		<request_type>insert</request_type>
+		<queries>
+			<!-- DATA INSERT -->
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_reg_save02" datasource="t3sinc"/>	
+		</queries>	
+	</job>
+	
+	<!-- 일간생산계획 분석(재구성) : POPUP : 등록화면 조회(생산계획에 없는 제품) --> 
+	<job id="sc_11020_dailyProductionPlanAnalysisNewItem_reg" job_type="single">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 일간생산계획 분석(재구성)</navigation>
+		<toolbars>0000</toolbars>
+		<title>등록</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="new_item_reg_plant_list" datasource="t3sinc"/>
+			<query idref="combo_proc_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 일간생산계획 분석(재구성) : POPUP : 등록화면 저장(생산계획에 없는 제품) --> 
+	<job id="sc_11020_dailyProductionPlanAnalysisNewItem_reg_save01_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_11020_dailyProductionPlanAnalysisNewItem_reg_save"/>		
+		<sub_job id="sc_11020_dailyProductionPlanAnalysisNewItem_reg"/>
+		<permission_desc>일간생산계획 분석(재구성)POPUP-삭제</permission_desc>
+	</job>
+	<job id="sc_11020_dailyProductionPlanAnalysisNewItem_reg_save" job_type="single" check_permission="no">				
+		<request_type>insert</request_type>
+		<queries>
+			<!-- DATA INSERT -->
+			<query idref="sc_11020_dailyProductionPlanAnalysisNewItem_reg_save" datasource="t3sinc"/>
+			<!-- SP 실행 -->
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_list_sp"      datasource="t3sinc"/>	
+		</queries>	
+	</job>
+	
+	<!-- 일간생산계획 분석(재구성) : POPUP : 공장할당 물량 대비 생산계획 물량 조회 --> 
+	<job id="sc_11020_dailyProductionPlanAnalysisNewFaVsPs_popup" job_type="single">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 일간생산계획 분석(재구성)</navigation>
+		<toolbars>0000</toolbars>
+		<title>공장할당 물량 대비 생산계획 물량</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="sc_11020_dailyProductionPlanAnalysisNewFaVsPs_popup" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 일간생산계획 분석(재구성) : POPUP : 주차별 물량 검증 화면 조회 --> 
+	<job id="sc_11020_dailyProductionPlanAnalysisNewFaSchQtyChk_popup" job_type="single">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 일간생산계획 분석(재구성)</navigation>
+		<toolbars>0000</toolbars>
+		<title>주차별 물량 검증</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="sc_11020_dailyProductionPlanAnalysisNewFaSchQtyChk_popup" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 일간생산계획 분석(재구성) : POPUP : Excel Download --> 
+	<job id="sc_11020_dailyProductionPlanAnalysisNewExcelDown_popup" job_type="single">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 일간생산계획 분석(재구성)</navigation>
+		<toolbars>0000</toolbars>
+		<title>Excel Down</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="weekly_3_start_end_date2" datasource="t3sinc"/>
+			<query idref="sc_11020_dailyProductionPlanAnalysisNewExcelDown_popup" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 
+	==============================
+	  일간 반제품 생산계획 분석(재구성)
+	==============================
+	-->
+	
+	<!--  일간 반제품 생산계획 분석(재구성)  조회 -->
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 일간 반제품 생산계획 분석(재구성)</navigation>
+		<toolbars>1010</toolbars><!--(등록/수정/저장/삭제)-->
+		<title>일간 반제품 생산계획 분석(재구성)</title>
+		<authority>1</authority>		
+		<description>일간 반제품 생산계획 분석(재구성)</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="semi_plant_and_version_list" datasource="t3sinc"/>
+			<query idref="weekly_3_start_end_date" datasource="t3sinc"/>
+			<query idref="sc_12020_dailySemifinishedProductPlanAnalysisNew_list" datasource="t3sinc"/>
+		</queries>
+	</job>	
+	
+	<!-- 일간 반제품 생산계획 분석(재구성) : POPUP : 공장, 버전 선택 화면 --> 
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNewSelectPlantAndVersion_popup" job_type="single">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 일간 반제품 생산계획 분석(재구성)</navigation>
+		<toolbars>0000</toolbars>
+		<title>공장 및 버전 선택</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="daily_prod_analysis_new_plant_list" datasource="t3sinc"/>
+			<query idref="daily_prod_analysis_new_version_list" datasource="t3sinc"/>
+			<query idref="semi_combo_version_list" datasource="t3sinc"/>
+			<query idref="semi_new_item_reg_plant_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 일간 반제품 생산계획 분석(재구성) : 저장 --> 
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_list_save"/>		
+		<sub_job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_list"/>
+		<permission_desc>일간 반제품 생산계획 분석(재구성)-저장</permission_desc>
+	</job>
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_list_save" job_type="single" check_permission="no">				
+		<request_type>insert</request_type>
+		<queries>
+			<!-- 화면 DATA TEMP TABLE에 저장 -->
+			<query idref="sc_12020_dailySemifinishedProductPlanAnalysisNew_list_temp_save" datasource="t3sinc"/>
+			<!-- 반제품 앞공정 생성 SP 실행 -->
+			<query idref="sc_12020_dailySemifinishedProductPlanAnalysisNew_list_sp" datasource="t3sinc"/>
+		</queries>	
+	</job>
+	
+	<!-- 일간 반제품 생산계획 분석(재구성) : POPUP : 수정화면 조회 --> 
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_popup" job_type="single">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 일간 반제품 생산계획 분석(재구성)</navigation>
+		<toolbars>0000</toolbars>
+		<title>계획 수정</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="if_dttm_list" datasource="t3sinc"/>
+			<query idref="daily_prod_analysis_new_popup_plant_list" datasource="t3sinc"/>
+			<!-- 공장, 제품  반제품 생산 가능 작업장(마지막 작업장) -->
+			<query idref="semi_plnat_item_proc_list" datasource="t3sinc"/>
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_popup_01" datasource="t3sinc"/>
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_popup_02" datasource="t3sinc"/>
+			<query idref="sc_12020_dailySemifinishedProductPlanAnalysisNew_popup" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 일간생산계획 분석(재구성) : POPUP : 저장 : 이동처리(이동 할 곳에 물량이 없을 경우) --> 
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_popup_save01_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_popup_save01"/>		
+		<sub_job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_popup"/>
+		<permission_desc>일간생산계획 분석(재구성)POPUP-저장</permission_desc>
+	</job>
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_popup_save01" job_type="single" check_permission="no">				
+		<request_type>insert</request_type>
+		<queries>
+			<!-- 이동처리(이동 할 곳에 물량이 없을 경우)  -->	
+			<query idref="sc_12020_dailySemifinishedProductPlanAnalysisNew_popup_save01" datasource="t3sinc"/>
+		</queries>	
+	</job>	
+	
+	<!-- 일간 반제품 생산계획 분석(재구성) : POPUP : 저장 : 수량통합처리(이동 할 곳에 물량이 있을 경우) --> 
+	<job id="sc_11020_dailySemifinishedProductPlanAnalysisNew_popup_save02_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_11020_dailySemifinishedProductPlanAnalysisNew_popup_save02"/>		
+		<sub_job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_popup"/>
+		<permission_desc>일간 반제품 생산계획 분석(재구성)POPUP-저장</permission_desc>
+	</job>
+	<job id="sc_11020_dailySemifinishedProductPlanAnalysisNew_popup_save02" job_type="single" check_permission="no">				
+		<request_type>insert</request_type>
+		<queries>
+			<!-- 수량통합처리(이동 할 곳에 물량이 있을 경우)  -->	
+			<query idref="sc_12020_dailySemifinishedProductPlanAnalysisNew_popup_save02" datasource="t3sinc"/>
+			<!-- 이동한 WO_ID 삭제 -->
+			<query idref="semi_delete_wo_id" datasource="t3sinc"/>			
+		</queries>	
+	</job>
+	
+	<!-- 일간 반제품 생산계획 분석(재구성) : POPUP : 삭제  --> 
+	<job id="sc_11020_dailySemifinishedProductPlanAnalysisNew_popup_del_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_11020_dailySemifinishedProductPlanAnalysisNew_popup_del"/>		
+		<sub_job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_popup"/>
+		<permission_desc>일간 반제품 생산계획 분석(재구성)POPUP-삭제</permission_desc>
+	</job>
+	<job id="sc_11020_dailySemifinishedProductPlanAnalysisNew_popup_del" job_type="single" check_permission="no">				
+		<request_type>insert</request_type>
+		<queries>
+			<!-- WO_ID 삭제 -->
+			<query idref="semi_delete_wo_id" datasource="t3sinc"/>			
+		</queries>	
+	</job>
+		
+	<!-- 일간 반제품 생산계획 분석(재구성) : POPUP : 등록화면 조회(생산계획에 존재하는 제품) --> 
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_reg" job_type="single">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 일간 반제품 생산계획 분석(재구성)</navigation>
+		<toolbars>0000</toolbars>
+		<title>등록</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="sc_12020_dailySemifinishedProductPlanAnalysisNew_reg" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 일간 반제품 생산계획 분석(재구성) : POPUP : 등록화면 저장(생산계획에 존재하는 제품) --> 
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_reg_save01_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_reg_save01"/>		
+		<sub_job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_reg"/>
+		<permission_desc>일간 반제품 생산계획 분석(재구성)POPUP-저장</permission_desc>
+	</job>
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_reg_save01" job_type="single" check_permission="no">				
+		<request_type>insert</request_type>
+		<queries>
+			<!-- DATA INSERT(완제품 로직과 동일) -->
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_reg_save01" datasource="t3sinc"/>	
+			<!-- GRP_WO_ID 시퀀스 UPDATE -->
+			<!--query idref="semi_update_grp_wo_id_seq" datasource="t3sinc"/-->	
+		</queries>	
+	</job>
+	
+	<!-- 일간 반제품 생산계획 분석(재구성) : POPUP : 등록화면 저장(생산계획에 존재하는 제품) --> 
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_reg_save02_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_reg_save02"/>		
+		<sub_job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_reg"/>
+		<permission_desc>일간 반제품 생산계획 분석(재구성)POPUP-저장</permission_desc>
+	</job>
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_reg_save02" job_type="single" check_permission="no">				
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="sc_12020_dailySemifinishedProductPlanAnalysisNew_reg_save02" datasource="t3sinc"/>	
+			<!-- GRP_WO_ID 시퀀스 UPDATE -->
+			<!--query idref="semi_update_grp_wo_id_seq" datasource="t3sinc"/-->	
+		</queries>	
+	</job>
+		
+	<!-- 일간 반제품 생산계획 분석(재구성) : POPUP : 등록화면 조회(생산계획에 없는 제품) --> 
+<!-- 20090930 남웅용 반제품 생산가능공장 query교체  --> 
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNewItem_reg" job_type="single">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 일간 반제품 생산계획 분석(재구성)</navigation>
+		<toolbars>0000</toolbars>
+		<title>등록</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<!-- 공장 리스트 -->
+			<query idref="semi_all_plant_list" datasource="t3sinc"/>
+			<!-- 마지막 작업장 리스트 -->
+			<query idref="semi_proc_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+		
+	<!-- 일간 반제품 생산계획 분석(재구성) : POPUP : 등록화면 저장(생산계획에 없는 제품) --> 
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNewItem_reg_save01_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_12020_dailySemifinishedProductPlanAnalysisNewItem_reg_save"/>		
+		<sub_job id="sc_12020_dailySemifinishedProductPlanAnalysisNewItem_reg"/>
+		<permission_desc>일간 반제품 생산계획 분석(재구성)POPUP-저장</permission_desc>
+	</job>
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNewItem_reg_save" job_type="single" check_permission="no">				
+		<request_type>insert</request_type>
+		<queries>
+			<!-- DATA INSERT -->
+			<query idref="sc_12020_dailySemifinishedProductPlanAnalysisNewItem_reg_save" datasource="t3sinc"/>
+			<!-- 반제품 앞공정 생성 SP 실행 -->
+			<query idref="sc_12020_dailySemifinishedProductPlanAnalysisNew_list_sp"      datasource="t3sinc"/>		
+		</queries>	
+	</job>
+	
+	<!-- 일간 반제품 생산계획 분석(재구성) : POPUP : 수정화면 조회(쫄병, 생지등 반제품) --> 
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_upd" job_type="single">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 일간 반제품 생산계획 분석(재구성)</navigation>
+		<toolbars>0000</toolbars>
+		<title>등록</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="sc_12020_dailySemifinishedProductPlanAnalysisNew_upd" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 일간 반제품 생산계획 분석(재구성) : POPUP : 수정화면 저장(쫄병, 생지등 반제품) --> 
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_upd_save01_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_upd_save01"/>		
+		<sub_job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_upd"/>
+		<permission_desc>일간 반제품 생산계획 분석(재구성)POPUP-저장</permission_desc>
+	</job>
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_upd_save01" job_type="single" check_permission="no">				
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="sc_12020_dailySemifinishedProductPlanAnalysisNew_upd_save01" datasource="t3sinc"/>
+		</queries>	
+	</job>
+	
+	<!-- 일간반제품생산계획 분석(재구성) : POPUP : Excel Download --> 
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNewExcelDown_popup" job_type="single">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 일간반제품생산계획 분석(재구성)</navigation>
+		<toolbars>0000</toolbars>
+		<title>Excel Down</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="weekly_3_start_end_date2" datasource="t3sinc"/>
+			<query idref="sc_12020_dailySemifinishedProductPlanAnalysisNewExcelDown_popup" datasource="t3sinc"/>
+		</queries>
+	</job>	  
+		
+	<!-- 일간반제품생산계획 분석(재구성) : POPUP : 반제품 검증 --> 
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNewStockChk_popup" job_type="single">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 일간반제품생산계획 분석(재구성)</navigation>
+		<toolbars>0000</toolbars>
+		<title>반제품 검증</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="sc_12020_dailySemifinishedProductPlanAnalysisNewStockChk_popup" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!--
+	========================================
+	Excel Download and Upload
+	========================================
+	-->
+		
+	<!-- Excel Download --> 
+	<!-- 일간생산계획 분석(재구성) : Excel Download --> 
+	<job id="sc_11020_dailyProductionPlanAnalysisNew_list_excelDown" job_type="single">
+		<path>/sinc/20.Scheduling</path>
+		<navigation></navigation>
+		<toolbars>0000</toolbars>
+		<title></title>
+		<authority></authority>
+		<description>excel</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="weekly_3_start_end_date" datasource="t3sinc"/>
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_list_excelDown" datasource="t3sinc"/>
+		</queries>
+	</job>	  
+	
+	<!-- 일간생산계획 분석(재구성) : Excel Download 다른 버전 -->
+	<job id="sc_11020_dailyProductionPlanAnalysisNew_list_excelDown_old" job_type="single">
+	   <request_type>excel_download</request_type>
+		<queries>
+			<query idref="excel_down_title" datasource="t3sinc"/>
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_list_excelDown" datasource="t3sinc"/>
+		</queries>         
+	</job> 
+	
+	<!-- 일간생산계획 분석(재구성) : Excel Upload -->
+	<job id="sc_11020_dailyProductionPlanAnalysisNew_list_excelUp" job_type="single">
+	   <path>/sinc/20.Scheduling</path>
+	   <navigation>생산계획 >> 운영정보 >> 일간생산계획 분석(재구성)</navigation>
+	   <toolbars>0100</toolbars>
+	   <title>일간생산계획 관리 - Excel Upload</title>
+	   <authority>1</authority>                
+	   <description>-</description>                     
+	   <request_type>excel_upload</request_type>          
+	</job>
+	
+	<!-- 일간생산계획 분석(재구성) : Excel - DB 저장 -->
+	<job id="sc_11020_dailyProductionPlanAnalysisNew_list_excel_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_11020_dailyProductionPlanAnalysisNew_list_excel_save"/>		
+		<sub_job id="sc_11020_dailyProductionPlanAnalysisNew_list_excelUp"/>
+		<permission_desc>일간 EXCEL 생산계획 분석(재구성)-저장</permission_desc>
+	</job>
+	<job id="sc_11020_dailyProductionPlanAnalysisNew_list_excel_save" job_type="single" check_permission="no">				
+		<request_type>insert</request_type>
+		<queries>
+			<!-- DAILY_SCH_PLAN_SHIFT_EXCEL DELETE -->
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_list_excel_save_01" datasource="t3sinc"/>
+			<!-- DAILY_SCH_PLAN_EXCEL_EXCEPT DELETE -->
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_list_excel_save_02" datasource="t3sinc"/>
+			<!-- DAILY_SCH_PLAN_EXCEL_EXCEPT INSERT -->
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_list_excel_save_03" datasource="t3sinc"/>
+			<!-- DAILY_SCH_PLAN_SHIFT_EXCEL INSERT -->
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_list_excel_save_04" datasource="t3sinc"/>
+			<!-- DAILY_SCH_PLAN_EXCEL_EXCEPT INSERT -->
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_list_excel_save_05" datasource="t3sinc"/>
+			<!-- DAILY_SCH_PLAN_SHIFT DELETE -->
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_list_excel_save_06" datasource="t3sinc"/>	
+			<!-- DAILY_SCH_PLAN_SHIFT INSERT -->
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_list_excel_save_07" datasource="t3sinc"/>
+			<!-- DAILY_SCH_PLAN_SHIFT_EXCEL DELETE -->
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_list_excel_save_01" datasource="t3sinc"/>
+		</queries>	
+	</job>
+	
+	<!-- 일간반제품생산계획 분석(재구성) : Excel Except POPUP --> 
+	<job id="sc_11020_dailyProductionPlanAnalysisNewExcelExcept_popup" job_type="single">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 일간 EXCEL 생산계획 분석(재구성)</navigation>
+		<toolbars>0000</toolbars>
+		<title>Excel Except</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="sc_11020_dailyProductionPlanAnalysisNewExcelExcept_popup" datasource="t3sinc"/>
+		</queries>
+	</job>	  
+	
+	<!-- 일간 반제품 생산계획 분석(재구성) : Excel Download --> 
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_list_excelDown" job_type="single">
+		<path>/sinc/20.Scheduling</path>
+		<navigation></navigation>
+		<toolbars>0000</toolbars>
+		<title></title>
+		<authority></authority>
+		<description>excel</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="weekly_3_start_end_date" datasource="t3sinc"/>
+			<query idref="sc_12020_dailySemifinishedProductPlanAnalysisNew_list_excelDown" datasource="t3sinc"/>
+		</queries>
+	</job>	  
+	
+	<!-- 일간 반제품 생산계획 분석(재구성) : Excel Upload -->
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_list_excelUp" job_type="single">
+	   <path>/sinc/20.Scheduling</path>
+	   <navigation>생산계획 >> 운영정보 >> 일간 반제품 생산계획 분석(재구성)</navigation>
+	   <toolbars>0100</toolbars>
+	   <title>일간 반제품 생산계획 관리 - Excel Upload</title>
+	   <authority>1</authority>                
+	   <description>-</description>                     
+	   <request_type>excel_upload</request_type>          
+	</job>
+	
+	<!-- 일간 반제품 생산계획  분석(재구성) : Excel - DB 저장 -->
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_list_excel_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_list_excel_save"/>		
+		<sub_job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_list_excelUp"/>
+		<permission_desc>일간 EXCEL 생산계획 분석(재구성)-저장</permission_desc>
+	</job>
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_list_excel_save" job_type="single" check_permission="no">				
+		<request_type>insert</request_type>
+		<queries>
+			<!-- DAILY_SCH_PLAN_SHIFT_EXCEL DELETE -->
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_list_excel_save_01" datasource="t3sinc"/>
+			<!-- DAILY_SCH_PLAN_SHIFT_EXCEL_EXCEPT DELETE -->
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_list_excel_save_02" datasource="t3sinc"/>
+			<!-- DAILY_SCH_PLAN_SHIFT_EXCEL_EXCEPT INSERT -->
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_list_excel_save_03" datasource="t3sinc"/>
+			<!-- DAILY_SCH_PLAN_SHIFT_EXCEL INSERT -->
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_list_excel_save_04" datasource="t3sinc"/>
+			<!-- DAILY_SCH_PLAN_EXCEL_EXCEPT INSERT -->
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_list_excel_save_05" datasource="t3sinc"/>
+			<!-- DAILY_SCH_PLAN_SHIFT DELETE -->
+			<query idref="sc_12020_dailySemifinishedProductPlanAnalysisNew_list_excel_save_01" datasource="t3sinc"/>	
+			<!-- DAILY_SCH_PLAN_SHIFT INSERT -->
+			<query idref="sc_12020_dailySemifinishedProductPlanAnalysisNew_list_excel_save_02" datasource="t3sinc"/>
+			<!-- DAILY_SCH_PLAN_SHIFT_EXCEL DELETE -->
+			<query idref="sc_11020_dailyProductionPlanAnalysisNew_list_excel_save_01" datasource="t3sinc"/>		
+		</queries>	
+	</job>
+	
+	<!-- 일간반제품생산계획 분석(재구성) : Excel Except POPUP --> 
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNewExcelExcept_popup" job_type="single">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 일간반제품 EXCEL 생산계획 분석(재구성)</navigation>
+		<toolbars>0000</toolbars>
+		<title>Excel Except</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="sc_12020_dailySemifinishedProductPlanAnalysisNewExcelExcept_popup" datasource="t3sinc"/>
+		</queries>
+	</job>
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+
+
+</jobs>	

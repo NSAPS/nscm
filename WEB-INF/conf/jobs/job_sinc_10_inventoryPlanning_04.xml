@@ -1,0 +1,615 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+	<!-- 
+	=======================
+	  GYR 분석관리
+	=======================
+	-->
+
+	<!-- GYR마스터 정합성 관리 --> 
+	<job id="ip_04010_GYR_master_list" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 분석정보 >> GYR마스터조회 </navigation>
+		<toolbars>0011</toolbars>
+		<title>GYR마스터확인</title>
+		<authority>1</authority>		
+		<description>GYR마스터확인</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_04010_GYR_master_list_DW1" datasource="t3sinc"/>
+		</queries>
+	</job> 	
+
+	<!-- GYR보고자료 --> 
+	<job id="ip_04020_GYR_information_list" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 분석정보 >> GYR보고서 </navigation>
+		<toolbars>0011</toolbars>
+		<title>GYR보고서</title>
+		<authority>1</authority>		
+		<description>GYR보고서</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_04020_GYR_DC_HEADER_NAME" datasource="t3sinc"/>
+			<query idref="ip_04020_GYR_DC_HEADER_CODE" datasource="t3sinc"/>
+			<query idref="get_gyrdate_list" datasource="t3sinc"/>
+			<query idref="ip_04020_GYR_information_list" datasource="t3sinc"/>
+		</queries>
+	</job> 	
+
+	<!-- GYR품목별 상세조회 Pop-Up -->
+	<job id="ip_04020_GYR_ItemList_popup" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 분석정보 >> GYR품목별 상세조회 </navigation>
+		<toolbars>0011</toolbars>
+		<title>GYR품목별 상세조회</title>
+		<authority>1</authority>		
+		<description>GYR품목별 상세조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_04020_GYR_ItemList_popup" datasource="t3sinc"/>
+		</queries>
+	</job> 	
+
+	<!-- GYR품목별 상세조회 --> 
+	<job id="ip_04030_GYR_Detail_list" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 분석정보 >> GYR품목별 상세조회 </navigation>
+		<toolbars>0011</toolbars>
+		<title>GYR품목별 상세조회</title>
+		<authority>1</authority>		
+		<description>GYR품목별 상세조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="get_gyrdate_list" datasource="t3sinc"/>
+			<query idref="get_gyr_dc_list" datasource="t3sinc"/>
+			<query idref="md_01060_combo_item_type" datasource="t3sinc"/>
+			<query idref="ip_02020_combo_search_type" datasource="t3sinc"/>
+			<query idref="ip_04030_GYR_Detail_list" datasource="t3sinc"/>
+		</queries>
+	</job> 	
+
+
+	<!-- GYR품목별 DC 상세조회 --> 
+	<job id="ip_04040_GYR_DC_Detail_list" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 분석정보 >> GYR품목별 DC상세조회 </navigation>
+		<toolbars>0011</toolbars>
+		<title>GYR품목별 DC상세조회</title>
+		<authority>1</authority>		
+		<description>GYR품목별 DC상세조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_04040_GYR_DC_COMBO" datasource="t3sinc"/>
+			<query idref="ip_04040_GYR_DC_Detail_list" datasource="t3sinc"/>
+		</queries>
+	</job> 	
+
+	<!-- 장기체화소진율 분석조회 --> 
+	<job id="ip_04050_GYR_Analysis_list" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 분석정보 >> 장기체화소진율 분석조회 </navigation>
+		<toolbars>0011</toolbars>
+		<title>장기체화소진율 분석조회</title>
+		<authority>1</authority>		
+		<description>장기체화소진율 분석조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_04050_GYR_DC_combo" datasource="t3sinc"/>
+		</queries>
+	</job> 	
+
+	<!-- 장기체화소진율 품목상세-Popup --> 
+	<job id="ip_04050_GYR_Item_Detail_popup" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 분석정보 >> 장기체화소진율 품목상세 </navigation>
+		<toolbars>0011</toolbars>
+		<title>장기체화소진율 품목상세popup</title>
+		<authority>1</authority>		
+		<description>장기체화소진율 품목상세</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_04050_GYR_Item_Detail_popup" datasource="t3sinc"/>
+		</queries>
+	</job> 	
+	
+	<!-- 
+	=======================
+	  미납율 조회
+	=======================
+	-->
+
+	<!-- 미출고 정보조회 --> 
+	<job id="ip_05010_DeleteOrder_list" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 분석관리 >> 미출고 정보조회 </navigation>
+		<toolbars>1000</toolbars>
+		<title>미출고 정보조회</title>
+		<authority>1</authority>		
+		<description>미출고 정보조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_05010_DC_combo" datasource="t3sinc"/>
+			<query idref="ip_05010_Sales_Loc_combo" datasource="t3sinc"/>
+			<query idref="ip_05010_DeleteOrder_list_DW1" datasource="t3sinc"/>
+			<query idref="ip_05010_DeleteOrder_list_DW2" datasource="t3sinc"/>
+		</queries>
+	</job> 	
+
+	<!-- 
+	=======================
+	  WMS출고마감별 조회
+	=======================
+	-->
+
+	<!-- WMS출고마감별 조회 --> 
+	<job id="ip_05020_WMS_CloseInfo_list" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 분석관리 >> WMS출고마감별 조회 </navigation>
+		<toolbars>1000</toolbars>
+		<title>WMS출고마감별 조회</title>
+		<authority>1</authority>		
+		<description>WMS출고마감별 조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_05010_DC_combo" datasource="t3sinc"/>
+			<query idref="ip_05020_WMS_close_gubn_combo" datasource="t3sinc"/>
+			<query idref="ip_05020_WMS_CloseInfo_list_DW1" datasource="t3sinc"/>
+			<query idref="ip_05020_WMS_CloseInfo_list_DW2" datasource="t3sinc"/>
+			<query idref="ip_05020_WMS_CloseInfo_list_DW3" datasource="t3sinc"/>
+			<query idref="ip_05020_WMS_CloseInfo_list_DW4" datasource="t3sinc"/>
+			<query idref="ip_02020_combo_search_type" datasource="t3sinc"/>
+		</queries>
+	</job> 	
+
+	<!-- 
+	=======================
+	  WMS출고마감별 조회
+	=======================
+	-->
+
+	<!-- WMS 출고마감별 사유관리 --> 
+	<job id="ip_05040_WMS_CloseInfo_Scm_list" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 분석관리 >> WMS 출고마감별 사유관리 </navigation>
+		<toolbars>0010</toolbars>
+		<title>WMS 출고마감별 사유관리</title>
+		<authority>1</authority>		
+		<description>WMS 출고마감별 사유관리</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_05010_DC_combo" datasource="t3sinc"/>			
+			<query idref="ip_05020_WMS_close_gubn_combo" datasource="t3sinc"/>			
+		</queries>
+	</job> 	
+	
+	<!-- WMS 출고마감별 사유관리 팝업 --> 
+	<job id="ip_05040_WMS_CloseInfo_Scm_list_pop" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 분석관리 >> WMS 출고마감별 사유관리</navigation>
+		<toolbars>0010</toolbars>
+		<title>WMS 출고마감별 사유관리</title>
+		<authority>1</authority>		
+		<description>WMS 출고마감별 사유관리</description>
+		<request_type>list</request_type>
+		<queries> 			
+		</queries>
+	</job>
+	
+	<job id="ip_05040_WMS_CloseInfo_Scm_list_pop2" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 분석관리 >> WMS 출고마감별 사유관리 (배정미납) </navigation>
+		<toolbars>0010</toolbars>
+		<title>WMS 출고마감별 사유관리 (배정미납)</title>
+		<authority>1</authority>		
+		<description>WMS 출고마감별 사유관리 (배정미납)</description>
+		<request_type>list</request_type>
+		<queries> 			
+		</queries>
+	</job>
+	
+	<!-- 
+	=======================
+	  재고부족 배송결품분석
+	=======================
+	-->
+
+	<!-- 재고부족 배송결품분석 --> 
+	<job id="ip_05030_DelvShortageAnal_list" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 분석관리 >> 재고부족 배송결품분석 </navigation>
+		<toolbars>1000</toolbars>
+		<title>재고부족 배송결품분석</title>
+		<authority>1</authority>		
+		<description>재고부족 배송결품분석</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_05030_DelvShortageAnal_list" datasource="t3sinc"/>
+		</queries>
+	</job> 	
+	
+	<!-- 
+	=======================
+	  제품/품종별 판매현황조회
+	=======================
+	-->	
+
+	<!-- 제품/품종별 판매현황조회 --> 
+	<job id="ip_06010_ProdSalesAct_list" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 분석관리 >> 제품/품종별 판매현황조회 </navigation>
+		<toolbars>1000</toolbars>
+		<title>제품/품종별 판매현황조회</title>
+		<authority>1</authority>		
+		<description>제품/품종별 판매현황조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_06010_HEADER_DATE" datasource="t3sinc"/>
+			<query idref="ip_06010_ProdSalesAct_list" datasource="t3sinc"/>
+		</queries>
+	</job> 		
+
+	<!-- 제품/품종별 판매현황조회(영업조직popup) --> 
+	<job id="ip_06010_SalesLoc_popup" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>영업조직 조회</navigation>
+		<toolbars>1000</toolbars>
+		<title>영업조직 조회</title>
+		<authority>1</authority>		
+		<description>영업조직 조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_06010_SalesLoc_popup" datasource="t3sinc"/>
+		</queries>
+	</job> 				
+
+	<!-- 제품/품종별 판매현황조회(품목popup) --> 
+	<job id="ip_06010_Item_popup" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>품목 조회</navigation>
+		<toolbars>1000</toolbars>
+		<title>품목 조회</title>
+		<authority>1</authority>		
+		<description>품목 조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_06010_Item_popup" datasource="t3sinc"/>
+		</queries>
+	</job> 			
+
+	<!-- 제품/품종별 판매현황조회(품종popup) --> 
+	<job id="ip_06010_Prty_popup" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>품종 조회</navigation>
+		<toolbars>1000</toolbars>
+		<title>품종 조회</title>
+		<authority>1</authority>		
+		<description>품종 조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_06010_Prty_popup" datasource="t3sinc"/>
+		</queries>
+	</job> 
+	
+	<!-- 
+	=======================
+	  판매계획vs실적 조회
+	=======================
+	-->	
+
+	<!-- 판매계획vs실적 조회 --> 
+	<job id="ip_06020_SalesPlan_vs_Act_list" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 분석관리 >> 판매계획vs실적 조회 </navigation>
+		<toolbars>1000</toolbars>
+		<title>판매계획vs실적 조회</title>
+		<authority>1</authority>		
+		<description>판매계획vs실적 조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_06010_HEADER_DATE" datasource="t3sinc"/>
+			<query idref="ip_06020_SalesPlan_vs_Act_list" datasource="t3sinc"/>
+		</queries>
+	</job> 		
+					
+	<!-- 
+	=======================
+	  SCM품목추적조회
+	=======================
+	-->	
+
+	<!-- SCM품목추적조회 --> 
+	<job id="ip_07010_Item_Trace_list" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 분석관리 >> SCM품목추적조회 </navigation>
+		<toolbars>1000</toolbars>
+		<title>SCM품목추적조회</title>
+		<authority>1</authority>		
+		<description>SCM품목추적조회</description>
+		<request_type>list</request_type>
+	</job> 		
+
+	<!-- SCM품목추적조회_B/L POPUP --> 
+	<job id="ip_07010_BL_popup" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 분석관리 >> B/L조회 </navigation>
+		<toolbars>1000</toolbars>
+		<title>B/L조회</title>
+		<authority>1</authority>		
+		<description>B/L조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_07010_BL_popup" datasource="t3sinc"/>
+		</queries>
+	</job> 		
+
+	<!-- 
+	=======================
+	  품종군 일자별 추이현황
+	=======================
+	-->	
+	<!-- 품종군 일자별 추이현황 --> 
+	<job id="ip_06030_Prty_InOut_analysis_list" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 분석관리 >> 품종군 일자별 추이현황 </navigation>
+		<toolbars>1000</toolbars>
+		<title>품종군 일자별 추이현황</title>
+		<authority>1</authority>		
+		<description>품종군 일자별 추이현황</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_06030_Prty_InOut_analysis_list" datasource="t3sinc"/>
+		</queries>
+	</job> 		
+
+	<!-- 품종군 일자별 추이현황 --> 
+	<job id="ip_06030_Prty_InOut_analysis_list_new" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 분석관리 >> 품종군 일자별 추이현황(신규) </navigation>
+		<toolbars>1000</toolbars>
+		<title>품종군 일자별 추이현황</title>
+		<authority>1</authority>		
+		<description>품종군 일자별 추이현황</description>
+		<request_type>list</request_type>
+		<queries> 
+		</queries>
+	</job> 
+	<!-- 
+	=======================
+	  SCM주문추적조회
+	=======================
+	-->	
+
+	<!-- SCM주문추적조회 --> 
+	<job id="ip_07020_Order_Trace_list" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 분석관리 >> SCM주문추적조회 </navigation>
+		<toolbars>1000</toolbars>
+		<title>SCM주문추적조회</title>
+		<authority>1</authority>		
+		<description>SCM주문추적조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_07020_DC_list" datasource="t3sinc"/>
+			<query idref="ip_07020_Sales_list" datasource="t3sinc"/>
+		</queries>
+	</job> 		
+
+	<!-- 
+	=======================
+	  EDI발주전환 분석조회
+	=======================
+	-->	
+
+	<!-- EDI발주전환 분석조회 --> 
+	<job id="ip_07040_EDIvsNFOS_analysis" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 분석관리 >> EDI발주전환 분석조회 </navigation>
+		<toolbars>1000</toolbars>
+		<title>EDI발주전환 분석조회</title>
+		<authority>1</authority>		
+		<description>EDI발주전환 분석조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_07040_EDIvsNFOS_analysis" datasource="t3sinc"/>
+		</queries>
+	</job> 		
+
+	<!-- 
+	=======================
+	  NFOS긴급주문조회
+	=======================
+	-->	
+
+	<!-- NFOS긴급주문조회 --> 
+	<job id="ip_07050_NFOS_RushOrder_list" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 분석관리 >> NFOS긴급주문조회 </navigation>
+		<toolbars>1000</toolbars>
+		<title>NFOS긴급주문조회</title>
+		<authority>1</authority>		
+		<description>NFOS긴급주문조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_07050_NFOS_RushOrder_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 
+	=======================
+	  일자별 유통본부별 EDI정보조회
+	=======================
+	-->	
+
+	<!--일자별 유통본부별 EDI정보조회 --> 
+	<job id="ip_07060_EDI_Group_Analysis" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 분석관리 >> 일자별 유통본부별 EDI정보조회 </navigation>
+		<toolbars>1000</toolbars>
+		<title>일자별 유통본부별 EDI정보조회</title>
+		<authority>1</authority>		
+		<description>일자별 유통본부별 EDI정보조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_07060_EDI_Group_Analysis" datasource="t3sinc"/>
+		</queries>
+	</job> 	
+	
+	<job id="ip_07060_EDI_Group_Analysis_Hawa" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>상품발주 >> 상품분석 >> 상품 일자별 유통본부별 EDI정보조회 </navigation>
+		<toolbars>1000</toolbars>
+		<title>상품 일자별 유통본부별 EDI정보조회</title>
+		<authority>1</authority>		
+		<description>상품 일자별 유통본부별 EDI정보조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_07060_EDI_Group_Analysis" datasource="t3sinc"/>
+		</queries>
+	</job> 			
+	
+
+	
+	<!--EDI 유통본부별 품목별 상세 --> 
+	<job id="ip_07060_EDI_Group_Item_Detail_Popup" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 분석관리 >> EDI 유통본부별 품목별 상세 </navigation>
+		<toolbars>1000</toolbars>
+		<title>EDI 유통본부별 품목별 상세</title>
+		<authority>1</authority>		
+		<description>EDI 유통본부별 품목별 상세</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_07060_EDI_Group_Item_Detail_Popup" datasource="t3sinc"/>
+		</queries>
+	</job> 		
+	
+
+	<!-- 
+	=======================
+	  네슬레 판매추이 관리
+	=======================
+	-->	
+
+	<!-- 네슬레 판매추이 관리 --> 
+	<job id="ip_02110_hawa_expt_sell_management" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 운영정보 >> 네슬레 판매추이 관리 </navigation>
+		<toolbars>1010</toolbars>
+		<title>네슬레 판매추이 관리</title>
+		<authority>1</authority>		
+		<description>네슬레 판매추이 관리</description>
+		<request_type>list</request_type>
+	</job>
+
+	<!-- 
+	=======================
+	 EDI발주전환분석조회
+	=======================
+	-->	
+
+	<!--EDI발주전환분석조회 --> 
+	<job id="ip_07070_EDI_Order_Analysis_list" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 분석관리 >> EDI발주전환분석조회 </navigation>
+		<toolbars>1000</toolbars>
+		<title>EDI발주전환분석조회</title>
+		<authority>1</authority>		
+		<description>일자별 유통본부별 EDI정보조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_07070_grup_code1" datasource="t3sinc"/>
+			<query idref="ip_02020_combo_search_type" datasource="t3sinc"/>
+		</queries>
+	</job> 		
+
+	<!--기간별EDI발주전환분석조회 --> 
+	<job id="ip_07080_Daily_EDI_Order_Analysis_list" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고정책 >> 분석정보 >> 기간별EDI발주전환분석조회 </navigation>
+		<toolbars>1000</toolbars>
+		<title>기간별EDI발주전환분석조회</title>
+		<authority>1</authority>		
+		<description>기간별EDI발주전환분석조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_07070_grup_code1" datasource="t3sinc"/>
+			<query idref="ip_02020_combo_search_type" datasource="t3sinc"/>
+		</queries>
+	</job> 		
+	
+	<!--기간별EDI발주전환분석조회(신규) --> 
+	<job id="ip_07080_Daily_EDI_Order_Analysis_list_new" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고정책 >> 분석정보 >> 기간별EDI발주전환분석조회(신규) </navigation>
+		<toolbars>1000</toolbars>
+		<title>기간별EDI발주전환분석조회(신규)</title>
+		<authority>1</authority>		
+		<description>기간별EDI발주전환분석조회(신규)</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_07070_grup_code1" datasource="t3sinc"/>
+			<query idref="ip_02020_combo_search_type" datasource="t3sinc"/>
+		</queries>
+	</job> 
+	
+	<!-- 
+	=======================
+	 백산수 재고추적 조회
+	=======================
+	-->	
+	<job id="ip_01110_Baeksansu_Stock_Trace" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고정책 >> 분석정보 >> 백산수 재고추적 조회 </navigation>
+		<toolbars>1000</toolbars>
+		<title>백산수 재고추적 조회</title>
+		<authority>1</authority>		
+		<description>백산수 재고추적 조회</description>
+		<request_type>list</request_type>		
+	</job> 
+	
+	<!-- 
+	=======================
+	 백산수 재고추적 조회
+	=======================
+	-->	
+	<job id="ip_07090_EDI_eCvan_Analysis" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고정책 >> 분석정보 >> EDI eCvan 분석 조회 </navigation>
+		<toolbars>1000</toolbars>
+		<title>EDI eCvan 분석 조회</title>
+		<authority>1</authority>		
+		<description>EDI eCvan 분석 조회</description>
+		<request_type>list</request_type>		
+	</job> 
+	
+	<job id="ip_07090_EDI_eCvan_Analysis_pop" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고정책 >> 분석정보 >> EDI eCvan 분석 조회 </navigation>
+		<toolbars>1000</toolbars>
+		<title>EDI eCvan 분석 조회</title>
+		<authority>1</authority>		
+		<description>EDI eCvan 분석 조회</description>
+		<request_type>list</request_type>		
+	</job> 
+	
+		<job id="ip_07090_EDI_eCvan_Analysis_pop_all" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고정책 >> 분석정보 >> EDI eCvan 분석 조회 </navigation>
+		<toolbars>1000</toolbars>
+		<title>EDI eCvan 분석 조회</title>
+		<authority>1</authority>		
+		<description>EDI eCvan 분석 조회</description>
+		<request_type>list</request_type>		
+	</job> 
+	
+
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</jobs>	

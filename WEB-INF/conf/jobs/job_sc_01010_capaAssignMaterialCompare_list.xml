@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+<!--
+=====================================================================================================
+	비용기반 공장할당결과
+=====================================================================================================
+--> 
+	<!-- 
+	==============================================
+	  Capa 조건에 따른 할당물량비교
+	==============================================
+	-->
+	<!-- Capa 조건에 따른 할당물량비교 --> 
+	<job id="sc_01010_capaAssignMaterialCompare_list" job_type="single" check_permission="no">
+		<path>/sinc/wisegrid</path>
+		<navigation>생산계획 >> 분석정보 >> Capa 조건에 따른 할당물량비교</navigation>
+		<toolbars>0011</toolbars>
+		<title>Capa 조건에 따른 할당물량비교</title>
+		<authority>1</authority>		
+		<description>Capa 조건에 따른 할당물량비교</description>
+		<request_type>list</request_type>
+		<queries>  
+			<query idref="sc_01010_capaAssignMaterialCompare_list_combo_version1" datasource="t3sinc"/>
+			<query idref="sc_01010_capaAssignMaterialCompare_list_combo_version2" datasource="t3sinc"/>
+			<query idref="sc_01010_capaAssignMaterialCompare_list_combo_res_code" datasource="t3sinc"/>
+			<query idref="sc_01010_capaAssignMaterialCompare_list_combo_item_list" datasource="t3sinc"/>
+			<query idref="sc_01010_capaAssignMaterialCompare_list_combo_factory" datasource="t3sinc"/>			
+		</queries>
+	</job>
+	
+	
+	
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</jobs>		

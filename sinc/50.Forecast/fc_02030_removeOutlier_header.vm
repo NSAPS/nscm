@@ -1,0 +1,116 @@
+<table id="dataArea" border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	<tr>
+		<td height="25" align="right" bgcolor="${toolbar_bgcolor}" class="line">
+			<table align="right" width="100%" height="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+				<tr>
+					<td align="right">
+						<input type="button" name="btnSearch" value=" 찾기" onClick="searchIFrameData('fc_02030_removeOutlier_list_search_comp'); " class="btn1_on">
+						<input type="button" name="btnApply" value=" 조정" onClick="updateData('fc_02030_removeOutlier_list_update_comp'); " class="btn1_on">
+						#toolbar_nscm($_moon_toolbar "" "" "" "")
+					</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+	<tr id="search_menu" style="DISPLAY:block">
+		<td height="20" valign="top" bgcolor="${search_bgcolor}" class="line">						
+			<table id="searchArea" border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr>
+					<td height="10"></td>
+				</tr>
+				<tr>        					
+					<td width="40%" align="left">
+						<table height="21" border="0" cellpadding="0" cellspacing="0">        							
+							<tr>
+            					<td width="25%" align="center" class="td1">
+            						실적 기간
+            					</td>
+            					<td width="30%" align="left">
+									<select name="selected_start" style="width:65px; " onChange="doChangeStart(this); ">
+									#foreach( $condition in $rem_out_period_list )
+										<option value="$condition.get(0)" #if( "$condition.get(0)" == "$!{selected_start}") selected #end >$condition.get(0)</option>
+									#end 
+									</select>~
+									<a id="divSelectedEnd">
+										<select name="selected_end" style="width:65px; ">
+											<option value="">선택</option>
+										</select>
+									</a>																
+            					</td>
+            					<td width="25%" align="center" class="td1">
+            						한계 표준편차 
+            					</td>
+            					<td width="20%" align="left">
+									<input name="limit_std" type="text" size="4" class="normal" value="0.5" onKeyPress="onlynumber();">
+            					</td>            					
+            				</tr>
+						</table>
+					</td>										 
+				 </tr>        				 			
+		  		 <tr height="10"><td></td></tr>
+		     </table>
+			 <table id="chartArea" border="0" width="100%" cellpading="0" cellspacing="0" style="display:none;">
+				<tr>
+					<td align="left" width="5%">								
+                		<input type="button" name="option" value=" Option" onClick="displayOption();" class="btn1_on">								
+					</td>
+				</tr>
+				<tr>        					
+					<td align="left">
+						<div id="my_chart" style="padding: 0px; margin:10px; border: 1px solid lightblue; width: 100%;"></div>
+					</td>										 
+				</tr>        				 			
+		  		<tr height="10"><td></td></tr>
+		     </table>
+		 </td>   
+	 </tr>	 
+	 <tr class="line" height="10"><td></td></tr>
+	 <tr>
+	 	 <td valign="top">
+			<iframe id="child" name="iframe" src="service.do?_moon_service=fc_02030_removeOutlier_tailer&amp;_moon_perpage=100&amp;_moon_pagenumber=1" width="100%" height="100%" scrolling="no" topmargin="0" leftmargin="0" frameborder="NO" border="0" framespacing="0"></iframe>
+		 </td>
+	 </tr>
+	 <input type="hidden" name="_moon_service" value="${_moon_service}">
+	 <input type="hidden" name="_moon_pagenumber" value="${_moon_pagenumber}">
+</table>
+	
+## waiting 표시 영역
+<table width="100%" height="100%" id="waitArea" style="display:none; ">
+	<tr>
+		<td valign="middle" align="center">
+			<img src="sinc/template/basic/skin/nongshim/images/common/progress_waiting.gif" 
+				align="absmiddle" border="0" width="200px" height="60px">
+			<img src="sinc/template/basic/skin/nongshim/images/common/loading_icon.gif" 
+				align="absmiddle" border="0" width="60px" height="60px">
+			<br><h1>&nbsp;</h1><br><h1>&nbsp;</h1><br>
+		</td>
+	</tr>
+</table> 
+
+<script>		
+	// 도움말 내용 입력
+	var helpStr = "실적구간 내의 조정된 실적값과 상한값 또는 하한값을 비교하여 이상요인을 찾아낸다. <br>";
+//	helpStr += "  -> 조정된 실적값 > 실적구간의 1개월 이전 이후를 포함한 실적평균 + (실전구간 내의 월단위 실적평균 * 한계표준편차)<br>"; //상한값
+//	helpStr += "  -> 조정된 실적값 < 실적구간의 1개월 이전 이후를 포함한 실적평균 - (실전구간 내의 월단위 실적평균 * 한계표준편차)<br>"; //하한값
+	helpStr += "◈ 각 항목을 입력한 후 상단의 찾기 버튼을 클릭하여 이상요인 찾기를 실행합니다.<br>";	
+	helpStr += "◈ 이상요인 조정 할  항목을 좌측의 체크박크를 선택하고 해당 조정값을 변경 후 조정 버튼을클릭합니다 .";	
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+	// combo box:계획 유형 선택시 계획명 리스트 채움 
+	function doChangeStart(obj){
+		var div_end = "<select name=\"selected_end\" style=\"width:65px; \"> ";	
+		//div_end += "<option  value=\"\">전체</option> ";
+   	#foreach( $condition in $rem_out_period_list)  
+		if ( "$condition.get(0)" > obj.value) { 
+			div_end += "<option value=\"$condition.get(0)\"";
+			if("$condition.get(0)" == "$!{selected_end}")
+				div_end += " selected ";
+			div_end += ">$condition.get(0)</option>"; 
+		}
+	#end
+   		div_end += "</select>"; 
+   		divSelectedEnd.innerHTML = div_end;				
+	}
+	doChangeStart(document.frm.selected_start);	
+</script>

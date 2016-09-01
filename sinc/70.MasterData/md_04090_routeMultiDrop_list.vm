@@ -1,0 +1,297 @@
+############################################################
+## 프로그램ID : md_04090_routeMultiDrop_list.vm
+## 프로그램명 : Route수송 기준정보
+## 개발자  : 허준성
+## 개발일자 : 2008-07-31 목요일
+##
+##관련 job file : job_sinc_70_masterData_00.xml
+##
+##관련 query file : query_sinc_70_masterData_00.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2008-07-31  허준성    md_04090_routeMultiDrop_list.vm 개발
+##
+##
+############################################################
+
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('125', '155')" )
+
+## 코드 중복 체크를 위해 dwr 선언
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						#button("search")
+						#toolbar_nscm($_moon_toolbar "" "" "md_04090_routeMultiDrop_list_save_comp" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" 
+							id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr>
+            					<td width="10%" align="right">
+            						출고장 :
+            					</td>
+            					<td width="90%" align="left">
+									<select name="tgt_loc_sel" onChange="GoSearch('$!{_moon_service}'); ">
+											<option value="">선택</option>
+										#foreach( $tr in $src_loc_and_name_list )
+											<option value="$tr.get(0)" 
+												#if( "$!{tgt_loc_sel}" == "$tr.get(0)" ) selected #end>$tr.get(1)</option>
+										#end
+									</select>
+            					</td>
+            				</tr>
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="24"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+								<img src="/nscm/sinc/template/basic/skin/nongshim/images/common/dot_sub6.gif" width="16" height="13">Total :
+								<span id="areaTot" class="f_color_o b">$!{_moon_service_count}</span>
+							</td>
+						</tr>
+					</table>
+					
+					<table id="tbMain" border="0" width="100%" cellpadding="0" cellspacing="0"><tr><td>
+						<div id="topLeft" style="height:40px; width:190px; overflow:hidden; ">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead>
+									<tr height="40px">
+										<td width="30px">번호</td>
+										<td width="40px" onClick="addRow(this); " id="areaAdd" 
+											onMouseOver="this.style.cursor='pointer'; " onMouseOut="this.style.cursor=''; ">추가<br>삭제</td>
+										<td width="80px">출고장</td>
+										<td width="40px">순번</td>
+									</tr> 
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td>
+					<td> 
+						<div id="topLine" style="height:40px; width:626px;overflow:hidden;">
+							<table width="610px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead>
+									<tr height="40px">
+										<td width="90px">제1입고장</td>
+										<td width="90px">제2입고장</td>
+										<td width="90px">제3입고장</td>
+										<td width="95px">적용시작일자</td>
+										<td width="95px">적용종료일자</td>
+										<td width="150px" class="right">사유</td>
+									</tr>
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td></tr>	
+					<tr><td valign="top">
+						<div id="leftDisplay" style="width:190px; overflow:hidden; ">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="left_tbody">
+								#foreach( $tr in $md_04090_routeMultiDrop_list )
+									<tr id="left_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+										## 번호
+										<td width="30px" align="center" style="background-color:${search_bgcolor}; ">
+											<a id="divRowNo">$velocityCount</a>
+										</td>
+										## 추가/삭제
+										<td width="40px" align="center">
+											<input name="btnAddRow" type="button" value="O" class="button1_1"
+												style="width:17px; text-align:center; font-weight:bold; " onClick="addRow(this); "
+												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"><input
+												name="btnDelRow" type="button" value="X" class="button1_1"
+												style="width:17px; text-align:center; font-weight:bold; " onClick="delRow(this); "
+												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'">
+										</td>
+										## 출고장
+										<td width="80px" align="center">
+											<a id="divCdcId">&nbsp;$tr.get(2)</a>
+										</td>
+										## 순번
+										<td width="40px" align="center" onClick="setEditMode(this); ">
+											<a id="divRouteSeq">&nbsp;$tr.get(1)</a><input 
+												type="text" name="route_seq" class="normal" value="$tr.get(1)" size="2" maxlength="2"
+												onFocusOut="checkRouteSeq(this); " onkeypress="filterKey('[0-9]')" ondblClick="this.select(); "
+												style="width:100%; text-align:center; display:none; " onKeyDown="moveNextBox(this); ">
+										</td>
+									</tr>
+								#end
+								</tbody>
+							</table> 
+						</div>
+					</td> 
+					<td valign="top"> 
+						<div id="mainDisplay" class="ns_scroll" style="border:0; width:645px; overflow-y:scroll; overflow-x:scroll; " onscroll="scrollX(); scrollY(); ">
+							<table width="610px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="main_tbody">
+								## (0)CDC_ID, (1)ROUTE_SEQ, (2)CDC_NAME, (3)ROUTE_ID,   
+		                        ## (4)RDC1, (5)DC_NAME1, (6)RDC2, (7)DC_NAME2, (8)RDC3, (9)DC_NAME3,
+		                        ## (10)VALID_START, (11)VALID_END, (12)REASON   
+								#foreach( $tr in $md_04090_routeMultiDrop_list )
+									<tr id="main_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+										## 제1입고장
+										<td width="90px" align="left" onClick="setEditMode(this); ">
+											<a id="divDcId1">&nbsp;$tr.get(5)</a><select 
+												name="dc_id_1" style="width:100%; display:none; " 
+												onFocusOut="setViewMode1(this);" onKeyDown="moveNextBox(this); ">
+    											<option value="">선택</option>
+    										#foreach( $record in $dc_id_and_name_list )
+    											<option value="$record.get(0)" #if( "$tr.get(4)" == "$record.get(0)" ) selected #end>$record.get(1)</option>
+											#end
+											</select>
+										</td>
+										## 제 2입고장
+										<td width="90px" align="left" onClick="setEditMode(this); ">
+											<a id="divDcId2">&nbsp;$tr.get(7)</a><select 
+												name="dc_id_2" style="width:100%; display:none; "
+												onFocusOut="setViewMode1(this);" onKeyDown="moveNextBox(this); ">
+    											<option value="">선택</option>
+    										#foreach( $record in $dc_id_and_name_list )
+    											<option value="$record.get(0)" #if( "$tr.get(6)" == "$record.get(0)" ) selected #end>$record.get(1)</option>
+											#end
+											</select>
+										</td>
+										## 제 3입고장
+										<td width="90px" align="left" onClick="setEditMode(this); ">
+											<a id="divDcId3">&nbsp;$tr.get(9)</a><select 
+												name="dc_id_3" style="width:100%; display:none; "
+												onFocusOut="setViewMode1(this);" onKeyDown="moveNextBox(this);">
+    											<option value="">선택</option>
+    										#foreach( $record in $dc_id_and_name_list )
+    											<option value="$record.get(0)" #if( "$tr.get(8)" == "$record.get(0)" ) selected #end>$record.get(1)</option>
+											#end
+											</select>
+										</td>
+										## 적용시작일자
+										<td width="95px" align="center" onClick="setEditMode1(this); "> ## 시작일시
+											<a id="divValidStart">&nbsp;$tr.get(10)</a><input type="hidden" name="start_dttm" value="$tr.get(10)">
+										</td>
+										## 적용종료일자
+										<td width="95px" align="center" onClick="setEditMode1(this); ">
+											<a id="divValidEnd">&nbsp;$tr.get(11)</a><input type="hidden" name="end_dttm" value="$tr.get(11)">
+										</td>
+										## 사유
+										<td width="150px" align="left" onClick="setEditMode(this); " class="right">
+											<a id="divReason">&nbsp;$tr.get(12)</a><input 
+												type="text" name="reason" class="normal" value="$tr.get(12)"
+												onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); " ondblClick="this.select(); "
+												style="width:100%; text-align:left; display:none; ">
+										</td>
+									</tr>
+								#end
+								</tbody>
+							</table>
+						</div>
+					</td></tr></table>
+					
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+						
+					<input type="hidden" name="_moon_service">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					<input type="hidden" name="_user_id" value="$!{_user_id}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 출고장을 선택하면 자동으로 조회가 이루어지고, 출고장 선택후 조회 버튼을 클릭해도 조회가 가능합니다.";
+	helpStr += "<br>◈ 데이터 조회 후, 각 항목을 원하는 데이터로 수정한 뒤, 저장 버튼을 클릭하여 수정 내용을 저장합니다.";
+	helpStr += "<br>◈ 데이테 조회 후, 출고장 항목은 수정이 불가능하고, 새로운 행 추가시 자동으로 입력됩니다.";
+	helpStr += "<br>◈ 추가/삭제 항목의 O 버튼을 클릭하면, 클릭한 버튼의 하단에 새로운 라인이 생성됩니다.";
+	helpStr += "<br>◈ 추가/삭제 항목의 X 버튼을 클릭하면, 클릭한 버튼의 라인이 삭제됩니다.";
+	helpStr += "<br>◈ 추가/삭제 항목의 헤더 부분을 클릭하면, 가장 상단에 새로운 라인이 생성됩니다.";
+	helpStr += "<br>◈ 상단의 출고장을 선택하지 않으면, 추가/삭제 해더를 클릭하더라도 새로운 행이 추가 되지 않습니다";
+	helpStr += "<br>◈ 순번을 입력하지 않고 저장 버튼을 누르시면 저장이 되지 않습니다.";
+	helpStr += "<br>◈ 순번을 중복되게 입력할 수 없습니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+	
+	// 제1입고장
+	var selStrDcId1 = "<select name=\"dc_id_1\" style=\"width:100%; display:none; \" ";
+	selStrDcId1 += "onFocusOut=\"setViewMode1(this);\" onKeyDown=\"moveNextBox(this); \"> ";
+    selStrDcId1 += "<option value=\"\">선택</option>";
+    #foreach( $record in $dc_id_and_name_list )
+    	selStrDcId1 += "<option value=\"$record.get(0)\">$record.get(1)</option>";
+	#end
+	selStrDcId1 += "</select>";
+	
+	// 제2입고장
+	var selStrDcId2 = "<select name=\"dc_id_2\" style=\"width:100%; display:none; \" ";
+	selStrDcId2 += "onFocusOut=\"setViewMode1(this);\" onKeyDown=\"moveNextBox(this); \"> ";
+    selStrDcId2 += "<option value=\"\">선택</option>";
+    #foreach( $record in $dc_id_and_name_list )
+    	selStrDcId2 += "<option value=\"$record.get(0)\">$record.get(1)</option>";
+	#end
+	selStrDcId2 += "</select>";
+	
+	// 제3입고장
+	var selStrDcId3 = "<select name=\"dc_id_3\" style=\"width:100%; display:none; \" ";
+	selStrDcId3 += "onFocusOut=\"setViewMode1(this);\" onKeyDown=\"moveNextBox(this); \"> ";
+    selStrDcId3 += "<option value=\"\">선택</option>";
+    #foreach( $record in $dc_id_and_name_list )
+    	selStrDcId3 += "<option value=\"$record.get(0)\">$record.get(1)</option>";
+	#end
+	selStrDcId3 += "</select>";
+	
+	
+
+</script>

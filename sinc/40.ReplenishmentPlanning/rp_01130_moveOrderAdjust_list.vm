@@ -1,0 +1,368 @@
+## 프로그램명 : 출고물량조회 및 조정
+## 개발자 : 허준성
+## 개발일자 : 2008-10-17 금요일
+
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('150', '183')" )
+
+#set( $adjustList = $rp_01130_moveOrderAdjust_list)
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/replenishPlan.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<input type="hidden" name="version" value="20000000.01.01">
+<input type="hidden" name="seq" value="1">
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						#button("search")
+						#toolbar_nscm($_moon_toolbar "" "" "rp_01130_moveOrderAdjust_list_save_comp" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2">
+					<td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" 
+							id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr>
+            					<td width="70px" align="right">
+            						수송구분 :
+            					</td>
+            					<td width="120px" align="left">
+									<select name="plan_type" style="width:120px; ">
+										##<option value="">선택</option>
+									#foreach( $tr in $rp_01015_trans_class_list )
+										<option value="${tr.get(0)}"
+											#if( "$!{plan_type}" == "${tr.get(0)}" ) selected #end)>${tr.get(1)}</option>
+									#end
+									</select>
+            					</td>
+            					<td width="90px" align="right">
+            						수송일자 :
+            					</td>
+            					<td width="120px" align="left" >
+									#date_sole_no_title("trans_date" "10" "normal" "btnS" "$date.get('yyyy-MM-dd')")
+            					</td>
+								<td>
+								</td>								
+							</tr>
+							<tr>
+								<td width="70px" align="right">
+									제품 :
+            					</td>
+								<td width="300px" align="left">
+									<input name="item_id" class="normal" style="width:70px; " onChange="getItemName(this); "
+										onkeypress="enterCheck('${_moon_service}'); " value="$!{item_id}">
+									<input name="item_name" class="normal" readOnly style="width:180px; " value="$!{item_name}"><img
+										name="imgItem" src="sinc/template/basic/skin/nongshim/images/common/icon_search.gif"
+										align="absmiddle" border="0" style="cursor:pointer;"  
+										onClick="openItemSearchPop('item_id', '450', '300'); ">
+								</td>
+								<td>
+								</td>
+            				</tr>
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2">
+					<td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="50"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+#################################################################################	
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+								<img src="/nscm/sinc/template/basic/skin/nongshim/images/common/dot_sub6.gif" width="16" height="13">Total :
+								<span id="areaTot" class="f_color_o b">$!{_moon_service_count}</span>
+							</td>
+						</tr>
+					</table>
+					
+					<table id="tbMain" border="0" width="100%" cellpadding="0" cellspacing="0"><tr><td>
+						<div id="topLeft" style="height:40px; width:110px; overflow:hidden; ">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead>
+									<tr height="40px"> 
+										<td width="30px">번호</td>
+										<td width="80px">출고<br>사업장</td> 
+									</tr> 
+			   					 </thead>
+			   				</table> 
+			   			</div> 
+					</td>
+					<td> 
+						<div id="topLine" style="height:40px; width:930px;overflow:hidden;">
+							<table width="930px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead>
+									<tr height="22px">
+										<td width="70px" rowspan="2">WMS<br>현재고</td> 
+										<td width="70px" rowspan="2">전월<br> 실적</td> 
+										<td width="70px" rowspan="2">전일<br>실적</td> 
+										<td width="70px" rowspan="2">1주<br>평균</td> 
+										<td width="70px" rowspan="2">3주<br>평균</td> 
+										<td width="70px" rowspan="2">판매<br>누계</td> 
+										<td width="70px" rowspan="2">입고<br>예정</td> 
+										<td width="70px" rowspan="2">출고<br>예정</td> 
+										<td width="70px" rowspan="2">당일<br>주문</td> 
+										<td width="90px" rowspan="2">입고<br>사업장</td> 
+										<td width="210px" colspan="3">이고 물량</td>
+									</tr>
+									<tr align="center" height="18px">
+										<td width="70px" class="mid">PLT</td>
+										<td width="70px" class="mid">BOX</td>
+										<td width="70px" class="mid">EA</td>
+									</tr>
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td></tr>	
+					<tr><td valign="top">
+						<div id="leftDisplay" style="width:110px; overflow:hidden; ">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="left_tbody">
+								## 조회 결과데이터가 없는 경우, 좌우스크롤 표시를 위해 한 라인 생성
+								#*if( $rp_01010_dailyTransportPlan_list.size() == 0 )	
+									<tr height="1"><td colspan="6" width="390px"></td></tr>
+								#end*#
+								## RTE구분(0) 수송일자(1) 출고장(2) 출고장명(3) 차량순번(4) 제품코드(5) 제품명(6)
+								## 기본재고상차PLT(7) 기본재고상차BOX(8) 추가재고상차PLT(9) 추가재고상차BOX(10)
+								## 생산상차PLT(11) 생산상차BOX(12) 누적상차집계PLT(13) 누적상차집계BOX(14) BOX_PER_PALET(15)
+								#foreach( $tr in $rp_01130_moveOrderAdjust_list )
+									<tr id="left_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+										## 번호, BOX_PER_PALET(13)
+										<td width="30px" align="center" style="background-color:${search_bgcolor}; "  id="tdRowNo">
+											<a id="divRowNo">$velocityCount</a>
+											<input type="hidden" name="src_loc" value="$tr.get(0)" >
+											<input type="hidden" name="box_per_palet" value="$tr.get(13)" >	
+
+										</td>
+										## 출고장명(1)
+										<td width="80px" align="center">
+            								<a id="divDcName">$tr.get(1)</a><input
+            									type="text" name="src_name" class="normal" size="20" value="$tr.get(1)"
+            									style="width:60PX; padding-right:5px; text-align:cneter; display:none;"  >
+										</td>
+									</tr>
+								#end
+								</tbody> 
+							</table>
+						</div>
+					</td> 
+					<td valign="top"> 
+						<div id="mainDisplay" class="ns_scroll" 
+							style="border:0; width:930px; overflow-y:scroll; overflow-x:scroll; " onscroll="scrollX(); scrollY(); ">
+							<table width="930px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="main_tbody">
+								## 조회 결과데이터가 없는 경우, 좌우스크롤 표시를 위해 한 라인 생성
+								#*if( $rp_01010_dailyTransportPlan_list.size() == 0 )
+									<tr height="1"><td colspan="10" width="820"></td></tr>
+								#end
+								*#
+								## RTE구분(0) 수송일자(1) 출고장(2) 출고장명(3) 차량순번(4) 제품코드(5) 제품명(6)
+								## 기본재고상차PLT(7) 기본재고상차BOX(8) 추가재고상차PLT(9) 추가재고상차BOX(10)
+								## 생산상차PLT(11) 생산상차BOX(12) 누적상차집계PLT(13) 누적상차집계BOX(14) BOX_PER_PALET(15)
+								#foreach( $tr in $rp_01130_moveOrderAdjust_list )
+									<tr id="main_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+    									## 현재고(2)
+    									<td width="70px" align="right">
+            								<a id="divDcName">$number.format($tr.get(2))&nbsp;&nbsp;</a><input
+            									type="text" name="dc_name" class="normal" size="20" value="$tr.get(2)"
+            									style="width:60PX; padding-right:5px; text-align:cneter; display:none;"  >
+    									</td>
+    									## 전월 실적(3)
+    									<td width="70px" align="right">
+            								<a id="divDcName">$number.format($tr.get(3))&nbsp;&nbsp;</a><input
+            									type="text" name="dc_name" class="normal" size="20" value="$tr.get(3)"
+            									style="width:60PX; padding-right:5px; text-align:cneter; display:none;"  >
+    									</td>
+    									## 전일 실적(4)
+    									<td width="70px" align="right">
+            								<a id="divDcName">$number.format($tr.get(4))&nbsp;&nbsp;</a><input
+            									type="text" name="dc_name" class="normal" size="20" value="$tr.get(4)"
+            									style="width:60PX; padding-right:5px; text-align:cneter; display:none;"  >
+    									</td>
+    									## 1주평균(6)
+    									<td width="70px" align="right">
+            								<a id="divDcName">$number.format($tr.get(6))&nbsp;&nbsp;</a><input
+            									type="text" name="dc_name" class="normal" size="20" value="$tr.get(5)"
+            									style="width:60PX; padding-right:5px; text-align:cneter; display:none;"  >
+    									</td>
+    									## 3주평균(7)
+    									<td width="70px" align="right">
+            								<a id="divDcName">$number.format($tr.get(7))&nbsp;&nbsp;</a><input
+            									type="text" name="dc_name" class="normal" size="20" value="$tr.get(6)"
+            									style="width:60PX; padding-right:5px; text-align:cneter; display:none;"  >
+    									</td>
+    									## 판매누계(5)
+    									<td width="70px" align="right">
+            								<a id="divDcName">$number.format($tr.get(5))&nbsp;&nbsp;</a><input
+            									type="text" name="dc_name" class="normal" size="20" value="$tr.get(7)"
+            									style="width:60PX; padding-right:5px; text-align:cneter; display:none;"  >
+    									</td>
+    									## 입고예정(8)
+    									<td width="70px" align="right">
+            								<a id="divDcName">$number.format($tr.get(8))&nbsp;&nbsp;</a><input
+            									type="text" name="dc_name" class="normal" size="20" value="$tr.get(8)"
+            									style="width:60PX; padding-right:5px; text-align:cneter; display:none;"  >
+    									</td>
+    									## 출고예정(9)
+    									<td width="70px" align="right">
+            								<a id="divDcName">$number.format($tr.get(9))&nbsp;&nbsp;</a><input
+            									type="text" name="dc_name" class="normal" size="20" value="$tr.get(9)"
+            									style="width:60PX; padding-right:5px; text-align:cneter; display:none;"  >
+    									</td>
+    									## 당일주문(10)
+    									<td width="70px" align="right">
+            								<a id="divDcName">$number.format($tr.get(10))&nbsp;&nbsp;</a><input
+            									type="text" name="dc_name" class="normal" size="20" value="$tr.get(10)"
+            									style="width:60PX; padding-right:5px; text-align:cneter; display:none;"  >
+    									</td>
+										## 입고사업장 입고사업장ID(14)
+										<td width="90px" onClick="setEditMode(this); " align="center"> ## 
+											<a id="divTgtLoc"> </a><select
+												name="tgt_loc" style="width:100%; padding-left:5px; display:none;" onFocusOut="setViewMode(this); " >
+													<option value=""  #if( "$tr.get(14)" == "" ) selected #end></option>
+												#foreach( $condition in $dc_id_and_short_name_list )
+													<option value="$condition.get(0)"  #if( "$tr.get(14)" == "$condition.get(1)" ) selected #end>$condition.get(1)
+													</option>
+												#end
+											</select>
+										</td>
+										## 기본재고상차 PLT(7)
+										<td width="70px" align="right" onClick="setEditMode1(this); ">
+											#if( "$tr.get(11)" == "" )
+												#set( $basePlt = "" )
+											#else
+												#set( $basePlt = "$number.format('#,##0.00', $tr.get(11))" )
+											#end
+											<a id="divBasePlt">$!{basePlt}&nbsp;</a><input
+												type="text" name="base_stk_plt" class="normal" size="20" value="$!{basePlt}"
+												onKeyDown="moveNextBox(this); " onFocusOut="setViewMode(this); " onDblClick="this.select(); "
+												style="width:100%; padding-right:5px; display:none; text-align:right; " >
+											##<input type="hidden" name="base_stk_plt" value="$tr.get(7)">
+										</td>
+										## 기본재고상차 BOX(5)
+										<td width="70px" align="right" onClick="setEditMode(this); ">
+											#if( "$tr.get(12)" == "" )
+												#set( $baseBox = "" )
+											#else
+												#set( $baseBox = "$number.format($tr.get(12))" )
+											#end
+											<a id="divBaseBox">$!{baseBox}&nbsp;</a><input
+												type="text" name="base_stk_box" class="normal" size="20" value="$!{baseBox}"
+												onKeyDown="moveNextBox(this); " onFocusOut="setViewMode(this); " onDblClick="this.select(); "
+												style="width:100%; padding-right:5px; display:none; text-align:right; " >
+										</td>
+										## 기본재고상차 EA(5)
+										<td width="70px" align="right" onClick="setEditMode(this); ">
+											<a id="divBaseEa">$!{baseBox}&nbsp;</a><input
+												type="text" name="base_stk_ea" class="normal" size="20" value="$!{baseBox}"
+												onKeyDown="moveNextBox(this); " onFocusOut="setViewMode(this); " onDblClick="this.select(); "
+												style="width:100%; padding-right:5px; display:none; text-align:right; " >
+										</td>										
+									</tr>
+								#end
+								</tbody>
+							</table>
+						</div>
+					</td></tr></table>
+					
+					<table border="0" width="100%" cellpadding="0" cellspacing="0" height="5px"><tr><td></td></tr></table>
+					
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+						
+					<input type="hidden" name="_moon_service" value="$!{_moon_service}">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					<input type="hidden" name="_user_id" value="$!{_user_id}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+					
+					## 출고장 select box string 생성
+					#set( $srcLocStr = "<option value=\"\">선택</option>" )
+					#foreach( $sel in $dc_id_and_name_list )
+						#set( $srcLocStr = "$!{srcLocStr}<option value=\"${sel.get(0)}\">${sel.get(1)}</option>" )
+					#end
+					#set( $srcLocStr = "<option value=''>선택</option>" )
+					#foreach( $sel in $dc_id_and_name_list )
+						#set( $srcLocStr = "$!{srcLocStr}<option value='${sel.get(0)}'>${sel.get(1)}</option>" )
+					#end
+					<input type="hidden" name="src_loc_sel_str" value="$!{srcLocStr}">
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	addRow(5);
+	// 도움말 내용 입력
+	var helpStr = "◈ 생성일자, 입고장, 계획버전을 반드시 입력하고 조회해야 합니다.";
+	helpStr += "<br>◈ 각 항목을 입력한 후 상단의 저장 버튼을 클릭하여 수정 내용을 저장합니다.";
+	helpStr += "<br>◈ 번호를 클릭하면 해당 라인의 판매정보와 공장예상재고가 조회됩니다.";
+	helpStr += "<br>◈ 추가/삭제의 테이블 헤더부분을 클릭하면 새로운 라인이 생성됩니다.";
+	helpStr += "<br>◈ 각각의 Row마다 선택후 클릭한후 상단의 선택 버튼을 누르시면, 선택된 첫번째로의 수송일자,출고장,차량번호가 다른 선택된 Row에 자동 셋팅됩니다.";
+	helpStr += "<br>◈ 또한 값이 자동 셋팅된 후 누적상차집계와 Row색깔 또한 자동 셋팅됩니다.";
+	helpStr += "<br>◈ PLT값을 수정하면 BOX 수량이 자동 셋팅되고, BOX값을 수정하면 PLT값이 자동 셋팅됩니다.";
+	helpCont.innerHTML = helpStr;
+	// 도움말 zoomOut 높이 조절 변수
+	hDynamicHeight = 0;
+	
+	// 버전 초기값 세팅
+	//setVersions(document.frm.plan_version.value);
+	doChange(document.frm.period_type);
+	if( "$!{plan_version}" != "" ) {
+		document.frm.plan_version.value = "$!{plan_version}";
+	}
+	
+	## 데이터가 있는 경우만 누적상차집계 계산
+    #if( $rp_01010_dailyTransportPlan_list.size() > 0 )
+	
+    #end
+	
+</script>

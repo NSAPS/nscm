@@ -1,0 +1,317 @@
+
+	<META http-equiv="Content-Type" content="text/html; charset=EUC-KR">
+	<style type="text/css">
+	table {font-size:12px;}
+</style>
+
+
+
+ 
+ 
+
+
+<table id="table" border="1" width="100%" cellspacing="0" cellpadding="0" style="font-family:돋움체; font-size:12px;">
+	<tr>
+		<td rowspan="2">공장</td>
+		<td rowspan="2">원가부문</td>			
+		<td rowspan="2">작업장</td>			
+		<td rowspan="2">제품코드</td> 		
+		<td rowspan="2">제품명</td>			
+		<td rowspan="2">규격</td>			
+		<td rowspan="2">TO여</td>			
+		<td rowspan="2">구분</td>			
+		<td rowspan="2">오더번호</td>			
+		<td rowspan="2">오더구분번호</td> 
+						<td colspan="3">2014 02/24(월)</td>
+				<td colspan="3">2014 02/25(화)</td>		 
+				<td colspan="3">2014 02/26(수)</td>	
+				<td colspan="3">2014 02/27(목)</td>	
+				<td colspan="3">2014 02/28(금)</td>	
+				<td colspan="3">2014 03/01(토)</td>	
+				<td colspan="3" >2014 03/02(일)</td> 	
+		<td rowspan="2">합계</td>
+		<td rowspan="2">공장코드</td> 
+		<td rowspan="2">버전</td> 
+		<td rowspan="2">SEQ</td> 
+		<td rowspan="2">원가부분코드</td> 
+		<td rowspan="2">라인코드</td>
+		<td rowspan="2">작업장코드</td> 
+		<td rowspan="2">시작일</td>
+		<td rowspan="2">CAT_ID</td>
+	</tr>
+	<tr>	
+				<td>조</td>
+		<td>주</td>
+		<td>야</td> 
+				<td>조</td>
+		<td>주</td>
+		<td>야</td> 
+				<td>조</td>
+		<td>주</td>
+		<td>야</td> 
+				<td>조</td>
+		<td>주</td>
+		<td>야</td> 
+				<td>조</td>
+		<td>주</td>
+		<td>야</td> 
+				<td>조</td>
+		<td>주</td>
+		<td>야</td> 
+				<td>조</td>
+		<td>주</td>
+		<td>야</td> 
+			</tr> 
+		<tr>
+				<td>녹산공장</td>
+				<td>생산팀</td>
+				<td>사출면 13라인 포장</td>
+				<td>101002838</td>
+				<td>수출둥지냉면비빔냉면159g(일본)(10입)(번들)NS JAPAN(사각)</td>
+				<td>159.2G X 10 X 2</td>
+				<td>19</td>
+				<td>O</td>
+				<td style='mso-number-format:"\@";'>0000029893</td>
+				<td style='mso-number-format:"\@";'>000020</td>
+				<td>1500</td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td>1500</td>
+				<td>1180</td>
+				<td>20140218.09.41</td>
+				<td>1</td>
+				<td>110</td>
+				<td>11030</td>
+				<td>11032</td>
+				<td>20140224</td>
+				<td>PS</td>
+	</tr>
+		<tr>
+				<td>녹산공장</td>
+				<td>생산팀</td>
+				<td>사출면 13라인 포장</td>
+				<td>101001626</td>
+				<td>수출둥지물냉면(미국)(멀티)NS(마름모)</td>
+				<td>161G X 4 X 8</td>
+				<td>19</td>
+				<td>S</td>
+				<td style='mso-number-format:"\@";'></td>
+				<td style='mso-number-format:"\@";'></td>
+				<td>593</td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td>593</td>
+				<td>1180</td>
+				<td>20140218.09.41</td>
+				<td>1</td>
+				<td>110</td>
+				<td>11030</td>
+				<td>11032</td>
+				<td>20140224</td>
+				<td>PS</td>
+	</tr>
+		<tr>
+				<td>녹산공장</td>
+				<td>생산팀</td>
+				<td>사출면 13라인 포장</td>
+				<td>101001627</td>
+				<td>수출둥지비빔냉면(미국)(멀티)NS(마름모)</td>
+				<td>162G X 4 X 8</td>
+				<td>19</td>
+				<td>S</td>
+				<td style='mso-number-format:"\@";'></td>
+				<td style='mso-number-format:"\@";'></td>
+				<td>407</td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td>407</td>
+				<td>1180</td>
+				<td>20140218.09.41</td>
+				<td>1</td>
+				<td>110</td>
+				<td>11030</td>
+				<td>11032</td>
+				<td>20140224</td>
+				<td>PS</td>
+	</tr>
+		<tr>
+				<td>녹산공장</td>
+				<td>생산팀</td>
+				<td>사출면 14라인 포장</td>
+				<td>101002837</td>
+				<td>수출둥지냉면물냉면155g(일본)(10입)(번들)NS JAPAN(사각)</td>
+				<td>155.6G X 10 X 2</td>
+				<td>19</td>
+				<td>O</td>
+				<td style='mso-number-format:"\@";'>0000029893</td>
+				<td style='mso-number-format:"\@";'>000010</td>
+				<td>1700</td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td>1700</td>
+				<td>1180</td>
+				<td>20140218.09.41</td>
+				<td>1</td>
+				<td>110</td>
+				<td>11040</td>
+				<td>11042</td>
+				<td>20140224</td>
+				<td>PS</td>
+	</tr>
+		<tr>
+				<td>녹산공장</td>
+				<td>생산팀</td>
+				<td>사출면 14라인 포장</td>
+				<td>101001626</td>
+				<td>수출둥지물냉면(미국)(멀티)NS(마름모)</td>
+				<td>161G X 4 X 8</td>
+				<td>19</td>
+				<td>S</td>
+				<td style='mso-number-format:"\@";'></td>
+				<td style='mso-number-format:"\@";'></td>
+				<td>407</td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td>407</td>
+				<td>1180</td>
+				<td>20140218.09.41</td>
+				<td>1</td>
+				<td>110</td>
+				<td>11040</td>
+				<td>11042</td>
+				<td>20140224</td>
+				<td>PS</td>
+	</tr>
+		<tr>
+				<td>녹산공장</td>
+				<td>생산팀</td>
+				<td>사출면 14라인 포장</td>
+				<td>101001627</td>
+				<td>수출둥지비빔냉면(미국)(멀티)NS(마름모)</td>
+				<td>162G X 4 X 8</td>
+				<td>19</td>
+				<td>S</td>
+				<td style='mso-number-format:"\@";'></td>
+				<td style='mso-number-format:"\@";'></td>
+				<td>593</td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td>593</td>
+				<td>1180</td>
+				<td>20140218.09.41</td>
+				<td>1</td>
+				<td>110</td>
+				<td>11040</td>
+				<td>11042</td>
+				<td>20140224</td>
+				<td>PS</td>
+	</tr>
+	</table> 

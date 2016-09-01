@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+
+<!--KSY 2005.01.11  struts-config_1_1.dtd -->
+<!DOCTYPE struts-config PUBLIC
+          "-//Apache Software Foundation//DTD Struts Configuration 1.1//EN"
+          "http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd">  
+
+<struts-config>
+	<!-- << KSY 2005.01.10 Exception Handling
+	<global-exceptions>
+		<exception key="java.lang.Exception" type="java.lang.Exception" handler="com.zionex.t3sinc.tsf.action.http.MainExceptionHandler"/>
+	</global-exceptions> -->
+
+  	<action-mappings>	    
+	    <action type="com.zionex.t3sinc.tsf.action.http.MainAction" path="/service">
+			<!-- << KSY 2005.01.10 Exception Handling-->
+			<exception key="java.lang.Exception" type="java.lang.Exception" handler="com.zionex.t3sinc.tsf.action.http.MainExceptionHandler"/>
+			<forward name="service_basic" path="/sinc/template/basic/template/template.vm"/>
+			<forward name="service_basic_main" path="/sinc/template/basic/template/main_template.vm"/>
+			<forward name="service_basic_menu" path="/sinc/template/basic/template/left_template.vm"/>	
+			<forward name="service_extension" path="/sinc/template/extension/template/template.jsp"/>
+			<forward name="service_extension_main" path="/sinc/template/extension/template/main_template.jsp"/>
+			<forward name="service_extension_menu" path="/sinc/template/extension/template/left_template.jsp"/>	
+			<!-- << KSY 2005.01.10 Exception Handling-->
+			<forward name="main_errorpage_extension" path="/sinc/template/extension/template/error.jsp"/>
+			<!-- 2008.06.18 Exception Handling File conver to vm by KTJ -->
+			<forward name="main_errorpage" path="/sinc/template/basic/template/error.vm"/>
+	    </action>
+	    <action type="com.zionex.t3sinc.tsf.action.http.ReportFormAction" path="/form">
+	    </action>
+	    <action type="com.zionex.t3sinc.tsf.action.http.ReportDataAction" path="/result">
+	    </action>
+  	</action-mappings>
+</struts-config>

@@ -1,0 +1,181 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('100', '138')" )
+
+## 코드 중복 체크를 위해 dwr 선언
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+## 이전 화면으로 이동할 때 조회조건을 기억하기 위한 parameter
+<input type="hidden" name="cd_grp_pre" value="$!{cd_grp_pre}">
+<input type="hidden" name="perpage_pre" value="${perpage_pre}">
+<input type="hidden" name="pagenumber_pre" value="$!{pagenumber_pre}">
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						<input type="button" name="btnBack" value=" 이전화면" onClick="moveBack(); " class="btn1_on">
+						<input type="button" name="btnAddRow" value=" 라인추가" onClick="addRows(10); " class="btn1_on">
+						#toolbar_nscm($_moon_toolbar "" "" "md_01030_codeMasterManagement_reg_save_comp" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; ">
+            				<tr id="search_menu" style="display:block; ">
+            					<td width="10%" align="right">
+            						코드 그룹 :
+            					</td>
+            					<td width="40%" align="left">
+            						## 영문 or 숫자 or _ (underscore) 만 가능
+            						## 영문은 대문자로 변환
+            						<input type="text" name="cd_grp" style="width:200px; padding-left:5px; ime-mode:disabled; " size="20" class="normal"
+            							onChange="chkCodeStr(this); " onKeyDown="enterToTapCheck(); "><input 
+										name="btnChkDup" type="button" value="중복체크" style="width:60px; text-align:center; " onClick="checkDup(); " 
+            							class="button1_1" onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'">
+            						## 코드 그룹 중복 체크 확인 FLAG
+            						## LOGIC : 중복 체크를 하면 cd_grp 와 같은 값을 가짐
+            						##         cd_grp != checkDupFlag 이면 중복 체크를 안 한 것으로 간주
+            						<input type="hidden" name="checkDupFlag" value="">
+            					</td>
+            					<td width="10%" align="right">
+            						설명 :
+            					</td>
+            					<td width="40%" align="left">
+            						<input type="text" name="cd_grp_desc" style="width:200px; padding-left:5px; " size="100" class="normal"
+            							onChange="strCheck(this); " onKeyDown="moveNextBox(this); ">
+            					</td>
+            				</tr> 
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="23"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="tbMain" border="0" width="715" cellpadding="0" cellspacing="0" >
+						<tr>
+							<td> 
+								<div id="topLeft" style="height:35px; width:400px; overflow:hidden; ">
+									<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>
+											<tr height="35px"> 
+												<td width="30px">번호</td>
+												<td width="30px">삭제</td>
+												<td width="140px">코드</td>
+												<td width="200px">코드명</td>
+											</tr> 
+					   					 </thead>
+					   				</table>
+					   			</div>
+							</td>
+							<td> 
+								<div id="topLine" style="height:35px; width:626px;overflow:hidden;">
+									<table width="800px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>
+											<tr height="35px">
+												<td width="300px">설명</td>
+												<td width="100px">CAT1</td>
+												<td width="100px">CAT2</td>
+												<td width="100px">CAT3</td>
+												<td width="100px">CAT4</td>
+												<td width="100px" class="right">CAT5</td>
+											</tr> 
+					   					 </thead>
+					   				</table>
+					   			</div>
+							</td>
+						</tr>	
+						
+						<tr>
+							<td valign="top"> 
+								<div id="leftDisplay" style="width:400px; overflow:hidden; ">
+									<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="left_tbody">
+											#*<tr id="left_tr" height="0px">
+												<td width="30px"></td>
+												<td width="30px"></td>
+												<td width="100px"></td>
+												<td width="200px"></td>
+											</tr>*#
+										</tbody> 
+									</table> 
+								</div> 	
+							</td> 
+							<td valign="top"> 
+								<div id="mainDisplay" class="ns_scroll" style="border:0; width:645px; overflow-y:scroll; overflow-x:scroll; " onscroll="scrollX(); scrollY(); ">
+									<table width="800px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="main_tbody">
+											#*<tr id="main_tr" height="0px">
+												<td width="300px"></td>
+												<td width="100px"></td>
+												<td width="100px"></td>
+												<td width="100px"></td>
+												<td width="100px"></td>
+												<td width="100px"></td>
+											</tr>*#
+										</tbody>
+									</table>
+								</div>
+							</td>
+						</tr>
+					</table>
+						
+					<input type="hidden" name="_moon_service">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 각 항목을 입력한 후 상단의 저장 버튼을 클릭하여 새로운 코드를 등록합니다.";
+	helpStr += "<br>◈ 코드 그룹은 입력한 후, 반드시 중복체크를 해야 합니다.";
+	helpStr += "<br>◈ 한 코드 그룹 내에 중복되는 코드는 존재할 수 없습니다.";
+	helpStr += "<br>◈ 코드 그룹과 코드는 반드시 영문, 숫자 그리고 _ (underscore) 로만 입력합니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+	// 최초 화면 로드 시, 10 LINE DISPLAY
+	addRows(10);
+	
+</script>

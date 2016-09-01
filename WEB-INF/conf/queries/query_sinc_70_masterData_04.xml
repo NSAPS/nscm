@@ -1,0 +1,389 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>	
+
+<!--
+=====================================================================================================
+	기준정보>>생산계획>>설비운영칼렌다 관리
+=====================================================================================================
+--> 
+	
+	<!-- 
+	=======================
+	  설비운영칼렌다 관리
+	=======================
+	-->
+	
+	<!-- 설비운영칼렌다 조회 --> 
+	<query id="md_04110_workCenterCalendar_list" paging="true"> 
+ 
+		SELECT	
+        		RC.LINE_ID,
+				NVL(HR1.HID_NAME,'전체')					LINE_ID_NAME,
+        		RC.PROC_ID,
+        		NVL(HR2.HID_NAME,'전체') 					PROC_ID_NAME,
+        		TO_CHAR(START_DTTM,'YYYY-MM-DD HH24:MI:SS')	START_DTTM,
+        		TO_CHAR(END_DTTM,'YYYY-MM-DD HH24:MI:SS')	END_DTTM,
+        		f_get_code_name('CYCLE_TYPE',RC.CYCLE_TYPE)	CYCLE_TYPE_NAME,
+        		f_get_code_name('CAL_TYPE',RC.CAL_TYPE)		CAL_TYPE_NAME,
+        		f_get_code_name('CAL_GRP',RC.CAL_GRP)		CAL_GRP,
+        		RC.DESCRIPTION,
+				f_get_code_name('YN',RC.USE_FLAG)			USE_FLAG_NAME        		
+        FROM	RES_CAL	RC,
+        		HRCHY	HR1,
+        		HRCHY	HR2
+        WHERE	RC.PLANT_ID	=	HR1.HTYPE(+)
+        AND		RC.PLANT_ID	=	HR2.HTYPE(+)
+        AND		RC.LINE_ID	= HR1.HID(+)
+        AND		RC.PROC_ID	= HR2.HID(+)
+        AND		HR1.LVL_TYPE(+)	= '라인'
+        AND		HR2.LVL_TYPE(+)	= '작업장'
+		AND		RC.PLANT_ID	= '$!{sel_plant}'
+		AND		RC.LINE_ID	LIKE '$!{sel_line}'||'%'
+		AND		RC.CYCLE_TYPE	LIKE '$!{sel_cycle_type}'||'%'
+		AND		RC.CAL_GRP	LIKE '$!{sel_cal_grp}'||'%'
+		ORDER
+		BY		START_DTTM 
+		
+	</query> 
+	
+	<!-- combo plant --> 
+	<query id="md_04110_combo_plant" paging="false"> 
+
+		SELECT	HTYPE,	HID_NAME
+        FROM	HRCHY,
+        		DUAL
+		WHERE	LVL_TYPE	= '공장'
+		ORDER
+		BY		HTYPE
+
+	</query> 
+
+	<!-- combo line --> 
+	<query id="md_04110_combo_line"  paging="false"> 
+
+		SELECT	HTYPE, HID,	HID_NAME
+        FROM	HRCHY,
+        		DUAL
+		WHERE	LVL_TYPE	= '라인'
+		ORDER
+		BY		HTYPE, HID
+	</query> 
+
+	<!-- combo Work center --> 
+	<query id="md_04110_combo_workCenter"  paging="false"> 
+
+		SELECT	PARENT_HID, HID,	HID_NAME
+        FROM	HRCHY,
+        		DUAL
+		WHERE	LVL_TYPE	= '작업장'
+		AND		HTYPE		= '$!{sel_plant}'
+		ORDER
+		BY		PARENT_HID, HID
+
+	</query> 
+
+	<!-- combo CYCLE_TYPE --> 
+	<query id="md_04110_combo_cycleType"  paging="false"> 
+
+		SELECT	CD, CD_NAME
+		FROM	CODE_MST,
+				DUAL
+		WHERE	CD_GRP	= 'CYCLE_TYPE'
+
+	</query> 
+
+	<!-- combo CAL_TYPE --> 
+	<query id="md_04110_combo_calType"  paging="false"> 
+
+		SELECT	CD, CD_NAME
+		FROM	CODE_MST,
+				DUAL
+		WHERE	CD_GRP	= 'CAL_TYPE'
+
+	</query> 
+
+	<!-- combo YN --> 
+	<query id="md_04110_combo_YN"  paging="false"> 
+
+		SELECT	CD, CD_NAME
+		FROM	CODE_MST,
+				DUAL
+		WHERE	CD_GRP	= 'YN'
+		ORDER
+		BY		CD DESC
+
+	</query> 
+
+	<!-- combo YN --> 
+	<query id="md_04110_combo_calGrp"  paging="false"> 
+
+		SELECT	CD, CD_NAME
+		FROM	CODE_MST,
+				DUAL
+		WHERE	CD_GRP	= 'CAL_GRP'
+		ORDER
+		BY		CD
+
+	</query> 
+
+
+	<!-- 설비운영칼렌다 수정 : 저장 -->
+	<!-- 01. 해당 Plant의 설비운영칼렌다 OLD항목 삭제 -->
+	<!-- 02. 해당 Plant의 설비운영칼렌다 NEW항목 삭제 -->
+	<!-- 03. 해당 Plant의 설비운영칼렌다 모든항목 INSERT -->
+	<query id="md_04110_workCenterCalendar_mod_save_01" fix="_user_id sel_plant" iterator="old_line old_proc old_strt_dttm"> 
+			
+			DELETE 	RES_CAL
+			WHERE 	PLANT_ID	= '$!{sel_plant}'
+	        AND		LINE_ID		= '$!{old_line}'
+	        AND		PROC_ID		= '$!{old_proc}'
+	        AND		START_DTTM	= TO_DATE('$!{old_strt_dttm}','YYYY-MM-DD HH24:MI:SS')
+			
+	</query>
+
+	<query id="md_04110_workCenterCalendar_mod_save_02" fix="_user_id sel_plant" iterator="in_line in_proc new_strt_dttm"> 
+			
+			DELETE 	RES_CAL
+			WHERE 	PLANT_ID	= '$!{sel_plant}'
+	        AND		LINE_ID		= '$!{in_line}'
+	        AND		PROC_ID		= '$!{in_proc}'
+	        AND		START_DTTM	= TO_DATE('$!{new_strt_dttm}','YYYY-MM-DD HH24:MI:SS')
+			
+	</query>
+	
+	<query id="md_04110_workCenterCalendar_mod_save_03" fix="_user_id sel_plant" iterator="idu_flag in_line in_proc new_strt_dttm new_end_dttm in_cycle_type in_cal_type in_cal_grp in_description in_use_flag "> 
+
+		#if( "$!{idu_flag}" != "D" )
+
+			INSERT 	INTO RES_CAL( PLANT_ID, LINE_ID, PROC_ID, START_DTTM, END_DTTM, CYCLE_TYPE, CAL_TYPE, CAL_GRP, DESCRIPTION, USE_FLAG, MADE_TYPE, MADE_DTTM, MADE_BY )
+			SELECT 	'$!{sel_plant}' AS PLANT_ID
+					, '$!{in_line}' AS LINE_ID
+					, '$!{in_proc}' AS PROC_ID
+					, TO_DATE('$!{new_strt_dttm}','YYYY-MM-DD HH24:MI:SS') AS START_DTTM
+					, TO_DATE('$!{new_end_dttm}','YYYY-MM-DD HH24:MI:SS') AS END_DTTM
+					, '$!{in_cycle_type}' AS CYCLE_TYPE
+					, '$!{in_cal_type}' AS CAL_TYPE
+					, '$!{in_cal_grp}' AS CAL_GRP
+					, '$!{in_description}' AS DESCRIPTION
+					, '$!{in_use_flag}' AS USE_FLAG
+					, 'AD' AS MADE_TYPE
+					, SYSDATE AS MADE_DTTM
+					, '$!{_user_id}' AS MADE_BY
+			  FROM 	DUAL
+			 WHERE 	NOT EXISTS ( SELECT PLANT_ID FROM RES_CAL CD WHERE PLANT_ID = '$!{sel_plant}' AND LINE_ID = '$!{in_line}' AND PROC_ID = '$!{in_proc}' AND START_DTTM = TO_DATE('$!{new_start_dttm}','YYYY-MM-DD HH24:MI:SS') )
+		#else
+
+			INSERT 	INTO RES_CAL( PLANT_ID, LINE_ID, PROC_ID, START_DTTM, END_DTTM, CYCLE_TYPE, CAL_TYPE, CAL_GRP, DESCRIPTION, USE_FLAG, MADE_TYPE, MADE_DTTM, MADE_BY )
+			SELECT 	PLANT_ID, LINE_ID, PROC_ID, START_DTTM, END_DTTM, CYCLE_TYPE, CAL_TYPE, CAL_GRP, DESCRIPTION, USE_FLAG, MADE_TYPE, MADE_DTTM, MADE_BY
+			  FROM 	RES_CAL
+			 WHERE 	1=0 -- 아무것도 검색하지 않음
+		
+		#end
+		
+	</query>
+
+	<!-- 
+	=======================
+	  운영라인정보 관리
+	=======================
+	--> 
+	<!-- 운영라인정보 조회 START BY KIM  --> 
+
+	<!-- 콤보박스: 공장 리스트 -->
+	<query id="combo_op_plant_list">
+            SELECT  HR.HID, HR.HID_NAME
+              FROM  HRCHY HR, DUAL
+             WHERE  HR.LVL_TYPE = '공장' 
+               AND  HR.MADE_TYPE != 'DE'
+             ORDER  BY HR.HID_NAME	
+	</query>
+      
+	<!-- 콤보박스: 원가부문 리스트 -->
+	<query id="combo_op_won_list"> 
+		SELECT TEAM_ID, TEAM_NAME, PLANT_ID
+		FROM
+		    (
+		    SELECT  DISTINCT
+		            VH.TEAM_ID, VH.TEAM_NAME, VH.PLANT_ID, 2 NO 
+		    FROM    V_HRCHY_PROC VH, DUAL
+		    UNION ALL
+		    SELECT DISTINCT TEAM_ID, TEAM_NAME, PLANT_ID, 1 NO
+		    FROM MAP_TEAM_COSTID
+		    )
+		ORDER   BY PLANT_ID, NO, TEAM_ID  
+	</query>   
+ 
+	<!-- 콤보박스: 중요라인 리스트 --> 
+	<query id="combo_execLine_list"> 
+	
+		SELECT LINE_ID
+		FROM
+		    (
+		    SELECT DISTINCT LINE_ID, 2 SEQ
+		     FROM V_HRCHY_PROC, DUAL
+		    UNION ALL 
+		    SELECT 'ALL' LINE_ID,    1 SEQ
+		    FROM DUAL
+		    ) 
+		ORDER BY SEQ, LINE_ID 
+ 			 
+	</query> 	 
+
+	<!-- 콤보박스: 중요라인 리스트 --> 
+	<query id="grid_execLine_list"> 
+
+		SELECT LINE_ID, LINE_NM
+		FROM
+				(
+				SELECT LINE_ID, LINE_NM, 2 SEQ
+				FROM 
+				    (
+		             SELECT A.PLANT_ID, 
+		                    MIN(A.PLANT_NAME) PLANT_NM,
+		                    B.TEAM_ID,  
+		                    MIN(B.TEAM_NAME)  TEAM_NM,
+		                    A.TEAM_ID   COST_ID,
+		                    MIN(A.TEAM_NAME)  COST_NAME,
+		                    A.LINE_ID, 
+		                    MIN(A.LINE_NAME)  LINE_NM
+		             FROM 
+		                (
+		                SELECT  *
+		                FROM    V_HRCHY_PROC
+		                ) A,
+		                (
+		                SELECT *
+		                FROM MAP_TEAM_COSTID
+		                ) B
+		              WHERE A.PLANT_ID = B.PLANT_ID
+		                AND A.TEAM_ID  = B.COST_ID 
+		             GROUP BY A.PLANT_ID, B.TEAM_ID, A.TEAM_ID, A.LINE_ID  
+				    )	     
+			    WHERE PLANT_ID = '${plant_id}'  
+			    AND DECODE(LENGTH('${cost_id}'),3,COST_ID,TEAM_ID) = '${cost_id}'
+				UNION ALL 
+				SELECT 'ALL' LINE_ID, 'ALL' LINE_NAME, 1 SEQ
+				FROM DUAL
+				)
+		ORDER BY SEQ, LINE_ID 	    
+ 	</query> 	 
+	
+	<query id="md_05170_opLineInfomation_list" paging="true">
+
+		select op.plant_id,
+		       (
+		       select hid_name 
+		         from hrchy
+		       where hid =  op.plant_id
+		        and  lvl_type = '공장'
+		       ) plant_nm,
+		       op.cost_id,
+		       ( 
+		       select hid_name 
+		         from (
+        		        select htype, hid, hid_name  
+        		        from hrchy
+        		        where lvl_type = '원가부문'
+        		        union 
+        		        select plant_id, team_id, team_name 
+        		        from map_team_costid		         
+		              )
+		       where htype = op.plant_id 
+ 		         and hid =  op.cost_id
+		       ) cost_nm,       
+		       decode(op.line_id,'ALL',op.user1) user1,
+		       op.op_lines,
+		       op.line_id,
+		       nvl((
+		       	SELECT LINE_NAME
+			     FROM V_HRCHY_PROC
+			    WHERE CAT = '포장'		    
+			     AND PLANT_ID = op.plant_id   
+			     AND TEAM_ID = op.cost_id 
+			     AND LINE_ID = op.line_id
+		       ),'ALL') line_nm,  		       
+		       op.priority,
+		       op.bn_flag, 
+		       op.orderby     
+		from
+		    (
+		    select op.plant_id,
+		           op.cost_id,
+		           op.line_id,
+                   (--1. 생산부문인 전체라인수
+		            CASE WHEN op.tp = 'T' THEN  (
+                                                select COUNT(1) 
+                                                  from hrchy
+                                                where htype = op.plant_id 
+                                                and parent_hid  IN (
+                                                                    select COST_ID 
+                                                                    from MAP_TEAM_COSTID
+                                                                    where plant_id = op.plant_id
+                                                                    and team_id = op.cost_id
+                                                                    )   
+                                                 )	
+                                          --2. 원가부문의 전체라인수
+                                          ELSE (
+                            		            select COUNT(1) 
+                            		              from hrchy
+                            		            where htype = op.plant_id
+                            		              and parent_hid = op.cost_id                                           
+                                                )
+                    END
+                    )  user1,  --전체라인수                   	          
+		           op.op_lines, 
+		           op.priority,
+		           op.bn_flag,
+		           DECODE(op.line_id, 'ALL',1,2) orderby        
+		    from (
+                    select plant_id,
+                           DECODE(LENGTH(cost_id),3,'C','T') tp,
+                           cost_id,
+                           line_id,
+                           priority,
+                           bn_flag,
+                           op_lines,
+                           user1
+                    from op_line_infos		    
+    		    ) op	
+    		) op
+  		where 1=1    
+  	    [AND  PLANT_ID = '${selected_plant}']  
+		[AND  COST_ID = '${selected_line}']  
+		order by plant_id, cost_id, orderby, line_id  	 	      	
+	</query>   
+	 
+	<!-- 01. 검색된 조건의 데이터를 DB에서 모두 삭제 -->
+	<query id="md_05170_opLineInfomation_list_save01" >   
+			DELETE  OP_LINE_INFOS
+			WHERE 1=1
+			 [AND PLANT_ID = '${selected_plant}'] 
+			 [AND  COST_ID = '${selected_line}'] 
+    </query>
+
+	<!-- 02. 화면에 있는 데이터를 모두 INSERT -->   
+	<query id="md_05170_opLineInfomation_list_save02" iterator="plant_id line_id exec_line op_line priority bn_flag">
+	
+			INSERT  INTO OP_LINE_INFOS( PLANT_ID, COST_ID, LINE_ID, OP_LINES, PRIORITY, BN_FLAG, MADE_TYPE, MADE_DTTM, MADE_BY )
+			SELECT   '$!{plant_id}'      AS PLANT_ID
+			        , '$!{line_id}'      AS COST_ID   
+			        , '$!{exec_line}'    AS LINE_ID 
+			        , DECODE('$!{op_line}'   , '','0','$!{op_line}')     AS OP_LINES  
+			        , DECODE('$!{exec_line}','ALL',NULL,'$!{priority}')  AS PRIORITY
+			        , DECODE('$!{exec_line}','ALL',NULL,'$!{bn_flag}')   AS BN_FLAG 
+			        , 'AD'               AS MADE_TYPE
+			        , SYSDATE            AS MADE_DTTM
+			        , DECODE('$!{_user_id}', '','ADMIN','$!{_user_id}')  AS MADE_BY
+			  FROM  DUAL, DUAL     			          	    
+	</query>	     
+ 
+	<!-- 운영라인정보 조회 END BY KIM  --> 
+ 
+<!--
+=====================================================================================================
+ 끝  
+=====================================================================================================
+--> 
+
+</queries>
+ 

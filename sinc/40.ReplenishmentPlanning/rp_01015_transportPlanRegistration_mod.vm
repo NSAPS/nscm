@@ -1,0 +1,345 @@
+## 비정상적 접근 방지 fix="version seq tgt_loc src_loc plan_type  truck_seq trans_date _user_id"
+#loginCheck()
+## 화면 resizing 을 위한 size 변수
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('150', '303')" )
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/replenishPlan.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<input type="hidden" name="plan_version" value="20000000.01.01">
+<input type="hidden" name="version" value="20000000.01.01">
+<input type="hidden" name="seq" value="1">
+<input type="hidden" name="truck_seq" value="$!{truck_seq}">
+##<input type="hidden"name="truck_seq" class="normal"  value="">
+
+###foreach( $tr in $rp_01015_get_truck_seq )
+##	<input type="hidden"name="truck_seq" class="normal"  value="${tr.get(0)}" ">
+###end
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						##button("search")
+						<input type="button" name="btnBack" value=" 메인화면" onClick="moveBack(); " class="btn1_on">
+						##<input type="button" name="btnAddRow" value=" 라인추가" onClick="addRows(10); " class="btn1_on">
+						#toolbar_nscm($_moon_toolbar "" "" "rp_01015_transportPlanRegistration_mod_save_comp" "rp_01015_transportPlanRegistration_mod_delete_comp")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2">
+					<td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0"  id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr>
+								<td width="90px" align="right">
+            						출고사업장 :
+            					</td>
+            					<td width="160px" align="left">
+									<select name="src_loc" style="width:160px; ">
+										<option value="">선택</option>
+									#foreach( $tr in $dc_id_and_short_name_list )
+										<option value="${tr.get(0)}" 
+											#if( "$!{src_loc}" == "${tr.get(0)}" ) selected #end)>${tr.get(1)}</option>
+									#end
+									</select>
+            					</td>
+            					<td width="90px" align="right">
+            						입고사업장 :
+            					</td>
+            					<td width="160px" align="left">
+									<select name="tgt_loc" style="width:160px;">
+										<option value="">선택</option>
+									#foreach( $tr in $dc_id_and_short_name_list )
+										<option value="${tr.get(0)}" 
+											#if( "$!{tgt_loc}" == "${tr.get(0)}" ) selected #end)>${tr.get(1)}</option>
+									#end
+									</select>
+            					</td>
+								<td>
+								</td>
+            				</tr>
+            				<tr>
+            					<td width="90px%" align="right">
+            						수송구분 :
+            					</td>
+            					<td width="160px" align="left">
+									<select name="plan_type" style="width:160px; ">
+										<option value="">선택</option>
+									#foreach( $tr in $rp_01015_trans_class_list )
+										<option value="${tr.get(0)}"
+											#if( "$!{plan_type}" == "${tr.get(0)}" ) selected #end)>${tr.get(1)}</option>
+									#end
+									</select>
+									##<input type="hidden" name="plan_type" value="$!{plan_type_sel}">
+            					</td>
+            					<td width="90px" align="right">
+            						수송일자 :
+            					</td>
+            					<td width="300px" align="left" colspan='4'>
+									##set( $transEnd = "$commonUtil.toDate($date.get('yyyy-MM-dd'), 'YYYY-MM-DD', 'DAY', 1)" )
+									#date_sole_no_title("trans_date" "10" "normal" "btnS" "$date.get('yyyy-MM-dd')")
+									##date_sole_no_title("trans_end" "10" "normal" "btnE" "$!{transEnd}")
+            					</td>
+            				</tr>
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2">
+					<td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="70"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+								<img src="/nscm/sinc/template/basic/skin/nongshim/images/common/dot_sub6.gif" width="16" height="13">Total :
+								<span id="areaTot" class="f_color_o b">$!{_moon_service_count}</span>
+							</td>
+						</tr>
+					</table>
+					
+					<table id="tbMain" border="0" width="100%" cellpadding="0" cellspacing="0"><tr><td>
+						<div id="topLeft" style="height:40px; width:460px; overflow:hidden; ">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead>
+									<tr height="40px"> 
+										<td width="30px">번호</td>
+										<td width="40px" onClick="addRow(this); " id="areaAdd"
+											onMouseOver="this.style.cursor='pointer'; " onMouseOut="this.style.cursor=''; ">추가<br>삭제</td>
+										##<td width="95px">수송일자</td>
+										<td width="110px">제품코드</td> 
+										<td width="280px">제품명</td>
+									</tr> 
+			   					 </thead>
+			   				</table>
+			   			</div> 
+					</td>
+					<td> 
+						<div id="topLine" style="height:40px; width:270px;overflow:hidden;">
+							<table width="350px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead>
+									<tr height="22px">
+										<td width="240px" colspan="3">상차 집계</td>
+										<td width="110px" rowspan="2">전표 번호</td> 
+									</tr>
+									<tr align="center" height="18px">
+										<td width="80px" class="mid">PLT</td>
+										<td width="80px" class="mid">BOX</td>
+										<td width="80px" class="mid">EA</td>
+									</tr>
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td></tr>	
+					<tr><td valign="top">
+						<div id="leftDisplay" style="width:460px; overflow:hidden; ">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="left_tbody">
+								## 조회 결과데이터가 없는 경우, 좌우스크롤 표시를 위해 한 라인 생성
+								#*if( $rp_01010_dailyTransportPlan_list.size() == 0 )	
+									<tr height="1"><td colspan="6" width="390px"></td></tr>
+								#end*#
+								## RTE구분(0) 수송일자(1) 출고장(2) 출고장명(3) 차량순번(4) 제품코드(5) 제품명(6)
+								## 기본재고상차PLT(7) 기본재고상차BOX(8) 추가재고상차PLT(9) 추가재고상차BOX(10)
+								## 생산상차PLT(11) 생산상차BOX(12) 누적상차집계PLT(13) 누적상차집계BOX(14) BOX_PER_PALET(15)
+								#foreach( $tr in $rp_01015_transportPlanRegistration_list )
+									<tr id="left_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+										## 번호, BOX_PER_PALET(15)
+										<td width="30px" align="center" style="background-color:${search_bgcolor}; "  id="tdRowNo">
+											<a id="divRowNo">$velocityCount</a>
+											<input type="hidden" name="old_date" value="$tr.get(0)" >
+											<input type="hidden" name="box_per_palet" value="$tr.get(7)" >	
+											<input type="hidden" name="mod_flag" value="$tr.get(8)" >
+	
+										</td>
+										## 추가/삭제
+										<td width="40px" align="center">
+											<input name="btnAddRow" type="button" value="O" class="button1_1"
+												style="width:17px; text-align:center; font-weight:bold; " onClick="addRow(this); "
+												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"><input
+												name="btnDelRow" type="button" value="X" class="button1_1"
+												style="width:17px; text-align:center; font-weight:bold; " onClick="delRow(this); "
+												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'">
+										</td>
+##										## 수송일자(1) 
+##										<td width="95px" align="center" onClick="setEditMode(this); ">
+##											<a id="divTransDate">$tr.get(0)</a><input type="hidden" name="trans_date" value="$tr.get(0)" >
+##										</td>
+										## 제품코드(5)
+										<td width="110px" align="center" onClick="setEditMode(this); ">
+											<a id="divItemId">$tr.get(2)</a><a id="divItemInput" style="display:none; "><input 
+												type="text" name="item_id" class="normal" size="100" value="$tr.get(2)"
+												onKeyDown="moveNextBox(this); " onFocusOut="setViewMode(this); "
+												style="width:79px; padding-left:5px; " ><img name="imgItemId" tabindex="-1"
+												src="sinc/template/basic/skin/nongshim/images/common/icon_search.gif" align="absmiddle"
+												border="0" onClick="openItemSearchPop(this); " style="cursor:pointer;"
+												onMouseOver="overImg(this); " onMouseOut="outImg(this); "></a>
+										</td>
+										## 제품명(6)
+										<td width="280px">
+											<a id="divItemName">&nbsp;$tr.get(3)</a> <input
+												type="hidden" name="item_name" value="$tr.get(3)" >
+										</td>
+									</tr>
+								#end
+								</tbody> 
+							</table> 
+						</div>
+					</td> 
+					<td valign="top"> 
+						<div id="mainDisplay" class="ns_scroll" 
+							style="border:0; width:160px; overflow-y:scroll; overflow-x:scroll; " onscroll="scrollX(); scrollY(); ">
+							<table width="350px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="main_tbody">
+								## 조회 결과데이터가 없는 경우, 좌우스크롤 표시를 위해 한 라인 생성
+								#*if( $rp_01010_dailyTransportPlan_list.size() == 0 )
+									<tr height="1"><td colspan="10" width="820"></td></tr>
+								#end
+								*#
+								## RTE구분(0) 수송일자(1) 출고장(2) 출고장명(3) 차량순번(4) 제품코드(5) 제품명(6)
+								## 기본재고상차PLT(7) 기본재고상차BOX(8) 추가재고상차PLT(9) 추가재고상차BOX(10)
+								## 생산상차PLT(11) 생산상차BOX(12) 누적상차집계PLT(13) 누적상차집계BOX(14) BOX_PER_PALET(15)
+								#foreach( $tr in $rp_01015_transportPlanRegistration_list )
+									<tr id="main_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+										## 기본재고상차 PLT(7)
+										<td width="80px" align="right" onClick="setEditMode(this); ">
+											#if( "$tr.get(4)" == "" )
+												#set( $basePlt = "" )
+											#else
+												#set( $basePlt = "$number.format('#,##0.00', $tr.get(4))" )
+											#end
+											<a id="divBasePlt">$!{basePlt}&nbsp;</a><input
+												type="text" name="base_stk_plt" class="normal" size="20" value="$!{basePlt}"
+												onKeyDown="moveNextBox(this); " onFocusOut="setViewMode(this); " onDblClick="this.select(); "
+												style="width:100%; padding-right:5px; display:none; text-align:right; " >
+											##<input type="hidden" name="base_stk_plt" value="$tr.get(7)">
+										</td>
+										## 기본재고상차 BOX(8)
+										<td width="80px" align="right" onClick="setEditMode(this); ">
+											#if( "$tr.get(5)" == "" )
+												#set( $baseBox = "" )
+											#else
+												#set( $baseBox = "$number.format($tr.get(5))" )
+											#end
+											<a id="divBaseBox">$!{baseBox}&nbsp;</a><input
+												type="text" name="base_stk_box" class="normal" size="20" value="$!{baseBox}"
+												onKeyDown="moveNextBox(this); " onFocusOut="setViewMode(this); " onDblClick="this.select(); "
+												style="width:100%; padding-right:5px; display:none; text-align:right; " >
+										</td>
+										## 기본재고상차 EA(5)
+										<td width="80px" align="right" onClick="setEditMode(this); ">
+											#if( "$tr.get(6)" == "" )
+												#set( $baseEa = "" )
+											#else
+												#set( $baseEa = "$number.format($tr.get(6))" )
+											#end											
+											<a id="divBaseEa">$!{baseEa}&nbsp;</a><input
+												type="text" name="base_stk_ea" class="normal" size="20" value="$!{baseEa}"
+												onKeyDown="moveNextBox(this); " onFocusOut="setViewMode(this); " onDblClick="this.select(); "
+												style="width:100%; padding-right:5px; display:none; text-align:right; " >
+										</td>										
+										## 전표번호(9)
+										<td width="110px"> 
+											<a id="divBrandNo">&nbsp;$tr.get(9)</a><input
+												type="hidden" name="brand_no" value="$tr.get(9)" >
+										</td>
+									</tr>
+								#end
+								</tbody>
+							</table>
+						</div>
+					</td></tr></table>
+					
+					<table border="0" width="100%" cellpadding="0" cellspacing="0" height="5px"><tr><td></td></tr></table>
+					
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+						
+					<input type="hidden" name="_moon_service" value="$!{_moon_service}">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					<input type="hidden" name="_user_id" value="$!{_user_id}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+					
+					## 출고장 select box string 생성
+					#set( $srcLocStr = "<option value=\"\">선택</option>" )
+					#foreach( $sel in $dc_id_and_name_list )
+						#set( $srcLocStr = "$!{srcLocStr}<option value=\"${sel.get(0)}\">${sel.get(1)}</option>" )
+					#end
+					#set( $srcLocStr = "<option value=''>선택</option>" )
+					#foreach( $sel in $dc_id_and_name_list )
+						#set( $srcLocStr = "$!{srcLocStr}<option value='${sel.get(0)}'>${sel.get(1)}</option>" )
+					#end
+					<input type="hidden" name="src_loc_sel_str" value="$!{srcLocStr}">
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	addRow(5);
+	// 도움말 내용 입력
+	var helpStr = "◈ 생성일자, 입고장, 계획버전을 반드시 입력하고 조회해야 합니다.";
+	helpStr += "<br>◈ 각 항목을 입력한 후 상단의 저장 버튼을 클릭하여 수정 내용을 저장합니다.";
+	helpStr += "<br>◈ 번호를 클릭하면 해당 라인의 판매정보와 공장예상재고가 조회됩니다.";
+	helpStr += "<br>◈ 추가/삭제의 테이블 헤더부분을 클릭하면 새로운 라인이 생성됩니다.";
+	helpStr += "<br>◈ 각각의 Row마다 선택후 클릭한후 상단의 선택 버튼을 누르시면, 선택된 첫번째로의 수송일자,출고장,차량번호가 다른 선택된 Row에 자동 셋팅됩니다.";
+	helpStr += "<br>◈ 또한 값이 자동 셋팅된 후 누적상차집계와 Row색깔 또한 자동 셋팅됩니다.";
+	helpStr += "<br>◈ PLT값을 수정하면 BOX 수량이 자동 셋팅되고, BOX값을 수정하면 PLT값이 자동 셋팅됩니다.";
+	helpCont.innerHTML = helpStr;
+	// 도움말 zoomOut 높이 조절 변수
+	hDynamicHeight = 0;
+	
+	// 버전 초기값 세팅
+	//setVersions(document.frm.plan_version.value);
+	doChange(document.frm.period_type);
+	if( "$!{plan_version}" != "" ) {
+		document.frm.plan_version.value = "$!{plan_version}";
+	}
+	
+	## 데이터가 있는 경우만 누적상차집계 계산
+    #if( $rp_01010_dailyTransportPlan_list.size() > 0 )
+	
+    #end
+	
+</script>

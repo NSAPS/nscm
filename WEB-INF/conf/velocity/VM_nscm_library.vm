@@ -1,0 +1,157 @@
+
+## input box
+#macro( input_text $name $size $style )
+	<input type="text" name="$!{name}" size="$!{size}" class="normal" onKeyPress="enterCheck('$_moon_service');" style="$!{style}" onBlur="strCheck(); " ondblClick="select(); " 
+		value="$commonUtil.replaceQuot($!params.get("${name}"))" > 
+#end
+
+## popup 조회 아이콘 input box
+#macro( input_text_search $name $size $style $func )
+	<input type="text" name="$!{name}" size="$!{size}" class="normal" onKeyPress="enterCheck('$_moon_service');" style="$!{style}" onBlur="strCheck(); " ondblClick="select(); " 
+		value="$commonUtil.replaceQuot($!params.get("${name}"))" ><img name="img" src="sinc/template/basic/images/stw/search.png" 
+		tabindex="-1" align="absmiddle" border="0" onClick="$func" style="cursor:pointer;"> 
+#end 
+
+## onKeyPress script 지정 popup 조회 아이콘 input box
+#macro( input_text_search_script $name $size $style $func $scriptFunc )
+	<input type="text" name="$!{name}" size="$!{size}" class="normal" onKeyPress="$scriptFunc" style="$!{style}" onBlur="strCheck(); " ondblClick="select(); " 
+		value="$commonUtil.replaceQuot($!params.get("${name}"))" ><img name="img" src="sinc/template/basic/images/stw/search.png" 
+		tabindex="-1" align="absmiddle" border="0" onClick="$func" style="cursor:pointer;"> 
+#end
+
+## Code List combo box
+#macro( code_select $name $query_id $style ) 
+	<select name="$!{name}" style="$!{style}"> 
+			<option value="">ALL</option> 
+		#foreach( $con in $commonUtil.codeList($!{query_id}) ) 
+			<option value="$con.get(0)" #if( "$!params.get(${name})" == "$con.get(0)" ) selected #end >$con.get(1)</option> 
+		#end 
+	</select> 
+#end 
+
+## 비정상적 접근 방지 
+#macro( loginCheck )
+<script> 
+<!--
+	var chk = "$!{accessCheck}"; 
+	if( chk == null || chk == "" ){ 
+		alert("정상적인 접근이 아닙니다. 로그인 후 이용하시기 바랍니다."); 
+		//top.window.close();
+		top.window.location.href = "http://www.samsung.net"; 
+	} 
+-->
+</script> 
+#end
+
+## page 정보 DISPLAY : paging 적용 화면
+#macro(page_info)
+	<img src="$!{project}/sinc/template/basic/skin/nongshim/images/common/dot_sub6.gif" width="16" height="13">Total :
+	<span class="f_color_o b">$_moon_service_count</span>
+	(current page is
+		<span class="f_color_o b"> $_moon_pagenumber / #allPageNumber($_moon_service_count $_moon_perpage)</span>
+	pages)
+#end
+
+## page 정보 DISPLAY : paging 미적용 화면
+#macro(page_info2)
+	<img src="$!{project}/sinc/template/basic/skin/nongshim/images/common/dot_sub6.gif" width="16" height="13">Total :
+	<span class="f_color_o b">$_moon_service_count</span>
+#end
+
+## tab 좌측 여백
+#macro(tabLeft)
+	<div class="tab-page" id="tabPageLeft"><h2 class="tab" style="border:0px solid; "></h2></div>
+#end
+
+## DEFAULT 버튼(등록/수정/저장/삭제)
+#macro(toolbar_nscm $toolbar $target_register $target_edit $target_save $target_delete)
+	## 등록
+	#if($toolbar.substring(0,1) == "0")
+		<img src="sinc/template/basic/skin/nongshim/images/btn/btn_wrt_off.gif" width="55" height="22" align="absmiddle">
+	#else
+		##<a href="#"><img src="sinc/template/basic/skin/nongshim/images/btn/btn_wrt.gif" width="55" height="22" align="absmiddle"
+		##	onClick="GoRegister('$target_register')"></a>
+		<input type="button" name="btnReg" value="  등록" onClick="GoRegister('$target_register')" class="btn_reg_on" >
+	#end
+	
+	## 수정
+	#if($toolbar.substring(1,2) == "0")
+		<img src="sinc/template/basic/skin/nongshim/images/btn/btn_mod_off.gif" width="55" height="22" align="absmiddle">
+	#else
+		##<a href="#"><img src="sinc/template/basic/skin/nongshim/images/btn/btn_mod.gif" width="55" height="22" align="absmiddle"
+		##	onClick="GoEdit('$target_edit')"></a>
+		<input type="button" name="btnMod" value="  수정" onClick="GoEdit('$target_edit')" class="btn_mod_on" >
+	#end
+	
+	## 저장
+	#if($toolbar.substring(2,3) == "0")
+		<img src="sinc/template/basic/skin/nongshim/images/btn/btn_save_off.gif" width="55" height="22" align="absmiddle">
+	#else
+		##<a href="#"><img src="sinc/template/basic/skin/nongshim/images/btn/btn_save.gif" width="55" height="22" align="absmiddle"
+		##	onClick="GoSave('$target_save')"></a>
+		<input type="button" name="btnSave" value="  저장" onClick="GoSave('$target_save')" class="btn_sav_on" >
+	#end
+	
+	## 삭제
+	#if($toolbar.substring(3,4) == "0")
+		<img src="sinc/template/basic/skin/nongshim/images/btn/btn_del_off.gif" width="55" height="22" align="absmiddle">
+	#else
+		##<a href="#"><img src="sinc/template/basic/skin/nongshim/images/btn/btn_del.gif" width="55" height="22" align="absmiddle"
+		##	onClick="GoDelete('$target_delete')"></a>
+		<input type="button" name="btnDel" value="  삭제" onClick="GoDelete('$target_delete')" class="btn_del_on" >
+	#end
+#end
+
+## waiting 표시영역
+#macro(waitingArea)
+    <table width="100%" height="100%" id="waitArea" style="display:none; ">
+    	<tr>
+    		<td valign="middle" align="center">
+    			<img src="sinc/template/basic/skin/nongshim/images/common/progress_waiting.gif" 
+    				align="absmiddle" border="0" width="200px" height="60px">
+    			<img src="sinc/template/basic/skin/nongshim/images/common/loading_icon.gif" 
+    				align="absmiddle" border="0" width="60px" height="60px">
+    			<br><h1>&nbsp;</h1><br><h1>&nbsp;</h1><br>
+    		</td>
+    	</tr>
+    </table>
+#end
+
+## 테이블 페이지 당 리스트 건수 combo box
+## 팝업창에서 '리스트 항목수' 스트링 제거
+#macro(table_display_pop)
+	<table cellspacing="0" cellpadding="0" class="normal-table">
+		<tr>
+			<td>
+				<table border="0" cellspacing="0" cellpadding="0" valign="top">
+					<tr>
+						##<td width="60">&nbsp;
+						<td>&nbsp;
+							#if(!$!_moon_pagenumber)
+								#set($_moon_pagenumber = "1")
+							#end
+							<select name="_moon_perpage" onChange="GoPagingOption('$_moon_service', this.value, '$_moon_pagenumber')" 
+								style="BORDER-RIGHT: silver 1px solid; BORDER-TOP: silver 1px solid; BORDER-LEFT: silver 1px solid; COLOR: #666666; BORDER-BOTTOM: silver 1px solid; 
+										FONT-FAMILY: 돋움; BACKGROUND-COLOR=${search_bgcolor}; TEXT-ALIGN: center">
+								#if(!$!_moon_perpage)
+									#set($_moon_perpage = "10")
+								#end
+								<option value="10" #if($_moon_perpage == "10") selected #else #end>10</option>
+								<option value="20" #if($_moon_perpage == "20") selected #else #end>20</option>
+								<option value="30" #if($_moon_perpage == "30") selected #else #end>30</option>
+								<option value="50" #if($_moon_perpage == "50") selected #else #end>50</option>
+								<option value="100" #if($_moon_perpage == "100") selected #else #end>100</option>
+								<option value="200" #if($_moon_perpage == "200") selected #else #end>200</option>
+							#if( $math.min($number.toNumber("$!{_moon_service_count}"), 501) == 501 ) 
+								<option value="500" #if($_moon_perpage == "500" || $_moon_perpage == "-1") selected #else #end>500</option>
+							#else 
+								<option value="-1" #if($_moon_perpage == "-1" || $_moon_perpage == "500") selected #else #end>All</option>
+							#end 
+							</select>
+						</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+	</table>
+#end

@@ -1,0 +1,205 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+##set( $resizeFuncCallCode = "setGridAutoResize2('120', '180')" )
+#set( $resizeFuncCallCode = "setGridAutoResize('78', '123')" )
+
+
+<!--	 WiseGrid의 셀을 더블클릭 했을때 발생한다. -->
+<script language=javascript for="WiseGrid" event="CellDblClick(strColumnKey, nRow)">
+	GridCellDblClick(strColumnKey, nRow);
+</script>
+
+<!--	 WiseGrid에 MOUSE OVER 되었을때 발생한다. -->
+<script language=javascript for="WiseGrid" event="MouseOver(strType, strColumnKey, nRow)">
+	GridMouseOver(strType, strColumnKey, nRow);
+</script>
+
+<!--	 WiseGrid에 MOUSE OUT 되었을때 발생한다. -->
+<script language=javascript for="WiseGrid" event="MouseOut(strType, strColumnKey, nRow)">
+	GridMouseOut(strType, strColumnKey, nRow);
+</script>
+
+
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<input type="hidden" name="perpage_pre" value="${_moon_perpage}">
+<input type="hidden" name="pagenumber_pre" value="$!{_moon_pagenumber}">
+	
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						#button("search")
+						##<input type="button" name="btnMod" value="  수정" onClick="GoEdit();" class="btn_mod_on" >							
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " ></td></tr> ##onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " ></td> ##onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; ">
+							
+							<tr>
+								<td width="100%" align="left">
+									&nbsp;
+									계획버전 :
+									<select name="version" onChange="versionCombo();">
+										<option value="">선택</option>
+										##<option value="%" #if( "$!{sel_allocQuotaType}" == "%" || "$!{sel_cal_grp}" == "") selected #end >전체</option>
+										#foreach( $condition in $expenseFactoryResult_list_combo_version )
+											##<option value="$condition.get(0)" 
+												##if( "$!{sel_allocQuotaType}" == "$condition.get(0)" || "$ip_02040_DC_ALLOC_ITEM_INFO.get(0).get(0)" == "$condition.get(0)" ) selected #end>$condition.get(1)</option>
+												
+											<option value="$condition.get(0)">$condition.get(0)</option>
+											
+										#end
+									</select>
+            					    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+									설비유형 :
+									<select name="res_code" >
+										<option value="">All</option>
+										#foreach( $condition in $expenseFactoryResult_list_combo_res_code )
+											##<option value="$condition.get(0)" 
+												##if( "$!{sel_allocReason}" == "$condition.get(0)"  || "$ip_02040_DC_ALLOC_ITEM_INFO.get(0).get(1)" == "$condition.get(0)" ) selected #end>$condition.get(1)</option>
+											
+											<option value="$condition.get(0)">$condition.get(1)</option>												
+										#end
+									</select>
+									&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+									품목명 :
+									<select name="item_list" style="width='130px'">
+										<option value="">All</option>
+										##foreach( $condition in $expenseFactoryResult_list_combo_item_list )
+										##	<option value="$condition.get(0)">$condition.get(1)</option>												
+										##end
+									</select>
+									&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+									경로2 :
+									<select name="path2" >
+										<option value="">All</option>
+										#foreach( $condition in $expenseFactoryResult_list_combo_path2 )
+											##<option value="$condition.get(0)" 
+												##if( "$!{sel_allocReason}" == "$condition.get(0)"  || "$ip_02040_DC_ALLOC_ITEM_INFO.get(0).get(1)" == "$condition.get(0)" ) selected #end>$condition.get(1)</option>
+											
+											<option value="$condition.get(0)">$condition.get(1)</option>												
+										#end
+									</select>
+									&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+									경로4 :
+									<select name="path4" >
+										<option value="">All</option>
+										#foreach( $condition in $expenseFactoryResult_list_combo_path4 )
+											##<option value="$condition.get(0)" 
+												##if( "$!{sel_allocReason}" == "$condition.get(0)"  || "$ip_02040_DC_ALLOC_ITEM_INFO.get(0).get(1)" == "$condition.get(0)" ) selected #end>$condition.get(1)</option>
+											
+											<option value="$condition.get(0)">$condition.get(1)</option>												
+										#end
+									</select>
+									
+									
+									<input type="hidden" name="chk_plan_yn" value="N">
+								</td> 
+							</tr>
+						</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " ></td> ##onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " ></td></tr> ##onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="23"> ## search 조건 부분 높이 
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div> 
+				<INPUT TYPE="button" NAME="btn1" VALUE="수량, Portion"    onClick="btn_div('A'); display('A');" disabled='true' style='border:0; width:150px; height:18px;'>
+				<INPUT TYPE="button" NAME="btn2" VALUE="비율 vs, 비용기반" onClick="btn_div('B'); display('B');" style='border:0; width:150px; height:18px;'>
+				<INPUT TYPE="button" NAME="btn3" VALUE="경로별 수량, 급액" onClick="btn_div('C'); display('C');" style='border:0; width:150px; height:18px;'>
+				<INPUT TYPE="button" NAME="btn4" VALUE="경로별 비용 TRACE" onClick="btn_div('D'); display('D');" style='border:0; width:150px; height:18px;'>
+		    </div>
+			##<div>&nbsp;</div>
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+    					<table name="grid" width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+    						 
+    						<tr>
+    							<td align="left" > 
+    								<script>initWiseGrid("WiseGrid", "100%", "450");</script>  
+    							</td> 
+    						</tr>
+    					</table> 
+					
+					</td></tr></table>
+					
+				##</div>
+
+    			<input type="hidden" name="_moon_service" value="${_moon_service}">
+    			<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+    			<input type="hidden" name="_user_id" value="$!{_user_id}">
+				
+				##팝업 파라미터 값을 저장하기위해 생성!!
+				<input type="hidden" name="st_item_id" value="">
+				<input type="hidden" name="st_tgt_loc" value="">
+				
+			##</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+
+	//그리드 객체 전역변수 선언! 모든곳에서 GridObj 객체를 사용 함.
+    var GridObj = document.WiseGrid;
+	
+	//버튼 전역변수 선언! 초기 값 "Z"
+	var B_Value="Z";
+	
+	//품목과 경로5, 경로4의 파라미터 저장 전역 변수.
+	var s_item_id = "";
+	var s_dcpath5_4 = "";
+	
+	//경로별 비용 TRACE 버튼의 품목과 타겟 파라미터 저장 전역 변수.
+	var st_item_id = "";
+	var st_tgt_loc = "";
+	
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 
+	function chkOpenClose( obj ) {
+		
+		alert(obj.tagName);
+		if( obj.tagName != "INPUT" && obj.tagName != "SELECT" && obj.tagName != "BUTTON" ) {
+			OpenClose(search_menu); $!{resizeFuncCallCode};
+		}
+		
+	}
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 조회된 리스트의 데이터를 더블클릭하면 해당 코드 그룹 수정화면으로 이동합니다.";
+	helpStr += "<br>◈ 상단의 등록버튼을 클릭하면 코드 등록 화면으로 이동합니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+	//document.cookie = "webfxtab_tabPane1=1";
+	
+	
+</script> 

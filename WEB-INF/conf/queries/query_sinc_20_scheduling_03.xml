@@ -1,0 +1,2538 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>	
+
+
+	<!-- 
+	=======================
+		작업장별 TO/PO 조회 
+	=======================
+	--> 	
+	
+	<!-- 작업장별 TO / PO조회 -->
+	<query id="sc_01070_workCenterTO_PO_list" paging="true"> 
+            
+			SELECT	LC.PROC_ID,
+            		HR2.HID_NAME PROC_NAME,
+            		LC.TO_MAN,
+            		LC.TO_WOMAN,
+            		LC.PO_MAN,
+            		LC.PO_WOMAN
+            FROM	LABOR_CONSTRAINT	LC,
+            		HRCHY				HR1,
+            		HRCHY				HR2
+            WHERE	LC.PLANT_ID		= HR1.HTYPE
+            AND		HR1.LVL			= '10'
+            AND		LC.PLANT_ID		= HR2.HTYPE	
+            AND		LC.PROC_ID		= HR2.HID
+            AND		HR2.LVL			= '40'
+            AND 	LC.PLANT_ID		LIKE '%' || '$!{sel_plant}' || '%'
+			AND		HR2.PARENT_HID	LIKE '%' || '$!{sel_line}' || '%'
+
+	</query> 
+	
+	<!-- combo plant --> 
+	<query id="sc_01070_combo_plant" paging="false"> 
+
+        SELECT  HTYPE,  HID_NAME
+        FROM    HRCHY,  DUAL B
+        WHERE   LVL_TYPE    = '공장'
+        AND     LVL         = '10'
+        AND HTYPE NOT IN '1300'
+        ORDER BY 1
+
+	</query> 
+
+	<!-- combo line --> 
+	<query id="sc_01070_combo_line"  paging="false"> 
+
+		SELECT	HTYPE, HID,	HID_NAME
+        FROM	HRCHY, DUAL B
+		WHERE	LVL_TYPE	= '라인'
+		AND		LVL			= '30'
+
+	</query> 
+	
+
+
+	<!-- 
+	=======================
+		제품별 생산/판매 실적조회 
+	=======================
+	--> 		
+
+	<!-- 일자표시 HEADER  --> 
+	<query id="sc_20010_HEADER_DATE" paging="false"> 
+
+	#if("$!{in_act_gubn}" == "02") 	
+
+		SELECT	TO_CHAR(T1.CAL_DATE,'YYYY.MM')	CAL_DATE,
+				NVL2(T2.CAL_DATE,80,0)			SHOW_FLAG
+		FROM	(								
+				SELECT	TRUNC(ADD_MONTHS(TO_DATE('$!{in_fr_date}'),ROWNUM-1),'MM')	CAL_DATE
+				FROM	CODE_MST
+				WHERE	ROWNUM &lt;= 12		
+				)	T1,
+				(
+				SELECT	TRUNC(ADD_MONTHS(TO_DATE('$!{in_fr_date}'),ROWNUM-1),'MM')	CAL_DATE
+				FROM	CODE_MST
+				WHERE	ROWNUM &lt;= 12						
+				)	T2
+		WHERE	T1.CAL_DATE = T2.CAL_DATE(+)
+		AND		T2.CAL_DATE(+) BETWEEN TRUNC(TO_DATE('$!{in_fr_date}'),'MM') AND TRUNC(TO_DATE('$!{in_to_date}'),'MM')
+		ORDER
+		BY		CAL_DATE
+
+	#else
+
+		SELECT	TO_CHAR(T1.CAL_DATE+1,'MM/DD')	CAL_DATE,
+				NVL2(T2.CAL_DATE,80,0) 			SHOW_FLAG
+		FROM	(
+				SELECT	DISTINCT
+						TRUNC(CAL_DATE,'D')	CAL_DATE
+				FROM	CAL_MST
+				)		T1,
+				(
+				SELECT	DISTINCT
+						TRUNC(CAL_DATE,'D')	CAL_DATE
+				FROM	CAL_MST
+				)		T2
+		WHERE	T1.CAL_DATE	= T2.CAL_DATE(+)
+		AND		T2.CAL_DATE(+)	BETWEEN TRUNC(TO_DATE('$!{in_fr_date}'),'D') AND '$!{in_to_date}'
+		AND		T1.CAL_DATE		BETWEEN TRUNC(TO_DATE(NVL(REPLACE('$!{in_fr_date}','-',''),TO_CHAR(SYSDATE,'YYYYMMDD'))),'D')
+								AND 	TO_DATE(NVL(REPLACE('$!{in_fr_date}','-',''),TO_CHAR(SYSDATE,'YYYYMMDD')))+7*12
+		ORDER
+		BY		T1.CAL_DATE
+		
+	#end
+		
+	</query> 
+
+	<!-- combo YYYY --> 
+	<query id="sc_20010combo_yyyy" paging="false"> 
+
+		SELECT	TO_CHAR(SYSDATE,'YYYY')-4+ROWNUM	YYYY
+		FROM	CODE_MST,
+				DUAL
+		WHERE	ROWNUM	&lt;= 5
+
+	</query> 	
+
+	<!-- combo MM --> 
+	<query id="sc_20010combo_mm" paging="false"> 
+
+		SELECT	LPAD(ROWNUM,2,'0')	MM
+		FROM	CODE_MST,
+				DUAL
+		WHERE	ROWNUM	&lt;= 12
+
+	</query> 		
+
+	<!-- combo DIVISION --> 
+	<query id="sc_20010combo_division" paging="false"> 
+
+		SELECT	CD			DIVISION,
+				CD_NAME		NAME
+		FROM	CODE_MST,
+				DUAL
+		WHERE	CD_GRP 	= 'DIVISION'
+		AND		CD		IN ('10','20','40','99')
+
+	</query> 
+	
+	<!-- 조회기간 check  --> 
+	<query id="sc_20010_TERM_CHECK" paging="false"> 
+
+	#if("$!{chk_sel_term}" == "01")	
+		SELECT	CASE
+					/* 뒷날짜가 앞날짜보다 앞서는 경우 */
+					WHEN (TO_DATE('$!{in_to_date}') - TO_DATE('$!{in_fr_date}')) &lt; 0 THEN -1
+					/* 조회기간이 31일이 넘은경우 */
+					WHEN (TO_DATE('$!{in_to_date}') - TO_DATE('$!{in_fr_date}')) &gt; 91 THEN -2 
+					ELSE 1
+				END	TERM_CHECK,
+				0
+		FROM	DUAL
+	#else
+		SELECT	CASE
+					/* 뒷날짜가 앞날짜보다 앞서는 경우 */
+					WHEN MONTHS_BETWEEN(TRUNC(TO_DATE('$!{in_to_date}'),'MM'), TRUNC(TO_DATE('$!{in_fr_date}'),'MM')) &lt; 0 THEN -1
+					/* 조회기간이 12개월이 넘은경우 */
+					WHEN MONTHS_BETWEEN(TRUNC(TO_DATE('$!{in_to_date}'),'MM'), TRUNC(TO_DATE('$!{in_fr_date}'),'MM')) &gt; 12 THEN -2
+					ELSE 1
+				END	TERM_CHECK,
+				0
+		FROM	DUAL
+	#end
+	
+	</query> 			
+
+	<!-- 제품별 생산/판매 실적조회 --> 
+	<query id="sc_20010_ProdSellAnal_list" paging="false"> 
+
+	#if("$!{in_act_gubn}" == "01") 
+	/* 주간 */
+
+		#if("$!{in_sel_gubn}" != "06") 
+
+		/* 주간 일반구분(유형 06)제외 */
+			SELECT	K1.ITEM_ID,
+					K2.ITEM_NAME,
+					K2.QTY,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*0,'D'),PLAN_BOX)),0)		PLAN01,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*0,'D'),SELL_BOX)),0)		SELL01,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*0,'D'),PRDT_BOX)),0)		PRDT01,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*0,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*0,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*0,'D'),PLAN_BOX))),0),3)*100	RATE01,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*1,'D'),PLAN_BOX)),0)		PLAN02,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*1,'D'),SELL_BOX)),0)		SELL02,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*1,'D'),PRDT_BOX)),0)		PRDT02,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*1,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*1,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*1,'D'),PLAN_BOX))),0),3)*100	RATE02,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*2,'D'),PLAN_BOX)),0)		PLAN03,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*2,'D'),SELL_BOX)),0)		SELL03,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*2,'D'),PRDT_BOX)),0)		PRDT03,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*2,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*2,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*2,'D'),PLAN_BOX))),0),3)*100	RATE03,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*3,'D'),PLAN_BOX)),0)		PLAN04,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*3,'D'),SELL_BOX)),0)		SELL04,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*3,'D'),PRDT_BOX)),0)		PRDT04,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*3,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*3,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*3,'D'),PLAN_BOX))),0),3)*100	RATE04,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*4,'D'),PLAN_BOX)),0)		PLAN05,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*4,'D'),SELL_BOX)),0)		SELL05,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*4,'D'),PRDT_BOX)),0)		PRDT05,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*4,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*4,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*4,'D'),PLAN_BOX))),0),3)*100	RATE05,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*5,'D'),PLAN_BOX)),0)		PLAN06,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*5,'D'),SELL_BOX)),0)		SELL06,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*5,'D'),PRDT_BOX)),0)		PRDT06,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*5,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*5,PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*5,PLAN_BOX))),0),3)*100	RATE06,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*6,PLAN_BOX)),0)		PLAN07,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*6,SELL_BOX)),0)		SELL07,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*6,PRDT_BOX)),0)		PRDT07,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*6,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*6,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*6,'D'),PLAN_BOX))),0),3)*100	RATE07,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*7,'D'),PLAN_BOX)),0)		PLAN08,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*7,'D'),SELL_BOX)),0)		SELL08,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*7,'D'),PRDT_BOX)),0)		PRDT08,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*7,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*7,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*7,'D'),PLAN_BOX))),0),3)*100	RATE08,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*8,'D'),PLAN_BOX)),0)		PLAN09,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*8,'D'),SELL_BOX)),0)		SELL09,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*8,'D'),PRDT_BOX)),0)		PRDT09,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*8,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*8,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*8,'D'),PLAN_BOX))),0),3)*100	RATE09,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*9,'D'),PLAN_BOX)),0)		PLAN10,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*9,'D'),SELL_BOX)),0)		SELL10,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*9,'D'),PRDT_BOX)),0)		PRDT10,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*9,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*9,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*9,'D'),PLAN_BOX))),0),3)*100	RATE10,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*10,'D'),PLAN_BOX)),0)		PLAN11,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*10,'D'),SELL_BOX)),0)		SELL11,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*10,'D'),PRDT_BOX)),0)		PRDT11,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*10,PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*10,PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*10,PLAN_BOX))),0),3)*100	RATE11,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*11,PLAN_BOX)),0)		PLAN12,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*11,SELL_BOX)),0)		SELL12,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*11,PRDT_BOX)),0)		PRDT12,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*11,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*11,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*11,'D'),PLAN_BOX))),0),3)*100	RATE12,
+					NVL(SUM(PLAN_BOX),0)		PLAN,
+					NVL(SUM(SELL_BOX),0)		SELL,
+					NVL(SUM(PRDT_BOX),0)		PRDT,
+					ROUND(NVL(DECODE(SUM(PLAN_BOX),0,0,
+						SUM(PRDT_BOX)/SUM(PLAN_BOX)),0),3)*100	RATE
+			FROM	(			
+					/* 판매계획_월요일이 주 첫날_ -1 */
+					SELECT	TRUNC(TO_DATE(S1.YYYYMMDD,'YYYY-MM-DD')-1,'D')	CNFM_DATE,
+							S1.ITEM_ID										ITEM_ID,
+							SUM(NORMAL_QTY+PROM_QTY+SUPT_QTY+SAMP_QTY)		PLAN_BOX,
+							0												SELL_BOX,
+							0												PRDT_BOX
+					FROM	NFOS_SALES_PLAN_WEEKLY	S1,
+							V_NFOS_PLAN_VERSION		S2,
+							(
+							SELECT	ITEM_ID
+							FROM	ITEM_MST
+							#if("$!{in_item_id}" != "")		
+								#if("$!{in_sel_gubn}" == "01")	
+									WHERE		ITEM_ID	= '$!{in_item_id}'  --품목코드
+								#elseif("$!{in_sel_gubn}" == "05")
+									WHERE		(--품종 대중소
+											('$!{in_item_name}' LIKE '대_%' AND SALES_CAT01 = '$!{in_item_id}')
+											OR
+											('$!{in_item_name}' LIKE '중_%' AND SALES_CAT02 = '$!{in_item_id}')
+											OR
+											('$!{in_item_name}' LIKE '소_%' AND SALES_CAT03 = '$!{in_item_id}')
+											)
+								#else
+									WHERE	HR_TY1 LIKE '$!{in_item_id}'||'%' --사업코드,브랜드,대표코드
+								#end
+							#end
+							)						D2
+					WHERE	S1.YYYY		= S2.YYYY
+					AND		S1.VERSION	= S2.VERSION
+					AND		S1.YYYYMMDD	= S2.YYYYMMDD
+					AND		S1.ITEM_ID	= D2.ITEM_ID
+					AND		S1.YYYYMMDD	BETWEEN REPLACE('$!{in_fr_date}','-','') AND REPLACE('$!{in_to_date}','-','')
+					GROUP
+					BY		TRUNC(TO_DATE(S1.YYYYMMDD,'YYYY-MM-DD')-1,'D'),
+							S1.ITEM_ID	
+					UNION	ALL					
+					/* 판매실적_월요일이 주 첫날_ -1 */
+					SELECT	TRUNC(SALE_DATE-1,'D')	CNFM_DATE,
+							D1.ITEM_ID				ITEM_ID,
+							0						PLAN_BOX,
+							SUM(QTY)				SELL_BOX,
+							0						PRDT_BOX
+					FROM	SALES_ACT	D1,
+							(
+							SELECT	ITEM_ID
+							FROM	ITEM_MST
+							#if("$!{in_item_id}" != "")		
+								#if("$!{in_sel_gubn}" == "01")	
+									WHERE		ITEM_ID	= '$!{in_item_id}'  --품목코드
+								#elseif("$!{in_sel_gubn}" == "05")
+									WHERE		(--품종 대중소
+											('$!{in_item_name}' LIKE '대_%' AND SALES_CAT01 = '$!{in_item_id}')
+											OR
+											('$!{in_item_name}' LIKE '중_%' AND SALES_CAT02 = '$!{in_item_id}')
+											OR
+											('$!{in_item_name}' LIKE '소_%' AND SALES_CAT03 = '$!{in_item_id}')
+											)
+								#else
+									WHERE	HR_TY1 LIKE '$!{in_item_id}'||'%' --사업코드,브랜드,대표코드
+								#end
+							#end
+							)			D2
+					WHERE	SALE_DATE	BETWEEN '$!{in_fr_date}' AND '$!{in_to_date}'
+				#if("$!{in_act_type}" == "01")
+					AND		ACT_TYPE	= '01' -- 일반
+				#elseif("$!{in_act_type}" == "02")	
+					AND		ACT_TYPE	= '02' -- 타계정
+				#end				
+					AND		D1.ITEM_ID	= D2.ITEM_ID
+					GROUP
+					BY		TRUNC(SALE_DATE-1,'D'),
+							D1.ITEM_ID				
+					UNION	ALL		
+					SELECT	TRUNC(START_DTTM-1,'D')	CNFM_DATE,
+							D1.ITEM_ID				ITEM_ID,
+							0						PLAN_BOX,
+							0						SELL_BOX,
+							SUM(COMPL_QTY)			PRDT_BOX
+					FROM	V_ERP_PO_MES	D1,
+							(
+							SELECT	ITEM_ID
+							FROM	ITEM_MST
+							#if("$!{in_item_id}" != "")		
+								#if("$!{in_sel_gubn}" == "01")	
+									WHERE		ITEM_ID	= '$!{in_item_id}'  --품목코드
+								#elseif("$!{in_sel_gubn}" == "05")
+									WHERE		(--품종 대중소
+											('$!{in_item_name}' LIKE '대_%' AND SALES_CAT01 = '$!{in_item_id}')
+											OR
+											('$!{in_item_name}' LIKE '중_%' AND SALES_CAT02 = '$!{in_item_id}')
+											OR
+											('$!{in_item_name}' LIKE '소_%' AND SALES_CAT03 = '$!{in_item_id}')
+											)
+								#else
+									WHERE	HR_TY1 LIKE '$!{in_item_id}'||'%' --사업코드,브랜드,대표코드
+								#end
+							#end
+							)				D2
+					WHERE	START_DTTM	BETWEEN '$!{in_fr_date}' AND '$!{in_to_date}'
+					AND		D1.ITEM_ID	= D2.ITEM_ID
+					GROUP
+					BY		TRUNC(START_DTTM-1,'D'),
+							D1.ITEM_ID
+					)			K1,
+					ITEM_MST	K2
+			WHERE	K1.ITEM_ID	= K2.ITEM_ID
+			AND		K2.ITYPE	= 'FERT'
+			GROUP
+			BY		K1.ITEM_ID,
+					K2.ITEM_NAME,
+					K2.QTY
+			ORDER
+			BY		K1.ITEM_ID
+
+		#else
+
+			/* 유형으로 조회시 실적주기(주간) */		
+			SELECT	K1.ITEM_ID,
+					K2.ITEM_NAME,
+					K2.QTY,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*0,'D'),PLAN_BOX)),0)		PLAN01,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*0,'D'),SELL_BOX)),0)		SELL01,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*0,'D'),PRDT_BOX)),0)		PRDT01,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*0,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*0,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*0,'D'),PLAN_BOX))),0),3)*100	RATE01,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*1,'D'),PLAN_BOX)),0)		PLAN02,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*1,'D'),SELL_BOX)),0)		SELL02,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*1,'D'),PRDT_BOX)),0)		PRDT02,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*1,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*1,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*1,'D'),PLAN_BOX))),0),3)*100	RATE02,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*2,'D'),PLAN_BOX)),0)		PLAN03,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*2,'D'),SELL_BOX)),0)		SELL03,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*2,'D'),PRDT_BOX)),0)		PRDT03,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*2,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*2,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*2,'D'),PLAN_BOX))),0),3)*100	RATE03,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*3,'D'),PLAN_BOX)),0)		PLAN04,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*3,'D'),SELL_BOX)),0)		SELL04,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*3,'D'),PRDT_BOX)),0)		PRDT04,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*3,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*3,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*3,'D'),PLAN_BOX))),0),3)*100	RATE04,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*4,'D'),PLAN_BOX)),0)		PLAN05,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*4,'D'),SELL_BOX)),0)		SELL05,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*4,'D'),PRDT_BOX)),0)		PRDT05,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*4,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*4,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*4,'D'),PLAN_BOX))),0),3)*100	RATE05,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*5,'D'),PLAN_BOX)),0)		PLAN06,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*5,'D'),SELL_BOX)),0)		SELL06,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*5,'D'),PRDT_BOX)),0)		PRDT06,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*5,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*5,PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*5,PLAN_BOX))),0),3)*100	RATE06,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*6,PLAN_BOX)),0)		PLAN07,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*6,SELL_BOX)),0)		SELL07,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*6,PRDT_BOX)),0)		PRDT07,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*6,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*6,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*6,'D'),PLAN_BOX))),0),3)*100	RATE07,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*7,'D'),PLAN_BOX)),0)		PLAN08,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*7,'D'),SELL_BOX)),0)		SELL08,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*7,'D'),PRDT_BOX)),0)		PRDT08,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*7,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*7,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*7,'D'),PLAN_BOX))),0),3)*100	RATE08,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*8,'D'),PLAN_BOX)),0)		PLAN09,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*8,'D'),SELL_BOX)),0)		SELL09,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*8,'D'),PRDT_BOX)),0)		PRDT09,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*8,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*8,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*8,'D'),PLAN_BOX))),0),3)*100	RATE09,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*9,'D'),PLAN_BOX)),0)		PLAN10,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*9,'D'),SELL_BOX)),0)		SELL10,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*9,'D'),PRDT_BOX)),0)		PRDT10,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*9,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*9,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*9,'D'),PLAN_BOX))),0),3)*100	RATE10,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*10,'D'),PLAN_BOX)),0)		PLAN11,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*10,'D'),SELL_BOX)),0)		SELL11,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*10,'D'),PRDT_BOX)),0)		PRDT11,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*10,PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*10,PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*10,PLAN_BOX))),0),3)*100	RATE11,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*11,PLAN_BOX)),0)		PLAN12,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*11,SELL_BOX)),0)		SELL12,
+					NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*11,PRDT_BOX)),0)		PRDT12,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*11,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*11,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*11,'D'),PLAN_BOX))),0),3)*100	RATE12,
+					NVL(SUM(PLAN_BOX),0)		PLAN,
+					NVL(SUM(SELL_BOX),0)		SELL,
+					NVL(SUM(PRDT_BOX),0)		PRDT,
+					ROUND(NVL(DECODE(SUM(PLAN_BOX),0,0,
+						SUM(PRDT_BOX)/SUM(PLAN_BOX)),0),3)*100	RATE
+			FROM	(			
+					/* 판매계획_월요일이 주 첫날_ -1 */
+					SELECT	TRUNC(TO_DATE(S1.YYYYMMDD,'YYYY-MM-DD')-1,'D')	CNFM_DATE,
+							S1.ITEM_ID										ITEM_ID,
+							SUM(NORMAL_QTY+PROM_QTY+SUPT_QTY+SAMP_QTY)		PLAN_BOX,
+							0												SELL_BOX,
+							0												PRDT_BOX
+					FROM	NFOS_SALES_PLAN_WEEKLY	S1,
+							V_NFOS_PLAN_VERSION		S2,
+							(
+							SELECT	ITEM_ID
+							FROM	ITEM_MST
+							WHERE	RECIPE_TYPE	= '$!{in_item_id}'  --유형코드
+							)						D2
+					WHERE	S1.YYYY		= S2.YYYY
+					AND		S1.VERSION	= S2.VERSION
+					AND		S1.YYYYMMDD	= S2.YYYYMMDD
+					AND		S1.ITEM_ID	= D2.ITEM_ID
+					AND		S1.YYYYMMDD	BETWEEN REPLACE('$!{in_fr_date}','-','') AND REPLACE('$!{in_to_date}','-','')
+					GROUP
+					BY		TRUNC(TO_DATE(S1.YYYYMMDD,'YYYY-MM-DD')-1,'D'),
+							S1.ITEM_ID	
+					UNION	ALL					
+					/* 판매실적(타계정포함)_월요일이 주 첫날_ -1 */
+					SELECT	TRUNC(SALE_DATE-1,'D')	CNFM_DATE,
+							D1.ITEM_ID				ITEM_ID,
+							0						PLAN_BOX,
+							SUM(QTY)				SELL_BOX,
+							0						PRDT_BOX
+					FROM	SALES_ACT	D1,
+							(
+							SELECT	ITEM_ID
+							FROM	ITEM_MST
+							WHERE	RECIPE_TYPE	= '$!{in_item_id}'  --유형코드
+							)			D2
+					WHERE	SALE_DATE	BETWEEN '$!{in_fr_date}' AND '$!{in_to_date}'
+				#if("$!{in_act_type}" == "01")
+					AND		ACT_TYPE	= '01' -- 일반
+				#elseif("$!{in_act_type}" == "02")	
+					AND		ACT_TYPE	= '02' -- 타계정
+				#end				
+					AND		D1.ITEM_ID	= D2.ITEM_ID
+					GROUP
+					BY		TRUNC(SALE_DATE-1,'D'),
+							D1.ITEM_ID				
+					UNION	ALL		
+					SELECT	TRUNC(START_DTTM-1,'D')	CNFM_DATE,
+							D1.ITEM_ID				ITEM_ID,
+							0						PLAN_BOX,
+							0						SELL_BOX,
+							SUM(COMPL_QTY)			PRDT_BOX
+					FROM	V_ERP_PO_MES	D1,
+							(
+							SELECT	ITEM_ID
+							FROM	ITEM_MST
+							WHERE	RECIPE_TYPE	= '$!{in_item_id}'  --유형코드
+							)				D2
+					WHERE	START_DTTM	BETWEEN '$!{in_fr_date}' AND '$!{in_to_date}'
+					AND		D1.ITEM_ID	= D2.ITEM_ID
+					GROUP
+					BY		TRUNC(START_DTTM-1,'D'),
+							D1.ITEM_ID
+					)			K1,
+					ITEM_MST	K2
+			WHERE	K1.ITEM_ID	= K2.ITEM_ID
+			AND		K2.ITYPE	= 'FERT'
+			GROUP
+			BY		K1.ITEM_ID,
+					K2.ITEM_NAME,
+					K2.QTY
+			UNION	ALL
+			/* 정품으로 박스를 환산한다 */
+			SELECT	'',
+					'정품 환산계',
+					K3.QTY,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*0,'D'),PLAN_BOX))/K3.QTY,0),0)		PLAN01,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*0,'D'),SELL_BOX))/K3.QTY,0),0)		SELL01,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*0,'D'),PRDT_BOX))/K3.QTY,0),0)		PRDT01,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*0,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*0,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*0,'D'),PLAN_BOX))),0),3)*100	RATE01,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*1,'D'),PLAN_BOX))/K3.QTY,0),0)		PLAN02,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*1,'D'),SELL_BOX))/K3.QTY,0),0)		SELL02,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*1,'D'),PRDT_BOX))/K3.QTY,0),0)		PRDT02,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*1,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*1,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*1,'D'),PLAN_BOX))),0),3)*100	RATE02,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*2,'D'),PLAN_BOX))/K3.QTY,0),0)		PLAN03,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*2,'D'),SELL_BOX))/K3.QTY,0),0)		SELL03,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*2,'D'),PRDT_BOX))/K3.QTY,0),0)		PRDT03,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*2,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*2,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*2,'D'),PLAN_BOX))),0),3)*100	RATE03,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*3,'D'),PLAN_BOX))/K3.QTY,0),0)		PLAN04,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*3,'D'),SELL_BOX))/K3.QTY,0),0)		SELL04,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*3,'D'),PRDT_BOX))/K3.QTY,0),0)		PRDT04,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*3,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*3,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*3,'D'),PLAN_BOX))),0),3)*100	RATE04,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*4,'D'),PLAN_BOX))/K3.QTY,0),0)		PLAN05,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*4,'D'),SELL_BOX))/K3.QTY,0),0)		SELL05,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*4,'D'),PRDT_BOX))/K3.QTY,0),0)		PRDT05,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*4,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*4,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*4,'D'),PLAN_BOX))),0),3)*100	RATE05,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*5,'D'),PLAN_BOX))/K3.QTY,0),0)		PLAN06,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*5,'D'),SELL_BOX))/K3.QTY,0),0)		SELL06,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*5,'D'),PRDT_BOX))/K3.QTY,0),0)		PRDT06,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*5,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*5,PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*5,PLAN_BOX))),0),3)*100	RATE06,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*6,PLAN_BOX))/K3.QTY,0),0)		PLAN07,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*6,SELL_BOX))/K3.QTY,0),0)		SELL07,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*6,PRDT_BOX))/K3.QTY,0),0)		PRDT07,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*6,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*6,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*6,'D'),PLAN_BOX))),0),3)*100	RATE07,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*7,'D'),PLAN_BOX))/K3.QTY,0),0)		PLAN08,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*7,'D'),SELL_BOX))/K3.QTY,0),0)		SELL08,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*7,'D'),PRDT_BOX))/K3.QTY,0),0)		PRDT08,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*7,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*7,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*7,'D'),PLAN_BOX))),0),3)*100	RATE08,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*8,'D'),PLAN_BOX))/K3.QTY,0),0)		PLAN09,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*8,'D'),SELL_BOX))/K3.QTY,0),0)		SELL09,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*8,'D'),PRDT_BOX))/K3.QTY,0),0)		PRDT09,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*8,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*8,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*8,'D'),PLAN_BOX))),0),3)*100	RATE09,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*9,'D'),PLAN_BOX))/K3.QTY,0),0)		PLAN10,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*9,'D'),SELL_BOX))/K3.QTY,0),0)		SELL10,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*9,'D'),PRDT_BOX))/K3.QTY,0),0)		PRDT10,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*9,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*9,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*9,'D'),PLAN_BOX))),0),3)*100	RATE10,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*10,'D'),PLAN_BOX))/K3.QTY,0),0)		PLAN11,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*10,'D'),SELL_BOX))/K3.QTY,0),0)		SELL11,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*10,'D'),PRDT_BOX))/K3.QTY,0),0)		PRDT11,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*10,PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*10,PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*10,PLAN_BOX))),0),3)*100	RATE11,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*11,PLAN_BOX))/K3.QTY,0),0)		PLAN12,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*11,SELL_BOX))/K3.QTY,0),0)		SELL12,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}'),'D')+7*11,PRDT_BOX))/K3.QTY,0),0)		PRDT12,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*11,'D'),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*11,'D'),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,TRUNC(TO_DATE('$!{in_fr_date}')+7*11,'D'),PLAN_BOX))),0),3)*100	RATE12,
+					NVL(ROUND(SUM(PLAN_BOX/K3.QTY),0),0)		PLAN,
+					NVL(ROUND(SUM(SELL_BOX/K3.QTY),0),0)		SELL,
+					NVL(ROUND(SUM(PRDT_BOX/K3.QTY),0),0)		PRDT,
+					ROUND(NVL(DECODE(SUM(PLAN_BOX),0,0,
+						SUM(PRDT_BOX)/SUM(PLAN_BOX)),0),3)*100	RATE
+			FROM	(			
+					/* 판매계획_월요일이 주 첫날_ -1 */
+					SELECT	TRUNC(TO_DATE(S1.YYYYMMDD,'YYYY-MM-DD')-1,'D')		CNFM_DATE,
+							S1.ITEM_ID											ITEM_ID,
+							SUM(NORMAL_QTY+PROM_QTY+SUPT_QTY+SAMP_QTY)*D2.QTY	PLAN_BOX,
+							0													SELL_BOX,
+							0													PRDT_BOX
+					FROM	NFOS_SALES_PLAN_WEEKLY	S1,
+							V_NFOS_PLAN_VERSION		S2,
+							(
+							SELECT	ITEM_ID, QTY
+							FROM	ITEM_MST
+							WHERE	RECIPE_TYPE	= '$!{in_item_id}'  --유형코드
+							)						D2
+					WHERE	S1.YYYY		= S2.YYYY
+					AND		S1.VERSION	= S2.VERSION
+					AND		S1.YYYYMMDD	= S2.YYYYMMDD
+					AND		S1.ITEM_ID	= D2.ITEM_ID
+					AND		S1.YYYYMMDD	BETWEEN REPLACE('$!{in_fr_date}','-','') AND REPLACE('$!{in_to_date}','-','')
+					GROUP
+					BY		TRUNC(TO_DATE(S1.YYYYMMDD,'YYYY-MM-DD')-1,'D'),
+							S1.ITEM_ID, D2.QTY
+					UNION	ALL					
+					/* 판매실적(타계정포함)_월요일이 주 첫날_ -1 */
+					SELECT	TRUNC(SALE_DATE-1,'D')	CNFM_DATE,
+							D1.ITEM_ID				ITEM_ID,
+							0						PLAN_BOX,
+							SUM(D1.QTY)*D2.QTY			SELL_BOX,
+							0						PRDT_BOX
+					FROM	SALES_ACT	D1,
+							(
+							SELECT	ITEM_ID, QTY
+							FROM	ITEM_MST
+							WHERE	RECIPE_TYPE	= '$!{in_item_id}'  --유형코드
+							)			D2
+					WHERE	SALE_DATE	BETWEEN '$!{in_fr_date}' AND '$!{in_to_date}'
+				#if("$!{in_act_type}" == "01")
+					AND		ACT_TYPE	= '01' -- 일반
+				#elseif("$!{in_act_type}" == "02")	
+					AND		ACT_TYPE	= '02' -- 타계정
+				#end				
+					AND		D1.ITEM_ID	= D2.ITEM_ID
+					GROUP
+					BY		TRUNC(SALE_DATE-1,'D'),
+							D1.ITEM_ID, D2.QTY				
+					UNION	ALL		
+					SELECT	TRUNC(START_DTTM-1,'D')	CNFM_DATE,
+							D1.ITEM_ID				ITEM_ID,
+							0						PLAN_BOX,
+							0						SELL_BOX,
+							SUM(COMPL_QTY)*D2.QTY	PRDT_BOX
+					FROM	V_ERP_PO_MES	D1,
+							(
+							SELECT	ITEM_ID, QTY
+							FROM	ITEM_MST
+							WHERE	RECIPE_TYPE	= '$!{in_item_id}'  --유형코드
+							)				D2
+					WHERE	START_DTTM	BETWEEN '$!{in_fr_date}' AND '$!{in_to_date}'
+					AND		D1.ITEM_ID	= D2.ITEM_ID
+					GROUP
+					BY		TRUNC(START_DTTM-1,'D'),
+							D1.ITEM_ID, D2.QTY
+					)			K1,
+					ITEM_MST	K2,
+					(
+					SELECT	TO_NUMBER(TRIM('$!{in_ea}'))	QTY
+					FROM	DUAL
+					WHERE	TRIM('$!{in_ea}') IS NOT NULL
+					UNION	ALL
+					SELECT	QTY
+					FROM	ITEM_MST
+					WHERE	ITEM_ID	= (
+								SELECT	MIN(ITEM_ID)
+								FROM	ITEM_MST
+								WHERE	RECIPE_TYPE	= '$!{in_item_id}'  --유형코드
+								)
+					AND		TRIM('$!{in_ea}') IS NULL
+					)			K3
+			WHERE	K1.ITEM_ID	= K2.ITEM_ID
+			AND		K2.ITYPE	= 'FERT'
+			GROUP
+			BY		K3.QTY
+			ORDER
+			BY		ITEM_ID
+		
+		#end
+	
+	#elseif("$!{in_act_gubn}" == "02") 
+	/* 월간 */		
+
+		#if("$!{in_sel_gubn}" != "06") 
+
+		/* 월간 일반구분(유형 06)제외 */
+			SELECT	K1.ITEM_ID,
+					K2.ITEM_NAME,
+					K2.QTY,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 0),PLAN_BOX)),0)		PLAN01,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 0),SELL_BOX)),0)		SELL01,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 0),PRDT_BOX)),0)		PRDT01,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 0),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 0),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 0),PLAN_BOX))),0),3)*100	RATE01,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 1),PLAN_BOX)),0)		PLAN02,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 1),SELL_BOX)),0)		SELL02,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 1),PRDT_BOX)),0)		PRDT02,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 1),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 1),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 1),PLAN_BOX))),0),3)*100	RATE02,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 2),PLAN_BOX)),0)		PLAN03,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 2),SELL_BOX)),0)		SELL03,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 2),PRDT_BOX)),0)		PRDT03,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 2),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 2),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 2),PLAN_BOX))),0),3)*100	RATE03,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 3),PLAN_BOX)),0)		PLAN04,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 3),SELL_BOX)),0)		SELL04,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 3),PRDT_BOX)),0)		PRDT04,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 3),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 3),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 3),PLAN_BOX))),0),3)*100	RATE04,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 4),PLAN_BOX)),0)		PLAN05,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 4),SELL_BOX)),0)		SELL05,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 4),PRDT_BOX)),0)		PRDT05,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 4),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 4),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 4),PLAN_BOX))),0),3)*100	RATE05,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 5),PLAN_BOX)),0)		PLAN06,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 5),SELL_BOX)),0)		SELL06,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 5),PRDT_BOX)),0)		PRDT06,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 5),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 5),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 5),PLAN_BOX))),0),3)*100	RATE06,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 6),PLAN_BOX)),0)		PLAN07,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 6),SELL_BOX)),0)		SELL07,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 6),PRDT_BOX)),0)		PRDT07,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 6),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 6),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 6),PLAN_BOX))),0),3)*100	RATE07,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 7),PLAN_BOX)),0)		PLAN08,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 7),SELL_BOX)),0)		SELL08,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 7),PRDT_BOX)),0)		PRDT08,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 7),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 7),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 7),PLAN_BOX))),0),3)*100	RATE08,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 8),PLAN_BOX)),0)		PLAN09,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 8),SELL_BOX)),0)		SELL09,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 8),PRDT_BOX)),0)		PRDT09,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 8),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 8),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 8),PLAN_BOX))),0),3)*100	RATE09,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 9),PLAN_BOX)),0)		PLAN10,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 9),SELL_BOX)),0)		SELL10,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 9),PRDT_BOX)),0)		PRDT10,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 9),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 9),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 9),PLAN_BOX))),0),3)*100	RATE10,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),10),PLAN_BOX)),0)		PLAN11,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),10),SELL_BOX)),0)		SELL11,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),10),PRDT_BOX)),0)		PRDT11,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),10),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),10),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),10),PLAN_BOX))),0),3)*100	RATE11,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),11),PLAN_BOX)),0)		PLAN12,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),11),SELL_BOX)),0)		SELL12,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),11),PRDT_BOX)),0)		PRDT12,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),11),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),11),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),11),PLAN_BOX))),0),3)*100	RATE12,
+					NVL(SUM(PLAN_BOX),0)		PLAN,
+					NVL(SUM(SELL_BOX),0)		SELL,
+					NVL(SUM(PRDT_BOX),0)		PRDT,
+					ROUND(NVL(DECODE(SUM(PLAN_BOX),0,0,
+						SUM(PRDT_BOX)/SUM(PLAN_BOX)),0),3)*100	RATE
+			FROM	(			
+					/* 판매계획 */
+					SELECT	TRUNC(TO_DATE(S1.YYYYMMDD,'YYYY-MM-DD'),'MM')	CNFM_DATE,
+							S1.ITEM_ID										ITEM_ID,
+							SUM(NORMAL_QTY+PROM_QTY+SUPT_QTY+SAMP_QTY)		PLAN_BOX,
+							0												SELL_BOX,
+							0												PRDT_BOX
+					FROM	NFOS_SALES_PLAN_WEEKLY	S1,
+							V_NFOS_PLAN_VERSION		S2,
+							(
+							SELECT	ITEM_ID
+							FROM	ITEM_MST
+							#if("$!{in_item_id}" != "")		
+								#if("$!{in_sel_gubn}" == "01")	
+									WHERE		ITEM_ID	= '$!{in_item_id}'  --품목코드
+								#elseif("$!{in_sel_gubn}" == "05")
+									WHERE		(--품종 대중소
+											('$!{in_item_name}' LIKE '대_%' AND SALES_CAT01 = '$!{in_item_id}')
+											OR
+											('$!{in_item_name}' LIKE '중_%' AND SALES_CAT02 = '$!{in_item_id}')
+											OR
+											('$!{in_item_name}' LIKE '소_%' AND SALES_CAT03 = '$!{in_item_id}')
+											)
+								#else
+									WHERE	HR_TY1 LIKE '$!{in_item_id}'||'%' --사업코드,브랜드,대표코드
+								#end
+							#end
+							)						D2
+					WHERE	S1.YYYY		= S2.YYYY
+					AND		S1.VERSION	= S2.VERSION
+					AND		S1.YYYYMMDD	= S2.YYYYMMDD
+					AND		S1.ITEM_ID	= D2.ITEM_ID
+					AND		S1.YYYYMMDD	BETWEEN TO_CHAR(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),'YYYYMMDD') 
+										AND TO_CHAR(LAST_DAY(TO_DATE('$!{in_to_date}')),'YYYYMMDD')
+					GROUP
+					BY		TRUNC(TO_DATE(S1.YYYYMMDD,'YYYY-MM-DD'),'MM'),
+							S1.ITEM_ID	
+					UNION	ALL					
+					/* 판매실적(타계정포함) */
+					SELECT	TRUNC(SALE_DATE,'MM')	CNFM_DATE,
+							D1.ITEM_ID				ITEM_ID,
+							0						PLAN_BOX,
+							SUM(QTY)				SELL_BOX,
+							0						PRDT_BOX
+					FROM	SALES_ACT	D1,
+							(
+							SELECT	ITEM_ID
+							FROM	ITEM_MST
+							#if("$!{in_item_id}" != "")		
+								#if("$!{in_sel_gubn}" == "01")	
+									WHERE		ITEM_ID	= '$!{in_item_id}'  --품목코드
+								#elseif("$!{in_sel_gubn}" == "05")
+									WHERE		(--품종 대중소
+											('$!{in_item_name}' LIKE '대_%' AND SALES_CAT01 = '$!{in_item_id}')
+											OR
+											('$!{in_item_name}' LIKE '중_%' AND SALES_CAT02 = '$!{in_item_id}')
+											OR
+											('$!{in_item_name}' LIKE '소_%' AND SALES_CAT03 = '$!{in_item_id}')
+											)
+								#else
+									WHERE	HR_TY1 LIKE '$!{in_item_id}'||'%' --사업코드,브랜드,대표코드
+								#end
+							#end
+							)			D2
+					WHERE	SALE_DATE	BETWEEN TRUNC(TO_DATE('$!{in_fr_date}','YYYY-MM-DD'),'MM')
+										AND LAST_DAY(TO_DATE('$!{in_to_date}','YYYY-MM-DD'))
+				#if("$!{in_act_type}" == "01")
+					AND		ACT_TYPE	= '01' -- 일반
+				#elseif("$!{in_act_type}" == "02")	
+					AND		ACT_TYPE	= '02' -- 타계정
+				#end				
+					AND		D1.ITEM_ID	= D2.ITEM_ID
+					GROUP
+					BY		TRUNC(SALE_DATE,'MM'),
+							D1.ITEM_ID				
+					UNION	ALL		
+					SELECT	TRUNC(START_DTTM,'MM')	CNFM_DATE,
+							D1.ITEM_ID				ITEM_ID,
+							0						PLAN_BOX,
+							0						SELL_BOX,
+							SUM(COMPL_QTY)			PRDT_BOX
+					FROM	V_ERP_PO_MES	D1,
+							(
+							SELECT	ITEM_ID
+							FROM	ITEM_MST
+							#if("$!{in_item_id}" != "")		
+								#if("$!{in_sel_gubn}" == "01")	
+									WHERE		ITEM_ID	= '$!{in_item_id}'  --품목코드
+								#elseif("$!{in_sel_gubn}" == "05")
+									WHERE		(--품종 대중소
+											('$!{in_item_name}' LIKE '대_%' AND SALES_CAT01 = '$!{in_item_id}')
+											OR
+											('$!{in_item_name}' LIKE '중_%' AND SALES_CAT02 = '$!{in_item_id}')
+											OR
+											('$!{in_item_name}' LIKE '소_%' AND SALES_CAT03 = '$!{in_item_id}')
+											)
+								#else
+									WHERE	HR_TY1 LIKE '$!{in_item_id}'||'%' --사업코드,브랜드,대표코드
+								#end
+							#end
+							)				D2
+					WHERE	START_DTTM	BETWEEN TRUNC(TO_DATE('$!{in_fr_date}','YYYY-MM-DD'),'MM')
+										AND LAST_DAY(TO_DATE('$!{in_to_date}','YYYY-MM-DD'))
+					AND		D1.ITEM_ID	= D2.ITEM_ID
+					GROUP
+					BY		TRUNC(START_DTTM,'MM'),
+							D1.ITEM_ID
+					)			K1,
+					ITEM_MST	K2
+			WHERE	K1.ITEM_ID	= K2.ITEM_ID
+			AND		K2.ITYPE	= 'FERT'
+			GROUP
+			BY		K1.ITEM_ID,
+					K2.ITEM_NAME,
+					K2.QTY
+			ORDER
+			BY		K1.ITEM_ID
+	
+		#else
+			/* 유형으로 조회시 실적주기(월간) */		
+			SELECT	K1.ITEM_ID,
+					K2.ITEM_NAME,
+					K2.QTY,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 0),PLAN_BOX)),0)		PLAN01,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 0),SELL_BOX)),0)		SELL01,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 0),PRDT_BOX)),0)		PRDT01,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 0),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 0),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 0),PLAN_BOX))),0),3)*100	RATE01,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 1),PLAN_BOX)),0)		PLAN02,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 1),SELL_BOX)),0)		SELL02,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 1),PRDT_BOX)),0)		PRDT02,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 1),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 1),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 1),PLAN_BOX))),0),3)*100	RATE02,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 2),PLAN_BOX)),0)		PLAN03,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 2),SELL_BOX)),0)		SELL03,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 2),PRDT_BOX)),0)		PRDT03,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 2),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 2),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 2),PLAN_BOX))),0),3)*100	RATE03,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 3),PLAN_BOX)),0)		PLAN04,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 3),SELL_BOX)),0)		SELL04,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 3),PRDT_BOX)),0)		PRDT04,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 3),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 3),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 3),PLAN_BOX))),0),3)*100	RATE04,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 4),PLAN_BOX)),0)		PLAN05,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 4),SELL_BOX)),0)		SELL05,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 4),PRDT_BOX)),0)		PRDT05,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 4),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 4),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 4),PLAN_BOX))),0),3)*100	RATE05,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 5),PLAN_BOX)),0)		PLAN06,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 5),SELL_BOX)),0)		SELL06,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 5),PRDT_BOX)),0)		PRDT06,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 5),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 5),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 5),PLAN_BOX))),0),3)*100	RATE06,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 6),PLAN_BOX)),0)		PLAN07,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 6),SELL_BOX)),0)		SELL07,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 6),PRDT_BOX)),0)		PRDT07,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 6),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 6),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 6),PLAN_BOX))),0),3)*100	RATE07,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 7),PLAN_BOX)),0)		PLAN08,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 7),SELL_BOX)),0)		SELL08,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 7),PRDT_BOX)),0)		PRDT08,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 7),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 7),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 7),PLAN_BOX))),0),3)*100	RATE08,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 8),PLAN_BOX)),0)		PLAN09,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 8),SELL_BOX)),0)		SELL09,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 8),PRDT_BOX)),0)		PRDT09,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 8),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 8),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 8),PLAN_BOX))),0),3)*100	RATE09,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 9),PLAN_BOX)),0)		PLAN10,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 9),SELL_BOX)),0)		SELL10,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 9),PRDT_BOX)),0)		PRDT10,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 9),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 9),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 9),PLAN_BOX))),0),3)*100	RATE10,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),10),PLAN_BOX)),0)		PLAN11,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),10),SELL_BOX)),0)		SELL11,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),10),PRDT_BOX)),0)		PRDT11,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),10),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),10),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),10),PLAN_BOX))),0),3)*100	RATE11,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),11),PLAN_BOX)),0)		PLAN12,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),11),SELL_BOX)),0)		SELL12,
+					NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),11),PRDT_BOX)),0)		PRDT12,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),11),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),11),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),11),PLAN_BOX))),0),3)*100	RATE12,
+					NVL(SUM(PLAN_BOX),0)		PLAN,
+					NVL(SUM(SELL_BOX),0)		SELL,
+					NVL(SUM(PRDT_BOX),0)		PRDT,
+					ROUND(NVL(DECODE(SUM(PLAN_BOX),0,0,
+						SUM(PRDT_BOX)/SUM(PLAN_BOX)),0),3)*100	RATE
+			FROM	(			
+					/* 판매계획 */
+					SELECT	TRUNC(TO_DATE(S1.YYYYMMDD,'YYYY-MM-DD'),'MM')	CNFM_DATE,
+							S1.ITEM_ID										ITEM_ID,
+							SUM(NORMAL_QTY+PROM_QTY+SUPT_QTY+SAMP_QTY)		PLAN_BOX,
+							0												SELL_BOX,
+							0												PRDT_BOX
+					FROM	NFOS_SALES_PLAN_WEEKLY	S1,
+							V_NFOS_PLAN_VERSION		S2,
+							(
+							SELECT	ITEM_ID
+							FROM	ITEM_MST
+							WHERE	RECIPE_TYPE	= '$!{in_item_id}'  --유형코드
+							)						D2
+					WHERE	S1.YYYY		= S2.YYYY
+					AND		S1.VERSION	= S2.VERSION
+					AND		S1.YYYYMMDD	= S2.YYYYMMDD
+					AND		S1.ITEM_ID	= D2.ITEM_ID
+					AND		S1.YYYYMMDD	BETWEEN TO_CHAR(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),'YYYYMMDD') 
+										AND TO_CHAR(LAST_DAY(TO_DATE('$!{in_to_date}')),'YYYYMMDD')
+					GROUP
+					BY		TRUNC(TO_DATE(S1.YYYYMMDD,'YYYY-MM-DD'),'MM'),
+							S1.ITEM_ID	
+					UNION	ALL					
+					/* 판매실적(타계정포함) */
+					SELECT	TRUNC(SALE_DATE,'MM')	CNFM_DATE,
+							D1.ITEM_ID				ITEM_ID,
+							0						PLAN_BOX,
+							SUM(QTY)				SELL_BOX,
+							0						PRDT_BOX
+					FROM	SALES_ACT	D1,
+							(
+							SELECT	ITEM_ID
+							FROM	ITEM_MST
+							WHERE	RECIPE_TYPE	= '$!{in_item_id}'  --유형코드
+							)			D2
+					WHERE	SALE_DATE	BETWEEN TRUNC(TO_DATE('$!{in_fr_date}','YYYY-MM-DD'),'MM')
+										AND LAST_DAY(TO_DATE('$!{in_to_date}','YYYY-MM-DD'))
+				#if("$!{in_act_type}" == "01")
+					AND		ACT_TYPE	= '01' -- 일반
+				#elseif("$!{in_act_type}" == "02")	
+					AND		ACT_TYPE	= '02' -- 타계정
+				#end				
+					AND		D1.ITEM_ID	= D2.ITEM_ID
+					GROUP
+					BY		TRUNC(SALE_DATE,'MM'),
+							D1.ITEM_ID				
+					UNION	ALL		
+					/* 생산실적 */
+					SELECT	TRUNC(START_DTTM,'MM')	CNFM_DATE,
+							D1.ITEM_ID				ITEM_ID,
+							0						PLAN_BOX,
+							0						SELL_BOX,
+							SUM(COMPL_QTY)			PRDT_BOX
+					FROM	V_ERP_PO_MES	D1,
+							(
+							SELECT	ITEM_ID
+							FROM	ITEM_MST
+							WHERE	RECIPE_TYPE	= '$!{in_item_id}'  --유형코드
+							)				D2
+					WHERE	START_DTTM	BETWEEN TRUNC(TO_DATE('$!{in_fr_date}','YYYY-MM-DD'),'MM')
+										AND LAST_DAY(TO_DATE('$!{in_to_date}','YYYY-MM-DD'))
+					AND		D1.ITEM_ID	= D2.ITEM_ID
+					GROUP
+					BY		TRUNC(START_DTTM,'MM'),
+							D1.ITEM_ID
+					)			K1,
+					ITEM_MST	K2
+			WHERE	K1.ITEM_ID	= K2.ITEM_ID
+			AND		K2.ITYPE	= 'FERT'
+			GROUP
+			BY		K1.ITEM_ID,
+					K2.ITEM_NAME,
+					K2.QTY
+			UNION	ALL
+			/* 정품환산계 */
+			SELECT	'',
+					'정품 환산계',
+					K3.QTY,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 0),PLAN_BOX))/K3.QTY,0),0)		PLAN01,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 0),SELL_BOX))/K3.QTY,0),0)		SELL01,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 0),PRDT_BOX))/K3.QTY,0),0)		PRDT01,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 0),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 0),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 0),PLAN_BOX))),0),3)*100	RATE01,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 1),PLAN_BOX))/K3.QTY,0),0)		PLAN02,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 1),SELL_BOX))/K3.QTY,0),0)		SELL02,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 1),PRDT_BOX))/K3.QTY,0),0)		PRDT02,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 1),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 1),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 1),PLAN_BOX))),0),3)*100	RATE02,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 2),PLAN_BOX))/K3.QTY,0),0)		PLAN03,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 2),SELL_BOX))/K3.QTY,0),0)		SELL03,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 2),PRDT_BOX))/K3.QTY,0),0)		PRDT03,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 2),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 2),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 2),PLAN_BOX))),0),3)*100	RATE03,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 3),PLAN_BOX))/K3.QTY,0),0)		PLAN04,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 3),SELL_BOX))/K3.QTY,0),0)		SELL04,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 3),PRDT_BOX))/K3.QTY,0),0)		PRDT04,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 3),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 3),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 3),PLAN_BOX))),0),3)*100	RATE04,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 4),PLAN_BOX))/K3.QTY,0),0)		PLAN05,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 4),SELL_BOX))/K3.QTY,0),0)		SELL05,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 4),PRDT_BOX))/K3.QTY,0),0)		PRDT05,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 4),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 4),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 4),PLAN_BOX))),0),3)*100	RATE05,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 5),PLAN_BOX))/K3.QTY,0),0)		PLAN06,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 5),SELL_BOX))/K3.QTY,0),0)		SELL06,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 5),PRDT_BOX))/K3.QTY,0),0)		PRDT06,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 5),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 5),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 5),PLAN_BOX))),0),3)*100	RATE06,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 6),PLAN_BOX))/K3.QTY,0),0)		PLAN07,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 6),SELL_BOX))/K3.QTY,0),0)		SELL07,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 6),PRDT_BOX))/K3.QTY,0),0)		PRDT07,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 6),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 6),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 6),PLAN_BOX))),0),3)*100	RATE07,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 7),PLAN_BOX))/K3.QTY,0),0)		PLAN08,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 7),SELL_BOX))/K3.QTY,0),0)		SELL08,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 7),PRDT_BOX))/K3.QTY,0),0)		PRDT08,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 7),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 7),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 7),PLAN_BOX))),0),3)*100	RATE08,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 8),PLAN_BOX))/K3.QTY,0),0)		PLAN09,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 8),SELL_BOX))/K3.QTY,0),0)		SELL09,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 8),PRDT_BOX))/K3.QTY,0),0)		PRDT09,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 8),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 8),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 8),PLAN_BOX))),0),3)*100	RATE09,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 9),PLAN_BOX))/K3.QTY,0),0)		PLAN10,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 9),SELL_BOX))/K3.QTY,0),0)		SELL10,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 9),PRDT_BOX))/K3.QTY,0),0)		PRDT10,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 9),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 9),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'), 9),PLAN_BOX))),0),3)*100	RATE10,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),10),PLAN_BOX))/K3.QTY,0),0)		PLAN11,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),10),SELL_BOX))/K3.QTY,0),0)		SELL11,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),10),PRDT_BOX))/K3.QTY,0),0)		PRDT11,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),10),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),10),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),10),PLAN_BOX))),0),3)*100	RATE11,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),11),PLAN_BOX))/K3.QTY,0),0)		PLAN12,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),11),SELL_BOX))/K3.QTY,0),0)		SELL12,
+					ROUND(NVL(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),11),PRDT_BOX))/K3.QTY,0),0)		PRDT12,
+					ROUND(NVL(DECODE(SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),11),PLAN_BOX)),0,0,
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),11),PRDT_BOX))/
+						SUM(DECODE(CNFM_DATE,ADD_MONTHS(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),11),PLAN_BOX))),0),3)*100	RATE12,
+					NVL(ROUND(SUM(PLAN_BOX/K3.QTY),0),0)		PLAN,
+					NVL(ROUND(SUM(SELL_BOX/K3.QTY),0),0)		SELL,
+					NVL(ROUND(SUM(PRDT_BOX/K3.QTY),0),0)		PRDT,
+					ROUND(NVL(DECODE(SUM(PLAN_BOX),0,0,
+						SUM(PRDT_BOX)/SUM(PLAN_BOX)),0),3)*100	RATE
+			FROM	(			
+					/* 판매계획(봉수환산) */
+					SELECT	TRUNC(TO_DATE(S1.YYYYMMDD,'YYYY-MM-DD'),'MM')		CNFM_DATE,
+							S1.ITEM_ID											ITEM_ID,
+							SUM(NORMAL_QTY+PROM_QTY+SUPT_QTY+SAMP_QTY)*D2.QTY	PLAN_BOX,
+							0													SELL_BOX,
+							0													PRDT_BOX
+					FROM	NFOS_SALES_PLAN_WEEKLY	S1,
+							V_NFOS_PLAN_VERSION		S2,
+							(
+							SELECT	ITEM_ID, QTY
+							FROM	ITEM_MST
+							WHERE	RECIPE_TYPE	= '$!{in_item_id}'  --유형코드
+							)						D2
+					WHERE	S1.YYYY		= S2.YYYY
+					AND		S1.VERSION	= S2.VERSION
+					AND		S1.YYYYMMDD	= S2.YYYYMMDD
+					AND		S1.ITEM_ID	= D2.ITEM_ID
+					AND		S1.YYYYMMDD	BETWEEN TO_CHAR(TRUNC(TO_DATE('$!{in_fr_date}'),'MM'),'YYYYMMDD') 
+										AND TO_CHAR(LAST_DAY(TO_DATE('$!{in_to_date}')),'YYYYMMDD')
+					GROUP
+					BY		TRUNC(TO_DATE(S1.YYYYMMDD,'YYYY-MM-DD'),'MM'),
+							S1.ITEM_ID, D2.QTY
+					UNION	ALL					
+					/* 판매실적(타계정포함)(봉수환산) */
+					SELECT	TRUNC(SALE_DATE,'MM')	CNFM_DATE,
+							D1.ITEM_ID				ITEM_ID,
+							0						PLAN_BOX,
+							SUM(D1.QTY)*D2.QTY			SELL_BOX,
+							0						PRDT_BOX
+					FROM	SALES_ACT	D1,
+							(
+							SELECT	ITEM_ID, QTY
+							FROM	ITEM_MST
+							WHERE	RECIPE_TYPE	= '$!{in_item_id}'  --유형코드
+							)			D2
+					WHERE	SALE_DATE	BETWEEN TRUNC(TO_DATE('$!{in_fr_date}','YYYY-MM-DD'),'MM')
+										AND LAST_DAY(TO_DATE('$!{in_to_date}','YYYY-MM-DD'))
+				#if("$!{in_act_type}" == "01")
+					AND		ACT_TYPE	= '01' -- 일반
+				#elseif("$!{in_act_type}" == "02")	
+					AND		ACT_TYPE	= '02' -- 타계정
+				#end				
+					AND		D1.ITEM_ID	= D2.ITEM_ID
+					GROUP
+					BY		TRUNC(SALE_DATE,'MM'),
+							D1.ITEM_ID, D2.QTY				
+					UNION	ALL		
+					/* 생산실적(봉수환산) */
+					SELECT	TRUNC(START_DTTM,'MM')	CNFM_DATE,
+							D1.ITEM_ID				ITEM_ID,
+							0						PLAN_BOX,
+							0						SELL_BOX,
+							SUM(COMPL_QTY)*D2.QTY	PRDT_BOX
+					FROM	V_ERP_PO_MES	D1,
+							(
+							SELECT	ITEM_ID, QTY
+							FROM	ITEM_MST
+							WHERE	RECIPE_TYPE	= '$!{in_item_id}'  --유형코드
+							)				D2
+					WHERE	START_DTTM	BETWEEN TRUNC(TO_DATE('$!{in_fr_date}','YYYY-MM-DD'),'MM')
+										AND LAST_DAY(TO_DATE('$!{in_to_date}','YYYY-MM-DD'))
+					AND		D1.ITEM_ID	= D2.ITEM_ID
+					GROUP
+					BY		TRUNC(START_DTTM,'MM'),
+							D1.ITEM_ID, D2.QTY
+					)			K1,
+					ITEM_MST	K2,
+					(
+					SELECT	TO_NUMBER(TRIM('$!{in_ea}'))	QTY
+					FROM	DUAL
+					WHERE	TRIM('$!{in_ea}') IS NOT NULL
+					UNION	ALL
+					SELECT	QTY
+					FROM	ITEM_MST
+					WHERE	ITEM_ID	= (
+								SELECT	MIN(ITEM_ID)
+								FROM	ITEM_MST
+								WHERE	RECIPE_TYPE	= '$!{in_item_id}'  --유형코드
+								)
+					AND		TRIM('$!{in_ea}') IS NULL
+					)			K3
+			WHERE	K1.ITEM_ID	= K2.ITEM_ID
+			AND		K2.ITYPE	= 'FERT'
+			GROUP
+			BY		K3.QTY
+			ORDER
+			BY		ITEM_ID
+
+		#end
+	
+	#else
+	
+		SELECT	''
+		FROM	DUAL
+		WHERE	1=0
+	
+	#end
+
+	</query> 		
+
+	
+	<!-- 
+	=======================
+		공장재고 등록 
+	=======================
+	--> 	
+	
+	<!-- HALB_TYPE 콤보 박스 -->
+	<query id="sc_01110_combo_halb_type" > 
+	
+		SELECT		CD, CD_NAME
+		FROM		CODE_MST, DUAL B
+		WHERE		CD_GRP = 'HALB_TYPE'
+		ORDER BY	CAT01
+	</query>	
+	
+
+	<!-- 공장 재고 등록 --> 
+	<query id="sc_01110_realStockReg_list"  paging="true">
+		#if ( "$!{sel_plant}" != "SUM" ) 
+		-- 각 공장별 쿼리
+		SELECT  IM.PLANT_ID,  --0
+		        PL.PLANT_NAME,            --1
+		        IM.ITEM_ID,             --2
+		        IM.ITEM_NAME,             --3
+		        IM.SPEC,                 --4
+		        NVL(ES.QTY, 0)  ERP_QTY,     --5
+		        NVL(RS.QTY, 0)  REAL_QTY,    --6              
+		        IM.BASE_UOM,            --7
+		        CASE 
+		         WHEN IM.BASE_UOM = 'EA'        THEN ROUND(NVL(RS.QTY, 0)/NVL(DECODE(IM.CONV_QTY, 0, 1, IM.CONV_QTY ), 1),1)
+		         WHEN IM.BASE_UOM = 'KG'        THEN ROUND(NVL(RS.QTY, 0)/NVL(DECODE(IM.CONV_QTY, 0, 1, IM.CONV_QTY ), 1),1)
+		        END BOX_QTY,            --8
+		        CASE 
+		         WHEN IM.BASE_UOM = 'EA'        THEN 'BOX'
+		         WHEN IM.BASE_UOM = 'KG'        THEN 'BAG'
+		        END CONV_UOM,            --0
+		        IM.ITYPE,        --10
+		        DECODE(RS.QTY, NULL, 'AD', 'UP') MOD_FLAG,    --11,
+		        IM.CONV_QTY, --12
+		        SP.CAMP_STOC, --13
+		        '' CONV_FLAG,
+		        '' STOC_FLAG
+		FROM    (
+		        --  ITEM_MST  ITEM_DTL 이용  입력대상 아이템 추출 
+		        SELECT  ID.PLANT_ID, ID.ITEM_ID, IM.ITEM_NAME, IM.SPEC, IM.ITYPE, IM.BASE_UOM, ID.BOX_PER_PALET CONV_QTY
+		        FROM    ITEM_MST    IM,
+		                ITEM_DTL    ID
+		        WHERE   IM.ITEM_ID  = ID.ITEM_ID
+		        AND     IM.ITYPE    = 'HALB'
+		        AND     IM.ITEM_STATUS = 'ST'
+		        AND     IM.ITEM_ID NOT LIKE '79%'
+		        AND     ID.PLANT_ID = '$!{sel_plant}'
+		        AND     IM.ITEM_ID LIKE '$!{sel_halb_type}'||'%' --반제품 유형 : 스프류, 기지류, 브로스류
+		        ) IM,
+		        (
+		        SELECT  ITEM_ID, SUM(QTY) QTY
+		        FROM    ERP_STOCK
+		        WHERE   IF_DTTM = (SELECT MAX(IF_DTTM) FROM ERP_STOCK)
+		        AND     LOC_ID  = '$!{sel_plant}'
+		        AND     ITEM_ID LIKE '$!{sel_halb_type}'||'%' --반제품 유형 : 스프류, 기지류, 브로스류
+		        GROUP BY ITEM_ID
+		        ) ES, 
+		        (
+		        SELECT  *
+		        FROM    REAL_STOCK
+		        WHERE   USABLE_DATE = ( SELECT TRUNC(TO_DATE('$!{in_cnfm_date}'),'D')+1 FROM DUAL )
+		        AND     LOC_ID = '$!{sel_plant}'
+		        AND     ITEM_ID LIKE '$!{sel_halb_type}'||'%' --반제품 유형 : 스프류, 기지류, 브로스류
+		        ) RS,
+		        (
+		        SELECT  HTYPE PLANT_ID,    HID_NAME PLANT_NAME
+		        FROM    HRCHY,  DUAL B
+		        WHERE   LVL_TYPE    = '공장'
+		        AND     LVL         = '10'         
+		        ) PL,
+                (
+                SELECT  ITEM_ID, LOC_ID, CAMP_STOC
+                FROM    STOCK_POLICY_QTY
+                WHERE   WORK_DATE = (SELECT  MAX(WORK_DATE) FROM    STOCK_POLICY_QTY)
+                AND     LOC_TYPE  = 'PLANT'
+		        AND     LOC_ID = '$!{sel_plant}'
+		        AND     ITEM_ID LIKE '$!{sel_halb_type}'||'%' --반제품 유형 : 스프류, 기지류, 브로스류
+                )SP
+        WHERE   IM.ITEM_ID = RS.ITEM_ID(+)
+        AND     IM.ITEM_ID = ES.ITEM_ID(+)
+        AND     IM.PLANT_ID = PL.PLANT_ID  
+        AND     IM.ITEM_ID  = SP.ITEM_ID (+)     
+        AND     IM.PLANT_ID  = SP.LOC_ID(+)      
+            ORDER BY 1, 3
+		
+		#else
+		
+		-- 품목 전체 합 쿼리	
+        SELECT  IM.ITEM_ID,             --2
+                IM.ITEM_NAME,             --3
+                IM.SPEC,                 --4
+                SUM(NVL(ES.QTY, 0))  ERP_QTY,     --5
+                SUM(NVL(RS.QTY, 0))  REAL_QTY,    --6              
+                IM.BASE_UOM,            --7
+                CASE 
+                 WHEN IM.BASE_UOM = 'EA'        THEN ROUND(NVL(RS.QTY, 0)/NVL(DECODE(IM.CONV_QTY, 0, 1, IM.CONV_QTY ), 1),1)
+                 WHEN IM.BASE_UOM = 'KG'        THEN ROUND(NVL(RS.QTY, 0)/NVL(DECODE(IM.CONV_QTY, 0, 1, IM.CONV_QTY ), 1),1)
+                END BOX_QTY,            --8
+                CASE 
+                 WHEN IM.BASE_UOM = 'EA'        THEN 'BOX'
+                 WHEN IM.BASE_UOM = 'KG'        THEN 'BAG'
+                END CONV_UOM--,            --0
+                --IM.ITYPE,        --10
+               -- CONV_QTY --12
+        FROM    (
+        
+                --  ITEM_MST  ITEM_DTL 이용 대상 입력대상 아이템 추출 
+                SELECT  DISTINCT ID.ITEM_ID, IM.ITEM_NAME, IM.SPEC, IM.ITYPE, IM.BASE_UOM, MAX(ID.BOX_PER_PALET) CONV_QTY
+                FROM    ITEM_MST    IM,
+                        ITEM_DTL    ID
+                WHERE   IM.ITEM_ID  = ID.ITEM_ID
+                AND     IM.ITYPE    = 'HALB'
+                AND     IM.ITEM_STATUS = 'ST'
+                AND     IM.ITEM_ID NOT LIKE '79%'
+		        AND     IM.ITEM_ID LIKE '$!{sel_halb_type}'||'%' --반제품 유형 : 스프류, 기지류, 브로스류
+                GROUP BY ID.ITEM_ID, IM.ITEM_NAME, IM.SPEC, IM.ITYPE, IM.BASE_UOM
+                ORDER BY 1
+                
+                ) IM,
+                (
+                SELECT  ITEM_ID, SUM(QTY) QTY
+                FROM    ERP_STOCK
+                WHERE   IF_DTTM = (SELECT MAX(IF_DTTM) FROM ERP_STOCK)
+		        AND     ITEM_ID LIKE '$!{sel_halb_type}'||'%' --반제품 유형 : 스프류, 기지류, 브로스류
+                 GROUP BY ITEM_ID
+                ) ES, 
+                (
+                SELECT  ITEM_ID, SUM(QTY) QTY
+                FROM    REAL_STOCK
+                WHERE   USABLE_DATE = ( SELECT TRUNC(TO_DATE('$!{in_cnfm_date}'),'D')+1 FROM DUAL )
+		        AND     ITEM_ID LIKE '$!{sel_halb_type}'||'%' --반제품 유형 : 스프류, 기지류, 브로스류
+                 GROUP BY ITEM_ID
+                ) RS
+        WHERE   IM.ITEM_ID = RS.ITEM_ID(+)
+        AND     IM.ITEM_ID = ES.ITEM_ID(+)
+        GROUP BY IM.ITEM_ID,             --2
+                IM.ITEM_NAME,             --3
+                IM.SPEC,                 --4
+                IM.BASE_UOM,            --7
+                IM.ITYPE,        --10
+                CONV_QTY, --12,
+                IM.BASE_UOM,
+                RS.QTY
+            ORDER BY 1, 3			
+	#end	
+	</query> 
+	
+	<!-- 공장 재고 등록 --> 
+	<query id="sc_01110_realStockReg_list_org"  paging="true">
+		#if ( "$!{sel_plant}" != "SUM" ) 
+		-- 각 공장별 쿼리
+		SELECT  IM.PLANT_ID,  --0
+		        PL.PLANT_NAME,            --1
+		        IM.ITEM_ID,             --2
+		        IM.ITEM_NAME,             --3
+		        IM.SPEC,                 --4
+		        NVL(ES.QTY, 0)  ERP_QTY,     --5
+		        NVL(RS.QTY, 0)  REAL_QTY,    --6              
+		        IM.BASE_UOM,            --7
+		        CASE 
+		         WHEN IM.BASE_UOM = 'EA'        THEN ROUND(NVL(RS.QTY, 0)/NVL(DECODE(IM.CONV_QTY, 0, 1, IM.CONV_QTY ), 1),1)
+		         WHEN IM.BASE_UOM = 'KG'        THEN ROUND(NVL(RS.QTY, 0)/NVL(DECODE(IM.CONV_QTY, 0, 1, IM.CONV_QTY ), 1),1)
+		        END BOX_QTY,            --8
+		        CASE 
+		         WHEN IM.BASE_UOM = 'EA'        THEN 'BOX'
+		         WHEN IM.BASE_UOM = 'KG'        THEN 'BAG'
+		        END CONV_UOM,            --0
+		        IM.ITYPE,        --10
+		        DECODE(RS.QTY, NULL, 'AD', 'UP') MOD_FLAG,    --11,
+		        CONV_QTY --12
+		FROM    (
+		        --  ITEM_MST  ITEM_DTL 이용 대상 입력대상 아이템 추출 
+		        SELECT  ID.PLANT_ID, ID.ITEM_ID, IM.ITEM_NAME, IM.SPEC, IM.ITYPE, IM.BASE_UOM, ID.BOX_PER_PALET CONV_QTY
+		        FROM    ITEM_MST    IM,
+		                ITEM_DTL    ID
+		        WHERE   IM.ITEM_ID  = ID.ITEM_ID
+		        AND     IM.ITYPE    = 'HALB'
+		        AND     IM.ITEM_STATUS = 'ST'
+		        AND     IM.ITEM_ID NOT LIKE '79%'
+		        AND     ID.PLANT_ID = '$!{sel_plant}'
+		        AND     IM.ITEM_ID LIKE '$!{sel_halb_type}'||'%' --반제품 유형 : 스프류, 기지류, 브로스류
+		        ) IM,
+		        (
+		        SELECT  *
+		        FROM    ERP_STOCK
+		        WHERE   IF_DTTM = (SELECT MAX(IF_DTTM) FROM ERP_STOCK)
+		        AND     LOC_ID  = '$!{sel_plant}'
+		        AND     ITEM_ID LIKE '$!{sel_halb_type}'||'%' --반제품 유형 : 스프류, 기지류, 브로스류
+		        ) ES, 
+		        (
+		        SELECT  *
+		        FROM    REAL_STOCK
+		        WHERE   USABLE_DATE = ( SELECT TRUNC(TO_DATE('$!{in_cnfm_date}'),'D')+1 FROM DUAL )
+		        AND     LOC_ID = '$!{sel_plant}'
+		        AND     ITEM_ID LIKE '$!{sel_halb_type}'||'%' --반제품 유형 : 스프류, 기지류, 브로스류
+		        ) RS,
+		        (
+		        SELECT  HTYPE PLANT_ID,    HID_NAME PLANT_NAME
+		        FROM    HRCHY,  DUAL B
+		        WHERE   LVL_TYPE    = '공장'
+		        AND     LVL         = '10'         
+		        ) PL
+		WHERE   IM.ITEM_ID = RS.ITEM_ID(+)
+		AND     IM.ITEM_ID = ES.ITEM_ID(+)
+		AND     IM.PLANT_ID = PL.PLANT_ID		
+			ORDER BY 1, 3
+		
+		#else
+		
+		-- 품목 전체 합 쿼리	
+        SELECT  IM.ITEM_ID,             --2
+                IM.ITEM_NAME,             --3
+                IM.SPEC,                 --4
+                SUM(NVL(ES.QTY, 0))  ERP_QTY,     --5
+                SUM(NVL(RS.QTY, 0))  REAL_QTY,    --6              
+                IM.BASE_UOM,            --7
+                CASE 
+                 WHEN IM.BASE_UOM = 'EA'        THEN ROUND(NVL(RS.QTY, 0)/NVL(IM.CONV_QTY, 1),1)
+                 WHEN IM.BASE_UOM = 'KG'        THEN ROUND(NVL(RS.QTY, 0)/NVL(IM.CONV_QTY, 1),1)
+                END BOX_QTY,            --8
+                CASE 
+                 WHEN IM.BASE_UOM = 'EA'        THEN 'BOX'
+                 WHEN IM.BASE_UOM = 'KG'        THEN 'BAG'
+                END CONV_UOM--,            --0
+                --IM.ITYPE,        --10
+               -- CONV_QTY --12
+        FROM    (
+        
+                --  ITEM_MST  ITEM_DTL 이용 대상 입력대상 아이템 추출 
+                SELECT  DISTINCT ID.ITEM_ID, IM.ITEM_NAME, IM.SPEC, IM.ITYPE, IM.BASE_UOM, MAX(ID.BOX_PER_PALET) CONV_QTY
+                FROM    ITEM_MST    IM,
+                        ITEM_DTL    ID
+                WHERE   IM.ITEM_ID  = ID.ITEM_ID
+                AND     IM.ITYPE    = 'HALB'
+                AND     IM.ITEM_STATUS = 'ST'
+                AND     IM.ITEM_ID NOT LIKE '79%'
+		        AND     IM.ITEM_ID LIKE '$!{sel_halb_type}'||'%' --반제품 유형 : 스프류, 기지류, 브로스류
+                GROUP BY ID.ITEM_ID, IM.ITEM_NAME, IM.SPEC, IM.ITYPE, IM.BASE_UOM
+                ORDER BY 1
+                
+                ) IM,
+                (
+                SELECT  ITEM_ID, SUM(QTY) QTY
+                FROM    ERP_STOCK
+                WHERE   IF_DTTM = (SELECT MAX(IF_DTTM) FROM ERP_STOCK)
+		        AND     ITEM_ID LIKE '$!{sel_halb_type}'||'%' --반제품 유형 : 스프류, 기지류, 브로스류
+                 GROUP BY ITEM_ID
+                ) ES, 
+                (
+                SELECT  ITEM_ID, SUM(QTY) QTY
+                FROM    REAL_STOCK
+                WHERE   USABLE_DATE = ( SELECT TRUNC(TO_DATE('$!{in_cnfm_date}'),'D')+1 FROM DUAL )
+		        AND     ITEM_ID LIKE '$!{sel_halb_type}'||'%' --반제품 유형 : 스프류, 기지류, 브로스류
+                 GROUP BY ITEM_ID
+                ) RS
+        WHERE   IM.ITEM_ID = RS.ITEM_ID(+)
+        AND     IM.ITEM_ID = ES.ITEM_ID(+)
+        GROUP BY IM.ITEM_ID,             --2
+                IM.ITEM_NAME,             --3
+                IM.SPEC,                 --4
+                IM.BASE_UOM,            --7
+                IM.ITYPE,        --10
+                CONV_QTY, --12,
+                IM.BASE_UOM
+            ORDER BY 1, 3			
+	#end	
+	</query> 
+
+	<!-- 공장 재고 등록_저장 --> 
+	<query id="sc_01110_realStockReg_save"  fix="_user_id in_cnfm_date"
+	iterator="item_id plant_id itype real_qty qty_uom mod_flag">
+		#if ( "$!{mod_flag}" == "AD" ) 
+			INSERT INTO REAL_STOCK
+	               ( USABLE_DATE, LOC_TYPE, LOC_ID, ITEM_ID,  ITYPE,  QTY, 
+	                    QTY_UOM,  MADE_TYPE,   MADE_DTTM,  MADE_BY )
+	          SELECT   (SELECT TRUNC(TO_DATE('$!{in_cnfm_date}'),'D')+1
+						 FROM DUAL)     USABLE_DATE, 
+	                    'PLANT'         LOC_TYPE, 
+	                    '$!{plant_id}'	LOC_ID, 
+	                    '$!{item_id}'   ITEM_ID, 
+	                    '$!{itype}'     ITYPE,  
+	                    '$!{real_qty}'  QTY, 
+	                    '$!{qty_uom}'   QTY_UOM, 
+	                    '$!{mod_flag}'  MADE_TYPE, 
+	                    SYSDATE         MADE_DTTM, 
+	                    '$!{_user_id}'  MADE_BY
+	            FROM    DUAL
+		#else
+	        UPDATE	REAL_STOCK
+	        SET     --USABLE_DATE			= (	SELECT TRUNC(TO_DATE('$!{in_cnfm_date}'),'D')+1
+			        --						FROM DUAL),
+	        		QTY					= nvl('$!{real_qty}',0),
+	                MADE_TYPE			= 'UP',
+	                MADE_DTTM			= SYSDATE,
+	                MADE_BY				= '$!{_user_id}'
+	        WHERE	LOC_ID				= '$!{plant_id}'
+	        AND		ITEM_ID				= '$!{item_id}'
+	        AND		USABLE_DATE			= (	SELECT TRUNC(TO_DATE('$!{in_cnfm_date}'),'D')+1
+			        						FROM DUAL)
+		#end
+	</query>
+
+	<!-- 공장 재고 등록_저장 01  안전재고 저장 --> 
+	<query id="sc_01110_realStockReg_save_02"  fix="_user_id"
+	iterator="item_id plant_id safety_stock">
+		#if ( "$!{safety_stock}" == "" ) 
+		INSERT INTO STOCK_POLICY_QTY
+		       ( WORK_DATE, LOC_TYPE, LOC_ID, ITEM_ID, CAMP_STOC, QTY_UOM, MADE_TYPE, MADE_DTTM, MADE_BY )
+		  SELECT    (SELECT  MAX(WORK_DATE) FROM    STOCK_POLICY_QTY)	WORK_DATE, 
+					'PLANT'					LOC_TYPE, 
+					'$!{plant_id}'			LOC_ID, 
+					'$!{item_id}'			ITEM_ID, 
+					NVL('$!{safety_stock}',0)			CAMP_STOC, 
+					'EA'			QTY_UOM, 
+					'AD'			MADE_TYPE, 
+					SYSDATE			MADE_DTTM, 
+					'$!{_user_id}'	MADE_BY
+		    FROM    DUAL
+		   WHERE    NOT EXISTS(
+		            SELECT	ITEM_ID
+		            FROM	STOCK_POLICY_QTY
+		            WHERE	LOC_ID		= '$!{plant_id}'
+		            AND		ITEM_ID		= '$!{item_id}'
+		            AND		LOC_TYPE	= 'PLANT'
+		            AND		WORK_DATE	= (SELECT  MAX(WORK_DATE) FROM    STOCK_POLICY_QTY)
+		            )
+		#else
+	        UPDATE	STOCK_POLICY_QTY
+	        SET     CAMP_STOC			= NVL('$!{safety_stock}', 0),
+	                MADE_TYPE			= 'UP',
+	                MADE_DTTM			= SYSDATE,
+	                MADE_BY				= '$!{_user_id}'
+            WHERE	LOC_ID		= '$!{plant_id}'
+            AND		ITEM_ID		= '$!{item_id}'
+            AND		LOC_TYPE	= 'PLANT'
+            AND		WORK_DATE	= (SELECT  MAX(WORK_DATE) FROM    STOCK_POLICY_QTY)
+		#end
+	</query>
+
+	<!-- 공장 재고 등록_저장 01  박스퍼 파레트 저장--> 
+	<query id="sc_01110_realStockReg_save_03"  fix="_user_id"
+	iterator="item_id plant_id conv_qty">
+		UPDATE  ITEM_DTL
+		SET     BOX_PER_PALET  = NVL('$!{conv_qty}',0),
+		        MADE_TYPE      = 'UP',
+		        MADE_DTTM      = SYSDATE,
+		        MADE_BY        = '$!{_user_id}'
+		WHERE   PLANT_ID       = '$!{plant_id}'
+		AND     ITEM_ID        = '$!{item_id}'
+	</query>	
+
+
+	<!-- 
+	=======================
+		폐기자재 실적현황조회
+	=======================
+	--> 	
+
+	<!-- 폐기자재 실적현황조회 --> 
+	<query id="sc_20020_Mat_Scrap_Monthly_Info" paging="false"> 
+
+		SELECT	T1.PLANT_ID,
+				T2.PLANT_NAME,
+				T1.CNFM_YYMM,
+				T1.ITEM_ID,
+				T3.ITEM_NAME,
+				T1.QTY_UOM,
+				T1.QTY,
+				T1.UNIT_PRICE,
+				T1.AMOUNT,
+				DISUSE_NAME,
+				DISUSE_REASON||' '||T4.CD_NAME	DISUSE_REASON_NAME,
+				T5.DEPT_NAME,
+				DISUSE_COMMENT
+		FROM	MAT_SCRAP_MONTHLY_INFO	T1,
+				(
+				SELECT	HID			PLANT_ID,
+						HID_NAME	PLANT_NAME
+				FROM	HRCHY, DUAL
+				WHERE	LVL_TYPE	= '공장'
+				ORDER
+				BY		HID
+				)						T2,
+				ITEM_MST				T3,
+				(
+				SELECT	CD,	CD_NAME
+				FROM	CODE_MST, DUAL
+				WHERE	CD_GRP	= 'MAT_DISUSE_REASON'
+				ORDER
+				BY		CD
+				)						T4,
+				(
+				SELECT	DEPT_CODE,
+						DEPT_NAME_ABBR	DEPT_NAME
+				FROM	NCOMT001, DUAL
+				WHERE	APPL_END_DATE	= '99991231'
+				AND		ORGT_GRAD	= '2'
+				AND		UPORG_DEPT_CODE	= '2000'
+				ORDER
+				BY		DEPT_CODE
+				)						T5
+		WHERE	CNFM_YYMM	BETWEEN '$!{insel_fr_yyyy}'||'$!{insel_fr_mm}' 
+							AND '$!{insel_to_yyyy}'||'$!{insel_to_mm}'
+		AND		T1.PLANT_ID		LIKE '%'||'$!{insel_plant_id}'||'%'
+		#if("$!{insel_disuse_reason}" == "%") 
+			--전체조회(삭제제외)
+			AND		NVL(DISUSE_REASON,'0')	!= 'Z' --삭제
+		#else
+			AND		NVL(DISUSE_REASON,'0')	= '$!{insel_disuse_reason}'
+		#end
+		AND		T1.PLANT_ID		= T2.PLANT_ID
+		AND		T1.ITEM_ID		= T3.ITEM_ID(+)
+		AND		T1.MADE_TYPE	!= 'DE'
+		AND		T1.DISUSE_REASON 	= T4.CD(+)
+		AND		T1.DISUSE_DEPT		= T5.DEPT_CODE(+)
+		ORDER
+		BY		T1.PLANT_ID,
+				CNFM_YYMM,
+				T1.ITEM_ID
+
+	</query> 		
+
+	<!-- 폐기자재 실적현황조회_공장_combo --> 
+	<query id="sc_20020_Plant_combo" paging="false"> 
+
+		SELECT	HID, HID_NAME
+		FROM	HRCHY, DUAL
+		WHERE	LVL_TYPE	= '공장'
+		ORDER
+		BY		HID
+
+	</query>
+	
+	<!-- 폐기자재 실적현황조회_폐기원인_combo --> 
+	<query id="sc_20020_Mat_Disuse_Reason_combo" paging="false"> 
+
+		SELECT	CD,	CD_NAME
+		FROM	CODE_MST, DUAL
+		WHERE	CD_GRP	= 'MAT_DISUSE_REASON'
+		ORDER
+		BY		CD
+
+	</query>
+
+	<!-- 폐기자재 실적현황조회_귀속부서_combo --> 
+	<query id="sc_20020_Disuse_Dept_combo" paging="false"> 
+
+		SELECT	DEPT_CODE,
+				DEPT_NAME_ABBR
+		FROM	NCOMT001, DUAL
+		WHERE	APPL_END_DATE	= '99991231'
+		AND		ORGT_GRAD	= '2'
+		AND		UPORG_DEPT_CODE	= '2000'
+		ORDER
+		BY		DEPT_CODE
+
+	</query>
+
+	<!-- 폐기자재 기초데이터 생성 --> 
+	<query id="sc_20020_SP_IP_MAT_SCRAP_MONTHLY"  fix="insel_plant_id" > 
+		
+		#if("$!{save_flag}" == "Y")
+		
+			CALL	SP_IP_MAT_SCRAP_MONTHLY
+					(
+					'CRE_DATA',
+					TRUNC(SYSDATE),
+					1,
+					1,
+					'$!{insel_plant_id}',
+					SYSDATE,
+					'$!{insel_fr_yyyy}'||'$!{insel_fr_mm}',
+					'$!{insel_to_yyyy}'||'$!{insel_to_mm}'
+					)
+		
+		#else
+		
+			SELECT	1
+			FROM	DUAL
+			WHERE	1=0
+		
+		#end
+
+	</query>
+
+	<!-- 폐기자재 실적현황정정 조회 --> 
+	<query id="sc_20020_Mat_Scrap_Monthly_Info_mod" paging="false"> 
+
+		SELECT	T1.PLANT_ID,
+				T2.PLANT_NAME,
+				T1.CNFM_YYMM,
+				T1.ITEM_ID,
+				T3.ITEM_NAME,
+				T1.QTY_UOM,
+				T1.QTY,
+				T1.UNIT_PRICE,
+				T1.AMOUNT,
+				DISUSE_NAME,
+				DISUSE_REASON,
+				T1.DISUSE_DEPT,
+				DISUSE_COMMENT
+		FROM	MAT_SCRAP_MONTHLY_INFO	T1,
+				(
+				SELECT	HID			PLANT_ID,
+						HID_NAME	PLANT_NAME
+				FROM	HRCHY, DUAL
+				WHERE	LVL_TYPE	= '공장'
+				ORDER
+				BY		HID
+				)						T2,
+				ITEM_MST				T3,
+				(
+				SELECT	CD,	CD_NAME
+				FROM	CODE_MST, DUAL
+				WHERE	CD_GRP	= 'MAT_DISUSE_REASON'
+				ORDER
+				BY		CD
+				)						T4,
+				(
+				SELECT	DEPT_CODE,
+						DEPT_NAME_ABBR	DEPT_NAME
+				FROM	NCOMT001, DUAL
+				WHERE	APPL_END_DATE	= '99991231'
+				AND		ORGT_GRAD	= '2'
+				AND		UPORG_DEPT_CODE	= '2000'
+				ORDER
+				BY		DEPT_CODE
+				)						T5
+		WHERE	CNFM_YYMM	BETWEEN '$!{insel_fr_yyyy}'||'$!{insel_fr_mm}' 
+							AND '$!{insel_to_yyyy}'||'$!{insel_to_mm}'
+		AND		T1.PLANT_ID		LIKE '%'||'$!{insel_plant_id}'||'%'
+		#if("$!{insel_disuse_reason}" == "%") 
+			--전체조회(삭제제외)
+			AND		NVL(DISUSE_REASON,'0')	!= 'Z' --삭제
+		#else
+			AND		NVL(DISUSE_REASON,'0')	= '$!{insel_disuse_reason}'
+		#end
+		AND		T1.PLANT_ID		= T2.PLANT_ID
+		AND		T1.ITEM_ID		= T3.ITEM_ID(+)
+		AND		T1.MADE_TYPE	!= 'DE'
+		AND		T1.DISUSE_REASON 	= T4.CD(+)
+		AND		T1.DISUSE_DEPT		= T5.DEPT_CODE(+)
+		ORDER
+		BY		T1.PLANT_ID,
+				CNFM_YYMM,
+				T1.ITEM_ID
+
+	</query> 
+
+	<!-- 폐기자재 기초데이터 생성 --> 
+	<query id="sc_20020_Mat_Scrap_Monthly_save"  fix="user_id" iterator="save_flag in_cnfm_yymm in_plant_id in_item_id in_disuse_reason in_disuse_dept in_disuse_comment"> 
+		
+		#if("$!{save_flag}" == "Y")
+			
+			UPDATE	MAT_SCRAP_MONTHLY_INFO
+			SET		DISUSE_REASON	= '$!{in_disuse_reason}',
+					DISUSE_DEPT		= '$!{in_disuse_dept}',
+					DISUSE_COMMENT	= '$!{in_disuse_comment}',
+					MADE_TYPE		= 'UP',
+					MADE_DTTM		= SYSDATE,
+					MADE_BY			= '$!{user_id}'
+			WHERE	CNFM_YYMM		= '$!{in_cnfm_yymm}'
+			AND		PLANT_ID		= '$!{in_plant_id}'
+			AND		ITEM_ID			= '$!{in_item_id}'
+		
+		#else
+			
+			/* 저장안함 */
+			UPDATE 	MAT_SCRAP_MONTHLY_INFO
+			SET		DISUSE_REASON	= '00'
+			WHERE	CNFM_YYMM		= '$!{in_cnfm_yymm}'
+			AND		PLANT_ID		= '$!{in_plant_id}'
+			AND		ITEM_ID			= '$!{in_item_id}'
+			AND		1 = 0
+		
+		#end
+		
+	</query>
+	
+	<!-- 생산계획 요약 --> 
+	<query id="sc_20040_Production_Planning_GetDate" paging="false">
+	/* 2016년으로 넘어가면서 에러 발생 임시 수정 */
+	SELECT MM||'/'||DD||'('||WEEK_DAY||')'
+	FROM CAL_MST
+	WHERE CAL_DATE BETWEEN TRUNC(TO_DATE('$!{work_date}'),'D')+1  AND TRUNC(TO_DATE('$!{work_date}'),'D')+7
+	--WHERE WEEK_NO = (	SELECT WEEK_NO 
+	--					FROM CAL_MST 
+	--					WHERE CAL_DATE = '$!{work_date}'
+	--				)
+	--AND YYYY = TO_CHAR(TO_DATE('$!{work_date}'),'YYYY')
+	--ORDER BY MM||'/'||DD||'('||WEEK_DAY||')'
+	
+	</query>
+	<query id="sc_20040_Production_Planning_Summary_list" paging="false">
+	#if("$!{work_date}" != "")		#if("$!{sum_type}" == "PL")        SELECT  T1.PLANT_ID,    T5.HID_NAME,        #else        SELECT  '' PLANT_ID,    '농심총' HID_NAME,        #end			        T1.ITEM_ID,     T3.ITEM_NAME,		        T3.SPEC,		        		        DECODE('$!{box_flag}', '$!{box_flag}', 1, T3.QTY) *                
+                SUM(CASE WHEN T1.PROD_DATES = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+0, 2),'YYYYMMDD') AND T1.SHIFT_TYPE ='1'
+                THEN T1.SHIFT_QTY ELSE NULL END) 																								"월_조",
+                DECODE('$!{box_flag}', '$!{box_flag}', 1, T3.QTY) *            
+                SUM(CASE WHEN T1.PROD_DATES = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+0, 2),'YYYYMMDD') AND T1.SHIFT_TYPE ='3'
+                THEN T1.SHIFT_QTY ELSE NULL END) 																								"월_주",
+                 DECODE('$!{box_flag}', '$!{box_flag}', 1, T3.QTY) *            
+                SUM(CASE WHEN T1.PROD_DATES = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+0, 2),'YYYYMMDD') AND T1.SHIFT_TYPE ='5'
+                THEN T1.SHIFT_QTY ELSE NULL END) 																								"월_야",
+                DECODE('$!{box_flag}', '$!{box_flag}', 1, T3.QTY) *                
+                SUM(CASE WHEN T1.PROD_DATES = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+1, 3),'YYYYMMDD') AND T1.SHIFT_TYPE ='1'
+                THEN T1.SHIFT_QTY ELSE NULL END) 																								"화_조",
+                DECODE('$!{box_flag}', '$!{box_flag}', 1, T3.QTY) *            
+                SUM(CASE WHEN T1.PROD_DATES = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+1, 3),'YYYYMMDD') AND T1.SHIFT_TYPE ='3'
+                THEN T1.SHIFT_QTY ELSE NULL END) 																								"화_주",
+                DECODE('$!{box_flag}', '$!{box_flag}', 1, T3.QTY) *            
+                SUM(CASE WHEN T1.PROD_DATES = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+1, 3),'YYYYMMDD') AND T1.SHIFT_TYPE ='5'
+                THEN T1.SHIFT_QTY ELSE NULL END) 																								"화_야",
+                DECODE('$!{box_flag}', '$!{box_flag}', 1, T3.QTY) *                
+                SUM(CASE WHEN T1.PROD_DATES = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+2, 4),'YYYYMMDD') AND T1.SHIFT_TYPE ='1'
+                THEN T1.SHIFT_QTY ELSE NULL END) 																								"수_조",
+                DECODE('$!{box_flag}', '$!{box_flag}', 1, T3.QTY) *            
+                SUM(CASE WHEN T1.PROD_DATES = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+2, 4),'YYYYMMDD') AND T1.SHIFT_TYPE ='3'
+                THEN T1.SHIFT_QTY ELSE NULL END) 																								"수_주",
+                DECODE('$!{box_flag}', '$!{box_flag}', 1, T3.QTY) *            
+                SUM(CASE WHEN T1.PROD_DATES = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+2, 4),'YYYYMMDD') AND T1.SHIFT_TYPE ='5'
+                THEN T1.SHIFT_QTY ELSE NULL END) 																								"수_야",
+              	DECODE('$!{box_flag}', '$!{box_flag}', 1, T3.QTY) *                
+                SUM(CASE WHEN T1.PROD_DATES = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+3, 5),'YYYYMMDD') AND T1.SHIFT_TYPE ='1'
+                THEN T1.SHIFT_QTY ELSE NULL END)  																								"목_조",
+                DECODE('$!{box_flag}', '$!{box_flag}', 1, T3.QTY) *            
+                SUM(CASE WHEN T1.PROD_DATES = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+3, 5),'YYYYMMDD') AND T1.SHIFT_TYPE ='3'
+                THEN T1.SHIFT_QTY ELSE NULL END)  																								"목_주",
+                DECODE('$!{box_flag}', '$!{box_flag}', 1, T3.QTY) *            
+                SUM(CASE WHEN T1.PROD_DATES = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+3, 5),'YYYYMMDD') AND T1.SHIFT_TYPE ='5'
+                THEN T1.SHIFT_QTY ELSE NULL END)  																								"목_야",
+                DECODE('$!{box_flag}', '$!{box_flag}', 1, T3.QTY) *                
+                SUM(CASE WHEN T1.PROD_DATES = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+4, 6),'YYYYMMDD') AND T1.SHIFT_TYPE ='1'
+                THEN T1.SHIFT_QTY ELSE NULL END)  																								"금_조",
+                DECODE('$!{box_flag}', '$!{box_flag}', 1, T3.QTY) *            
+                SUM(CASE WHEN T1.PROD_DATES = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+4, 6),'YYYYMMDD') AND T1.SHIFT_TYPE ='3'
+                THEN T1.SHIFT_QTY ELSE NULL END)  																								"금_주",
+                DECODE('$!{box_flag}', '$!{box_flag}', 1, T3.QTY) *            
+                SUM(CASE WHEN T1.PROD_DATES = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+4, 6),'YYYYMMDD') AND T1.SHIFT_TYPE ='5'
+                THEN T1.SHIFT_QTY ELSE NULL END)  																								"금_야",
+                DECODE('$!{box_flag}', '$!{box_flag}', 1, T3.QTY) *                
+                SUM(CASE WHEN T1.PROD_DATES = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+5, 7),'YYYYMMDD') AND T1.SHIFT_TYPE ='1'
+                THEN T1.SHIFT_QTY ELSE NULL END)  																								"토_조",
+                DECODE('$!{box_flag}', '$!{box_flag}', 1, T3.QTY) *            
+                SUM(CASE WHEN T1.PROD_DATES = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+5, 7),'YYYYMMDD') AND T1.SHIFT_TYPE ='3'
+                THEN T1.SHIFT_QTY ELSE NULL END)  																								"토_주",
+                DECODE('$!{box_flag}', '$!{box_flag}', 1, T3.QTY) *            
+                SUM(CASE WHEN T1.PROD_DATES = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+5, 7),'YYYYMMDD') AND T1.SHIFT_TYPE ='5'
+                THEN T1.SHIFT_QTY ELSE NULL END)  																								"토_야",
+                DECODE('$!{box_flag}', '$!{box_flag}', 1, T3.QTY) *                
+                SUM(CASE WHEN T1.PROD_DATES = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+6, 1),'YYYYMMDD') AND T1.SHIFT_TYPE ='1'
+                THEN T1.SHIFT_QTY ELSE NULL END)  																								"일_조",
+                DECODE('$!{box_flag}', '$!{box_flag}', 1, T3.QTY) *            
+                SUM(CASE WHEN T1.PROD_DATES = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+6, 1),'YYYYMMDD') AND T1.SHIFT_TYPE ='3'
+                THEN T1.SHIFT_QTY ELSE NULL END)  																								"일_주",
+                DECODE('$!{box_flag}', '$!{box_flag}', 1, T3.QTY) *            
+                SUM(CASE WHEN T1.PROD_DATES = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+6, 1),'YYYYMMDD') AND T1.SHIFT_TYPE ='5'
+                THEN T1.SHIFT_QTY ELSE NULL END)  																								"일_야",	
+     			DECODE('$!{box_flag}', 'BOX', 1, T3.QTY) * 		        (NVL(SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+0, 2),'YYYYMMDD') ,T1.SHIFT_QTY)),0)+                NVL(SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+1, 3),'YYYYMMDD') ,T1.SHIFT_QTY)),0)+                NVL(SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+2, 4),'YYYYMMDD') ,T1.SHIFT_QTY)),0)+                NVL(SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+3, 5),'YYYYMMDD') ,T1.SHIFT_QTY)),0)+                NVL(SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+4, 6),'YYYYMMDD') ,T1.SHIFT_QTY)),0)+                NVL(SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+5, 7),'YYYYMMDD') ,T1.SHIFT_QTY)),0)+                NVL(SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+6, 1),'YYYYMMDD') ,T1.SHIFT_QTY)),0)) "주간계"              
+                ,MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+0, 2),'YYYYMMDD') AND T1.SHIFT_TYPE ='1') AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-3)                
+                THEN 'Y'
+                ELSE 'N'
+                END )"FLAG_1_100",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+0, 2),'YYYYMMDD') AND T1.SHIFT_TYPE ='3') AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-3)                
+                THEN 'Y'
+                ELSE 'N'
+                END )"FLAG_1_010",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+0, 2),'YYYYMMDD') AND T1.SHIFT_TYPE ='5') AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-3)                
+                THEN 'Y'
+                ELSE 'N'
+                END )"FLAG_1_001",             
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+1, 3),'YYYYMMDD')  AND T1.SHIFT_TYPE ='1') AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-3)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_2_100",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+1, 3),'YYYYMMDD')  AND T1.SHIFT_TYPE ='3') AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-3)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_2_010",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+1, 3),'YYYYMMDD')  AND T1.SHIFT_TYPE ='5') AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-3)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_2_001",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+2, 4),'YYYYMMDD') AND T1.SHIFT_TYPE ='1') AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-3)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_3_100",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+2, 4),'YYYYMMDD') AND T1.SHIFT_TYPE ='3') AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-3)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_3_010",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+2, 4),'YYYYMMDD') AND T1.SHIFT_TYPE ='5') AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-3)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_3_001",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+3, 5),'YYYYMMDD') AND T1.SHIFT_TYPE ='1') AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-3)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_4_100",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+3, 5),'YYYYMMDD') AND T1.SHIFT_TYPE ='3') AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-3)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_4_010",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+3, 5),'YYYYMMDD') AND T1.SHIFT_TYPE ='5') AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-3)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_4_001",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+4, 6),'YYYYMMDD') AND T1.SHIFT_TYPE ='1') AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-3)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_5_100",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+4, 6),'YYYYMMDD') AND T1.SHIFT_TYPE ='3') AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-3)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_5_010",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+4, 6),'YYYYMMDD') AND T1.SHIFT_TYPE ='5') AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-3)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_5_001",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+5, 7),'YYYYMMDD') AND T1.SHIFT_TYPE ='1') AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-3)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_6_100",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+5, 7),'YYYYMMDD') AND T1.SHIFT_TYPE ='3') AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-3)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_6_010",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+5, 7),'YYYYMMDD') AND T1.SHIFT_TYPE ='5') AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-3)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_6_001",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+6, 1),'YYYYMMDD') AND T1.SHIFT_TYPE ='1') AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-3)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_7_100",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+6, 1),'YYYYMMDD') AND T1.SHIFT_TYPE ='3') AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-3)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_7_010",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+6, 1),'YYYYMMDD') AND T1.SHIFT_TYPE ='5') AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-3)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_7_001"               
+                ,DECODE(T3.MTO_MTS_TYPE,'0001','MTO','0002','MTS','기타')																				"속성" ,
+                T6.PROC_ID, T6.PROC_NAME            		FROM    DAILY_SCH_PLAN_SHIFT    T1,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 		        V_LAST_PROC_PRODVER     T2,		        ITEM_MST                T3,		        HRCHY                   T5,
+		        SCH_ITEM_RANK			T6,		        (
+                SELECT  T1.PLANT_ID,
+                        MAX(T1.VERSION)    VERSION
+                FROM    DAILY_SCH_PLAN_SHIFT T1,
+                        (
+
+                        #if("$!{week}" == "WEEK1")
+                        /* 차주계획 */
+                        SELECT  K2.PLANT_ID, K1.VERSION
+                        FROM    PLAN_VERSION_LOG K1,
+                                (
+                                SELECT CAT_ID, SUB_CAT, PLANT_ID
+                                FROM    ENGN_BAT_MST
+                                WHERE PERIOD_TYPE = 'DAILY'
+								#if("$!{item_type}" == "PS")
+						        AND     CAT_ID    = 'PS'
+						        #else
+						        AND     CAT_ID    = 'SS'
+						        #end                                 
+                                ) K2
+                        WHERE   K1.PERIOD_TYPE = 'DAILY'
+						#if("$!{item_type}" == "PS")
+				        AND     K1.CAT_ID    = 'PS'
+				        #else
+				        AND     K1.CAT_ID    = 'SS'
+				        #end
+                        AND     K1.RUN_DATE BETWEEN TRUNC(TO_DATE('$!{work_date}'),'D')-7 AND     TRUNC(TO_DATE('$!{work_date}'),'D')
+                        AND     TRIM (VERSION) IS NOT NULL
+                        AND     K1.STATUS >= '23'
+                        AND     K1.CAT_ID = K2.CAT_ID
+                        AND     K1.SUB_CAT = K2.SUB_CAT
+                        #else
+                        /* 차차주계획 */
+                        SELECT  K2.PLANT_ID, K1.VERSION
+                        FROM    PLAN_VERSION_LOG K1,
+                                (
+                                SELECT CAT_ID, SUB_CAT, PLANT_ID
+                                FROM    ENGN_BAT_MST
+                                WHERE PERIOD_TYPE = 'DAILY'
+								#if("$!{item_type}" == "PS")
+						        AND     CAT_ID    = 'PS'
+						        #else
+						        AND     CAT_ID    = 'SS'
+						        #end                                 
+                                ) K2
+                        WHERE   K1.PERIOD_TYPE = 'DAILY'
+						#if("$!{item_type}" == "PS")
+				        AND     K1.CAT_ID    = 'PS'
+				        #else
+				        AND     K1.CAT_ID    = 'SS'
+				        #end
+                        AND     K1.RUN_DATE BETWEEN TRUNC(TO_DATE('$!{work_date}'),'D')-14 AND     TRUNC(TO_DATE('$!{work_date}'),'D')-7
+                        AND     TRIM (VERSION) IS NOT NULL
+                        AND     K1.STATUS >= '23'
+                        AND     K1.CAT_ID = K2.CAT_ID
+                        AND     K1.SUB_CAT = K2.SUB_CAT
+                        #end                    
+                        )T2
+                WHERE   T1.VERSION  = T2.VERSION
+				#if("$!{item_type}" == "PS")
+		        AND     T1.CAT_ID    = 'PS'
+		        #else
+		        AND     T1.CAT_ID    = 'SS'
+		        #end
+                GROUP BY      T1.PLANT_ID		        
+		        /* 		        SELECT  PLANT_ID,		                MAX(VERSION)    VERSION		        FROM    DAILY_SCH_PLAN_SHIFT		        WHERE   VERSION    LIKE TO_CHAR(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5)),'YYYYMMDD')||'%'				#if("$!{item_type}" == "PS")		        AND     CAT_ID    = 'PS'		        #else		        AND     CAT_ID    = 'SS'		        #end		        GROUP		        BY      PLANT_ID
+		        */		        )                        T4		WHERE   T1.PLANT_ID = T2.PLANT_ID		AND     T1.ITEM_ID  = T2.ITEM_ID		AND     T1.PROC_ID  = T2.PROC_ID		AND     T1.ITEM_ID  = T3.ITEM_ID
+		AND     T1.CAT_ID     = T6.CAT_ID
+        AND     T1.PLANT_ID   = T6.PLANT_ID
+        AND     T1.LINE_ID    = T6.LINE_ID
+        AND     T1.PROC_ID    = T6.PROC_ID
+        AND     T1.ITEM_ID    = T6.ITEM_ID
+		AND		T3.MTO_MTS_TYPE LIKE '%'||'$!{mto_gubn}'||'%'       [AND		(T3.ITEM_ID		LIKE '%'||'$!{search_item}'||'%'			OR	T3.ITEM_NAME	LIKE '%'||'$!{search_item}'||'%')]				#if("$!{item_type}" == "PS")        AND     T1.CAT_ID    = 'PS'		AND     T3.ITYPE    = 'FERT'        #else        AND     T1.CAT_ID    = 'SS'        #end		AND     T1.PLANT_ID = T4.PLANT_ID		AND     T1.VERSION  = T4.VERSION		AND     T1.PLANT_ID = T5.HID		AND     T5.LVL_TYPE    = '공장'		AND     T5.LVL         = '10'		AND		NVL(T3.MULTI_FLAG,0)		LIKE '%'||'$!{multi_flag}'||'%'		#if( "$!{search_type}" == "1020" )         AND    T3.DIVISION        IN ('10','20')        #else         AND    T3.DIVISION        LIKE '%' || '$!{search_type}' || '%'        #end 		#if("$!{domain}" == "DO")        AND     NOT (t3.MATERIAL_GROUP &gt;= '5K000' AND     t3.MATERIAL_GROUP &lt;= '5S999') --수출품        #elseif("$!{domain}" == "EX")        AND     (t3.MATERIAL_GROUP &gt;= '5K000' AND     t3.MATERIAL_GROUP &lt;= '5S999') --수출품        #else        #end		GROUP BY      		#if("$!{sum_type}" == "PL")        T1.PLANT_ID, T5.HID_NAME,        #else        #end			        T1.ITEM_ID,		        T3.ITEM_NAME, T3.SPEC,  T3.QTY, T3.MTO_MTS_TYPE, T6.PROC_ID, T6.PROC_NAME        HAVING  NVL(SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+0, 2),'YYYYMMDD') ,T1.SHIFT_QTY)),0)+                NVL(SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+1, 3),'YYYYMMDD') ,T1.SHIFT_QTY)),0)+                NVL(SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+2, 4),'YYYYMMDD') ,T1.SHIFT_QTY)),0)+                NVL(SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+3, 5),'YYYYMMDD') ,T1.SHIFT_QTY)),0)+                NVL(SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+4, 6),'YYYYMMDD') ,T1.SHIFT_QTY)),0)+                NVL(SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+5, 7),'YYYYMMDD') ,T1.SHIFT_QTY)),0)+                NVL(SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+6, 1),'YYYYMMDD') ,T1.SHIFT_QTY)),0) != 0		        		ORDER		BY      1,2, 3
+	#else		SELECT	NULL PLANT_ID,    NULL HID_NAME, 		        NULL ITEM_ID,     NULL ITEM_NAME,		        NULL	SPEC,		        NULL    "월",		        NULL    "화",		        NULL    "수",		        NULL    "목",		        NULL    "금",		        NULL    "토",		        NULL    "일",		        NULL    "계"		FROM	DUAL	#end
+	</query>		
+	<query id="sc_20040_Production_Planning_Summary_list_harb" paging="false">
+	#if("$!{work_date}" != "")
+		#if("$!{sum_type}" == "PL")
+        SELECT  T1.PLANT_ID,    T5.HID_NAME,
+        #else
+        SELECT  '' PLANT_ID,    '농심총' HID_NAME,
+        #end	
+		        T1.ITEM_ID,     T3.ITEM_NAME,
+		        T3.SPEC,
+		        DECODE('$!{box_flag}', 'BOX', 1, T3.QTY) *
+		        SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+0, 2),'YYYYMMDD') ,T1.SHIFT_QTY))    "월",
+		        DECODE('$!{box_flag}', 'BOX', 1, T3.QTY) *
+		        SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+1, 3),'YYYYMMDD') ,T1.SHIFT_QTY))    "화",
+		        DECODE('$!{box_flag}', 'BOX', 1, T3.QTY) *
+		        SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+2, 4),'YYYYMMDD') ,T1.SHIFT_QTY))    "수",
+		        DECODE('$!{box_flag}', 'BOX', 1, T3.QTY) *
+		        SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+3, 5),'YYYYMMDD') ,T1.SHIFT_QTY))    "목",
+		        DECODE('$!{box_flag}', 'BOX', 1, T3.QTY) *
+		        SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+4, 6),'YYYYMMDD') ,T1.SHIFT_QTY))    "금",
+		        DECODE('$!{box_flag}', 'BOX', 1, T3.QTY) *
+		        SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+5, 7),'YYYYMMDD') ,T1.SHIFT_QTY))    "토",
+		        DECODE('$!{box_flag}', 'BOX', 1, T3.QTY) *
+		        SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+6, 1),'YYYYMMDD') ,T1.SHIFT_QTY))    "일",
+		        --
+		        DECODE('$!{box_flag}', 'BOX', 1, T3.QTY) * 
+		        (NVL(SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+0, 2),'YYYYMMDD') ,T1.SHIFT_QTY)),0)+
+                NVL(SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+1, 3),'YYYYMMDD') ,T1.SHIFT_QTY)),0)+
+                NVL(SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+2, 4),'YYYYMMDD') ,T1.SHIFT_QTY)),0)+
+                NVL(SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+3, 5),'YYYYMMDD') ,T1.SHIFT_QTY)),0)+
+                NVL(SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+4, 6),'YYYYMMDD') ,T1.SHIFT_QTY)),0)+
+                NVL(SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+5, 7),'YYYYMMDD') ,T1.SHIFT_QTY)),0)+
+                NVL(SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+6, 1),'YYYYMMDD') ,T1.SHIFT_QTY)),0)) "주간계",
+                #if("$!{week}" == "WEEK1")
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+0, 2),'YYYYMMDD')) AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-3)
+                THEN 'Y'
+                ELSE 'N'
+                END )"FLAG_01",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+1, 3),'YYYYMMDD')) AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-3)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_02",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+2, 4),'YYYYMMDD')) AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-3)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_03",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+3, 5),'YYYYMMDD')) AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-3)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_04",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+4, 6),'YYYYMMDD')) AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-3)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_05",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+5, 7),'YYYYMMDD')) AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-3)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_06",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+6, 1),'YYYYMMDD')) AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-3)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_07"
+                #else
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+0, 2),'YYYYMMDD')) AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-10)
+                THEN 'Y'
+                ELSE 'N'
+                END )"FLAG_01",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+1, 3),'YYYYMMDD')) AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-10)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_02",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+2, 4),'YYYYMMDD')) AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-10)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_03",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+3, 5),'YYYYMMDD')) AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-10)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_04",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+4, 6),'YYYYMMDD')) AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-10)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_05",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+5, 7),'YYYYMMDD')) AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-10)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_06",
+                MAX(CASE WHEN ((T1.PROD_DATES) = TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+6, 1),'YYYYMMDD')) AND ((T1.MADE_DTTM) >= TRUNC(TO_DATE(T1.PROD_DATES),'D')-10)
+                THEN 'Y'
+                ELSE 'N'
+                END) "FLAG_07"
+                #end                
+		FROM    DAILY_SCH_PLAN_SHIFT    T1,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+		        V_LAST_PROC_PRODVER     T2,
+		        ITEM_MST                T3,
+		        HRCHY                   T5,
+		        (
+                SELECT  T1.PLANT_ID,
+                        MAX(T1.VERSION)    VERSION
+                FROM    DAILY_SCH_PLAN_SHIFT T1,
+                        (
+
+                        #if("$!{week}" == "WEEK1")
+                        /* 차주계획 */
+                        SELECT  K2.PLANT_ID, K1.VERSION
+                        FROM    PLAN_VERSION_LOG K1,
+                                (
+                                SELECT CAT_ID, SUB_CAT, PLANT_ID
+                                FROM    ENGN_BAT_MST
+                                WHERE PERIOD_TYPE = 'DAILY'
+								#if("$!{item_type}" == "PS")
+						        AND     CAT_ID    = 'PS'
+						        #else
+						        AND     CAT_ID    = 'SS'
+						        #end                                 
+                                ) K2
+                        WHERE   K1.PERIOD_TYPE = 'DAILY'
+						#if("$!{item_type}" == "PS")
+				        AND     K1.CAT_ID    = 'PS'
+				        #else
+				        AND     K1.CAT_ID    = 'SS'
+				        #end
+                        AND     K1.RUN_DATE BETWEEN TRUNC(TO_DATE('$!{work_date}'),'D')-7 AND     TRUNC(TO_DATE('$!{work_date}'),'D')
+                        AND     TRIM (VERSION) IS NOT NULL
+                        AND     K1.STATUS >= '23'
+                        AND     K1.CAT_ID = K2.CAT_ID
+                        AND     K1.SUB_CAT = K2.SUB_CAT
+                        #else
+                        /* 차차주계획 */
+                        SELECT  K2.PLANT_ID, K1.VERSION
+                        FROM    PLAN_VERSION_LOG K1,
+                                (
+                                SELECT CAT_ID, SUB_CAT, PLANT_ID
+                                FROM    ENGN_BAT_MST
+                                WHERE PERIOD_TYPE = 'DAILY'
+								#if("$!{item_type}" == "PS")
+						        AND     CAT_ID    = 'PS'
+						        #else
+						        AND     CAT_ID    = 'SS'
+						        #end                                 
+                                ) K2
+                        WHERE   K1.PERIOD_TYPE = 'DAILY'
+						#if("$!{item_type}" == "PS")
+				        AND     K1.CAT_ID    = 'PS'
+				        #else
+				        AND     K1.CAT_ID    = 'SS'
+				        #end
+                        AND     K1.RUN_DATE BETWEEN TRUNC(TO_DATE('$!{work_date}'),'D')-14 AND     TRUNC(TO_DATE('$!{work_date}'),'D')-7
+                        AND     TRIM (VERSION) IS NOT NULL
+                        AND     K1.STATUS >= '23'
+                        AND     K1.CAT_ID = K2.CAT_ID
+                        AND     K1.SUB_CAT = K2.SUB_CAT
+                        #end                    
+                        )T2
+                WHERE   T1.VERSION  = T2.VERSION
+				#if("$!{item_type}" == "PS")
+		        AND     T1.CAT_ID    = 'PS'
+		        #else
+		        AND     T1.CAT_ID    = 'SS'
+		        #end
+                GROUP BY      T1.PLANT_ID		        
+		        /* 
+		        SELECT  PLANT_ID,
+		                MAX(VERSION)    VERSION
+		        FROM    DAILY_SCH_PLAN_SHIFT
+		        WHERE   VERSION    LIKE TO_CHAR(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5)),'YYYYMMDD')||'%'
+				#if("$!{item_type}" == "PS")
+		        AND     CAT_ID    = 'PS'
+		        #else
+		        AND     CAT_ID    = 'SS'
+		        #end
+		        GROUP
+		        BY      PLANT_ID
+		        */
+		        )                        T4
+		WHERE   T1.PLANT_ID = T2.PLANT_ID
+		AND     T1.ITEM_ID  = T2.ITEM_ID
+		AND     T1.PROC_ID  = T2.PROC_ID
+		AND     T1.ITEM_ID  = T3.ITEM_ID
+       [AND		(T3.ITEM_ID		LIKE '%'||'$!{search_item}'||'%'
+			OR	T3.ITEM_NAME	LIKE '%'||'$!{search_item}'||'%')]		
+		#if("$!{item_type}" == "PS")
+        AND     T1.CAT_ID    = 'PS'
+		AND     T3.ITYPE    = 'FERT'
+        #else
+        AND     T1.CAT_ID    = 'SS'
+        #end
+		AND     T1.PLANT_ID = T4.PLANT_ID
+		AND     T1.VERSION  = T4.VERSION
+		AND     T1.PLANT_ID = T5.HID
+		AND     T5.LVL_TYPE    = '공장'
+		AND     T5.LVL         = '10'
+		AND		NVL(T3.MULTI_FLAG,0)		LIKE '%'||'$!{multi_flag}'||'%'
+		#if( "$!{search_type}" == "1020" )
+         AND    T3.DIVISION        IN ('10','20')
+        #else
+         AND    T3.DIVISION        LIKE '%' || '$!{search_type}' || '%'
+        #end 
+		#if("$!{domain}" == "DO")
+        AND     NOT (t3.MATERIAL_GROUP &gt;= '5K000' AND     t3.MATERIAL_GROUP &lt;= '5S999') --수출품
+        #elseif("$!{domain}" == "EX")
+        AND     (t3.MATERIAL_GROUP &gt;= '5K000' AND     t3.MATERIAL_GROUP &lt;= '5S999') --수출품
+        #else
+        #end
+		GROUP BY      
+		#if("$!{sum_type}" == "PL")
+        T1.PLANT_ID, T5.HID_NAME,
+        #else
+        #end	
+		        T1.ITEM_ID,
+		        T3.ITEM_NAME, T3.SPEC,  T3.QTY
+        HAVING  NVL(SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+0, 2),'YYYYMMDD') ,T1.SHIFT_QTY)),0)+
+                NVL(SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+1, 3),'YYYYMMDD') ,T1.SHIFT_QTY)),0)+
+                NVL(SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+2, 4),'YYYYMMDD') ,T1.SHIFT_QTY)),0)+
+                NVL(SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+3, 5),'YYYYMMDD') ,T1.SHIFT_QTY)),0)+
+                NVL(SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+4, 6),'YYYYMMDD') ,T1.SHIFT_QTY)),0)+
+                NVL(SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+5, 7),'YYYYMMDD') ,T1.SHIFT_QTY)),0)+
+                NVL(SUM(DECODE(T1.PROD_DATES, TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+6, 1),'YYYYMMDD') ,T1.SHIFT_QTY)),0) != 0		        
+		ORDER
+		BY      1,2, 3
+	#else
+		SELECT	NULL PLANT_ID,    NULL HID_NAME, 
+		        NULL ITEM_ID,     NULL ITEM_NAME,
+		        NULL	SPEC,
+		        NULL    "월",
+		        NULL    "화",
+		        NULL    "수",
+		        NULL    "목",
+		        NULL    "금",
+		        NULL    "토",
+		        NULL    "일",
+		        NULL    "계"
+		FROM	DUAL
+	#end
+	</query>	
+	
+	<!--생간계획 요약 헤더--> 
+	<query id="sc_20040_Production_Planning_Summary_list_header" paging="false">
+	#if("$!{work_date}" != "")
+        SELECT  TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+0, 2),'MM/DD')||'('||TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+0, 2),'DY')||')' DAY_MON,                TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+1, 3),'MM/DD')||'('||TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+1, 3),'DY')||')' DAY_TUE,                TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+2, 4),'MM/DD')||'('||TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+2, 4),'DY')||')' DAY_WED,                TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+3, 5),'MM/DD')||'('||TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+3, 5),'DY')||')' DAY_THU,                TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+4, 6),'MM/DD')||'('||TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+4, 6),'DY')||')' DAY_FRI,                TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+5, 7),'MM/DD')||'('||TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+5, 7),'DY')||')' DAY_SAT,                TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+6, 1),'MM/DD')||'('||TO_CHAR(NEXT_DAY(TO_DATE((TRUNC(TO_DATE('$!{work_date}'),'D')-5))+6, 1),'DY')||')' DAY_SUN,                '주간계' "주간계"        FROM DUAL  	#else        SELECT  TO_CHAR(NEXT_DAY(SYSDATE+0, 2),'MM/DD')||'('||TO_CHAR(NEXT_DAY(SYSDATE+0, 2),'DY')||')' DAY_MON,                TO_CHAR(NEXT_DAY(SYSDATE+1, 3),'MM/DD')||'('||TO_CHAR(NEXT_DAY(SYSDATE+1, 3),'DY')||')' DAY_TUE,                TO_CHAR(NEXT_DAY(SYSDATE+2, 4),'MM/DD')||'('||TO_CHAR(NEXT_DAY(SYSDATE+2, 4),'DY')||')' DAY_WED,                TO_CHAR(NEXT_DAY(SYSDATE+3, 5),'MM/DD')||'('||TO_CHAR(NEXT_DAY(SYSDATE+3, 5),'DY')||')' DAY_THU,                TO_CHAR(NEXT_DAY(SYSDATE+4, 6),'MM/DD')||'('||TO_CHAR(NEXT_DAY(SYSDATE+4, 6),'DY')||')' DAY_FRI,                TO_CHAR(NEXT_DAY(SYSDATE+5, 7),'MM/DD')||'('||TO_CHAR(NEXT_DAY(SYSDATE+5, 7),'DY')||')' DAY_SAT,                TO_CHAR(NEXT_DAY(SYSDATE+6, 1),'MM/DD')||'('||TO_CHAR(NEXT_DAY(SYSDATE+6, 1),'DY')||')' DAY_SUN,                '주간계' "주간계"        FROM DUAL  	#end
+	</query>
+	
+	
+	
+
+
+	<!-- 
+	=======================
+		생산계획 변경율 타임펜스 준수율 조회
+	=======================
+	--> 	
+
+	<!-- 생산계획 변경율 타임펜스 준수율 조회 --> 
+	<query id="sc_01130_ProductionPlanChange_TimeFance_list" paging="false"> 
+	#if("$!{search_gubn}" == "00") 	
+	--  월별, 농심총
+	SELECT  '0000' PLANT_ID,
+	        '농심총' PLNAT_NMAE,
+	        --T1.PLANT_ID,
+	        --F_GET_CODE_NAME('PLANT_NAME', T1.PLANT_ID) PLANT_NAME,
+	        T1.WW "주차",
+	        T1.WO_ID "오더건수",
+	        T2.COUNT "변경건수",
+            TRIM(TO_CHAR(
+            ROUND((T2.COUNT/T1.WO_ID)*100,1) 
+             ,999999990.9)) "변경률",
+	        T2.TP_COUNT "3일TP준수",
+            TRIM(TO_CHAR(
+            ROUND((T2.TP_COUNT/T2.COUNT)*100,1) 
+             ,999999990.9)) "변경율(변경건수기준)",
+            TRIM(TO_CHAR(
+            ROUND((T2.TP_COUNT/T1.WO_ID)*100,1)
+             ,999999990.9)) "변경율(총오더기준)",
+            /* 해당월의 1일이 월요일이면 해당일, 아니라면 직후 월요일.*/
+            TO_CHAR( DECODE(TO_CHAR(TO_DATE(T1.WW||'-01'), 'DY'), '월', TO_DATE(T1.WW||'-01'), NEXT_DAY(TO_DATE(T1.WW||'-01'), '월')), 'YYYY-MM-DD') START_DATE,
+            /* 해당월의 마지막날이 일요일이면 해당일 아니라면 직전 일요일*/
+            TO_CHAR( DECODE(TO_CHAR(LAST_DAY(TO_DATE(T1.WW||'-01')), 'DY'), '일', LAST_DAY(TO_DATE(T1.WW||'-01')), NEXT_DAY(LAST_DAY(TO_DATE(T1.WW||'-01')), '일') ), 'YYYY-MM-DD') END_DATE
+	FROM    (
+	        /* 총계획건수 */
+	        SELECT  --T1.PLANT_ID,
+	                TO_CHAR(TRUNC(TO_DATE(SUBSTR(WO_ID,12,8))-1, 'DY')+1,'yyyy-mm') WW,
+	                COUNT(WO_ID) WO_ID
+	        FROM    IF_DAILY_SCH_PLAN_PO_SET    T1,
+	                V_LAST_PROC_PRODVER			T3, 
+	                ITEM_MST T4, CAL_MST CAL
+	        WHERE   SUBSTR(WO_ID,12,8) BETWEEN TO_CHAR(TRUNC(TO_DATE('$!{start_date}'),'D')+1, 'YYYYMMDD') AND TO_CHAR(TRUNC(TO_DATE('$!{end_date}'),'D')+7,'YYYYMMDD')
+	        AND     SUBSTR(WO_ID,12,8) = CAL.YYYYMMDD
+	        --AND        T1.PLANT_ID    = '1110'
+	        AND     T1.PLANT_ID    = T3.PLANT_ID
+	        AND     T1.ITEM_ID    = T3.ITEM_ID
+	        AND     T1.PROD_VER    = T3.PROD_VER
+	        AND     T1.PROC_ID    = T3.PROC_ID
+	        AND     T1.ITEM_ID    = T4.ITEM_ID
+	        AND     T1.MADE_BY != 'admin'        
+	        AND     T4.ITYPE = 'FERT'
+	        GROUP 
+	        BY      --T1.PLANT_ID, 
+	                TO_CHAR(TRUNC(TO_DATE(SUBSTR(WO_ID,12,8))-1, 'DY')+1,'yyyy-mm')
+	        ) T1,
+	        (
+	        /* 생산계획 변경율 상세 */
+	        SELECT  --PLANT_ID, 
+	                WW, 
+	                SUM(COUNT) COUNT, 
+	                SUM(TP_COUNT) TP_COUNT
+	        FROM    (
+	                SELECT  T1.PLANT_ID,
+	                		TO_CHAR(TRUNC(TO_DATE(SUBSTR(WO_ID,12,8))-1, 'DY')+1,'yyyy-mm') WW,
+	                        --TO_CHAR(TRUNC(TO_DATE(SUBSTR(WO_ID,12,8)), 'DY')+1,'yyyy-mm') WW,
+	                        COUNT(WO_ID) COUNT,
+	                        --TO_DATE(SUBSTR(WO_ID,12,8),'YYYY-MM-DD') - TRUNC(T1.MADE_TTM) TP,
+	                        CASE
+	                        WHEN    TO_DATE(SUBSTR(WO_ID,12,8),'YYYY-MM-DD') - TRUNC(T1.MADE_DTTM) &lt; = 3
+	                        THEN    COUNT(WO_ID)
+	                        ELSE    0
+	                        END     TP_COUNT
+	                FROM    IF_DAILY_SCH_PLAN_PO_SET    T1,
+	                        ITEM_MST                    T2,
+	                        V_LAST_PROC_PRODVER			T3
+	                WHERE    T1.ITEM_ID    = T2.ITEM_ID
+	                AND      T1.PLANT_ID    = T3.PLANT_ID
+	                AND      T1.ITEM_ID    = T3.ITEM_ID
+	                AND      T1.PROD_VER    = T3.PROD_VER
+	                AND      T1.PROC_ID    = T3.PROC_ID
+	                AND      FROM_SHIFT_QTY &lt; &gt;    TO_SHIFT_QTY
+	                AND      T2.ITYPE = 'FERT'
+	                AND      SUBSTR(WO_ID,12,8) BETWEEN TO_CHAR(TRUNC(TO_DATE('$!{start_date}'),'D')+1, 'YYYYMMDD') AND TO_CHAR(TRUNC(TO_DATE('$!{end_date}'),'D')+7,'YYYYMMDD')
+	                AND      T1.MADE_BY != 'admin'
+	                -- 생산계획을 당주에 수정한 것만 포함한다.
+					AND		 T1.IF_DATE > TO_CHAR(TRUNC(TO_DATE(SUBSTR(T1.VERSION,1,8),'YYYY-MM-DD'),'D') + 7, 'YYYYMMDD')
+	                GROUP
+	                BY       T1.PLANT_ID,
+	                		 TO_CHAR(TRUNC(TO_DATE(SUBSTR(WO_ID,12,8))-1, 'DY')+1,'yyyy-mm'),
+	                         --TO_CHAR(TRUNC(TO_DATE(SUBSTR(WO_ID,12,8)), 'DY')+1,'yyyy-mm'),
+	                         TO_DATE(SUBSTR(WO_ID,12,8),'YYYY-MM-DD') - TRUNC(T1.MADE_DTTM)
+	                )  
+	        GROUP 
+	        BY      --PLANT_ID,
+	                WW    
+	        )T2
+	    WHERE   T1.WW = T2.WW
+	    --AND     T1.PLANT_ID = T2.PLANT_ID
+	    ORDER
+	    BY        1, 3	
+	#else
+	--  월별, 공장별
+	SELECT  T1.PLANT_ID,
+	        F_GET_CODE_NAME('PLANT_NAME', T1.PLANT_ID) PLANT_NAME,
+	        T1.WW "주차",
+	        T1.WO_ID "오더건수",
+	        T2.COUNT "변경건수",
+            TRIM(TO_CHAR(
+            ROUND((T2.COUNT/T1.WO_ID)*100,1) 
+             ,999999990.9)) "변경률",
+	        T2.TP_COUNT "3일TP준수",
+            TRIM(TO_CHAR(
+            ROUND((T2.TP_COUNT/T2.COUNT)*100,1) 
+             ,999999990.9)) "변경율(변경건수기준)",
+            TRIM(TO_CHAR(
+            ROUND((T2.TP_COUNT/T1.WO_ID)*100,1)
+             ,999999990.9)) "변경율(총오더기준)",
+            /* 해당월의 1일이 월요일이면 해당일, 아니라면 직후 월요일.*/
+            TO_CHAR( DECODE(TO_CHAR(TO_DATE(T1.WW||'-01'), 'DY'), '월', TO_DATE(T1.WW||'-01'), NEXT_DAY(TO_DATE(T1.WW||'-01'), '월')), 'YYYY-MM-DD') START_DATE,
+            /* 해당월의 마지막날이 일요일이면 해당일 아니라면 직전 일요일*/
+            TO_CHAR( DECODE(TO_CHAR(LAST_DAY(TO_DATE(T1.WW||'-01')), 'DY'), '일', LAST_DAY(TO_DATE(T1.WW||'-01')), NEXT_DAY(LAST_DAY(TO_DATE(T1.WW||'-01')), '일') ), 'YYYY-MM-DD') END_DATE
+	FROM    (
+	        /* 총계획건수 */
+	        SELECT  T1.PLANT_ID,
+	                TO_CHAR(TRUNC(TO_DATE(SUBSTR(WO_ID,12,8))-1, 'DY')+1,'yyyy-mm') WW,
+	                COUNT(WO_ID) WO_ID
+	        FROM    IF_DAILY_SCH_PLAN_PO_SET    T1,
+	                V_LAST_PROC_PRODVER			T3, 
+	                ITEM_MST T4, CAL_MST CAL
+	        WHERE   SUBSTR(WO_ID,12,8) BETWEEN TO_CHAR(TRUNC(TO_DATE('$!{start_date}'),'D')+1, 'YYYYMMDD') AND TO_CHAR(TRUNC(TO_DATE('$!{end_date}'),'D')+7,'YYYYMMDD')
+	        AND     SUBSTR(WO_ID,12,8) = CAL.YYYYMMDD
+	        --AND        T1.PLANT_ID    = '1110'
+	        AND     T1.PLANT_ID    = T3.PLANT_ID
+	        AND     T1.ITEM_ID    = T3.ITEM_ID
+	        AND     T1.PROD_VER    = T3.PROD_VER
+	        AND     T1.PROC_ID    = T3.PROC_ID
+	        AND     T1.ITEM_ID    = T4.ITEM_ID
+	        AND     T1.MADE_BY != 'admin'        
+	        AND     T4.ITYPE = 'FERT'
+	        GROUP 
+	        BY      T1.PLANT_ID, 
+	                TO_CHAR(TRUNC(TO_DATE(SUBSTR(WO_ID,12,8))-1, 'DY')+1,'yyyy-mm')
+	        ) T1,
+	        (
+	        /* 생산계획 변경율 상세 */
+	        SELECT  PLANT_ID, 
+	                WW, 
+	                SUM(COUNT) COUNT, 
+	                SUM(TP_COUNT) TP_COUNT
+	        FROM    (
+	                SELECT  T1.PLANT_ID,
+	                		TO_CHAR(TRUNC(TO_DATE(SUBSTR(WO_ID,12,8))-1, 'DY')+1,'yyyy-mm') WW,
+	                        --TO_CHAR(TRUNC(TO_DATE(SUBSTR(WO_ID,12,8)), 'DY')+1,'yyyy-mm') WW,
+	                        COUNT(WO_ID) COUNT,
+	                        --TO_DATE(SUBSTR(WO_ID,12,8),'YYYY-MM-DD') - TRUNC(T1.MADE_TTM) TP,
+	                        CASE
+	                        WHEN    TO_DATE(SUBSTR(WO_ID,12,8),'YYYY-MM-DD') - TRUNC(T1.MADE_DTTM) &lt; = 3
+	                        THEN    COUNT(WO_ID)
+	                        ELSE    0
+	                        END     TP_COUNT
+	                FROM    IF_DAILY_SCH_PLAN_PO_SET    T1,
+	                        ITEM_MST                    T2,
+	                        V_LAST_PROC_PRODVER			T3
+	                WHERE    T1.ITEM_ID    = T2.ITEM_ID
+	                AND      T1.PLANT_ID    = T3.PLANT_ID
+	                AND      T1.ITEM_ID    = T3.ITEM_ID
+	                AND      T1.PROD_VER    = T3.PROD_VER
+	                AND      T1.PROC_ID    = T3.PROC_ID
+	                AND      FROM_SHIFT_QTY &lt; &gt;    TO_SHIFT_QTY
+	                AND      T2.ITYPE = 'FERT'
+	                AND      SUBSTR(WO_ID,12,8) BETWEEN TO_CHAR(TRUNC(TO_DATE('$!{start_date}'),'D')+1, 'YYYYMMDD') AND TO_CHAR(TRUNC(TO_DATE('$!{end_date}'),'D')+7,'YYYYMMDD')
+	                AND      T1.MADE_BY != 'admin'
+	                -- 생산계획을 당주에 수정한 것만 포함한다.
+					AND		 T1.IF_DATE > TO_CHAR(TRUNC(TO_DATE(SUBSTR(T1.VERSION,1,8),'YYYY-MM-DD'),'D') + 7, 'YYYYMMDD')
+	                GROUP
+	                BY       T1.PLANT_ID,
+	                		 TO_CHAR(TRUNC(TO_DATE(SUBSTR(WO_ID,12,8))-1, 'DY')+1,'yyyy-mm'),
+	                         --TO_CHAR(TRUNC(TO_DATE(SUBSTR(WO_ID,12,8)), 'DY')+1,'yyyy-mm'),	                
+	                         TO_DATE(SUBSTR(WO_ID,12,8),'YYYY-MM-DD') - TRUNC(T1.MADE_DTTM)
+	                )  
+	        GROUP 
+	        BY      PLANT_ID,
+	                WW    
+	        )T2
+	    WHERE   T1.WW = T2.WW(+)
+	    AND     T1.PLANT_ID = T2.PLANT_ID(+)
+	    ORDER
+	    BY        1, 3	
+	#end	
+	</query> 		
+
+	<!-- 생산계획 변경율 타임펜스 준수율 조회 --> 
+	<query id="sc_01130_ProductionPlanChange_TimeFance_list_02" paging="false"> 
+		/* 생산계획 변경율 상세 */
+		    SELECT  T1.PLANT_ID,
+		            F_GET_CODE_NAME('PLANT_NAME', T1.PLANT_ID) PLANT_NAME,
+		            TO_CHAR(TRUNC(TO_DATE(SUBSTR(WO_ID,12,8),'YYYY-MM-DD')-1,'D')+1,'YYYY-MM-DD') "주차",
+		            TO_CHAR(TO_DATE(SUBSTR(WO_ID,12,8),'YYYY-MM-DD'),'YYYY-MM-DD')    			"생산일자",
+		            TO_CHAR(TRUNC(T1.MADE_DTTM),'YYYY-MM-DD')                            		"변경일자",
+		            TO_DATE(SUBSTR(WO_ID,12,8),'YYYY-MM-DD') - TRUNC(T1.MADE_DTTM) 				"차이",
+		            T1.ITEM_ID,
+		            T2.ITEM_NAME,
+		            FROM_SHIFT_QTY    	"변경전",
+		            TO_SHIFT_QTY    	"변경후",
+		            DECODE(TRANS_TYPE,'C','신규','U','정정','D','삭제')    "구분"
+		    FROM    IF_DAILY_SCH_PLAN_PO_SET    T1,
+		            ITEM_MST                    T2,
+		            V_LAST_PROC_PRODVER			T3
+		    WHERE	T1.ITEM_ID    = T2.ITEM_ID
+		    AND     T1.PLANT_ID    = T3.PLANT_ID
+		    AND     T1.ITEM_ID    = T3.ITEM_ID
+		    AND     T1.PROD_VER    = T3.PROD_VER
+		    AND     T1.PROC_ID    = T3.PROC_ID
+		    AND     FROM_SHIFT_QTY &lt; &gt;    TO_SHIFT_QTY
+		    AND     T2.ITYPE = 'FERT'
+		    AND     T1.MADE_BY != 'admin'
+		    AND     SUBSTR(WO_ID,12,8) BETWEEN TO_CHAR(TO_DATE('$!{start_date}'), 'YYYYMMDD') AND TO_CHAR(TO_DATE('$!{end_date}'), 'YYYYMMDD') 
+		    -- 생산계획을 당주에 수정한 것만 포함한다.
+			AND		 T1.IF_DATE > TO_CHAR(TRUNC(TO_DATE(SUBSTR(T1.VERSION,1,8),'YYYY-MM-DD'),'D') + 7, 'YYYYMMDD')
+	        --AND     SUBSTR(WO_ID,12,8) BETWEEN 	TO_CHAR(TRUNC(TO_DATE('$!{start_date}'||'-01'),'D')+1, 'YYYYMMDD') AND
+		    --									TO_CHAR(TRUNC(LAST_DAY(TO_DATE('$!{start_date}'||'-01')),'D')+7,'YYYYMMDD') 
+		    AND     T1.PLANT_ID LIKE '%'||DECODE('$!{sel_plant_id}', '0000', '', '$!{sel_plant_id}')||'%'
+		    ORDER
+		    BY      1,2,3
+	</query> 		
+	
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</queries>

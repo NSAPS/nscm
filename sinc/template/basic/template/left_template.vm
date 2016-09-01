@@ -1,0 +1,150 @@
+
+
+##<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+## session out 시 화면을 보이지 않게 
+#if( "$!{_moon_skin}" != "" ) 
+
+#set($project = $request.getContextPath())
+
+#parse("/sinc/template/basic/skin/${_moon_skin}/skin.vm")
+<html>
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=euc-kr">
+<title>LEFT of SCM System for NONGSHIM</title>
+<style>
+.cap1 {filter='progid:DXImageTransform.Microsoft.Gradient(GradientType=1, StartColorStr=${gradient_start}, EndColorStr=${gradient_middle})';font-family: ${font_family}; font-size: ${font_size_up}pt; color:#FFFFFF; border:0 solid #000000;height:22px;} 
+.cap2 {filter='progid:DXImageTransform.Microsoft.Gradient(GradientType=1, StartColorStr=${gradient_middle}, EndColorStr=${gradient_end})';font-family: ${font_family}; font-size: ${font_size_up}pt; color:#FFFFFF; border:0 solid #000000;height:22px;} 
+a:link {font-family: ${font_family};  font-size:${font_size}pt ;color:#111111; text-decoration: none;}
+a:visited {font-family: ${font_family}; font-size:${font_size}pt; color:#111111; text-decoration: none;  }
+a:hover {font-family: ${font_family}; font-size:${font_size}pt; color:#EEEEEE; text-decoration: none;  }
+
+#left_div{
+    text-align:left;
+    width:242px;
+    background-image:url($!{project}/sinc/template/basic/skin/nongshim/images/common/left_bg_bot.gif);
+    background-repeat:repeat-y;
+    background-position:top left;
+    height:100%;
+}
+
+/* Left 메뉴 스타일*/
+.memu_bg_top {
+	margin:0 auto;
+	height:50px;
+	text-align:right;
+	padding-right:28px;
+	background-image:url($!{project}/sinc/template/basic/skin/nongshim/images/common/left_bg_top.gif);
+	background-repeat:no-repeat;
+	background-position:top left;
+}
+
+.memu_bg_mid {
+	margin:0 auto;
+	height:157px;
+	padding-left:15px;
+	background-image:url($!{project}/sinc/template/basic/skin/nongshim/images/common/left_bg_mid.gif);
+	background-repeat:no-repeat;
+	background-position:top left;
+}
+
+</style>
+
+<link type="text/css" rel="stylesheet" href="$!{project}/sinc/template/extension/skin/${_moon_skin}/skin.css" />
+##<link type="text/css" rel="stylesheet" href="$!{project}/sinc/template/basic/css/allpage.css" />
+<script src="$!{project}/sinc/template/basic/script/xtree.js"></script>
+<script language="javascript">
+	function FrameResize() {
+		top.left_home.cols = "10,*";
+		location.href="$!{project}/sinc/template/basic/template/left_no_template.vm";
+	}
+</script>
+</HEAD>
+
+<body id="left_div" leftmargin="0" rightmargin="0" topmargin="0" oncontextmenu="return true"
+	## 메뉴부분 스크롤바 색상
+	##style="scrollbar-face-color:#FFFFFF;scrollbar-highlight-color: #777777;
+	##		scrollbar-3dlight-color: #FFFFFF;scrollbar-shadow-color: #777777;
+	##		scrollbar-darkshadow-color: #FFFFFF;scrollbar-track-color: #FFFFFF;
+	##		scrollbar-arrow-color: #777777;"
+	style="scrollbar-face-color:#F1EEF6; scrollbar-base-color:#FFFFFF;
+			scrollbar-highlight-color:#F2EEF9; scrollbar-3dlight-color: #F2EEF9;
+			scrollbar-shadow-color:#E0D9EB; scrollbar-darkshadow-color: #FFFFFF;
+			scrollbar-track-color: #FFFFFF; scrollbar-arrow-color: #D9D0E6; " ##E3DBF1
+>
+
+	<table width="100%" border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<td class="memu_bg_top">
+				<a href="#" onClick="tree.expandAll();">
+					<img src="$!{project}/sinc/template/basic/skin/nongshim/images/btn/btn_tree_open.gif" 
+						style="border-width:0px; " width="13" height="13">
+				</a>
+				<a href="#" onClick="tree.collapseAll();">
+					<img src="$!{project}/sinc/template/basic/skin/nongshim/images/btn/btn_tree_close.gif" 
+						style="border-width:0px; " width="13" height="13">
+				</a>
+			</td>
+		</tr>
+		<tr>
+			<td class="memu_bg_mid" valign="top" align="left">
+				<div id="menu_div_id" style="overflow:auto; ">
+					<table cellSpacing=0 cellPadding=0 border=0>
+						<tr>
+							<td align="left">
+								<script language="javascript">
+									$leftmenu.getMainMenuScriptString($_moon_menus)
+								</script>
+							</td>
+						</tr>
+					</table>
+				</div>
+			</td>
+		</tr>
+	</table>
+
+<script>
+
+	setLeftAutoResize();
+	function window.onresize() { setLeftAutoResize(); } 
+	
+	// left resize 
+	function setLeftAutoResize(){
+		
+		var maxWidthValue;
+		var maxHeightValue;
+		
+		// default 240 * 650 
+		if (document.layers) {
+			//Nescape
+			maxWidthValue = window.innerWidth;
+			maxHeightValue = window.innerHeight;
+		}
+		if (document.all) {
+			//explore
+			maxWidthValue = document.body.clientWidth;
+			maxHeightValue = document.body.clientHeight;
+		}
+		//var menuWidthValue = Number(maxWidthValue) - 18;
+		var menuWidthValue = Number(maxWidthValue) - 17;
+		var menuHeightValue = Number(maxHeightValue) - 50 ;
+		// 화면 size 축소 시 화면이 너무 작아 그리드 크기가 음수가 되면 에러가 나므로 그 경우 무조건 1로 세팅 
+		// ==> 화면이 더이상 축소되지 않음 
+		if( menuWidthValue < 1 ) 
+			menuWidthValue = 1; 
+		if( menuHeightValue < 1 ) 
+			menuHeightValue = 1; 
+		
+		menu_div_id.style.width = menuWidthValue + "px"; 
+		menu_div_id.style.height = menuHeightValue + "px"; 
+		
+	} 
+	
+</script> 
+
+</body>
+</html>
+
+#else 
+	$response.sendRedirect("about:blank") 
+#end 

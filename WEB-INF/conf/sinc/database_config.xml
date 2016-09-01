@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<data-sources>
+
+		<!-- 개발
+		<set-property value="jdbc:oracle:thin:@172.25.1.191:3191:NDORA102" property="url" /> 
+		-->   
+		<!-- 운영
+		<set-property value="jdbc:oracle:thin:@172.25.1.142:3142:NSORA102" property="url" />
+		 -->
+
+
+	<!-- DB server 운영 -->  
+	<data-source type="org.apache.commons.dbcp.BasicDataSource" key="t3sinc" dbms="oracle">
+		<set-property value="oracle.jdbc.driver.OracleDriver" property="driverClassName" />
+		<set-property value="TMETA" property="user" />
+		<set-property value="TMETA" property="password" />
+		<set-property value="jdbc:oracle:thin:@172.25.1.142:3142:NSORA102" property="url" />
+		<set-property value="100" property="maxActive" /> 
+		<set-property value="30000" property="maxIdle" />
+		<set-property value="100" property="maxWait" />
+		<set-property value="true" property="defaultAutoCommit" />
+	</data-source>
+	
+	<!-- DB server 운영 --> 
+	<data-source type="org.apache.commons.dbcp.BasicDataSource" key="fcst" dbms="oracle">
+		<set-property value="oracle.jdbc.driver.OracleDriver" property="driverClassName" />
+		<set-property value="SCM_FC" property="user" />
+		<set-property value="SCM_FC" property="password" />
+		<set-property value="jdbc:oracle:thin:@172.25.1.142:3142:NSORA102" property="url" />
+		<!-- DB  -->
+
+
+
+		<set-property value="100" property="maxActive" />
+		<set-property value="30000" property="maxIdle" />
+		<set-property value="100" property="maxWait" />
+		<set-property value="true" property="defaultAutoCommit" />
+	</data-source>
+	
+	<data-source type="org.apache.commons.dbcp.BasicDataSource" key="fcst01" dbms="oracle">
+		<set-property value="oracle.jdbc.driver.OracleDriver" property="driverClassName" />
+		<set-property value="NASCM" property="user" />
+		<set-property value="NASCM" property="password" />
+
+		<!-- DB server 개발 -->   
+		<!-- DB server 운영 -->   
+		<set-property value="jdbc:oracle:thin:@172.25.1.142:3142:NSORA102" property="url" />
+		<!-- DB  -->
+
+
+
+		<set-property value="100" property="maxActive" />
+		<set-property value="30000" property="maxIdle" />
+		<set-property value="100" property="maxWait" />
+		<set-property value="true" property="defaultAutoCommit" />
+	</data-source>
+
+</data-sources>

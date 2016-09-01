@@ -1,0 +1,172 @@
+############################################################
+## 프로그램ID      : sc_12020_dailySemifinishedProductPlanAnalysis_psi.vm
+## 프로그램명      : 일간 반제품생산계획 분석(스프)
+## 개발자          : 김현
+## 개발일자        : 2009-03-30
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2009-03-31  김현      create
+##
+############################################################
+    
+
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+##set( $resizeFuncCallCode = "setGridAutoResize('117', '125')" )
+## #set( $resizeFuncCallCode = "setGridAutoResize('66', '87')" )
+#set( $resizeFuncCallCode = "setWiseGridAutoResize('82', '103')" )
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/scheduling.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+
+
+#########################################    WiseGrid Event     #####################################################            
+######################################### 기본 Event외 추가 Event #####################################################
+
+## WiseGrid가 생성됨과 동시에 발생한다.
+<script language="javascript" for="WiseGrid2" event="Initialize()">
+      init2();
+</script>
+
+<script language="javascript" for="WiseGrid2" event="EndQuery()">
+    GridEndQuery2();
+</script>
+
+############################################ WiseGrid Event #########################################################
+
+## 등록/수정 화면 이동한 후, 본 화면으로 이동할 때 조회조건을 기억하기 위한 parameter
+<input type="hidden" name="cd_grp_pre" value="$!{cd_grp}">
+<input type="hidden" name="perpage_pre" value="${_moon_perpage}">
+<input type="hidden" name="pagenumber_pre" value="$!{_moon_pagenumber}">
+
+
+
+<!--      서버와의 통신이 정상적으로 완료되면 발생한다.   -->
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+    ## 기능 버튼 영역
+    <tr>
+        <td height="25" align="right">
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+                <tr>
+                    <td align='left'>
+                        #button("search")
+                    </td>
+                    <td align="right">
+                        ##toolbar_nscm($_moon_toolbar "" "" "" "")
+                        <input type="button" name="btnQtyChk" value=" 계산" onClick="doCal(); " class="btn1_on"/>
+						<input type="button" name"btnPopup" value="등록" onClick="semi_plan_Create(); "  class="btn1_on"/>
+                        <input type="button" name="btnQtyChk" value=" 저장" onClick="GoSave(); " class="btn1_on"/>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>    
+    ## 조회 영역
+        <tr>
+                <td width="100%" valign="top">
+                        <table border="0" width="100%" cellpading="0" cellspacing="0" id="search_menu" style="background-color:#f2f2f2; display:block; ">
+                                <tr >            
+                                    <td width="5%" align="right">
+                                        공장 :
+                                    </td>
+                                    <td width="65%" align="left">
+                                        <input type="checkbox" name="selected_plant_all" class="normal" style="border:1px; " onClick="checkSelectedPlantAll(this); " >전체</input>&nbsp;
+                                        ##foreach( $condition in $check_plant_list )  
+                                        <input type="checkbox" name="selected_plant" class="normal" style="border:0px; " value="1110">안양공장</input>	
+                                        <input type="checkbox" name="selected_plant" class="normal" style="border:0px; " value="1120">안성공장</input>	
+                                        <input type="checkbox" name="selected_plant" class="normal" style="border:0px; " value="1160">구미공장</input>	
+                                        <input type="checkbox" name="selected_plant" class="normal" style="border:0px; " value="1170">부산공장</input>	
+                                        ##end 
+                                    </td>
+                                    <td> </td>
+                                </tr>    
+                                <tr>
+                                    #set( $week = $weekly_3_start_end_date.get(0) )
+                                    <td align="right">주차 :</td>
+                                    <td >  
+                                        <input type="radio" name="checked_weekly" value="w0" style="border:0px; "
+                                        onClick="this.checked" #if($!{checked_weekly} == "w0") checked #else #end>당주($week.get(0)~$week.get(6))</input>&nbsp;
+                                        <input type="radio" name="checked_weekly" value="w1" style="border:0px; "
+                                        onClick="this.checked" #if($!{checked_weekly} == "w1" || "$!{checked_weekly}" == "") checked #else #end>차주($week.get(7)~$week.get(13))</input>&nbsp;
+                                        <input type="radio" name="checked_weekly" value="w2" style="border:0px; "
+                                        onClick="this.checked" #if($!{checked_weekly} == "w2") checked #else #end>차차주($week.get(14)~$week.get(20))</input>&nbsp;
+                                    </td> 
+                                    <td align='right'>
+                                        그리드 색구분 : <input type='checkbox' name='colColor' onClick='gridColSet(GridObj);gridColSet(GridObj2)' checked>
+                                    </td>
+                                </tr>
+                        </table> 
+                </td> 
+        </tr>
+
+    <input name="search_h" type="hidden" value="45"> ## search 조건 부분 높이 
+    <tr><td height="1"></td></tr>
+    ## TAB 영역
+    <tr>
+        <td valign="top">
+        ## tab 좌측 여백
+        #tabLeft()                
+            
+            <table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>                    
+
+            <table name="grid" width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+                <tr>
+                    <td align="left" width=100%>
+                          <script>initWiseGrid("WiseGrid", "100%", "450");</script>  
+                    </td>
+                </tr>
+                <tr>
+                      <td align='left' width=100%'>
+                        <script>initWiseGrid("WiseGrid2", "100%", "250");</script>
+                    </td>
+				</tr>
+            </table> 
+            
+            <table height="5"><tr><td></td></tr></table>
+            <table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+                <input type="hidden" name="_moon_service" value="${_moon_service}">
+                <input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+                <input type="hidden" name="_user_id" value="$!{_user_id}">
+            </td></tr></table>
+            
+            </td></tr></table>
+            
+            ## waiting 표시영역
+            #waitingArea()
+                    
+        </td>
+    </tr>
+</table>
+
+<script>
+    // 화면 resize
+    $!{resizeFuncCallCode};
+    function window.onresize() { $!{resizeFuncCallCode}; }
+     // 도움말 내용 입력
+    var helpStr = "◈ 일간 반제품생산계획 분석(스프) ";    
+    helpStr+= "<br>-.반제품 스프에 대한 계획 보정 화면";    
+    helpStr+= "<br>-.화면 설명";    
+    helpStr+= "<br>&nbsp;&nbsp;면생산:반제품 스프(bom참조)를 소모하는 완제품(라면) 계획 수량";    
+    helpStr+= "<br>&nbsp;&nbsp;횟수:1 Box에 들어가는 면 수량";    
+    helpStr+= "<br>&nbsp;&nbsp;스프식수:생산 단위 수량(1 배치수량)";    
+    helpStr+= "<br>";    
+    helpStr+= "<br>-.화면 기능";    
+    helpStr+= "<br>&nbsp;&nbsp;조회:조회조건에 대한 계획을 조회한다.";    
+    helpStr+= "<br>&nbsp;&nbsp;계산:입력된 횟수에 대한 계한된 결과를 조회 한다.";    
+    helpStr+= "<br>&nbsp;&nbsp;저장:보정된 스프계획 수량을 계획 테이블로 update한다. ";    
+    helpStr+= "<br>";    
+    helpStr+= "<br>-.화면Logic ";    
+    helpStr+= "<br>&nbsp;&nbsp;1일차 조간 = [재고]+([1일차 조간 반제품수량]/[횟수])-[1일차 조간 면 생산수량]";    
+    helpStr+= "<br>&nbsp;&nbsp;1일차 주간 = [1일차 주간]+([1일차 주간 반제품수량]/[횟수])-[1일차 주간 면 생산수량]";
+    helpStr+= "<br>&nbsp;&nbsp;1일차 야간 = [1일차 야간]+([1일차 주간 반제품수량]/[횟수])-[1일차 주간 면 생산수량] 으로 누계를 계산한다.";
+    helpStr+= "<br>&nbsp;&nbsp;";
+    helpCont.innerHTML = helpStr;
+    hDynamicHeight = 0; 
+	
+</script>

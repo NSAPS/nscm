@@ -1,0 +1,60 @@
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=euc-kr">
+	<title>농심 APS System Login</title>
+<link href="sinc/template/basic/skin/nongshim/login/css/allpage.css" rel="stylesheet" type="text/css">
+
+<SCRIPT language="JavaScript">
+</SCRIPT>
+</head>
+
+<body onLoad="init(); ">
+	<form method="POST" name="frm">
+		<input type="hidden" name="_moon_template" value="basic">
+		<input type="hidden" name="_moon_start" value="yes">
+		<input type="hidden" name="_moon_service" value="">
+		<input type="hidden" name="_moon_skin" value="violet">
+		<!--input type="hidden" name="_moon_container" value="weblogic"-->
+		<input type="hidden" name="_moon_container" value="tomcat">
+        <table width="100%" height="100%" border="0" cellspacing="0" cellpadding="0">
+            <tr>
+                <td align="center" class="pd_bot20">
+                	<table width="900" border="0" cellspacing="0" cellpadding="0">
+                    	<tr>
+        					<td><img src="sinc/template/basic/skin/nongshim/login/images/log_logo.gif" width="103" height="49"></td>
+                    	</tr>
+                    </table>
+                    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                    	<tr>
+                        	<td align="center" background="sinc/template/basic/skin/nongshim/login/images/log_bg_img.gif">
+                        		<table width="900" border="0" cellspacing="0" cellpadding="0">
+									<tr>
+										<td width="580">
+											<img src="sinc/template/basic/skin/nongshim/login/images/log_img.jpg" width="580" height="209">
+										</td>
+                                		<td background="sinc/template/basic/skin/nongshim/login/images/log_bg_form.gif" 
+        									style="padding:95px 0 0 158px;" valign="top">
+											<div class="pd_bot3">
+            									<input type="text" name="_user_id" class="input_login" onkeydown="TabFilter();">
+            								</div>
+                                    		<div class="pd_bot10">
+            									<input type="password" name="_user_pwd" class="input_login" onkeydown="EnterFilter();">
+                                    		</div>
+											<img src="sinc/template/basic/skin/nongshim/login/images/btn_login.gif" width="48" height="15"
+												onClick="GoOK('problem_summary')">
+										</td>
+                        			</tr>
+                        		</table>
+                        	</td>
+                    	</tr>
+                    	<tr>
+        					<td align="center" background="sinc/template/basic/skin/nongshim/login/images/log_bg_bar.gif"><img 
+								src="sinc/template/basic/skin/nongshim/login/images/log_img_bar.gif" width="900" height="53"></td>
+                    	</tr>
+                	</table>
+                </td>
+            </tr>
+        </table>
+	</form>	
+</body>
+</html>

@@ -1,0 +1,60 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setTabAutoResize('54')" )
+
+<script>//document.body.oncontextmenu = function() {return false}; </script> 
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	<tr id="search_menu" style="DISPLAY:NONE">
+		<td width="100%" height="20" valign="top" bgcolor="${search_bgcolor}" class="line"> 
+			&nbsp;
+		</td> 
+	</tr> 
+	<input name="search_h" type="hidden" value="0"> ## search 조건 부분 높이 
+	<tr><td height="5"></td></tr>
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="scrollbar-face-color:#FFFFFF; scrollbar-shadow-color:#666666; scrollbar-highlight-color:#666666;
+							scrollbar-3dlight-color:#FFFFFF; scrollbar-darkshadow-color:#FFFFFF; scrollbar-track-color:#FFFFFF; scrollbar-arrow-color:#666666; overflow:hidden; ">
+					<h2 class="tab">START SCM</h2>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr> 
+    						<td width="100%">
+								농심 SCM START ▶▷▷▷▷▷
+								<br>
+							</td>
+						</tr> 
+					</table>
+
+					##<table height="5"><tr><td></td></tr></table>
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+						##$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+						<input type="hidden" name="_moon_service" value="${_moon_service}">
+						<input type="hidden" name="_moon_pagenumber"  value="${_moon_pagenumber}">
+					</td></tr>
+					</table>
+				</div>
+				
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 좌측 메뉴 중 보기를 원하는 메뉴를 클릭하여 해당 화면으로 이동합니다.";
+	//helpStr += "<br>◈ Second Line is here...";
+	helpCont.innerHTML = helpStr;
+
+</script>

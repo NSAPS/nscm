@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>	
+
+	<!-- -->
+	<query id="sc_11020_dailyProductionPlan_totalization01">
+	
+		with
+		     V_LST
+		  as (  	
+	        select R01.CD_NAME as R01_NAME
+	              ,R02.CD_NAME as R02_NAME
+	              ,LST.R02_COUNT
+	              ,to_char( round( (LST.R02_COUNT/nvl(sum(LST.R02_COUNT) over( order by 1),0))*100 ,1) ,'FM990.0')||'%' as R02_PERCENT
+	              ,LST.REASON01 ,LST.REASON02 
+	          from (
+	                    select HIS.REASON01 ,HIS.REASON02
+	                          ,count(HIS.REASON02) as R02_COUNT
+	                      from (
+		                         select --공장,주차별로 날짜 리스트를 가져온다.
+		                                PNT.SUB_CAT
+		                               ,XXX.YYYYWW
+		                               ,FN_GET_VERSION('PS',PNT.PLANT_ID,XXX.YYYYMMDD) as MAX_VER
+		                           from CAL_MST XXX
+		                                inner join 
+		                                (
+		                                 select distinct YYYYWW
+		                                   from CAL_MST CAL
+		                                  where exists 
+		                                        (
+		                                         select 'X'
+		                                           from (
+		                                                 select distinct to_char(HIS.PROD_DATES,'YYYYMMDD') as PROD_DATES
+		                                                   from DAILY_SCH_PLAN_HISTORY HIS
+		                                                        inner join 
+		                                                        (
+		                                                         select replace('$!{startDate}','-','') as SDATE
+		                                                               ,replace('$!{endDate}','-','') as EDATE
+		                                                           from DUAL
+		                                                        ) IDX
+		                                                        on  HIS.MODIFY_DATE between IDX.SDATE and IDX.EDATE 
+		                                                        and HIS.CAT_ID='PS'
+		                                                        and HIS.REASON01 is not null 
+		                                                        and HIS.REASON02 is not null                        
+		                                                 ) IDX
+		                                           where IDX.PROD_DATES =CAL.YYYYMMDD  
+		                                        )
+		                                ) YYY
+		                                on  XXX.YYYYWW  =YYY.YYYYWW   
+		                                and XXX.WEEK_DAY='월'  
+		                                inner join V_PLANT PNT
+		                                on 1=1 
+		                                order by 1,2                   
+	                           ) VER 
+	                           ---------------------------------------------------------
+	                           --공장 약칭코드에 대한 전체 코드명을 가져온다.           
+	                           inner join CODE_MST MST
+	                           on  MST.CD_GRP = 'SUB_CAT'
+	                           and MST.CD     = VER.SUB_CAT
+	                           and MST.CAT01  is not null
+	                           ---------------------------------------------------------
+	                           --이력 정보를 가져온다.
+	                           inner join DAILY_SCH_PLAN_HISTORY HIS
+	                           on  HIS.MODIFY_DATE between replace('$!{startDate}','-','') and replace('$!{endDate}','-','')
+	                           and HIS.CAT_ID      = 'PS'
+	                           and HIS.PLANT_ID    = MST.CAT01
+	                           and HIS.VERSION     = VER.MAX_VER
+	                           and HIS.PLANT_ID    like '$!{plant_id}%'   
+	                           and HIS.REASON01 is not null 
+	                     group by HIS.REASON01 ,HIS.REASON02     
+	               ) LST 
+	               ---------------------------------------------------------
+	               --내역 코드에 대한 TEXT명을 가져온다.
+	               left outer join CODE_MST R01
+	               on  R01.CD_GRP = 'MSG_GROUP'
+	               and R01.CD     = LST.REASON01
+	               left outer join CODE_MST R02
+	               on  R02.CD_GRP = R01.CD_NAME
+	               and R02.CD     = LST.REASON02
+	         order by REASON01 ,REASON02 
+		 )
+	     select R01_NAME, R02_NAME, R02_COUNT, R02_PERCENT, REASON01, REASON02
+	     from   v_lst          
+	     UNION  ALL
+	     SELECT '전체' R01_NAME, '' R02_NAME, SUM(R02_COUNT) R02_COUNT, '' R02_PERCENT, '' REASON01, '' REASON02
+	     FROM   V_LST         
+         
+	</query>
+	
+	
+	<query id="sc_11020_dailyProductionPlan_totalization02">
+	
+        select LST.R01_NAME, LST.R02_NAME, LST.PLANT_NAME ,LST.PROC_NAME ,LST.ITEM_NAME ,LST.PROD_DATES ,LST.SHIFT_TYPE ,LST.FROM_SHIFT_QTY ,LST.TO_SHIFT_QTY ,LST.REASON_MSG ,LST.MADE_TYPE ,LST.MADE_DTTM ,LST.MADE_BY
+              ,case when --3일 확정구간의 GAP를 가져온다. 
+                         LST.X_3TF_PERIOD='X' then 'X'
+                    else case when 
+                         ( 
+                              select to_char(count(CAL.YYYYMMDD))
+                                from CAL_MST CAL
+                               where CAL.YYYYMMDD between substr(LST.X_3TF_PERIOD,1,8) and substr(LST.X_3TF_PERIOD,9)
+                                 and nvl(CAL.HOLIDAY_FLAG,'XXX') !='Y'
+                         ) &lt;=3 then 'O' else 'X' end 
+                 end as X_3TF
+          from (
+                select CM.R01_NAME
+                      ,CM.R02_NAME
+                      ,MST.CD_NAME as PLANT_NAME
+                      ,HRC.PROC_NAME
+                      ,ITM.ITEM_NAME
+                      ,to_char(HIS.PROD_DATES,'YYYY-MM-DD') as PROD_DATES
+                      ,decode(HIS.SHIFT_TYPE,1,'■□□',3,'□■□',5,'□□■') as SHIFT_TYPE
+                      ,to_char(HIS.FROM_SHIFT_QTY,'FM999,999,999') as FROM_SHIFT_QTY
+                      ,to_char(HIS.TO_SHIFT_QTY,'FM999,999,999') as TO_SHIFT_QTY
+                      ,HIS.REASON_MSG
+                      ,decode(HIS.MADE_TYPE,'UP','수정','AD','추가','DE','삭제') as MADE_TYPE
+                      ,to_char(HIS.MADE_DTTM ,'MM/DD HH24:MI:SS') as MADE_DTTM
+                      ,HIS.MADE_BY
+                      ,dense_rank() over( order by PLANT_ID,PROC_ID,ITEM_ID,PROD_DATES,SHIFT_TYPE) as LST_RANK
+                      ,case --3일 확정구간내 보정인지 체크한다.
+                            when to_char(HIS.PROD_DATES,'YYYYMMDD')&lt;to_char(sysdate,'YYYYMMDD') then 'X' --당일 이전것은 무조건 X
+                            else  (
+                                    select min(CAL.YYYYMMDD)||max(CAL.YYYYMMDD) as PERIOD 
+                                      from CAL_MST CAL where CAL.YYYYMMDD between to_char(sysdate,'YYYYMMDD') and to_char(HIS.PROD_DATES,'YYYYMMDD') 
+                                  ) 
+                        end as X_3TF_PERIOD
+                  from (
+                         select --공장,주차별로 날짜 리스트를 가져온다.
+                                PNT.SUB_CAT
+                               ,XXX.YYYYWW
+                               ,FN_GET_VERSION('PS',PNT.PLANT_ID,XXX.YYYYMMDD) as MAX_VER
+                           from CAL_MST XXX
+                                inner join 
+                                (
+                                 select distinct YYYYWW
+                                   from CAL_MST CAL
+                                  where exists 
+                                        (
+                                         select 'X'
+                                           from (
+                                                 select distinct to_char(HIS.PROD_DATES,'YYYYMMDD') as PROD_DATES
+                                                   from DAILY_SCH_PLAN_HISTORY HIS
+                                                        inner join 
+                                                        (
+                                                         select replace('$!{startDate}','-','') as SDATE
+                                                               ,replace('$!{endDate}','-','') as EDATE
+                                                           from DUAL
+                                                        ) IDX
+                                                        on  HIS.MODIFY_DATE between IDX.SDATE and IDX.EDATE 
+                                                        and HIS.CAT_ID='PS'
+                                                        and HIS.REASON01 is not null 
+                                                        and HIS.REASON02 is not null                        
+                                                 ) IDX
+                                           where IDX.PROD_DATES =CAL.YYYYMMDD  
+                                        )
+                                ) YYY
+                                on  XXX.YYYYWW  =YYY.YYYYWW   
+                                and XXX.WEEK_DAY='월'  
+                                inner join V_PLANT PNT
+                                on 1=1 
+                                order by 1,2
+                       ) VER
+                       ---------------------------------------------------------
+                       --공장 약칭코드에 대한 전체 코드명을 가져온다.
+                       inner join CODE_MST MST
+                       on  MST.CD_GRP = 'SUB_CAT'
+                       and MST.CD     = VER.SUB_CAT
+                       and MST.CAT01  is not null
+                       ---------------------------------------------------------
+                       --이력 정보를 가져온다.
+                       inner join DAILY_SCH_PLAN_HISTORY HIS
+                       on  HIS.MODIFY_DATE between replace('$!{startDate}','-','') and replace('$!{endDate}','-','')
+                       and HIS.CAT_ID      = 'PS'
+                       and HIS.PLANT_ID    = MST.CAT01
+                       and HIS.VERSION     = VER.MAX_VER
+                       [and HIS.REASON02    = '${reason02}']
+                       and HIS.PLANT_ID    like '$!{plant_id}%'
+                       and HIS.REASON01 is not null
+                       ---------------------------------------------------------
+                       --작업장 텍스트명을가져 온다.
+                       left outer join V_HRCHY_PROC HRC
+                       on  HRC.PLANT_ID=HIS.PLANT_ID
+                       and HRC.PROC_ID =HIS.PROC_ID
+                       ---------------------------------------------------------
+                       --제품에 대한 텍스트명을가져온다
+                       left outer join ITEM_MST ITM
+                       on  ITM.ITEM_ID = HIS.ITEM_ID
+                       ---------------------------------------------------------
+                       --이력 코드에 대한 명을 가져온다.
+                       left outer join
+                       (
+                       SELECT  A.CD R01_CD, A.CD_NAME R01_NAME, 
+                               B.CD R02_CD, B.CD_NAME R02_NAME
+                       FROM    CODE_MST A,
+                               CODE_MST B
+                       WHERE   A.CD_GRP = 'MSG_GROUP'       
+                       AND     A.CD_NAME = B.CD_GRP
+                       ) CM
+                       ON  HIS.REASON01 = CM.R01_CD
+                       AND HIS.REASON02 = CM.R02_CD
+               ) LST
+             order by LST_RANK 
+	</query>
+
+
+</queries>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,31 @@
+## session out 시 화면을 보이지 않게 
+#if( "$!{_moon_skin}" != "" ) 
+
+#parse("/basic/skin/${_moon_skin}/skin.vm")
+
+<html>
+<head>
+
+<script language="javascript">
+	function FrameResize() {
+		top.left_home.cols = "242,*";
+		location.href="service.do?_moon_service=main_menu&_moon_menu=true&_user_id=${_user_id}";
+	}
+</script>
+
+</head>
+
+<body bgcolor="${body_bgcolor}" leftmargin="0" rightmargin="0">
+	<table width="1" height="100%" border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<td onClick="FrameResize()">
+				<font size="1" color="555555">▶</font>
+			</td>
+		</tr>
+	</table>
+</body>
+</html>
+
+#else 
+	$response.sendRedirect("http://www.samsung.net") 
+#end 

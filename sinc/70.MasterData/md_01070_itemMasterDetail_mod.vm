@@ -1,0 +1,257 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('100', '50')" ) 
+##set( $resizeFuncCallCode = "setGridAutoResizeIframe('60')" )
+
+## 이전 화면으로 이동할 때 조회조건을 기억하기 위한 parameter
+<input type="hidden" name="plant_pre" value="$!{plant}">
+<input type="hidden" name="item_type_pre" value="$!{item_type}">
+<input type="hidden" name="serch_word_pre" value="$!{serch_word}">
+<input type="hidden" name="perpage_pre" value="${_moon_perpage}">
+<input type="hidden" name="pagenumber_pre" value="$!{_moon_pagenumber}">
+
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+##	## 기능 버튼 영역
+##	<tr>
+##		<td height="25" align="right">
+##			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+##            	<tr>
+##                	<td align="right">
+##						<input type="button" name="btnBack" value=" 이전화면" onClick="moveBack(); "
+##							class="btn1_on">
+##						##<input type="button" name="btnAddRow" value=" 라인추가" onClick="addRow(1); "
+##							##class="btn1_on">
+##						#toolbar_nscm($_moon_toolbar "" "" "sc_02170_inspectionRestriction_mod_save_comp" "")
+##					</td>
+##            	</tr>
+##        	</table> 
+##		</td>
+##	</tr>
+##	## 조회 영역
+##	<tr>
+##		<td width="100%" valign="top">
+##			<table border="0" width="100%" cellpading="0" cellspacing="0">
+##				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+##				<tr>
+##					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+##					<td width="100%">
+##						<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; ">
+##            				<tr id="search_menu" style="display:block; ">
+##								<td width="70px" align="right">
+##									PLANT :
+##								</td> 
+##								<td width="70px%" align="left">
+##									<select name="plant" disable>
+##                              			##<option value="">선택</option>
+##										#foreach( $condition in $md_01060_combo_plant_list )
+##											<option value="$condition.get(0)"  #if( "$!{plant_pre}" == "$condition.get(0)" ) selected #end>$condition.get(1)</option>
+##										#end
+##									</select>
+##								</td>
+##								<td width="70px="right">
+##									자재유형 :
+##								</td> 
+##								<td width="70px%" align="left">
+##									<select name="item_type" disable>
+##                              			<option value="">전체</option>
+##										#foreach( $condition in $md_01060_combo_item_type )
+##											<option value="$condition.get(0)"  #if( "$!{item_type_pre}" == "$condition.get(0)" ) selected #end>$condition.get(1)</option>
+##										#end
+##									</select>
+##								</td>
+##								<td width="100px%" align="right">
+##									품목코드/품목명 :
+##								</td> 
+##								<td width="100px%" align="left">
+##            						<input type="text" name="serch_word" size="20" class="normal" value="$!{serch_word_pre}" readonly>
+##								</td>
+##								<td ></td>
+##            				</tr> 
+##            			</table>
+##					</td>
+##					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+##				</tr>
+##				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+##			</table>
+##		</td>
+##	</tr>
+	<input name="search_h" type="hidden" value="23"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				##tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<b>◆&nbsp;$!{item_id}&nbsp;:&nbsp;$!{item_name}</b>
+					<input type="hidden" name="ITEM_ID" value="$!{item_id}">
+					##<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="tbMain" border="0" width="715" cellpadding="0" cellspacing="0" >
+						<tr>
+							<td> 
+								<div id="topLeft" style="height:35px; width:330px; overflow:hidden; "> 
+									<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>
+											<tr align="center" height="35px"> 
+												<td width="30px" align="center">번호</td> 
+												<td width="80px" align="center">PLANT코드</td>
+												<td width="220px" align="center">PLANT명</td>
+											</tr> 
+					   					 </thead>
+					   				</table>
+					   			</div>
+							</td>
+							<td> 
+								<div id="topLine" style="height:35px; width:750px;overflow:hidden;">
+									<table width="750px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>
+											<tr height="35px">
+												<td width="70px"align="center">생산<br>우선순위</td>
+												<td width="100px"align="center">대표정품</td>
+												<td width="100px"align="center">대표정품<br>비율</td>
+												<td width="70px"align="center">파레트당<br>BOX 수</td>
+												<td width="100px"align="center">최소Picking<br>수량</td>
+												<td width="70px"align="center">배분율</td>
+												<td width="100px"align="center">최소배분량</td>
+												<td width="70px"align="center">생산<br>선호요일</td>
+												<td width="70px"align="center">포장유형</td>	
+											</tr>
+					   					 </thead>
+					   				</table>
+					   			</div>
+							</td>
+						</tr>	
+						
+						<tr>
+							<td valign="top"> 
+								<div id="leftDisplay" style="width:330px; overflow:hidden; ">
+									<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="left_tbody">
+										#foreach( $tr in $md_01070_itemMasterDetail_mod )
+											<tr id="left_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+												<td width="30px" align="center" style="background-color:${search_bgcolor}; "> ## 번호
+													<a id="divRowNo">$velocityCount</a>
+												</td>
+												<td width="80px" align="center"> ## 코드
+													<a id="divCd">&nbsp;$tr.get(0)</a><input 
+														type="text" name="PLANT_ID" class="normal" size="20" value="$tr.get(0)"
+														style="width:100%; padding-left:5px; display:none; ime-mode:disabled; ">
+												</td>
+												<td width="220px" align="left"> ## 코드 명
+													<a id="divCdName">&nbsp;$tr.get(1)</a><input 
+														type="text" name="PLNAT_NAME" class="normal" size="10" value="$tr.get(1)"
+														onKeyDown="moveNextBox(this); " onFocusOut="setViewMode(this); "
+														style="width:100%; padding-left:5px; display:none;">
+												</td>
+											</tr>
+										#end
+										</tbody> 
+									</table> 
+								</div> 	
+							</td> 
+							<td valign="top">  
+								<div id="mainDisplay" class="ns_scroll" style="border:0; width:750px; overflow-y:scroll; overflow-x:scroll; " onscroll="scrollX(); scrollY(); ">
+									<table width="750px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="main_tbody">
+										#foreach( $tr in $md_01070_itemMasterDetail_mod )
+											<tr id="main_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+												<td width="70px" onClick="setEditMode(this);"align="right"> ## 설명
+													<input type="text" name="PRIORITY" class="normal" size="20" value="$tr.get(2)"
+														onKeyDown="moveNextBox(this); "
+														style="width:100%; padding-left:5px; text-align:right">
+												</td>
+												<td width="100px" onClick="setEditMode(this);" align="right"> ## 설명
+													<input type="text" name="REP_ITEM_ID" class="normal" size="20" value="$tr.get(3)"
+														onKeyDown="moveNextBox(this); "
+														style="width:100%; padding-left:5px; text-align:right">
+												</td>
+												<td width="100px" onClick="setEditMode(this);" align="center"> ## 
+													<input type="text" name="REP_RATIO" class="normal" size="20" value="$tr.get(4)"
+														onKeyDown="moveNextBox(this); " 
+														style="width:100%; padding-left:5px; text-align:right">
+												</td>
+												<td width="70px" onClick="setEditMode(this); "align="right"> ## 
+													<input type="text" name="BOX_PER_PALET" class="normal" size="20" value="$tr.get(5)"
+														onKeyDown="moveNextBox(this); " 
+														style="width:100%; padding-left:5px; text-align:right">
+												</td>
+												<td width="100px" onClick="setEditMode(this);" align="center"> ## Line ID
+													<input type="text" name="MIN_PICK_QTY" class="normal" size="20" value="$tr.get(3)"
+														onKeyDown="moveNextBox(this); " 
+														style="width:100%; padding-left:5px; text-align:right">
+													</select>
+												</td>
+												<td width="70px" onClick="setEditMode(this); "align="right"> ## 
+													<input type="text" name="ALLOC_RATE" class="normal" size="20" value="$tr.get(7)"
+														onKeyDown="moveNextBox(this); " 
+														style="width:100%; padding-left:5px; text-align:right">
+												</td>
+												<td width="100px" onClick="setEditMode(this); " align="center"> ## 
+													<input type="text" name="MIN_ALLOC_QTY" class="normal" size="20" value="$tr.get(8)"
+														onKeyDown="moveNextBox(this); " 
+														style="width:100%; padding-left:5px; text-align:right">
+												</td>
+                                            	## 생산선호요일
+												<td width="70px" onClick="setEditMode(this);" align="center"> ## Line ID
+													<select name="DAYWEEK_PATTERN" style="width:100%; padding-left:5px;  text-align:right">
+															<option value=""  #if( "$tr.get(9)" == "" ) selected #end></option>
+														#foreach( $condition in $md_01060_combo_dayweek_pattern )
+															<option value="$condition.get(0)" #if( "$tr.get(9)" == "$condition.get(1)" ) selected #end>$condition.get(1)
+															</option>
+														#end
+													</select>
+												</td>
+												## 포장유형
+												<td width="70px" onClick="setEditMode(this);" align="center"> ## Line ID
+													<select name="MC_TYPE" style="width:100%; padding-left:5px;  text-align:right">
+															<option value=""  #if( "$tr.get(10)" == "" ) selected #end></option>
+														#foreach( $condition in $md_01060_combo_mc_type )
+															<option value="$condition.get(0)" #if( "$tr.get(10)" == "$condition.get(1)" ) selected #end>$condition.get(1)
+															</option>
+														#end
+													</select>
+												</td>
+											</tr>
+										#end
+										</tbody>
+									</table>
+								</div>
+							</td>
+						</tr>
+					</table>
+						
+					<input type="hidden" name="_moon_service">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					<input type="hidden" name="_user_id" value="$!{_user_id}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 각 항목을 입력한 후 상단의 저장 버튼을 클릭하여 코드를 수정합니다.";
+	helpStr += "<br>◈ 한 코드 그룹 내에 중복되는 코드는 존재할 수 없습니다.";
+	helpStr += "<br>◈ 코드는 반드시 영문, 숫자 그리고 _ (underscore) 로만 입력합니다.";
+	helpStr += "<br>◈ 상단의 삭제 버튼을 클릭하여 조회된 코드 그룹을 삭제합니다.";
+	helpStr += "<br>◈ 코드 그룹을 수정할 수 없고, 수정하려면 삭제 후 재생성 하시기 바랍니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+</script>

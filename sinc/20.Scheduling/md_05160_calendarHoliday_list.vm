@@ -1,0 +1,182 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize2('122', '167')" )      
+  
+## 공장, 원가부문, 라인을 저장하기 위한 변수
+<input type="hidden" name="stored_plant" value="$!{selected_plant}"> 
+<input type="hidden" name="stored_item" value="$!{item_id}">
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">						
+						#button("search")
+						#toolbar_nscm($_moon_toolbar "" "" "" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; ">
+            				<tr id="search_menu" style="display:block; ">
+            					<td width="10%" align="right">년월 :</td>  
+            					<td width="90%" align="left">  
+									#date_sole_no_title( "std_yyyymm" "7" "normal" "startMonthBtn" $date.get('yyyy-MM'))
+            					</td>	
+							</tr> 
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="23"> ## search 조건 부분 높이   
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							##<td>#page_info2()</td>
+							##<td>#page_info()</td>
+                            ##<td align="right">#table_display()</td>
+						</tr>
+					</table>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+								
+					<table id="tbMain" border="0" width="715" cellpadding="0" cellspacing="0" >
+						<tr>							
+							<td> 
+								<div id="topLine" style="height:30px; overflow:hidden;"> 
+									<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>	 
+											<tr height="30px"> 
+        										<td align="center" width="10%" style="font-size:11pt;">
+													#if("$!{std_yyyymm}" == "")
+														$date.get('yyyy-MM')
+													#else
+														$!{std_yyyymm}
+													#end
+												</td>
+												<td align="center" width="10%" style="font-size:11pt;">일</td>
+												<td align="center" width="10%" style="font-size:11pt;">월</td>
+        										<td align="center" width="10%" style="font-size:11pt;">화</td>
+        										<td align="center" width="10%" style="font-size:11pt;">수</td>
+        										<td align="center" width="10%" style="font-size:11pt;">목</td>
+        										<td align="center" width="10%" style="font-size:11pt;">금</td>
+        										<td align="center" width="10%" style="font-size:11pt;">토</td>
+        										<td align="center" width="10%" style="font-size:11pt;" class="right" >휴일합계</td>
+											</tr>
+					   					 </thead>
+					   				</table>
+					   			</div>
+							</td>
+						</tr>						 
+						<tr>							  
+							<td valign="top">   
+								<div id="mainDisplay"  style="border:0; overflow:hidden;">   
+									<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; " >
+										<tbody id="main_tbody">								
+										#set($colCnt = 1)		
+    									#set($rowCnt = 1)
+    									#set($nWeek = 1)   
+										##$nongshim.getCalendarRow($md_05160_calendarHoliday_list)
+    									#foreach( $cols in $nongshim.getCalendarRow($md_05160_calendarHoliday_list)) 
+    										<tr>
+        										#if(($rowCnt % 2) == 1)
+        											<td align="center" width="10%" style="background:#F9FFFF; font-weight:bold; font-size:11pt;" >$nWeek 주</td>  											
+        										#end
+    									
+    											#set($totalFactor = 0) 
+        										#set($nHoliday = 0) 
+        										#foreach( $col in $cols )											 
+        											#if($colCnt != 8)
+            											#if($colCnt >= 1 && ($rowCnt % 2) == 1)     ##일자 
+    														#if($col.get(2) == "Y")
+    															#set($nHoliday = $nHoliday + 1)
+    															<td id="$rowCnt$colCnt" value="$col.get(0)" align="center" width="10%" style="background:#FFF0F5; color:red;font-weight:bold; font-size:11pt; height:40px; cursor:hand;" onDblClick="setCalendarFactor(this);">$col.get(1)</td>
+    														#else
+    															<td id="$rowCnt$colCnt" value="$col.get(0)" align="center" width="10%" style="background:#FFFFCC; color:black; font-weight:bold; font-size:11pt; height:40px; cursor:hand;" onDblClick="setCalendarFactor(this);">$col.get(1)</td>
+        													#end
+            											#end 
+        											#end
+        											#set($colCnt = $colCnt + 1)  
+        										#end 
+    											#if(($rowCnt % 2) == 1) 
+													<td name="holidayTotal" align="center" width="10%" style="background:#E6FFE6; font-weight:bold; font-size:10pt; height:30px; ">휴일 : $nHoliday 일</td>
+    												<td style="display:none; "><input type="hidden" name="holidayCnt" value="$!{nHoliday}"></td>
+													#set($nWeek = $nWeek + 1)
+    											#end
+    										</tr>  
+    										#set($colCnt = 1)	
+    										#set($rowCnt = $rowCnt + 1) 
+    									#end
+										</tbody>
+									</table>
+								</div>
+							</td>
+						</tr>
+					</table>
+					
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()	
+					
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+    					##$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+    					<input type="hidden" name="_moon_service" value="${_moon_service}">
+    					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+    					##<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+    					## 번호 배경색
+    					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+					</td></tr></table>				
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script> 
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 조회 조건인 년월 항목을 선택하고 상단의 조회 버튼을 클릭하면 해당 월의 캘린더가 조회됩니다.";
+	helpStr += "<br>◈ 휴일은 빨간색, 평일은 검은색 숫자로 표시됩니다.";
+	helpStr += "<br>◈ 휴일로 변경하기 위해서는 ";
+	helpStr += "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1) 해당 일자를 더블 클릭합니다.";
+	helpStr += "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2) '휴일로 변경하시겠습니까?'라는 메세지가 나타나면 확인 버튼을 클릭합니다.";
+	helpStr += "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3) 그러면 해당일자가 빨간색으로 변경되는 것을 볼 수 있습니다.";
+	helpStr += "<br>◈ 평일로 변경하기 위해서는 휴일과 동일한 방법이 적용이 됩니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;	
+		
+</script>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+
+	<!-- 수출 CY 재고 관리 -->
+	<job id="ip_02110_Cy_stock_list" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>해외영업시스템 >> 해외영업 >> 수출 제품 품목별 재고추이</navigation>
+		<toolbars>1000</toolbars>
+		<title>수출 제품 품목별 재고추이</title>
+		<authority>1</authority>		
+		<description>수출 제품 품목별 재고추이</description>
+		<request_type>list</request_type>
+		<queries> 		
+			
+			<query idref="ip_02110_combo_search_type" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+
+
+</jobs>	

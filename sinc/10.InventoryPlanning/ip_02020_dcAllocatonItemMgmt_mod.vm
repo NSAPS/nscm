@@ -1,0 +1,482 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('142', '188')" )##142. 195
+##set( $resizeFuncCallCode = "setHtmlGridAutoResize('142', '260')" )  
+##set( $resizeFuncCallCode = "setHtmlGridAutoResize('140', '155')" ) 
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right"> 
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+					<td>
+						##<input type="button" name="btnSelect" value="3주평균" onClick="Reload2($ip_02020_dcAllocatonItemMgmt_mod.size()); " class="btn1_on">
+						##<input type="button" name="btnSelect" value="배정+판매" onClick="Reload($ip_02020_dcAllocatonItemMgmt_mod.size()); " class="btn1_on">
+					</td>
+					<td align="right">
+						#button("search")
+						##계산 버튼
+						##<input type="button" name="btnSearch" value="계산" onClick="Reload($ip_02020_dcAllocatonItemMgmt_mod.size()); " class="btn1_on">
+						
+						##<input type="button" name="btnSelect" value="팝업테스트" onClick="openPopUp(); " class="btn1_on">
+						##<input type="button" name="btnSearch" value="찾기" onClick="GoSearch('ip_02020_dcAllocatonItemMgmt_mod'); " class="btn1_on">
+						#toolbar_nscm($_moon_toolbar "" "" "ip_02020_dcAllocatonItemMgmt_mod_save_comp" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%"> 
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" 
+							id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr>
+            					<td width="70px" align="right"> 
+            						작업일자 :
+            					</td>								
+            					<td width="120px" align="left" colspan="4">
+									#date_sole_no_title("in_cnfm_date" "10" "normal" "btnC" "$date.get('yyyy-MM-dd')")
+            					</td>
+								#############
+            					<td width="40px" align="right"> 
+            						구분 :
+            					</td>
+								<td width="160px" align="left">
+									<select name="item_type" > 
+										<option value="%" selected >전체</option>
+										<option value="FERT" #if( "$!{item_type}" == "FERT" ) selected #end>제품</option>
+										<option value="HAWA" #if( "$!{item_type}" == "HAWA" ) selected #end>상품</option>
+									</select>
+									<select name="search_type">
+                              			<option value="">선택</option> 
+										#foreach( $condition in $ip_02020_combo_search_type )
+											<option value="$condition.get(0)"  #if( "$!{search_type}" == "$condition.get(0)" ) selected #end>$condition.get(1)</option>
+										#end
+											<option value="T86"#if( "$!{search_type}" == "T86" ) selected #end>관심 품목</option>	
+									</select>
+            					</td>
+								<td width="50px" align="right">
+									기준 :
+								</td> 
+            					<td width="60px" align="left">
+									<select name="week_flag">
+                              			<option value="1week"   #if( "$!{week_flag}" == "1week")	selected #end>1주평균</option>
+                              			<option value="plan"	#if( "$!{week_flag}" == "plan")		selected #end>판매계획</option>
+                              			<option value="3week"   #if( "$!{week_flag}" == "3week")	selected #end>3주평균</option>
+                              			<option value="13week"  #if( "$!{week_flag}" == "13week")	selected #end>(1W+3W)/2</option>
+									</select>
+									<input type="hidden" name="week_name" value ="$!{week_name}">
+            					</td>									
+								<td width="150px" align="right">
+									공급할당 대상품목 조회 :
+								</td> 
+								<td width="30px" align="right">
+									<input name="alloc_item_chk" type="checkbox" class="normal" onClick="doCheckFlag(this);"
+										style="background-color:#f2f2f2; border:0;"
+										#if($!{alloc_item_flag} == "Y")checked #end>
+									<input type="hidden" name="alloc_item_flag" value ="$!{alloc_item_flag}">								
+								</td>	
+								<td>
+								</td>
+							</tr>
+							<tr>
+								<td width="70px" align="right">
+									재고일수 :
+								</td>  
+								<td width="20px" align="left">
+									<input type="text" name="stock_day" size="20" class="normal" onKeyPress="enterCheck('$_moon_service'); " 
+										style="width:40px; padding-left:1px; " onBlur="strCheck(); " onClick="select(); " 
+										onChange="strCheck(this); " value="$commonUtil.replaceQuot($!{stock_day})">
+								</td>
+								<td width="25px" align="left">
+									이상
+								</td> 
+								<td width="20px" align="right">
+									<input name="stock_day_chk" type="checkbox" class="normal" onClick="doCheckFlag(this);"
+										style="background-color:#f2f2f2; border:0;"
+										#if($!{stock_day_flag} == "Y")checked #end>
+									<input type="hidden" name="stock_day_flag" value ="$!{stock_day_flag}">								
+								</td>
+								<td width="5px" align="left">
+								</td>
+								#################
+            					<td width="40px" align="right">
+            						기간 :
+            					</td> 
+            					<td width="100px" align="left">
+									<select name="search_period">
+                              			<option value="4" #if( "$!{search_period}" == "4") selected #end>3일</option>
+                              			<option value="6" #if( "$!{search_period}" == "6") selected #end>5일</option>
+                              			<option value="8" #if( "$!{search_period}" == "8") selected #end>7일</option>
+									</select>
+            					</td>
+								<td width="50px" align="right">
+									검색어 :
+								</td> 
+								<td width="10px" align="left">
+									<input type="text" name="search_item" size="20" class="normal" onKeyPress="enterCheck('$_moon_service'); " 
+										style="width:80px; padding-left:5px; " onBlur="strCheck(); " ondblClick="select(); " 
+										onChange="strCheck(this); " value="$commonUtil.replaceQuot($!{search_item})">
+									<input type="hidden" name="serch_item_pre" value ="$!{search_item}" >
+								</td>
+								<td width="150px" align="right">
+									재고일수 '0' 이어도 조회 :
+								</td> 
+								<td width="30px" align="right">
+									<input name="sale_plan_chk" type="checkbox" class="normal" onClick="doCheckFlag(this);"
+										style="background-color:#f2f2f2; border:0;"
+										#if($!{sale_plan_flag} == "Y")checked #end>
+									<input type="hidden" name="sale_plan_flag" value ="$!{sale_plan_flag}">								
+								</td>
+
+								<td>
+								</td>
+            				</tr>            				
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="47"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>#page_info()
+							</td>
+							<td align="right">#table_display()</td>
+						</tr>
+					</table>
+					  
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table id="tbMain" border="0" width="100%" cellpadding="0" cellspacing="0" ><tr><td>
+						<div id="topLeft" style="height:25px; width:300px; overflow:hidden; ">
+							<table width="300px%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead> 
+									<tr height="25px"> 
+										<td width="60px">품목코드</td>
+										<td width="160px">품목명</td>
+										<td width="80px">항목</td>
+									</tr>
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td>  
+					<td> 
+						<div id="topLine" style="height:25px; width:936px; overflow:hidden;"> 
+							<table width="936px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead> 
+									<tr height="25px">
+										#foreach( $tr in $ip_02020_cnfm_date )
+										##일자 
+										<td width="78px" align="center"> 
+											<div id="divDate">$tr.get(0).substring(4,6)/$tr.get(0).substring(6,8)($tr.get(1))</div>
+										</td>
+										#end
+										<td></td> 
+									</tr>
+			   					 </thead>
+			   				</table> 
+			   			</div>
+					</td></tr>	 
+					<tr><td valign="top">
+						<div id="leftDisplay" style="width:300px; overflow:hidden; ">
+							<table width="300px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; " >
+								<tbody id="left_tbody">
+									#foreach( $tr in $ip_02020_dcAllocatonItemMgmt_mod )
+											<tr height="20px" onMouseOver="bgOver(this);" onMouseOut="bgOut(this);">
+    											<td width="60px"  align="center" rowspan="5" colspan = "1">
+													<div id="divItem_id">$tr.get(0)</div>
+													## item_id hidden 값은 저장을 위해 오른쪽 ns-table 부분에 둔다
+												</td>
+    											<td width="160px" align="center" rowspan="5" colspan = "3">
+													<div id="divItem_name">$tr.get(1)</div><input 
+        												name="item_name" type="hidden" value="$tr.get(1)" size="0" >
+												</td>
+												<td align="center" width="80px">공급할당설정</td>
+    										</tr>									
+											<tr height="20px" onMouseOver="bgOver(this);" onMouseOut="bgOut(this);">
+												<td align="center" width="80px">기초재고</td>
+    										</tr>									
+    										<tr height="20px" onMouseOver="bgOver(this);" onMouseOut="bgOut(this);">
+    											<td align="center" width="80px">재고일수</td>
+    										</tr>
+    										<tr height="20px" onMouseOver="bgOver(this);" onMouseOut="bgOut(this);">
+    											<td align="center" width="80px">입고예정</td>
+    										</tr>
+    										<tr height="20px" onMouseOver="bgOver(this);" onMouseOut="bgOut(this);">
+    											##<td align="center" width="80px">판매계획</td>  document.frm.week_flag.value
+												<td align="center" width="80px"> $!{week_name}</td>   
+    										</tr>
+    										<tr height="20px" onMouseOver="bgOver(this);" onMouseOut="bgOut(this);">
+    											<td align="center" width="60px">안양공장</td>
+    											<td align="right" width="50px">$number.format($tr.get(148))&nbsp;</td>
+    											<td align="center" width="60px">아산공장</td>
+    											<td align="right" width="50px">$number.format($tr.get(149))&nbsp;</td>
+    											<td align="center" width="80px">판촉계획</td>
+    										</tr>
+    										<tr height="20px" onMouseOver="bgOver(this);" onMouseOut="bgOut(this);">
+    											<td align="center" width="60px">안성공장</td>
+    											<td align="right" width="50px">$number.format($tr.get(150))&nbsp;</td>
+    											<td align="center" width="60px">포승물류</td>
+    											<td align="right" width="50px">$number.format($tr.get(151))&nbsp;</td>
+    											<td align="center" width="80px">할당가능율</td>
+    										</tr>
+    										<tr height="20px" onMouseOver="bgOver(this);" onMouseOut="bgOut(this);">
+    											<td align="center" width="60px">구미공장</td>
+    											<td align="right" width="50px">$number.format($tr.get(152))&nbsp;</td>
+    											<td align="center" width="60px">부산공장</td>
+    											<td align="right" width="50px">$number.format($tr.get(153))&nbsp;</td>
+												<td align="center" width="80px">할당률</td>
+    										</tr>
+    										<tr height="20px" onMouseOver="bgOver(this);" onMouseOut="bgOut(this);">
+    											<td align="center" width="60px">녹산공장</td>
+    											<td align="right" width="50px">$number.format($tr.get(154))&nbsp;</td>
+    											<td align="center" width="60px">동양물류</td>
+    											<td align="right" width="50px">$number.format($tr.get(155))&nbsp;</td>
+    											<td align="center" width="80px">할당량</td>
+    										</tr>
+    										<tr height="20px" onMouseOver="bgOver(this);" onMouseOut="bgOut(this);">
+    											<td align="center" width="60px">안전재고</td>
+    											<td align="right" width="50px">$number.format($tr.get(147))&nbsp;</td>
+    											<td align="center" width="60px">3주평균</td>
+    											<td align="right" width="50px">$number.format($tr.get(146))&nbsp;</td>
+												<td align="center" width="80px">주문량</td>
+    										</tr>
+    								#end
+								</tbody> 
+							</table> 
+						</div>  
+					</td>   
+					<td valign="top"> 
+						<div id="mainDisplay" class="ns_scroll" style="border:0; width:936px; overflow-y:scroll; overflow-x:scroll; " onscroll="scrollX(); scrollY(); ">
+							<table width="936px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="main_tbody"> 
+									#foreach($tr in $ip_02020_dcAllocatonItemMgmt_mod)
+									#set($count = $math.sub($velocityCount, 1))
+									<tr height="20px" onMouseOver="bgOver(this);" onMouseOut="bgOut(this);">
+									##  $number.format()  숫자 컴마 처리
+									## 첫째줄은 데이타 변경을 방지하기위해 디스에이블
+									#foreach($i in[0..11]) ##총 12개 일자!
+										#set($dw1_col = $math.mul($i,12)) ## 반복 컬럼갯수 12
+										<input type="hidden" name="item_id" value="$tr.get(0)"  
+											#if($velocityCount == 1 )disabled #end 
+											#if($tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>
+											##if($velocityCount == 1 || $velocityCount == 2 || $tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>
+										<input type="hidden" name="cnfm_date" value="$tr.get($math.add($dw1_col,2))" 
+											#if($velocityCount == 1 )disabled #end 
+											#if($tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>
+											##if($velocityCount == 1 || $velocityCount == 2 || $tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>
+										<input type="hidden" name="alloc_flag" value="$tr.get($math.add($dw1_col,3))" 
+											#if($velocityCount == 1 )disabled #end
+											#if($tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>
+											##if($velocityCount == 1 || $velocityCount == 2 || $tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>
+										<input type="hidden" name="sales3mean_week" value="$tr.get(146)"  
+											#if($velocityCount == 1 )disabled #end 
+											#if($tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>
+											##if($velocityCount == 1 || $velocityCount == 2 || $tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>
+										##공급할당1
+										<td width="78px" align="center"> ## 공급할당설정
+											<input name="alloc_chk" style="border=0" type="checkbox" class="normal" 
+												onClick="doSetAloc(this, $count, $math.sub($velocityCount, 1));"
+												##onClick="openPopUp(this, $count, $math.sub($velocityCount, 1));"
+												
+												#if($tr.get($math.add($dw1_col,4)) == "2")checked #end
+												#if($velocityCount == 1 )disabled #end
+												#if($tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>
+												##if($velocityCount == 1 || $velocityCount == 2 || $tr.get($math.add($dw1_col,3)) == "Y"  || $tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>
+											<input type="hidden" name="alloc_gubn" value="$tr.get($math.add($dw1_col,4))" 
+												#if($velocityCount == 1 )disabled #end
+												#if($tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>	
+												##if($velocityCount == 1 || $velocityCount == 2 || $tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>
+											<input type="hidden" name="delete_flag" value="$tr.get($math.add($dw1_col,4))" 
+												#if($velocityCount == 1 )disabled #end
+												#if($tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>	
+												##if($velocityCount == 1 || $velocityCount == 2 || $tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>
+										</td>
+									#end
+									</tr>
+									<tr height="20px" onMouseOver="bgOver(this);" onMouseOut="bgOut(this);">
+									#foreach($i in[0..11]) ##총 12개 일자!
+										#set($dw1_col = $math.mul($i,12)) ## 반복 컬럼갯수 12
+									## 기초재고1
+										<td width="78px" align="right">
+											<div id="divStoc">$number.format($tr.get($math.add($dw1_col,5)))&nbsp;&nbsp;</div><input 
+												name="stoc" type="hidden" value="$tr.get($math.add($dw1_col,5))" size="0" 
+												#if($velocityCount == 1 )disabled #end
+												#if($tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>
+												##if($velocityCount == 1 || $velocityCount == 2 || $tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>
+										</td>
+									#end
+									</tr>									
+									<tr height="20px" onMouseOver="bgOver(this);" onMouseOut="bgOut(this);">
+									#foreach($i in[0..11]) ##총 12개 일자!
+										#set($dw1_col = $math.mul($i,12)) ## 반복 컬럼갯수 12
+										## 재고일수1
+											<td width="78px" align="right" >
+												##if($tr.get($math.add($dw1_col,6) == $!{search_word}) style="color:red" #end> 
+											<div id="divStocDay" >$number.format($tr.get($math.add($dw1_col,6)))&nbsp;&nbsp;</div><input 
+												name="stocDay" type="hidden" value="$tr.get($math.add($dw1_col,6))" size="0"
+												#if($velocityCount == 1 )disabled #end
+												#if($tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>
+												##if($velocityCount == 1 || $velocityCount == 2 || $tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>
+										</td> 
+										#end
+									</tr>
+									<tr height="20px" onMouseOver="bgOver(this);" onMouseOut="bgOut(this);">
+									#foreach($i in[0..11]) ##총 12개 일자!
+										#set($dw1_col = $math.mul($i,12)) ## 반복 컬럼갯수 12
+									## 입고예정
+										<td width="78px" align="right">
+											<div id="divInpt">$number.format($tr.get($math.add($dw1_col,7)))&nbsp;&nbsp;</div><input 
+												name="inpt" type="hidden" value="$tr.get($math.add($dw1_col,7))" size="0"
+												#if($velocityCount == 1 )disabled #end
+												#if($tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>
+												##if($velocityCount == 1 || $velocityCount == 2 || $tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>
+										</td>
+										#end
+									</tr>
+									<tr height="20px" onMouseOver="bgOver(this);" onMouseOut="bgOut(this);">
+									#foreach($i in[0..11]) ##총 12개 일자!
+										#set($dw1_col = $math.mul($i,12)) ## 반복 컬럼갯수 12
+									## 판매계획
+										<td width="78px" align="right">
+											<div id="divSale">$number.format($tr.get($math.add($dw1_col,8)))&nbsp;&nbsp;</div><input 
+												name="sale" type="hidden" value="$tr.get($math.add($dw1_col,8))" size="0"
+												#if($velocityCount == 1 )disabled #end
+												#if($tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>
+												##if($velocityCount == 1 || $velocityCount == 2 || $tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>
+										</td>
+										#end
+									</tr>
+									<tr height="20px" onMouseOver="bgOver(this);" onMouseOut="bgOut(this);">
+									#foreach($i in[0..11]) ##총 12개 일자!
+										#set($dw1_col = $math.mul($i,12)) ## 반복 컬럼갯수 12
+
+										## 판촉계획
+										<td width="78px" align="right">
+											<div id="divProm">$number.format($tr.get($math.add($dw1_col,9)))&nbsp;&nbsp;</div><input 
+												name="prom" type="hidden" value="$tr.get($math.add($dw1_col,9))" size="0"
+												#if($velocityCount == 1 )disabled #end
+												#if($tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>
+												##if($velocityCount == 1 || $velocityCount == 2 || $tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>
+										</td>
+										#end
+									</tr>
+									<tr height="20px" onMouseOver="bgOver(this);" onMouseOut="bgOut(this);">
+									#foreach($i in[0..11]) ##총 12개 일자!
+										#set($dw1_col = $math.mul($i,12)) ## 반복 컬럼갯수 12
+									## 할당가능율
+										<td width="78px" align="right">
+											<div id="dicCanAlloc">$number.format($tr.get($math.add($dw1_col,10)))%&nbsp;&nbsp;</div><input 
+												name="canAlloc" type="hidden" value="$tr.get($math.add($dw1_col,10))" size="0"
+												#if($velocityCount == 1 )disabled #end
+												#if($tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>
+												##if($velocityCount == 1 || $velocityCount == 2 || $tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>
+										</td>
+										#end
+									</tr>
+									<tr height="20px" onMouseOver="bgOver(this);" onMouseOut="bgOut(this);">
+									#foreach($i in[0..11]) ##총 12개 일자!
+										#set($dw1_col = $math.mul($i,12)) ## 반복 컬럼갯수 12
+									## 할당율1
+										<td width="78px" align="right" onClick="setEditMode(this)">
+											<input type="text" name="tot_alloc_rate" class="normal" size="20" value="$tr.get($math.add($dw1_col,11))"
+												onChange="doChange2(this, $count, $math.sub($velocityCount, 1));"
+												onKeyDown="moveNextBox(this, $count, $math.sub($velocityCount, 1));"
+												style="width:65px; height:100%; padding-left:1px; text-align:right"
+												#if($velocityCount == 1 )disabled #end%
+												#if($tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>%
+												##if($velocityCount == 1 || $velocityCount == 2 || $tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>%
+										</td>
+										#end
+									</tr>
+									<tr height="20px" onMouseOver="bgOver(this);" onMouseOut="bgOut(this);">
+									#foreach($i in[0..11]) ##총 12개 일자!
+										#set($dw1_col = $math.mul($i,12)) ## 반복 컬럼갯수 12
+									## 할당량
+										<td width="78px" align="right" onClick="setEditMode(this)" >
+											<input type="text" name="tot_alloc_box"  class="normal" size="20" align="right"  
+												onChange="doChange1(this, $count, $math.sub($velocityCount, 1));" 
+												value="$tr.get($math.add($dw1_col,12))"	style="width:100%; height:100%;  padding-left:1px; text-align:right"
+												#if($velocityCount == 1 )disabled #end
+												#if($tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>
+												##if($velocityCount == 1 || $velocityCount == 2 || $tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>
+										</td>
+										#end
+									</tr>
+									<tr height="20px" onMouseOver="bgOver(this);" onMouseOut="bgOut(this);">
+									#foreach($i in[0..11]) ##총 12개 일자!
+										#set($dw1_col = $math.mul($i,12)) ## 반복 컬럼갯수 12
+										## 주문량
+										<td width="78px" align="right" >
+											<div id="dicDelv">$number.format($tr.get($math.add($dw1_col,13)))&nbsp;&nbsp;</div><input
+												name="delv" type="hidden" value="$tr.get($math.add($dw1_col,13))" size="0"
+												#if($velocityCount == 1 )disabled #end
+												#if($tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>
+												##if($velocityCount == 1 || $velocityCount == 2 || $tr.get($math.add($dw1_col,3)) == "Y" )disabled #end>	
+										</td>
+										#end
+									</tr>
+								#end  
+								</tbody>
+							</table>
+						</div>
+					</td></tr></table>
+					
+					<table border="0" width="100%" cellpadding="0" cellspacing="0" height="5px"><tr><td></td></tr></table>
+					</td></tr></table>
+											
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+						$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+						<input type="hidden" name="_moon_service" value="${_moon_service}">
+						<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">						
+						<input type="hidden" name="user_id" value="$!{_user_id}">
+					</td></tr></table>
+										
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">					
+							
+					## waiting 표시영역
+					#waitingArea()
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+    
+<script>
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	Reload($ip_02020_dcAllocatonItemMgmt_mod.size())
+	//doChange(0,0,0);
+	// 도움말 내용 입력
+	var helpStr = "◈ 각 항목을 입력한 후 상단의 찾기 버튼을 클릭하여 이상요인 찾기를 실행합니다.";	
+	helpStr += "<br>◈ 이상요인 조정 할  항목을 좌측의 체크박크를 선택하고 해당 조정값을 변경 후 조정 버튼을클릭합니다 .";	
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+	
+</script>

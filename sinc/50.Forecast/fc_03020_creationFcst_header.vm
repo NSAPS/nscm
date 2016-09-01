@@ -1,0 +1,397 @@
+<script type='text/javascript' src='$!{project}/dwr/interface/nongshim.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/engine.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/util.js'></script>
+ 
+<table id="dataArea" border="0" width="100%" height="100%" cellpading="0" cellspacing="0"> 
+	<tr>
+		<td height="25" align="right" bgcolor="${toolbar_bgcolor}" class="line">
+			<table align="right" width="100%" height="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+				<tr> 
+					<td align="left">
+						<input type="button" name="btnReg1" value="수요예측" onClick="forecast();" class="btn1_on">				
+					</td>
+					<td align="right">					
+						<input type="button" name="btnSearch" value=" 조회" onClick="searchIFrameData('fc_03020_creationFcst_tailer');" class="btn_search_on">
+						#toolbar_nscm($_moon_toolbar "" "" "" "")
+					</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+	<tr id="search_menu" style="DISPLAY:block">
+		<td height="20" valign="top" bgcolor="${search_bgcolor}" class="line">
+			<div class="tab-pane" id="fcstCrtHeadTbp">
+				<div class="tab-page" id="tabPage1">
+					<h2 class="tab">기본 Option</h2>
+				
+        			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; display:block; ">
+        				<tr>
+        					<td height="10"></td>
+        				</tr>
+        				<tr>
+        					<td width="450" align="right">
+        						<table height="21" border="0" cellpadding="0" cellspacing="0">
+        							<tr> 
+        								<td width="100" align="center" class="td1">
+        									<span>계획 유형 </span>
+        								</td>
+        								<td width="130" align="left" colspan=3>
+        									<select name="oper_type" OnChange="changeStart(this);">
+        										<option value="">선택</option>
+        										#foreach( $choice in $!{oper_types} )
+        											<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{oper_type}") selected #end >$choice.get(1)</option>
+        										#end
+        									</select>
+        								</td>
+        							</tr>
+									<tr>
+        								<td width="100" align="center" class="td1">
+        									<span>실적 시작</span>
+        								</td>
+        								<td width="90" align="left" colspan=3>
+        									<select name="start" OnChange="changeEnd(document.frm.oper_type, this);">
+        										<option value="">-------</option>
+												#foreach( $choice in $!{act_res_start} )
+        											<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{start}") selected #end>$choice.get(0)</option>
+        										#end
+        									</select>
+                                         </td>
+                                     </tr>
+									 <tr>
+        								<td width="100" align="center" class="td1">
+        									<span>실적 마감</span>
+        								</td>
+        								<td width="90" align="left" colspan=3>
+        									<select name="end" OnChange="">
+        										<option value="">-------</option>
+												#foreach( $choice in $!{act_res_end} )
+        											<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{end}") selected #end>$choice.get(0)</option>
+        										#end
+        									</select>
+                                         </td>
+                                     </tr>
+									 <tr>
+        								<td width="100" align="center" class="td1">
+        									<span>계획 명</span> 
+        								</td>								
+        								<td width="130" align="left" colspan=3>
+        									<input type="text" name="fcst_name" value="$!{fcst_name}" class="normal">
+        								</td>
+        							</tr>
+									<tr>
+										<td width="100" align="center" class="td1">
+        									<span>Disaggr. Rule</span>
+        								</td>
+        								<td width="130" align="left" colspan=3>
+        									<select name="disaggr_rule" OnChange="">
+        										<option value="">선택</option>
+												#foreach( $choice in $!{disaggr_rules} )
+        											<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{disaggr_rule}") selected #end>$choice.get(1)</option>
+        										#end								
+        									</select>																	
+                                         </td>       								
+                                     </tr>
+									 <tr>
+										<td width="100" align="center" class="td1" rowspan="2">
+        									<span>수요예측 기준 </span>
+										</td>
+        								<td width="110" align="center" class="td1">
+        									<span>품목 그룹</span>
+        								</td>
+										
+										<td width="100" align="center" class="td1">
+        									<span>영업 그룹</span>
+        								</td> 
+										 
+										<td width="140" align="center" class="td1">
+        									<span>배송 그룹</span> 
+        								</td>																	
+        							</tr>
+        							<tr>        								
+        								<td width="110" align="left">
+        									<select name="item_lv" style="width:110">								
+        										#foreach( $choice in $!{prod_groups} )
+        											<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{item_lv}") selected #end >$choice.get(0) - $choice.get(1)</option>
+        										#end
+        									</select>
+        								</td>
+										
+										<td width="100" align="left">
+        									<select name="site_lv" style="width:100">        										
+        										#foreach( $choice in $!{sales_groups} )
+        											<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{site_lv}") selected #end >$choice.get(0) - $choice.get(1)</option>
+        										#end
+        									</select>
+        								</td>
+										
+										<td width="140" align="left">
+        									<select name="dc_lv" style="width:140">										
+        										#foreach( $choice in $!{delivery_groups} )
+        											<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{dc_lv}") selected #end >$choice.get(0) - $choice.get(1)</option>
+        										#end
+        									</select>
+        								</td>										
+        							</tr>
+        						</table>
+        					</td>        				
+							<td width="300" align="center" rowspan="3"> 
+        						<table height="21" border="0" cellpadding="0" cellspacing="0">
+									<tr>
+										<td width="20" align="center" class="td1" rowspan="2">										 
+											수<br>요<br>예<br>측 
+										</td>
+										<td width="240" align="left" class="td1" colspan=2>
+											<input type="checkbox" name="all_chk" value="$!{all_chk}" onClick="selectAll(this,document.frm.fcst_method,document.frm.methods);" #if("$!{all_chk}" == "Y") checked #end> 
+												전체선택
+										</td>
+									</tr>
+        							<tr>										
+        								<td width="250" align="left" colspan=2>						
+											<input type="hidden" name="methods" value="$!{methods}">
+        									<select type="list" style="width:250" name="fcst_method" multiple size="5" onClick="setTimeout('setValues(document.frm.fcst_method, document.frm.methods)',1000);">
+												#foreach( $choice in $!{forecasts_methods} )													
+        											<option value="$choice.get(0)">$choice.get(1)</option>
+												#end							 
+											</select>
+        								</td>       								
+                                     </tr>
+									 <tr>	
+										<td align="center" class="td1">
+											<input type="checkbox" name="is_analyze_data" value="$!{is_analyze_data}" onClick="check(this);" #if("$!{is_analyze_data}" == "Y") checked #end>											
+										</td>
+										<td align="center" class="td1">
+											<span>분석용 Data 포함</span>
+										</td>
+										
+										<td align="left" class="td1">
+											<input type="checkbox" name="is_pos_data" value="$!{is_pos_data}" onClick="checkPOS(this);" #if("$!{is_pos_data}" == "Y") checked #end>	
+											<span>POS DATA 사용</span>
+										</td>
+									</tr>
+									 <tr>	
+										<td align="center" class="td1">											
+											<input type="checkbox" name="other_account" value="$!{other_account}" onClick="check(this);" #if("$!{other_account}" == "Y") checked #end>
+										</td>
+										<td align="left" class="td1" colspan=2>
+											<span>&nbsp 타 계정실적 포함</span>
+										</td>
+									</tr>
+									 <script>
+									 	selectAll(document.frm.all_chk,document.frm.fcst_method,document.frm.methods);
+									 </script>
+                                 </table>
+        					 </td> 
+        				 </tr>
+						
+        		  		 <tr height="10"><td></td></tr> 
+        		     </table>					 
+    			 </div>
+				 <div class="tab-page" id="tabPage2">
+					<h2 class="tab">대상선정  Option</h2>
+					<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; display:block; ">
+        				<tr><td height="10"></td></tr>        				
+						<tr>
+        					<td width="700" align="right">
+        						<table height="21" border="0" cellpadding="0" cellspacing="0">  
+									<tr> 
+										<td align="left" colspan="3">
+											<input type="button" name="btnReg" value="   Filter" onClick="setTimeout(changeProductType1,1000);setTimeout(changeSalesCenter,1000);" class="btn_search_on">
+											<input type="button" name="btnReg" value="   Reset" onClick="resetProductType();resetSalesType();resetDc();" class="btn_search_on">	 
+										</td>
+										<td align="center" colspan="3">
+											<select name="hrchy_type" OnChange="changeTypeLevel(this);">												
+        										<option value="품종분류">제품</option>
+        										<option value="영업">영업</option>
+												<option value="물류거점">배송</option>									   										
+        									</select>
+											<select name="hrchy_lvl" OnChange="">
+												<option value="">---------</option>        										 										
+        									</select>
+											<input name="hrchy_name" type="text" value="$!{item_name}" class="normal" style="width:122px;" onFocus="this.value='';" onKeyPress="enterChangeHrchyTypes();"
+											><img name="searchBt1" src="$!{project}/sinc/template/basic/skin/nongshim/images/common/icon_search.gif" align="absmiddle" onClick="changeHrchyTypes();" style="cursor:pointer; " />
+											<script>
+												changeTypeLevel(document.frm.hrchy_type);
+											</script>
+										</td>										
+										<td align="center" colspan="2" class="td1" style="display:none;">
+											<input type="checkbox" name="modify_check" value="$!{modify_check}" onClick="check(this);" #if("$!{modify_check}" == "Y") checked #end> 
+											기존 수요예측 Update
+										</td>									 
+        							</tr>
+									<tr height="10"><td colspan="8"></td></tr>
+        							<tr> 
+										<td width="10" align="center" class="td1">
+											제<br>품<br>1<br>분<br>류<br>
+										</td>
+        								<td width="120" align="left">
+											#set( $count = 0 )
+											<input type="hidden" name="prod_1" value="$!{prod_1}">											
+        									<select type="list" style="width:120" name="prod_type1" multiple size="5" onClick="setTimeout('setValues(document.frm.prod_type1, document.frm.prod_1)',1000);">
+												#foreach( $choice in $!{product_type1} )
+													#set( $count = $count + 1)
+        											<option value="$choice.get(0)">$choice.get(0) - $choice.get(1)</option>
+												#end
+												#if( $count == 0 )
+													<option value="">해당 데이터 없음</option>
+												#end
+											</select>											
+        								</td>
+										<td width="10" align="center" class="td1">
+											제<br>품<br>2<br>분<br>류<br>
+										</td>										
+        								<td width="150" align="left">
+											#set( $count = 0 )										
+											<input type="hidden" name="prod_2" value="$!{prod_2}">
+        									<select type="list" style="width:150" name="prod_type2" multiple size="5" onClick="setTimeout('setValues(document.frm.prod_type2, document.frm.prod_2)',1000);">
+												#foreach( $choice in $!{product_type2} )
+													#set( $count = $count + 1)
+        											<option value="$choice.get(0)">$choice.get(0) - $choice.get(1)</option>
+												#end
+												#if( $count == 0 )
+													<option value="">해당 데이터 없음</option>	
+												#end	
+											</select>
+        								</td>
+										<td width="10" align="center" class="td1">
+											제<br>품<br>3<br>분<br>류<br>
+										</td>
+										<td width="200" align="left">
+											#set( $count = 0 )
+											<input type="hidden" name="prod_3" value="$!{prod_3}">
+        									<select type="list" style="width:200" name="prod_type3" multiple size="5" onClick="setTimeout('setValues(document.frm.prod_type3, document.frm.prod_3)',1000);">
+												#foreach( $choice in $!{product_type3} )
+        											#set( $count = $count + 1)
+													<option value="$choice.get(0)">$choice.get(0) - $choice.get(1)</option>
+												#end
+												#if( $count == 0 )
+													<option value="">해당 데이터 없음</option>	
+												#end	
+											</select>
+        								</td> 
+										<td width="10" align="center" class="td1">
+											품<br>목<br>
+										</td>
+										<td width="210" align="left">
+											#set( $count = 0 )
+											<input type="hidden" name="prod_4" value="$!{prod_4}">
+        									<select type="list" style="width:210" name="prod_type4" multiple size="5" onClick="setTimeout('setValues(document.frm.prod_type4, document.frm.prod_4)',1000);">
+												#foreach( $choice in $!{product_type4} )
+											
+        											#set( $count = $count + 1) 
+													<option value="$choice.get(0)">$choice.get(1)</option>
+												#end
+												#if( $count == 0 )
+													<option value="">해당 데이터 없음</option>
+												#end
+											</select>
+											
+        								</td>										
+        							</tr>
+        						</table>
+        					</td>        								  
+        				</tr>						
+        		  		<tr height="10"><td></td></tr>
+        		     </table>
+        			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; display:block; ">
+        				<tr><td height="10"></td></tr> 								
+						<tr>        				
+        					<td width="700" align="right">
+        						<table height="21" border="0" cellpadding="0" cellspacing="0">
+        							<tr>
+										<td width="10" align="center" class="td1"> 
+											영<br>업<br>본<br>부<br>
+										</td>
+        								<td width="120" align="left">
+											#set( $count = 0 )
+											<input type="hidden" name="sales_1" value="$!{sales_1}">
+        									<select type="list" style="width:120" name="sales_center" multiple size="5" onClick="setTimeout('setValues(document.frm.sales_center, document.frm.sales_1)',1000);">
+												#foreach( $choice in $!{sales_centers} )
+													#set( $count = $count + 1)
+        											<option value="$choice.get(0)">$choice.get(1)</option>
+												#end
+												#if( $count == 0 )
+													<option value="">해당 데이터 없음</option>	
+												#end	
+											</select>
+        								</td> 
+										<td width="10" align="center" class="td1">
+											영<br>업<br>부<br>
+										</td>
+        								<td width="150" align="left">
+											#set( $count = 0 )
+											<input type="hidden" name="sales_2" value="$!{sales_2}">
+        									<select type="list" style="width:150" name="sales_dept" multiple size="5" onClick="setTimeout('setValues(document.frm.sales_dept, document.frm.sales_2)',1000);">
+												#foreach( $choice in $!{sales_depts} )
+													#set( $count = $count + 1)
+        											<option value="$choice.get(0)">$choice.get(1)</option>
+												#end
+												#if( $count == 0 )
+													<option value="">해당 데이터 없음</option>	
+												#end
+											</select>
+        								</td>
+										<td width="10" align="center" class="td1">
+											영<br>업<br>지<br>점<br> 
+										</td>
+										<td width="200" align="left"> 
+											#set( $count = 0 )
+											<input type="hidden" name="sales_3" value="$!{sales_3}">
+        									<select type="list" style="width:200" name="sales_loc" multiple size="5" onClick="setTimeout('setValues(document.frm.sales_loc, document.frm.sales_3)',1000);">
+												#foreach( $choice in $!{sales_locs} )
+													#set( $count = $count + 1)
+        											<option value="$choice.get(0)">$choice.get(1)</option>
+												#end
+												#if( $count == 0 )
+													<option value="">해당 데이터 없음</option>	
+												#end
+											</select>
+        								</td>
+										<td width="10" align="center" class="td1">
+											배<br>송<br>지<br>점<br>  
+										</td>
+										<td width="210" align="left">
+											#set( $count = 0 )
+											<input type="hidden" name="delivery_1" value="$!{delivery_1}">
+        									<select type="list" style="width:210" name="delivery_loc" multiple size="5" onClick="setTimeout('setValues(document.frm.delivery_loc, document.frm.delivery_1)',1000);">
+												#foreach( $choice in $!{delivery_locs} )
+													#set( $count = $count + 1)
+        											<option value="$choice.get(0)">$choice.get(1)</option>
+												#end
+												#if( $count == 0 )
+													<option value="">해당 데이터 없음</option>
+												#end
+											</select>
+        								</td>
+                                     </tr>
+                                 </table>
+        					 </td>
+        				</tr>
+        		  		<tr height="10"><td></td></tr>
+        		     </table>
+    			 </div>				 
+			 </div>
+		 </td> 
+	 </tr>
+	 <tr height="10" class="line"><td></td></tr>
+	 <tr> 
+	 	 <td valign="top">
+			<iframe id="child" name="iframe" src="service.do?_moon_service=fc_03020_creationFcst_tailer&amp;_moon_pagenumber=1" width="100%" height="100%" scrolling="no" topmargin="0" leftmargin="0" frameborder="NO" border="0" framespacing="0"></iframe>
+		 </td>
+	 </tr>
+	 <input type="hidden" name="_moon_service" value="${_moon_service}">
+	 <input type="hidden" name="_moon_perpage"  value="${_moon_perpage}">
+	 <input type="hidden" name="_moon_pagenumber" value="${_moon_pagenumber}">
+</table>
+	
+## waiting 표시 영역
+<table width="100%" height="100%" id="waitArea" style="display:none; ">
+	<tr>
+		<td valign="middle" align="center">
+			<img src="sinc/template/basic/skin/nongshim/images/common/progress_waiting.gif" 
+				align="absmiddle" border="0" width="200px" height="60px">
+			<img src="sinc/template/basic/skin/nongshim/images/common/loading_icon.gif" 
+				align="absmiddle" border="0" width="60px" height="60px">
+			<br><h1>&nbsp;</h1><br><h1>&nbsp;</h1><br>
+		</td>
+	</tr>
+</table>

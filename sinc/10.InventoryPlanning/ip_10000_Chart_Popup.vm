@@ -1,0 +1,69 @@
+############################################################
+## 프로그램ID      : ip_10000_Chart_Popup.vm
+## 프로그램명      : Chart Popup
+## 개발자          : 남웅용
+## 개발일자        : 2014-05-27
+##
+## 관련 job file   : job_sinc_10_inventoryPlanning_04.xml
+## 관련 query file : query_sinc_10_inventoryPlanning_04.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2014-05-27  남웅용      create
+##
+############################################################
+
+
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+##set( $resizeFuncCallCode = "setGridAutoResize('79', '100')" )
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/scheduling.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+##<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+## 등록/수정 화면 이동한 후, 본 화면으로 이동할 때 조회조건을 기억하기 위한 parameter
+<input type="hidden" name="in_cnfm_date" value="$!{in_cnfm_date}">
+<input type="hidden" name="item_id" value="${item_id}">
+<input type="hidden" name="item_name" value="$!{item_name}">
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+    ## 기능 버튼 영역
+     ## TAB 영역
+    <tr>
+       <td valign="top">
+					  
+			<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table"> 
+				<tr>  
+					<td>	        
+				 		<input type="hidden" name="thisType" value="FCST">
+						<input type="hidden" name="itemCode" value="$!{itemCode}">
+						<input type="hidden" name="salesCode" value="$!{salesCode}">
+						<input type="hidden" name="dcCode" value="$!{dcCode}">
+						<input type="hidden" name="project" value="$!{project}">
+						<input type="hidden" name="title" value="$!{title}">
+						<input type="hidden" name="line1" value="$!{line1}">
+						<input type="hidden" name="line2" value="$!{line2}">
+						<input type="hidden" name="beforeFirstLine" value="$!{beforeFirstLine}"> 
+						<input type="hidden" name="firstLine" value="$!{firstLine}">
+						<input type="hidden" name="secondLine" value="$!{secondLine}">
+						<input type="hidden" name="headerCol" value="$!{headerCol}">
+						<input type="hidden" name="links" value="$!{links}">
+						<input type="hidden" name="maxValue" value="$!{maxValue}">
+						<input type="hidden" name="_user_id" value="$!{_user_id}">																	
+                 		<div id="my_chart" style="padding: 0px; margin:10px; border: 1px solid lightblue; width: 100%;"></div>  
+					</td>
+				</tr>
+			</table> 
+					
+		</td>
+    </tr>
+</table>
+
+<script>
+    
+    paintLineGraph();
+</script> 

@@ -1,0 +1,233 @@
+## 프로그램ID		:	ip_01130_import_md_PlanAnalysis_list_pop.vm
+## 프로그램명			:	수입상품 재고관리 품목별 팝업창
+## 개발자         	:	이강욱
+## 개발일자       	:	2015-04-06
+##
+## 관련 job file   : job_sinc_10_inventoryPlanning_07.xml.xml
+## 관련 query file : query_sinc_10_inventoryPlanning_07.xml.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2015-04-06	이강욱	신규
+
+############################################################
+   
+## 비정상적 접근 방지   
+#loginCheck()      
+## 화면 resizing 을 위한 size 변수   
+#set( $resizeFuncCallCode = "setGridAutoResize('79', '480')" )  ## ('79', '198')" )             
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/scheduling.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+
+## 두번째 와이즈 그리드 설정을 위한 변수 선언 
+<script language="javascript" for="WiseGrid" event="Initialize()">
+	init();
+</script>
+
+<!--  	서버와의 통신이 정상적으로 완료되면 발생한다.   -->
+<script language="javascript" for="WiseGrid" event="EndQuery()">
+	GridEndQuery();
+</script>	
+
+<script language=javascript for="WiseGrid" event="HeaderClick(strColumnKey)">
+ HeaderClick(strColumnKey);
+ </script> 
+ 
+<script language="javascript" for="WiseGrid2" event="Initialize()">
+	init2();
+</script>
+<!--  	서버와의 통신이 정상적으로 완료되면 발생한다.   -->
+<script language="javascript" for="WiseGrid2" event="EndQuery()">
+	GridEndQuery2();
+</script>	
+<script language="javascript" for="WiseGrid3" event="Initialize()">
+	init3();
+</script>
+<!--  	서버와의 통신이 정상적으로 완료되면 발생한다.   -->
+<script language="javascript" for="WiseGrid3" event="EndQuery()">
+	GridEndQuery3();
+</script>		
+
+	
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">	
+    ## 조회 영역
+	## TAB 영역
+	##<br>
+	<tr>
+		<td>
+			<table>  
+				<tr>
+                	<td width="100%" valign="top" align="left" >
+            			<font color="black">
+            			<input type="text" name="test" class="normal" style="width:0px; text-align:left; font:12px/15px 맑은 고딕 bold; ">			
+            				<b>$!{item_id} - $!{item_name}</b> &nbsp;						
+							##<b>유통기한 : $number.format($ip_01130_get_term_val.get(0).get(0))</b> &nbsp; ||	&nbsp;
+							##<b>유통기한 경과율 : $number.format($ip_01130_get_term_val.get(0).get(1))</b> 
+						 </font>   			
+            			<input type="hidden" name="item_id" value ="$!{item_id}">								
+            			<input type="hidden" name="item_name" value ="$!{item_name}">
+						<input type="hidden" name="cnfm_date" value ="$!{cnfm_date}">
+						<input type="hidden" name="no_flag" value ="$!{no_flag}">
+						<input type="hidden" name="three_mon" value ="$!{three_mon}">
+						<input type="hidden" name="week_flag" value ="$!{week_flag}">						
+						<input type="hidden" name="simul_data_org" value ="$!{simul_data_org}">
+						<input type="hidden" name="user_id" value ="$!{user_id}">
+						
+            		</td>
+				</tr>
+				<tr>
+					<td width="100%" valign="top" align="left" >
+            			<font color="black">
+            			<input type="text" name="test" class="normal" style="width:0px; text-align:left; font:12px/15px 맑은 고딕 bold; ">
+							<b>1개월평균 : $number.format($ip_01130_get_sales_mean_month.get(0).get(1))</b>&nbsp; ||	&nbsp;
+							<b>3개월평균 : $number.format($ip_01130_get_sales_mean_month.get(0).get(2))</b>&nbsp; ||	&nbsp;
+							<b>1/3개월평균 : $number.format($ip_01130_get_sales_mean_month.get(0).get(3))</b> &nbsp; ||	&nbsp;
+							<b>Container Box : $number.format($ip_01130_get_container_box.get(0).get(0))</b> &nbsp; ||	&nbsp;
+							<b>Pallet Box : $number.format($ip_01130_get_palet_box.get(0).get(0))</b> &nbsp; ||	&nbsp;
+							<b>유통기한 : $number.format($ip_01130_get_term_val.get(0).get(0))</b> &nbsp; ||	&nbsp;
+							<b>유통기한 경과율 : $number.format($ip_01130_get_term_val.get(0).get(1))</b> 
+						 </font> 
+            		</td>
+				</tr>
+				<tr>
+					<td width="80%" valign="top" align="left" >
+						<input type="radio" name="checked_button" value="Y_1" style="border:0px; "
+							onClick="this.checked" #if($!{checked_button} == "Y_1") checked #else #end >2014</input>
+						<input type="radio" name="checked_button" value="Y_2" style="border:0px; "
+							onClick="this.checked" #if($!{checked_button} == "Y_2") checked #else #end>2013</input>
+						<input type="radio" name="checked_button" value="Y_3" style="border:0px; "
+							onClick="this.checked" #if($!{checked_button} == "Y_3") checked #else #end>2012</input>&nbsp;
+						<input type="text" name="simul_data" size="60" class="normal" onKeyPress="enterCheck('$_moon_service'); " 
+            				style="width:60px; padding-left:1px; " onBlur="; " onClick="; " 
+            				onChange="" value="$commonUtil.replaceQuot($!{simul_data_org})">
+						<input type="button" name="btnSearch" value="Simulation"  onClick="refresh('simul');"  	class="btn1_on">
+						&nbsp;					
+						<input type="text" style="width:60px; padding-left:1px;" name="expect_data" class="normal" size="60">
+						<input type="button" name="btnSearch" value="사용자예측"  onClick="setExpectData();"  class="btn1_on">
+						&nbsp;&nbsp;
+						<input type="button" name="btnSearch" value="Month"  onClick="paintLineGraph2_Week();"  class="btn1_on">
+						<input type="button" name="btnSearch" value="Week"   onClick="paintLineGraph2();"  		class="btn1_on">
+						&nbsp;	
+            			<b>저장 메세지</b> 
+						<input type="text" name="reason" class="normal" style="width:100px; text-align:left; maxlength:100; font:12px/15px 맑은 고딕 bold; ">
+						&nbsp;&nbsp;
+						<input type="text" name="totalSum" value="0" style="width:50px; text-align:right; " size="10" readOnly class="normal"/>						 
+						<input name="btnSelectedChangeRow" type="button" value="합계" style="width:50px; text-align:center;" onClick="sel_data_sum(this); " ##clickLine(this,1); 
+                							class="button1_1" onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'">
+						<input type="text" name="totalAvg" value="0" style="width:50px; text-align:right; " size="10" readOnly class="normal"/>						 
+						<input name="btnSelectedChangeRow2" type="button" value="평균" style="width:50px; text-align:center;" onClick="sel_data_avg(this); " ##clickLine(this,1); 
+                							class="button1_1" onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'">
+						
+						&nbsp;&nbsp;					
+						<input type="button" name="btnSave" 	value="  저장" onClick="GoSave();" class="btn_sav_on" >
+					
+					</td>
+				</tr>			
+			</table>
+		</td>
+	</tr>
+	<tr>
+        <td width="100%" valign="top">
+            <table border="0" width="100%" cellpading="0" cellspacing="0">
+                <tr height="2">
+                    <td colspan="3" style="background-color:#d0d0d0; " ></td>
+                </tr>
+                <tr height="2">
+					<td colspan="3" style="background-color:#d0d0d0; " ></td>
+				</tr>
+            </table>
+        </td> 
+    </tr>
+    <tr>
+        <td align="left" width="100%" height="65px">        
+            <script>initWiseGrid("WiseGrid2", "100%", "100%");</script>
+        </td>  
+	</tr> 
+	 <tr>
+        <td align="left" width="100%" height="65px">   
+            <script>initWiseGrid("WiseGrid3", "100%", "100%");</script>
+        </td>
+	</tr>
+	<tr>
+        <td width="100%" valign="top">
+            <table border="0" width="100%" cellpading="0" cellspacing="0">
+                <tr height="5">
+                    <td colspan="3" style="background-color:#d0d0d0; " ></td>
+                </tr>
+                <tr height="5">
+					<td colspan="3" style="background-color:#d0d0d0; " ></td>
+				</tr>
+            </table>
+        </td> 
+    </tr>
+	<input name="search_h" type="hidden" value="45"> ## search 조건 부분 높이 
+    <tr>    
+        <td align="left" width="100%" height="210px"> 
+            <script>initWiseGrid("WiseGrid", "100%", "100%");</script>
+        </td>
+	</tr>
+	## TAB 영역
+    <tr>
+        <td valign="top">
+        ## tab 좌측 여백
+        ##tabLeft()               
+            <table height="2"><tr><td></td></tr></table>
+            <table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+                <input type="hidden" name="_moon_service" value="${_moon_service}">
+                <input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+               ## <input type="hidden" name="_user_id" value="$!{_user_id}">
+            </td></tr></table>
+            
+            
+        </td>
+    </tr>
+	<tr>
+       <td valign="top">
+					  
+			<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table"> 
+				<tr>  
+					<td>	        
+				 		<input type="hidden" name="thisType" value="FCST">
+						<input type="hidden" name="itemCode" value="$!{itemCode}">
+						<input type="hidden" name="salesCode" value="$!{salesCode}">
+						<input type="hidden" name="dcCode" value="$!{dcCode}">
+						<input type="hidden" name="project" value="$!{project}">
+						<input type="hidden" name="title" value="$!{title}">
+						<input type="hidden" name="line1" value="$!{line1}">
+						<input type="hidden" name="line2" value="$!{line2}">
+						<input type="hidden" name="beforeFirstLine" value="$!{beforeFirstLine}"> 
+						<input type="hidden" name="firstLine" value="$!{firstLine}">
+						<input type="hidden" name="secondLine" value="$!{secondLine}">
+						<input type="hidden" name="headerCol" value="$!{headerCol}">
+						<input type="hidden" name="links" value="$!{links}">
+						<input type="hidden" name="maxValue" value="$!{maxValue}">
+						<input type="hidden" name="_user_id" value="$!{_user_id}">																	
+                 		<div id="my_chart" style="padding: 0px; margin:10px; border: 1px solid lightblue; width: 100%;"></div>  
+					</td>
+				</tr>
+			</table> 
+					
+		</td>
+    </tr>
+</table>
+
+<script>
+    
+    // 화면 resize
+    $!{resizeFuncCallCode};
+    function window.onresize() { $!{resizeFuncCallCode}; }
+	//init();
+	//GoSearch();
+    
+    // 도움말 내용 입력
+    var helpStr = "◈ ";    
+    helpCont.innerHTML = helpStr;
+    hDynamicHeight = 0; 
+           
+</script> 

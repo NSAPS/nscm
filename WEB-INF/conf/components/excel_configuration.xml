@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+<excel_information>
+	<upload_excels>
+		<excels>
+			<!-- SO 등록 -->
+			<excel service = "sales_order_creation_excel" paging="false">
+				<start_row>2</start_row>	
+				<matches>
+					<match idx="0"><col>0</col></match> 
+					<match idx="1"><col>1</col></match> 
+					<match idx="2"><col>2</col></match> 
+					<match idx="3"><col>3</col></match> 
+					<match idx="4"><col>4</col></match> 
+					<match idx="5"><col>5</col></match> 
+				</matches>								
+			</excel> 
+			<!-- 일간생산계획 분석(재구성) -->
+			<excel service = "sc_11020_dailyProductionPlanAnalysisNew_list_excelUp" paging="false">
+				<start_row>3</start_row>
+				<matches>
+					<match idx="0"><col>0</col></match> 
+					<match idx="1"><col>1</col></match> 
+					<match idx="2"><col>2</col></match> 
+					<match idx="3"><col>3</col></match> 
+					<match idx="4"><col>4</col></match> 
+					<match idx="5"><col>5</col></match>
+					<match idx="6"><col>6</col></match> 
+					<match idx="7"><col>7</col></match> 
+					<match idx="8"><col>8</col></match> 
+					<match idx="9"><col>9</col></match> 
+					<match idx="10"><col>10</col></match> 
+					<match idx="11"><col>11</col></match> 
+					<match idx="12"><col>12</col></match> 
+					<match idx="13"><col>13</col></match> 
+					<match idx="14"><col>14</col></match> 
+					<match idx="15"><col>15</col></match> 
+					<match idx="16"><col>16</col></match> 
+					<match idx="17"><col>17</col></match>
+					<match idx="18"><col>18</col></match> 
+					<match idx="19"><col>19</col></match> 
+					<match idx="20"><col>20</col></match> 
+					<match idx="21"><col>21</col></match> 
+					<match idx="22"><col>22</col></match> 
+					<match idx="23"><col>23</col></match> 
+					<match idx="24"><col>24</col></match> 
+					<match idx="25"><col>25</col></match>
+					<match idx="26"><col>26</col></match> 
+					<match idx="27"><col>27</col></match> 
+					<match idx="28"><col>28</col></match> 
+					<match idx="29"><col>29</col></match> 
+					<match idx="30"><col>30</col></match> 
+					<match idx="31"><col>31</col></match> 
+					<match idx="32"><col>32</col></match> 
+					<match idx="33"><col>33</col></match> 
+					<match idx="34"><col>34</col></match> 
+					<match idx="35"><col>35</col></match> 
+					<match idx="36"><col>36</col></match> 
+					<match idx="37"><col>37</col></match> 
+					<match idx="38"><col>38</col></match>
+					<match idx="39"><col>39</col></match>
+				</matches>								
+			</excel> 
+			<!-- 일간 반제품 생산계획 분석(재구성) -->
+			<excel service = "sc_12020_dailySemifinishedProductPlanAnalysisNew_list_excelUp" paging="false">
+				<start_row>3</start_row>
+				<matches>
+					<match idx="0"><col>0</col></match> 
+					<match idx="1"><col>1</col></match> 
+					<match idx="2"><col>2</col></match> 
+					<match idx="3"><col>3</col></match> 
+					<match idx="4"><col>4</col></match> 
+					<match idx="5"><col>5</col></match>
+					<match idx="6"><col>6</col></match> 
+					<match idx="7"><col>7</col></match> 
+					<match idx="8"><col>8</col></match> 
+					<match idx="9"><col>9</col></match> 
+					<match idx="10"><col>10</col></match> 
+					<match idx="11"><col>11</col></match> 
+					<match idx="12"><col>12</col></match> 
+					<match idx="13"><col>13</col></match> 
+					<match idx="14"><col>14</col></match> 
+					<match idx="15"><col>15</col></match> 
+					<match idx="16"><col>16</col></match> 
+					<match idx="17"><col>17</col></match>
+					<match idx="18"><col>18</col></match> 
+					<match idx="19"><col>19</col></match> 
+					<match idx="20"><col>20</col></match> 
+					<match idx="21"><col>21</col></match> 
+					<match idx="22"><col>22</col></match> 
+					<match idx="23"><col>23</col></match> 
+					<match idx="24"><col>24</col></match> 
+					<match idx="25"><col>25</col></match>
+					<match idx="26"><col>26</col></match> 
+					<match idx="27"><col>27</col></match> 
+					<match idx="28"><col>28</col></match> 
+					<match idx="29"><col>29</col></match> 
+					<match idx="30"><col>30</col></match> 
+					<match idx="31"><col>31</col></match> 
+					<match idx="32"><col>32</col></match> 
+					<match idx="33"><col>33</col></match> 
+					<match idx="34"><col>34</col></match> 
+					<match idx="35"><col>35</col></match> 
+					<match idx="36"><col>36</col></match> 
+					<match idx="37"><col>37</col></match> 
+					<match idx="38"><col>38</col></match>
+					<match idx="39"><col>39</col></match>
+				</matches>								
+			</excel> 
+		</excels>
+	</upload_excels>
+	
+	<download_excels>
+		<configuration>
+			<template_path>C:\test</template_path>
+			<sheet_paging>200</sheet_paging>
+			<fetch_all>false</fetch_all>
+		</configuration>
+		<excels>
+		
+			<excel service = "sc_11020_dailyProductionPlanAnalysisNew_list_excelDown" type="simple_list">
+				<title_query>excel_down_title</title_query>
+				<query>sc_11020_dailyProductionPlanAnalysisNew_list_excelDown</query>
+				<start_note>start_note</start_note>
+				<matches>
+					<match idx="0"><col>0</col><type>A</type><caption>공장</caption></match>
+					<match idx="1"><col>1</col><type>A</type><caption>원가부문</caption></match>
+					<match idx="2"><col>2</col><type>A</type><caption>작업장</caption></match>
+					<match idx="3"><col>3</col><type>A</type><caption>제품코드</caption></match>
+					<match idx="4"><col>4</col><type>A</type><caption>제품명</caption></match>
+					<match idx="5"><col>5</col><type>A</type><caption>규격</caption></match>
+					<match idx="6"><col>6</col><type>A</type><caption>TO여</caption></match>
+					<match idx="7"><col>7</col><type>A</type><caption>구분</caption></match>
+					<match idx="8"><col>8</col><type>A</type><caption>오더번호</caption></match>
+					<match idx="9"><col>9</col><type>A</type><caption>조</caption></match>
+					<match idx="10"><col>10</col><type>A</type><caption>주</caption></match>
+					<match idx="11"><col>11</col><type>A</type><caption>야</caption></match>
+					<match idx="12"><col>12</col><type>A</type><caption>조</caption></match>
+					<match idx="13"><col>13</col><type>A</type><caption>주</caption></match>
+					<match idx="14"><col>14</col><type>A</type><caption>야</caption></match>
+					<match idx="15"><col>15</col><type>A</type><caption>조</caption></match>
+					<match idx="16"><col>16</col><type>A</type><caption>주</caption></match>
+					<match idx="17"><col>17</col><type>A</type><caption>야</caption></match>
+					<match idx="18"><col>18</col><type>A</type><caption>조</caption></match>
+					<match idx="19"><col>19</col><type>A</type><caption>주</caption></match>
+					<match idx="20"><col>20</col><type>A</type><caption>야</caption></match>
+					<match idx="21"><col>21</col><type>A</type><caption>조</caption></match>
+					<match idx="22"><col>22</col><type>A</type><caption>주</caption></match>
+					<match idx="23"><col>23</col><type>A</type><caption>야</caption></match>
+					<match idx="24"><col>24</col><type>A</type><caption>조</caption></match>
+					<match idx="25"><col>25</col><type>A</type><caption>주</caption></match>
+					<match idx="26"><col>26</col><type>A</type><caption>야</caption></match>
+					<match idx="27"><col>27</col><type>A</type><caption>조</caption></match>
+					<match idx="28"><col>28</col><type>A</type><caption>주</caption></match>
+					<match idx="29"><col>29</col><type>A</type><caption>야</caption></match>
+					<match idx="30"><col>30</col><type>A</type><caption>합계</caption></match>
+					<match idx="31"><col>31</col><type>A</type><caption>공장코드</caption></match>
+					<match idx="32"><col>32</col><type>A</type><caption>버전</caption></match>
+					<match idx="33"><col>33</col><type>A</type><caption>SEQ</caption></match>
+					<match idx="34"><col>34</col><type>A</type><caption>원가부문코드</caption></match>
+					<match idx="35"><col>35</col><type>A</type><caption>라인코드</caption></match>
+					<match idx="36"><col>36</col><type>A</type><caption>작업장코드</caption></match>
+					<match idx="37"><col>37</col><type>A</type><caption>시작일</caption></match>
+				</matches>
+			</excel>
+			
+			<excel service = "sample_list_excel" type="simple_list">
+				<query>sample_list</query>
+				<start_note>start_note</start_note>
+				<matches>
+					<match idx="0"><col>0</col><type>A</type><caption>컬럼 1</caption></match>
+					<match idx="1"><col>3</col><type>A</type><caption>컬럼 2</caption></match>
+					<match idx="2"><col>2</col><type>A</type><caption>컬럼 3</caption></match>
+					<match idx="3"><col>1</col><type>1</type><caption>컬럼 4</caption></match>
+				</matches>
+			</excel>
+			
+			<excel service = "sample_complex_excel" type="complex_list">
+				<query>sample_list</query>
+				<template>sample_list.xls</template>
+				<!--<start_note>start_note</start_note>-->
+				<matches>
+					<match idx="0"><col>0</col><type>A</type><caption>컬럼 1</caption></match>
+					<match idx="1"><col>3</col><type>A</type><caption>컬럼 2</caption></match>
+					<match idx="2"><col>2</col><type>A</type><caption>컬럼 3</caption></match>
+					<match idx="3"><col>1</col><type>A</type><caption>컬럼 4</caption></match>
+				</matches>
+			</excel>
+			
+			<excel service = "list_down_excels" type="simple_list">
+				<query>excel_list</query>
+				<matches>
+					<match idx="0"><col>0</col><type>1</type><caption>USER SEQ</caption></match>
+					<match idx="1"><col>1</col><type>A</type><caption>LOGIN ID</caption></match>
+					<match idx="2"><col>2</col><type>A</type><caption>USER_NAME</caption></match>					
+				</matches>
+			</excel>
+			
+		</excels> 
+	</download_excels>
+</excel_information>
+

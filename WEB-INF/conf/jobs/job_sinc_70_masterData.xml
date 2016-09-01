@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+<!--
+=====================================================================================================
+	기준정보 >> 계획수립
+=====================================================================================================
+-->
+	
+	<!--
+	======================================================================
+		일간계획
+	======================================================================
+	-->
+	
+	<!-- 일간계획 -->
+	<job id="md_00010_controlBoardDaily_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 계획수립 >> 일간계획</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>일간계획 실행</title>
+		<authority>1</authority>		
+		<description>일간계획 실행</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="md_00010_periodVersion_list" datasource="t3sinc"/>
+			<query idref="md_00010_controlBoardDaily_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 일간계획 : 기준정보관리 POPUP -->
+	<job id="md_00010_controlBoardDaily_masterData_pop" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 계획수립 >> 일간계획 >> 기준정보관리</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>기준정보관리</title>
+		<authority>1</authority>		
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="md_00010_controlBoardDaily_masterData_pop" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 일간계획 : IF 진행 POPUP -->
+	<job id="md_00010_controlBoardDaily_execIf_pop" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 계획수립 >> 일간계획 >> IF 진행</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>IF 진행</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="md_00010_controlBoardDaily_execIf_pop_hrzn" datasource="t3sinc"/> <!-- HORIZON 정보 -->
+			<query idref="md_00010_controlBoardDaily_execIf_pop" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 일간계획 : IF 결과조회 POPUP -->
+	<job id="md_00010_controlBoardDaily_viewIf_pop" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 계획수립 >> 일간계획 >> IF 결과조회</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>IF 결과조회</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="md_00010_controlBoardDaily_viewIf_pop" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 일간계획 : 계획수립 진행 POPUP -->
+	<job id="md_00010_controlBoardDaily_execPlan_pop" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 계획수립 >> 일간계획 >> 계획수립 진행</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>계획수립 진행</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="md_00010_controlBoardDaily_execPlan_pop" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 일간계획 : 계획수립 결과조회 POPUP -->
+	<job id="md_00010_controlBoardDaily_viewPlan_pop" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 계획수립 >> 일간계획 >> 계획수립 결과조회</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>계획수립 결과조회</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="md_00010_controlBoardDaily_viewPlan_pop" datasource="t3sinc"/> <!-- 버전 정보 조회 -->
+			<query idref="md_00010_controlBoardDaily_viewPlan_pop_if" datasource="t3sinc"/> <!-- IF LOG 조회 -->
+		</queries>
+	</job>
+	
+	<!-- 일간계획 : ERP 전송 결과조회 POPUP -->
+	<job id="md_00010_controlBoardDaily_viewIfErp_pop" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 계획수립 >> 일간계획 >> ERP 전송 결과조회</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>ERP 전송 결과조회</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="md_00010_controlBoardDaily_viewIfErp_pop" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 일간계획 : 계획차수 증가 -->
+	<job id="md_00010_controlBoardDaily_addRunSeq_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_00010_controlBoardDaily_addRunSeq"/>		
+		<sub_job id="md_00010_controlBoardDaily_list"/>
+		<permission_desc>일간계획-계획차수증가</permission_desc>
+	</job>
+	<job id="md_00010_controlBoardDaily_addRunSeq" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="md_00010_controlBoardDaily_addRunSeq" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 일간계획 : 강제상태설정 -->
+	<job id="md_00010_controlBoardDaily_setStatus_comp" job_type="composite" check_permission="yes">
+		<sub_job id="md_00010_controlBoardDaily_setStatus"/>		
+		<sub_job id="md_00010_controlBoardDaily_list"/>
+		<permission_desc>일간계획-강제상태설정</permission_desc>
+	</job>
+	<job id="md_00010_controlBoardDaily_setStatus" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="md_00010_controlBoardDaily_setStatus" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!--
+	======================================================================
+		월간계획
+	======================================================================
+	-->
+	
+	<!-- 월간계획 -->
+	<job id="md_00030_controlBoardMonthly_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 계획수립 >> 월간계획</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>월간계획 실행</title>
+		<authority>1</authority>		
+		<description>월간계획 실행</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="md_00010_periodVersion_list" datasource="t3sinc"/>
+			<query idref="md_00030_controlBoardMonthly_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+<!--
+=====================================================================================================
+	기준정보 >> 공통
+=====================================================================================================
+-->
+	
+	<!--
+	======================================================================
+		코드 관리
+	======================================================================
+	-->
+	
+	<!-- 코드 조회 -->
+	<job id="md_01030_codeMasterManagement_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 공통 >> 코드 관리</navigation>
+		<toolbars>1000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>코드 조회</title>
+		<authority>1</authority>		
+		<description>코드 조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="md_01030_codeMasterManagement_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 코드 등록 -->
+	<job id="md_01030_codeMasterManagement_reg" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 공통 >> 코드 관리 >> 등록</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>코드 등록</title>
+		<authority>1</authority>		
+		<description>코드 등록</description>
+		<request_type>list</request_type>
+	</job>
+	
+	<!-- 코드 등록 : 저장 -->
+	<job id="md_01030_codeMasterManagement_reg_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_01030_codeMasterManagement_reg_save"/>		
+		<sub_job id="md_01030_codeMasterManagement_list"/>
+		<permission_desc>코드 등록-저장</permission_desc>
+	</job>
+	<job id="md_01030_codeMasterManagement_reg_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="md_01030_codeMasterManagement_reg_save_01" datasource="t3sinc"/>
+			<query idref="md_01030_codeMasterManagement_reg_save_02" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 코드 수정 -->
+	<job id="md_01030_codeMasterManagement_mod" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 공통 >> 코드 관리 >> 수정</navigation>
+		<toolbars>0011</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>코드 수정</title>
+		<authority>1</authority>		
+		<description>코드 수정</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="md_01030_codeMasterManagement_mod" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 코드 수정 : 저장 -->
+	<job id="md_01030_codeMasterManagement_mod_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_01030_codeMasterManagement_mod_save"/>		
+		<sub_job id="md_01030_codeMasterManagement_list"/>
+		<permission_desc>코드 수정-저장</permission_desc>
+	</job>
+	<job id="md_01030_codeMasterManagement_mod_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<!-- 01. 해당 코드 그룹 전체 삭제 -->
+			<!-- 02. 해당 코드 그룹 전체 INSERT -->
+			<query idref="md_01030_codeMasterManagement_mod_save_01" datasource="t3sinc"/>
+			<query idref="md_01030_codeMasterManagement_mod_save_02" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 코드 수정 : 삭제 -->
+	<job id="md_01030_codeMasterManagement_mod_del_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_01030_codeMasterManagement_mod_del"/>		
+		<sub_job id="md_01030_codeMasterManagement_list"/>
+		<permission_desc>코드 수정-삭제</permission_desc>
+	</job>
+	<job id="md_01030_codeMasterManagement_mod_del" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<!-- 01. 해당 코드 그룹 최상위 코드 그룹에서 삭제 -->
+			<!-- 02. 해당 코드 그룹 삭제 -->
+			<query idref="md_01030_codeMasterManagement_mod_del_01" datasource="t3sinc"/>
+			<query idref="md_01030_codeMasterManagement_mod_del_02" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!--
+	======================================================================
+		계획구간정보 관리
+	======================================================================
+	-->
+	
+	<!-- 계획구간정보 조회 -->
+	<job id="md_01040_horizonInfoManagement_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 공통 >> 계획구간정보 관리</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>계획구간정보 조회</title>
+		<authority>1</authority>		
+		<description>계획구간정보 조회</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="md_01050_period_type_list" datasource="t3sinc"/> <!-- 계획주기 리스트 -->
+			<query idref="md_01050_cat_id_list" datasource="t3sinc"/> <!-- 계획부문 리스트 -->
+			<query idref="md_01040_horizonInfoManagement_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 계획구간정보 관리 : 저장 -->
+	<job id="md_01040_horizonInfoManagement_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_01040_horizonInfoManagement_list_save"/>		
+		<sub_job id="md_01040_horizonInfoManagement_list"/>
+		<permission_desc>계획구간정보 관리-저장</permission_desc>
+	</job>
+	<job id="md_01040_horizonInfoManagement_list_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<!-- 01. HORIZON_INFO 에서 해당 계획주기 레코드 전체 DELETE -->
+			<!-- 02. HORIZON_INFO 에 데이터 INSERT -->
+			<query idref="md_01040_horizonInfoManagement_list_save_01" datasource="t3sinc"/>
+			<query idref="md_01040_horizonInfoManagement_list_save_02" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!--
+	======================================================================
+		엔진배치마스터 관리
+	======================================================================
+	-->
+	
+	<!-- 엔진배치마스터 조회 -->
+	<job id="md_01050_engineBatchMaster_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 공통 >> 엔진배치마스터 관리</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>엔진배치마스터 조회</title>
+		<authority>1</authority>		
+		<description>엔진배치마스터 조회</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="md_01050_period_type_list" datasource="t3sinc"/> <!-- 계획주기 리스트 -->
+			<query idref="md_01050_cat_id_list" datasource="t3sinc"/> <!-- 계획부문 리스트 -->
+			<query idref="md_01050_sub_cat_and_plant_id_list" datasource="t3sinc"/> <!-- SUB_CAT and PLANT_ID 리스트 -->
+			<query idref="md_01050_engineBatchMaster_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 엔진배치마스터 관리 : 저장 -->
+	<job id="md_01050_engineBatchMaster_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_01050_engineBatchMaster_list_save"/>		
+		<sub_job id="md_01050_engineBatchMaster_list"/>
+		<permission_desc>엔진배치마스터 관리-저장</permission_desc>
+	</job>
+	<job id="md_01050_engineBatchMaster_list_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<!-- 01. ENGN_BAT_MST 에서 해당 계획주기 레코드 전체 DELETE -->
+			<!-- 02. ENGN_BAT_MST 에 데이터 INSERT -->
+			<query idref="md_01050_engineBatchMaster_list_save_01" datasource="t3sinc"/>
+			<query idref="md_01050_engineBatchMaster_list_save_02" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 엔진배치마스터 상세조회 -->
+	<job id="md_01050_engineBatchMaster_detail" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 공통 >> 엔진배치마스터 관리</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>엔진배치마스터 상세조회</title>
+		<authority>1</authority>		
+		<description>엔진배치마스터 상세조회</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="md_01050_period_type_list" datasource="t3sinc"/> <!-- 계획주기 리스트 -->
+			<query idref="md_01050_period_type_to_plant_id_list" datasource="t3sinc"/> <!-- 계획주기 to PLANT_ID 리스트 -->
+			<query idref="md_01050_job_type_list" datasource="t3sinc"/> <!-- JOB_TYPE 리스트 -->
+			<query idref="md_01050_engineBatchMaster_detail" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 엔진배치마스터 상세조회 : 저장 -->
+	<job id="md_01050_engineBatchMaster_detail_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_01050_engineBatchMaster_detail_save"/>		
+		<sub_job id="md_01050_engineBatchMaster_detail"/>
+		<permission_desc>엔진배치마스터 상세조회-저장</permission_desc>
+	</job>
+	<job id="md_01050_engineBatchMaster_detail_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<!-- 01. ENGN_BAT_JOB_INFO 에서 해당 계획부문 JOB TYPE 레코드 전체 DELETE -->
+			<!-- 02. ENGN_BAT_JOB_INFO 에 데이터 INSERT -->
+			<query idref="md_01050_engineBatchMaster_detail_save_01" datasource="t3sinc"/>
+			<query idref="md_01050_engineBatchMaster_detail_save_02" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!--
+	======================================================================
+		제품/반제품 BOM 조회
+	======================================================================
+	-->
+	
+	<!-- 제품/반제품 BOM 조회 -->
+	<job id="md_10020_fert_and_halb_bom_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 공통 >> 제품/반제품 BOM 조회</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>제품/반제품 BOM 조회</title>
+		<authority>1</authority>		
+		<description>제품/반제품 BOM 조회</description>
+		<request_type>list</request_type>
+		<queries>
+		</queries>
+	</job>
+
+
+
+
+	
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</jobs>	

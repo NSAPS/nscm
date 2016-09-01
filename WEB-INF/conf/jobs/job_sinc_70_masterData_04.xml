@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+<!--
+=====================================================================================================
+	기준정보>>생산계획>>설비운영칼렌다 관리
+=====================================================================================================
+--> 
+	
+	<!-- 
+	=======================
+	  설비운영칼렌다 관리
+	=======================
+	-->
+
+	<!-- 설비운영칼렌다 조회 --> 
+	<job id="md_04110_workCenterCalendar_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 생산계획 >> 설비운영칼렌다 관리</navigation>
+		<toolbars>1000</toolbars>
+		<title>설비운영칼렌다 관리</title>
+		<authority>1</authority>		
+		<description>설비운영칼렌다 관리</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="md_04110_combo_plant" datasource="t3sinc"/>
+			<query idref="md_04110_combo_line" datasource="t3sinc"/>
+			<query idref="md_04110_combo_cycleType" datasource="t3sinc"/>
+			<query idref="md_04110_combo_calGrp" datasource="t3sinc"/>
+			<query idref="md_04110_workCenterCalendar_list" datasource="t3sinc"/>
+		</queries>
+	</job> 
+
+	<!-- 설비운영칼렌다 수정 --> 
+	<job id="md_04110_workCenterCalendar_mod" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 생산계획 >> 생산칼렌더관리>> 수정</navigation>
+		<toolbars>0010</toolbars>
+		<title>생산칼렌더 수정</title>
+		<authority>1</authority>		
+		<description>생산칼렌더 수정</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="md_04110_combo_plant" datasource="t3sinc"/>
+			<query idref="md_04110_combo_line" datasource="t3sinc"/>
+			<query idref="md_04110_combo_workCenter" datasource="t3sinc"/>
+			<query idref="md_04110_combo_cycleType" datasource="t3sinc"/>
+			<query idref="md_04110_combo_calType" datasource="t3sinc"/>
+			<query idref="md_04110_combo_YN" datasource="t3sinc"/>
+			<query idref="md_04110_combo_calGrp" datasource="t3sinc"/>
+			<query idref="md_04110_workCenterCalendar_list" datasource="t3sinc"/>
+		</queries>
+	</job> 
+ 
+	<!-- 설비운영칼렌다 수정 : 저장 -->
+	<job id="md_04110_workCenterCalendar_mod_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_04110_workCenterCalendar_mod_save"/>
+		<sub_job id="md_04110_workCenterCalendar_mod"/>
+		<permission_desc>생산칼렌다 수정-저장</permission_desc>
+	</job>
+
+	<job id="md_04110_workCenterCalendar_mod_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<!-- 01. 해당 Plant의 설비운영칼렌다 OLD항목 삭제 -->
+			<!-- 02. 해당 Plant의 설비운영칼렌다 NEW항목 삭제 -->
+			<!-- 03. 해당 Plant의 설비운영칼렌다 모든항목 INSERT -->
+			<query idref="md_04110_workCenterCalendar_mod_save_01" datasource="t3sinc"/>
+			<query idref="md_04110_workCenterCalendar_mod_save_02" datasource="t3sinc"/>
+			<query idref="md_04110_workCenterCalendar_mod_save_03" datasource="t3sinc"/>
+			<!--조 운영 캘린더 변경시 V_WORK_DIARY_IDX의 데이터를 변경하기 위해  -->
+			<!--1. V_WORK_DIARY_IDX delete  -->
+			<!--2. V_WORK_DIARY_IDX2 데이터를 V_WORK_DIARY_IDX에 insert  -->
+			<query idref="v_work_diary_idx_del" datasource="t3sinc"/>
+			<query idref="v_work_diary_idx_save" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+	<!-- 
+	=======================
+	  운영라인정보 관리
+	=======================
+	-->
+	<!-- 운영라인정보 조회 By KIM 추가 --> 
+	<job id="md_05170_opLineInfomation_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 생산계획 >> 운영라인정보 관리</navigation>
+		<toolbars>0010</toolbars> 
+		<title>운영라인정보 관리</title>
+		<authority>1</authority>		
+		<description>운영라인정보 관리</description>
+		<request_type>list</request_type> 
+		<queries>     
+		    <query idref="combo_op_plant_list" datasource="t3sinc"/> 
+			<query idref="combo_op_won_list" datasource="t3sinc"/>			 
+			<query idref="combo_execLine_list" datasource="t3sinc"/>
+			<query idref="grid_execLine_list" datasource="t3sinc"/>	 		 	 	 			 
+			<query idref="md_05170_opLineInfomation_list" datasource="t3sinc"/>	
+		</queries> 
+	</job> 
+
+	<!-- 운영라인정보 관리 : 저장 -->
+	<job id="md_05170_opLineInfomation_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_05170_opLineInfomation_list_save"/>		 
+		<sub_job id="md_05170_opLineInfomation_list"/>
+		<permission_desc>운영라인정보 관리-저장</permission_desc>
+	</job>
+	<job id="md_05170_opLineInfomation_list_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<!-- 01. 운영라인정보에서 해당  레코드  DELETE -->
+			<!-- 02. 운영라인정보에서 데이터 INSERT -->
+			<query idref="md_05170_opLineInfomation_list_save01" datasource="t3sinc"/>
+			<query idref="md_05170_opLineInfomation_list_save02" datasource="t3sinc"/>
+		</queries>   
+	</job>  
+		  	
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+-->  
+
+</jobs>	

@@ -1,0 +1,151 @@
+body, td {
+	font-family: "µ¸¿ò";
+	font-size: 12px;
+	color: #999999;
+	text-decoration: none;
+}
+a:link {
+	font-family: "µ¸¿ò";
+	color: #999999;
+	text-decoration: none;
+}
+a:visited {
+	font-family: "µ¸¿ò";
+	color: #999999;
+	text-decoration: none;
+}
+
+.input {
+	border: 1px solid #666666;
+	font-size: 12px;
+
+}
+.button {
+	font-family: "µ¸¿ò";
+	font-size: 12px;
+	color: #666666;
+	background-color: #CCCCCC;
+	border: 1px none #CCCCCC;
+}
+.input2 {
+	border-top: 0px solid #CCCCCC;
+	border-right: 0px solid #CCCCCC;
+	border-bottom: 1px solid #CCCCCC;
+	border-left: 0px solid #CCCCCC;
+	font-family: "µ¸¿ò";
+	color: #666666;
+	TEXT-TRANSFORM: UPPERCASE;
+
+}
+.input21 {
+	border-top: 0px solid #CCCCCC;
+	border-right: 0px solid #CCCCCC;
+	border-bottom: 1px solid #CCCCCC;
+	border-left: 0px solid #CCCCCC;
+	font-family: "µ¸¿ò";
+	color: #666666;
+
+}
+.input3 {
+	font-family: "µ¸¿ò";
+	color: #999999;
+	border: 0px none;
+	TEXT-TRANSFORM: UPPERCASE;
+}
+.inputNum {
+	font-family: "µ¸¿ò";
+	color: BLACK;
+	border: 0px none;
+	TEXT-ALIGN: RIGHT;
+	INPUT: ime-mode:disabled;
+}
+.inputNumSun {
+	font-family: "µ¸¿ò";
+	color: BLACK;
+	border: 0px none;
+	TEXT-ALIGN: RIGHT;
+	INPUT: ime-mode:disabled;
+	background-color: #CCFFFF;
+}
+.inputGrid {
+	font-family: "µ¸¿ò";
+	color: BLACK;
+	border: 0px none;
+	TEXT-ALIGN: RIGHT;
+	INPUT: ime-mode:disabled;
+	background-color: #cfcfcf;
+}
+.inputNumSunErr {
+	font-family: "µ¸¿ò";
+	color: #ff0000;
+	border: 0px none;
+	TEXT-ALIGN: RIGHT;
+	INPUT: ime-mode:disabled;
+	background-color: #CCFFFF;
+}
+.inputNum2 {
+	font-family: "µ¸¿ò";
+	color: #ff0000;
+	border: 0px none;
+	TEXT-ALIGN: RIGHT;
+}
+.inputText {
+	font-family: "µ¸¿ò";
+	color: BLACK;
+	border: 0px none;
+	TEXT-ALIGN: LEFT;	
+}
+.inputTextSun {
+	font-family: "µ¸¿ò";
+	color: BLACK;
+	border: 0px none;
+	TEXT-ALIGN: LEFT;	
+	background-color: #CCFFFF;
+}
+.inputTextCenter {
+	font-family: "µ¸¿ò";
+	color: BLACK;
+	border: 0px none;
+	TEXT-ALIGN: CENTER;	
+}
+.input31 {
+	font-family: "µ¸¿ò";
+	color: #999999;
+	border: 0px none;
+}
+.click {
+	font-family: "µ¸¿ò";
+	color: #013456;
+	border: 0px none;
+}
+.clickMark {
+	font-family: "µ¸¿ò";
+	color: #013456;
+	border: 0px none;
+	background-color: #F2F7EA;
+}
+.clickMarkNum {
+	font-family: "µ¸¿ò";
+	color: #013456;
+	border: 0px none;
+	background-color: #F2F7EA;
+	TEXT-ALIGN: RIGHT;	
+}
+.iframe {
+	border-top: 0px solid #CCCCCC;
+	border-right: 0px solid #CCCCCC;
+	border-bottom: 0px solid #CCCCCC;
+	border-left: 0px solid #CCCCCC;
+	font-family: "µ¸¿ò";
+	color: #666666;
+
+}
+iframe,BODY { 
+scrollbar-3dlight-color: #F2F2F2;  
+scrollbar-arrow-color: #B7B7B7; 
+scrollbar-track-color: #E9E9E9;  
+sscrollbar-track-color: #E9E9E9;  
+crollbar-face-color: #eeeeee;  
+scrollbar-shadow-color: #B7B7B7;  
+scrollbar-highlight-color: #F2F2F2;  
+}

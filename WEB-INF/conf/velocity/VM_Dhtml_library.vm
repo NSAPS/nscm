@@ -1,0 +1,101 @@
+#macro(square_toolbar $toolbar $target_register $target_save $target_edit $target_delete)
+	<div class="xbuttonwrapper">
+	#if($toolbar.substring(3,4) == "0")
+		#square_disabled_button("delete_down")
+	#else
+		#square_button_target("delete" $target_delete)
+	#end
+	
+	#if($toolbar.substring(2,3) == "0")
+		#square_disabled_button("edit_down")
+	#else
+		#square_button_target("edit" $target_edit)
+	#end
+	
+	#if($toolbar.substring(1,2) == "0")
+		#square_disabled_button("save_down")
+	#else
+		#square_button_target("save" $target_save)
+	#end
+	
+	#if($toolbar.substring(0,1) == "0")
+		#square_disabled_button("register_down")
+	#else
+		#square_button_target("register" $target_register)
+	#end
+	</div>	
+#end
+
+#macro(square_disabled_button $type)			
+	#if($type == "delete_down")		
+		<a class="xsquarebutton" disabled><span>$text.get("template.button.delete")</span></a>
+	#elseif($type == "edit_down")		
+		<a class="xsquarebutton" disabled><span>$text.get("template.button.edit")</span></a>
+	#elseif($type == "save_down")		
+		<a class="xsquarebutton" disabled><span>$text.get("template.button.save")</span></a>
+	#elseif($type == "register_down")		
+		<a class="xsquarebutton" disabled><span>$text.get("template.button.register")</span></a>	
+	#end		
+#end
+
+#macro(square_button_target $type $target_service)	
+	#if($type == "excel")		 
+		<a class="squarebutton" href="javascript:GoExcel('$target_service');"><span>$text.get("template.button.excel")</span></a>	
+	#elseif($type == "print")		
+		<a class="squarebutton" href="javascript:GoPrint('$target_service');"><span>$text.get("template.button.print")</span></a>	
+	#elseif($type == "list")		
+		<a class="squarebutton" href="javascript:GoList('$target_service');"><span>$text.get("template.button.list")</span></a>
+	#elseif($type == "search")		
+		<a class="squarebutton" href="javascript:searchIFrameData('$target_service');"><span>$text.get("template.button.search")</span></a>		
+	#elseif($type == "register")
+		<a class="squarebutton" href="javascript:forwardRegisterForm('$target_service');"><span>$text.get("template.button.register")</span></a>		
+	#elseif($type == "save")		
+		<a class="squarebutton" href="javascript:updateData('$target_service');"><span>$text.get("template.button.save")</span></a>	
+	#elseif($type == "edit")		
+		<a class="squarebutton" href="javascript:GoEdit('$target_service');"><span>$text.get("template.button.edit")</span></a>	
+	#elseif($type == "delete")		
+		<a class="squarebutton" href="javascript:deleteData('$target_service');"><span>$text.get("template.button.delete")</span></a>		
+	#elseif($type == "reply")		
+		<a class="squarebutton" href="javascript:GoReply('$target_service');"><span>$text.get("template.button.reply")</span></a>
+	#end	
+#end
+
+#macro(popup_square_toolbar $toolbar $target_register $target_save $target_edit $target_delete)
+	<div class="xbuttonwrapper">
+	#if($toolbar.substring(3,4) == "0")
+		#square_disabled_button("delete_down")
+	#else
+		#popup_square_button_target("delete" $target_delete)
+	#end
+	
+	#if($toolbar.substring(2,3) == "0")
+		#square_disabled_button("edit_down")
+	#else
+		#popup_square_button_target("edit" $target_edit)
+	#end
+	
+	#if($toolbar.substring(1,2) == "0")
+		#square_disabled_button("save_down")
+	#else
+		#popup_square_button_target("save" $target_save)
+	#end
+	
+	#if($toolbar.substring(0,1) == "0")
+		#square_disabled_button("register_down")
+	#else
+		#popup_square_button_target("register" $target_register)
+	#end
+	</div>
+#end
+
+#macro(popup_square_button_target $type $target_service)
+	#if($type == "search")
+		<a class="squarebutton" href="javascript:searchPopupData('$target_service');"><span>$text.get("template.button.search")</span></a>
+	#elseif($type == "register")
+		<a class="squarebutton" href="javascript:forwardRegisterPopup('$target_service');"><span>$text.get("template.button.register")</span></a>		
+	#elseif($type == "save")
+		<a class="squarebutton" href="javascript:updatePopupData('$target_service');"><span>$text.get("template.button.save")</span></a>
+	#elseif($type == "delete")
+		<a class="squarebutton" href="javascript:deletePopupData('$target_service');"><span>$text.get("template.button.delete")</span></a>		
+	#end
+#end

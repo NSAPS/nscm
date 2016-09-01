@@ -1,0 +1,210 @@
+############################################################
+## 프로그램ID : md_04070_trnasCalendar_list.vm
+## 프로그램명 : 물류 Calendar정보
+## 개발자  : 이동주
+## 개발일자 : 2008-07-28 월요일
+##
+##관련 job file : job_sinc_70_masterData_00.xml
+##
+##관련 query file : query_sinc_70_masterData_00.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2008-07-28  이동주    md_04070_trnasCalendar_list.vm 개발
+##
+##
+############################################################
+
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize2('126', '155')" )  
+     
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역 
+	<tr>   
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">						
+						#button("search")						
+						#toolbar_nscm($_moon_toolbar "" "" "md_04070_trnasCalendar_list_save_comp" "")
+					</td>
+            	</tr>
+        	</table>
+		</td> 
+	</tr> 
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; ">
+            				<tr id="search_menu" style="display:block; ">
+            					<td width="10%" align="right">
+									물류거점 :
+								</td> 
+            					<td width="30%" align="left">
+									<select name="dc_name" style="width:155px; ">
+									<option value="">전체</option>
+    								#foreach( $tr in $dc_name_list )
+										<option value="${tr.get(0)}"
+											#if( "$!{dc_name}" == "${tr.get(0)}" ) selected #end>$tr.get(1)</option>                										
+									#end
+    								</select>
+            					</td> 
+            					<td width="10%" align="right">
+									계획구간 :
+								</td> 
+								<td width="50%" align="left">  																	    
+            						#date_sole_no_title( "plan_date" "10" "normal" "pBtn" $date.get('yyyy-MM-dd'))&nbsp;~&nbsp;
+									#date_sole_no_title( "plan_date_to" "10" "normal" "pBtnTo" $date.get('yyyy-MM-dd'))									
+            					</td>
+            				</tr> 
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="23"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<!-- gridArea by lee start  -->     
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+								
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+								#page_info2()
+							</td>
+						</tr>
+					</table>					   
+					<table id="tbMain" border="0" width="715" cellpadding="0" cellspacing="0" >
+						<tr>							    
+							<td>   
+								<div id="topLine" style="height:35px; width:626px; overflow:hidden;">
+									<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>	
+											<tr align="center" height="35px">
+												<td width="4%">번호</td>
+												<td width="7%">거점</td>
+												<td width="20%">거점명</td>
+												<td width="17%">START DATE</td>
+												<td width="17%">END DATE</td> 
+												<td width="10%">순환형태</td>
+												<td width="10%">적용유무</td>
+												<td width="15%" class="right">비고</td>
+											</tr>
+					   					 </thead>
+					   				</table>
+					   			</div>            								
+							</td>
+						</tr>            						  
+						<tr>							  
+							<td valign="top"> 
+								<div id="mainDisplay" class="ns_scroll" style="border:0; width:626px; overflow-y:scroll; ">
+									<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="main_tbody">	
+										#foreach( $tr in $md_04070_trnasCalendar_list)
+											<tr id="main_tr" height="22px" onMouseOver="bgOver2(this); " onMouseOut="bgOut2(this); ">                											
+                								<td width="4%" align="center" style="background-color:${search_bgcolor}; "> ## 번호
+                									<a id="divRowNo">$velocityCount</a>
+                								</td>
+        										<td width="7%" align="center" > ## 거점
+        											<a id="dc_id">$tr.get(0)</a> 											
+        										</td><input type="hidden" name="dc_id"  value="$tr.get(0)">
+        										<td width="20%" align="left" > ## 거점명
+        											<a id="name">&nbsp;$tr.get(1)</a>											
+        										</td> 
+        										<td width="17%" align="center" > ## Start date
+        											<a id="st_date">$tr.get(2)</a>										
+        										</td>
+        										<td width="17%" align="center" > ## End date
+        											<a id="end_date">$tr.get(3)</a>											
+        										</td>
+        										<td width="10%" align="center" > ## 순환형태																
+													<a id="cycle_tp">
+														#if ("$tr.get(4)" == "D")																		
+															DAILY
+														#elseif ("$tr.get(4)" == "W")
+															WEEKLY
+														#elseif ("$tr.get(4)" == "M")
+															MONTHLY
+														#elseif ("$tr.get(4)" == "Y")
+															YEARLY
+														#elseif ("$tr.get(4)" == "1")
+															1
+														#end
+													</a>
+        										</td>
+        										<td width="10%" align="center" onClick="setEditMode(this); "> ## 적용유무 (use_flag)
+        											<a id="flag">
+														#if ("$tr.get(5)" == "Y")
+															적용
+														#elseif ("$tr.get(5)" == "N")
+															미적용
+														#end
+													</a><select name="use_flag" style="width:100%; display:none; " onFocusOut="setViewMode(this); ">                                									
+                    									#foreach( $flag_tr in $use_flag_list )
+                    										<option value="${flag_tr.get(0)}"
+                    											#if( "$!{tr.get(5)}" == "${flag_tr.get(0)}" ) selected #end>$flag_tr.get(1)&nbsp;</option>                										
+														#end
+                    								</select>								 										
+        										</td>
+        										<td width="15%" align="center" class="right"> ## 비고 
+        											<a id="desc">$tr.get(6)</a>
+        										</td>
+											</tr>
+										#end
+										</tbody>
+									</table>
+								</div>
+							</td>
+						</tr> 
+					</table>
+					
+					</td></tr></table>
+					<!-- gridArea end  --> 
+					
+					<input type="hidden" name="_moon_service">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script> 
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 물류거점을 선택하고 조회 버튼을 클릭하여 물류캘린더를 조회합니다.";
+	helpStr += "<br>◈ 계획구간의 날짜는  START DATE를 기준으로 검색 됩니다.";
+	helpStr += "<br>◈ 적용유무 항목을 원하는 데이터로 수정후 저장 버튼을 클릭하여 수정내용을 저장합니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;	
+	
+</script>

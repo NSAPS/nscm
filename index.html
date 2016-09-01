@@ -1,0 +1,156 @@
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=euc-kr">
+	<title>농심 APS System Login</title>
+<link href="sinc/template/basic/skin/nongshim/login/css/allpage.css" rel="stylesheet" type="text/css">
+
+<SCRIPT language="JavaScript">
+<!--
+	/**
+	 *  OnLoad 이벤트
+	 */
+	function init(){
+		//GetLoginId();
+		if(document.frm._user_id.value == "") {
+			document.frm._user_id.focus();
+		}
+		if( document.frm._user_id.value != "" ) { 
+			document.frm._user_pwd.focus();
+		}
+		
+	}
+	
+	//KSY 2005.09.07
+	//modify PSW 2006.06.08
+	function GetLoginId() {
+		var strUserId = "userid=";
+			
+		var toks = document.cookie.split(";");
+		for(var i=0;i < toks.length;i++)
+		{
+			var tok = toks[i];
+			if (tok.indexOf(strUserId) >= 0) {
+				while (tok.charAt(0)==' ') tok = tok.substring(1,tok.length);
+				document.frm._user_id.value =  tok.substring(strUserId.length,tok.length);
+			}
+		}
+	}
+	
+	function winClose(){
+		self.opener = self;
+		window.close();
+	} 
+	
+	/**
+	 *  로그인 버튼 클릭 이벤트
+	 */
+	function btn_Login_event() {
+		var id = document.frm._user_id.value;
+		var pw = document.frm._user_pwd.value;
+		var idObj = document.frm._user_id;
+		var pwObj = document.frm._user_pwd;
+		
+		if( id == null || id == "" ) {
+			alert("USER ID 를 입력하세요.");
+			idObj.focus();
+			return; 
+		}
+		else if( pw == null || pw == "" ) {
+			alert("PASSWORD 를 입력하세요.");
+			pwObj.focus();
+			return; 
+		}
+								
+		GoOK('problem_summary'); 
+		
+	} /* end btn_Login_event() */
+		
+	// 로그인
+	function GoOK(service_name){
+		
+		//var mainWin = window.self.open('', 'newWin', ''); 
+		//mainWin.close(); 
+		
+		//mainWin = window.self.open('' ,'newWin','width=1000, height=700, top=0, left=0, scrollbars=yes, toolbars=yes, status=yes, resizable=yes');
+		//mainWin.focus();
+		//document.frm.target = "newWin";
+
+		
+		document.frm._moon_service.value = "login_check";
+		document.frm.action = "service.do";
+		document.frm.submit();
+		
+	}
+	
+	/**
+	 *  패스워드 필드 엔터 이벤트
+	 */
+	EnterFilter = function() { 
+		//엔터 
+		 if (event.keyCode == 13) 
+			 btn_Login_event();
+	}
+	
+	/**
+	 *  로그인아이디 필드 엔터 이벤트
+	 */
+	TabFilter = function() {
+		//엔터 
+		 if (event.keyCode == 13) 
+			 event.keyCode = 9;	 
+	} 
+
+//-->
+</SCRIPT>
+</head>
+
+<body onLoad="init(); ">
+	<form method="POST" name="frm">
+		<input type="hidden" name="_moon_template" value="basic">
+		<input type="hidden" name="_moon_start" value="yes">
+		<input type="hidden" name="_moon_service" value="">
+		<input type="hidden" name="_moon_skin" value="violet">
+		<!--input type="hidden" name="_moon_container" value="weblogic"-->
+		<input type="hidden" name="_moon_container" value="tomcat">
+        <table width="100%" height="100%" border="0" cellspacing="0" cellpadding="0">
+            <tr>
+                <td align="center" class="pd_bot20">
+                	<table width="900" border="0" cellspacing="0" cellpadding="0">
+                    	<tr>
+        					<td><img src="sinc/template/basic/skin/nongshim/login/images/log_logo.gif" width="103" height="49"></td>
+                    	</tr>
+                    </table>
+                    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                    	<tr>
+                        	<td align="center" background="sinc/template/basic/skin/nongshim/login/images/log_bg_img.gif">
+                        		<table width="900" border="0" cellspacing="0" cellpadding="0">
+									<tr>
+										<td width="580">
+											<img src="sinc/template/basic/skin/nongshim/login/images/log_img.jpg" width="580" height="209">
+										</td>
+                                		<td background="sinc/template/basic/skin/nongshim/login/images/log_bg_form.gif" 
+        									style="padding:95px 0 0 158px;" valign="top">
+											<div class="pd_bot3">
+            									<input type="text" name="_user_id" class="input_login" onkeydown="TabFilter();">
+            								</div>
+                                    		<div class="pd_bot10">
+            									<input type="password" name="_user_pwd" class="input_login" onkeydown="EnterFilter();">
+                                    		</div>
+											<img src="sinc/template/basic/skin/nongshim/login/images/btn_login.gif" width="48" height="15"
+												onClick="GoOK('problem_summary')">
+										</td>
+                        			</tr>
+                        		</table>
+                        	</td>
+                    	</tr>
+                    	<tr>
+        					<td align="center" background="sinc/template/basic/skin/nongshim/login/images/log_bg_bar.gif"><img 
+								src="sinc/template/basic/skin/nongshim/login/images/log_img_bar.gif" width="900" height="53"></td>
+                    	</tr>
+                	</table>
+                </td>
+            </tr>
+        </table>
+	</form>	
+</body>
+</html>

@@ -1,0 +1,179 @@
+############################################################
+## 프로그램ID  : ip_07070_EDI_Order_Analysis_list.vm
+## 프로그램명      : EDI발주전환분석조회
+## 변경자            : 남웅용
+## 개발일자        : 2014-02-14 
+##
+## 관련 job file   : job_sinc_10_inventoryPlanning_04.xml
+## 관련 query file : query_sinc_10_inventoryPlanning_04.xml
+##        
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 
+############################################################ 
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setWiseGridAutoResize('150', '80')" ) 
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/scheduling.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+##  WiseGrid의 t_combo타입의 컬럼내용이 변경되었을때 발생합니다  
+<script language=javascript for="WiseGrid" event="ChangeCombo(strColumnKey,nRow,nOldIndex,nNewIndex)">
+	GridChangeComboHandler(strColumnKey, nRow, nOldIndex, nNewIndex);
+</script>
+
+<script language=javascript for="WiseGrid" event="CellDblClick(strColumnKey, nRow)">
+  GridCellDblClick(strColumnKey, nRow);
+</script>
+
+<script language=javascript for="WiseGrid" event="HeaderClick(strColumnKey)">
+	HeaderClick_DW1(strColumnKey);
+</script> 
+
+## WiseGrid가 생성됨과 동시에 발생한다. 
+<script language="javascript" for="WiseGrid2" event="Initialize()">
+	init2();
+</script>
+
+## DoQuery 메소드가 실행되고 서버와의 통신이 정상적으로 완료되면 발생한다. 
+<script language="javascript" for="WiseGrid2" event="EndQuery()">
+	GridEndQuery2();
+</script>
+
+<script language=javascript for="WiseGrid2" event="RowActivate(nRow)">
+	Grid2RowActivate(nRow);
+</script> 
+
+<!--	 WiseGrid의 셀의 내용이 변경되었을때 발생한다. -->
+<script language="javascript" for="WiseGrid2" event="ChangeCell(strColumnKey,nRow,nOldValue,nNewValue)">
+	GridChangeCell_DW2(strColumnKey, nRow,nOldValue,nNewValue);
+</script>
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+   ## 조회 영역
+	
+    <tr>
+        <td width="100%" valign="top">
+            <table border="0" width="100%" cellpading="0" cellspacing="0">
+                <tr height="2">
+                    <td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+                </tr>
+                <tr>
+                    <td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+                    <td width="100%">
+                        <table border="0" width="100%" cellpading="0" cellspacing="0" id="search_menu" style="background-color:#f2f2f2; display:block; ">
+                            <tr>            
+	        					<td width="60px" align="right">
+            						기간 :
+            					</td>
+            					<td width="230px" align="left">
+									#date_sole_no_title("start_date" "10" "normal" "btnS" "$commonUtil.toDate($date.get('yyyy-MM-dd'),'YYYY-MM-DD','DAY',-1)")
+									~ #date_sole_no_title("end_date" "10" "normal" "btnE" "$date.get('yyyy-MM-dd')")
+            					</td>								
+								<td width="500px" align="left">
+									유통본부 :&nbsp; 
+            						<select name="grup_code1">
+                              			<option value="" #if( "$!{grup_code1}" == "" ) selected #end>전체</option> 
+										#foreach( $condition in $ip_07070_grup_code1 )
+											<option value="$condition.get(0)"  #if( "$!{grup_code1}" == "$condition.get(0)" ) selected #end>$condition.get(1)</option>
+										#end
+									</select>
+									&nbsp;&nbsp;
+									제/상품 :&nbsp;
+									<select name="item_type" > 
+										<option value="" selected >전체</option>
+										<option value="FERT" #if( "$!{item_type}" == "FERT" ) selected #end>제품</option>
+										<option value="HAWA" #if( "$!{item_type}" == "HAWA" ) selected #end>상품</option>
+									</select>
+									<select name="search_type">
+                              			<option value="">전체</option> 
+                              			<option value="1020"#if( "$!{search_type}" == "1020" ) selected #end>면/스낵</option> 
+										#foreach( $condition in $ip_02020_combo_search_type )
+											<option value="$condition.get(0)"  #if( "$!{search_type}" == "$condition.get(0)" ) selected #end>$condition.get(1)</option>
+										#end
+                              			<option value="P40"#if( "$!{search_type}" == "P40" ) selected #end>유통가공품</option> 
+									</select>
+            					</td>									
+								<td width="50px" align="right">
+									검색어 :
+								</td> 
+								<td width="10px" align="left">
+									<input type="text" name="search_item" size="20" class="normal" onKeyPress="enterCheck('$_moon_service'); " 
+										style="width:100px; padding-left:5px; " onBlur="strCheck(); " ondblClick="select(); " 
+										onChange="strCheck(this); " value="$commonUtil.replaceQuot($!{search_item})">
+									<input type="hidden" name="serch_item_pre" value ="$!{search_item}" >
+								</td>
+								<td align="right"> #button("search")
+								</td>
+							</tr>
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+
+    <input name="search_h" type="hidden" value="45"> ## search 조건 부분 높이 
+    <tr><td height="1"></td></tr>
+    ## TAB 영역
+    <tr>
+        <td valign="top">
+        ## tab 좌측 여백
+        ##tabLeft()               
+            
+            <table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>                    
+
+            <table name="grid" width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+                <td align="left" width="60%" > 
+					<table name="grid2" width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+							<script>initWiseGrid("WiseGrid", "100%", "100%");</script>
+							</td>
+						</tr>
+					</table>
+				</td>
+				<td  align="left" width="40%" > 
+					<table name="grid3" width="100%" height="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr height="100%">
+    						<td align="left" width="100%" > 
+    							<script>initWiseGrid("WiseGrid2", "100%", "100%");</script>
+    						</td>
+						</tr>
+					</table>
+				</td>
+            </table> 
+            
+            <table height="5"><tr><td></td></tr></table>
+            <table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+                <input type="hidden" name="_moon_service" value="${_moon_service}">
+                <input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+                <input type="hidden" name="_user_id" value="$!{_user_id}">
+            </td></tr></table>
+            
+            </td></tr></table>
+            
+        </td>
+    </tr>
+</table>
+
+<script>
+    
+    // 화면 resize
+    $!{resizeFuncCallCode};
+    function window.onresize() { $!{resizeFuncCallCode}; }
+    
+    // 도움말 내용 입력
+    var helpStr = "◈ Job Change 시간 ";    
+    helpCont.innerHTML = helpStr;
+    hDynamicHeight = 0; 
+           
+</script> 

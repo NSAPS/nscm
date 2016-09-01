@@ -1,0 +1,261 @@
+<script type='text/javascript' src='$!{project}/dwr/interface/nongshim.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/engine.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/util.js'></script>
+	
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	<tr>
+		<td height="25" align="right" bgcolor="${toolbar_bgcolor}" class="line">
+			<table align="right" width="100%" height="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+				<tr>
+					<input type="hidden" name="searchType" value="$!{searchType}">
+					<td align="left">
+						<input type="button" name="btnDivision" value="재분류" onClick="searchIFrameData('fc_02050_cov_tailer', 'NEW');" class="btn1_on">						
+					</td>
+					<td align="right">
+						<input type="button" name="btnSearch" value=" 조회" onClick="searchIFrameData('fc_02050_cov_tailer', 'ORG');" class="btn_search_on">
+						#toolbar_nscm($_moon_toolbar "" "" "" "")
+					</td>
+				</tr>
+			</table>
+		</td>                                                                                                                                                                                                                  
+	</tr>
+	<tr id="search_menu" style="DISPLAY:block">
+		<td height="20" valign="top" bgcolor="${search_bgcolor}" class="line">			
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr>
+					<td height="10"></td>
+				</tr>
+				<tr id="mainTrArea">
+					<td width="50%" align="center">
+						<table height="21" border="0" cellpadding="0" cellspacing="0">					
+							<tr>
+								<td width="100" align="center" class="td1">
+									<span>분석 기준그룹</span>
+								</td>
+								<td align="left">
+									<select name="analysis_group" style="width:100;" OnChange="setThisTemp(document.frm.d_analysis_group, this);">
+    									<option value="">선택</option>
+    									#foreach( $choice in $!{analysis_groups} )
+    										<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{analysis_group}") selected #end >$choice.get(1)</option>
+    									#end
+    								</select>									
+								</td>
+							</tr>
+							<tr>
+								<td width="100" align="center" class="td1">
+									<span>분석 기준대상</span> 
+								</td>
+								<td align="left" colspan="3">
+									<input type="hidden" name="item_lv" value="$!{item_lv}">
+									<input type="hidden" name="site_lv" value="$!{site_lv}">
+									<input type="hidden" name="dc_lv" value="$!{dc_lv}">
+    								<select name="analyze_by" style="width:170;" OnChange="setLevels(this);setThisTemp(document.frm.d_analyze_by, this);">
+    									<option value="">선택</option>
+    									#foreach( $choice in $!{analyze_by_points} )
+    										<option value="$choice.get(0)!%!$choice.get(1)!%!$choice.get(2)!%!$choice.get(3)" #if( "$choice.get(0)" == "$!{analyze_by}") selected #end >$choice.get(4)</option>
+    									#end
+    								</select>  								
+								</td>
+							</tr>
+							<tr>        								
+								<td width="100" align="center" class="td1">
+									<span>실적 기간</span>
+								</td> 
+								<td align="left" width="100">
+									<select name="start_date" style="width:100;" OnChange="setThisTemp(document.frm.d_start_date, this);changeEndDate(this);">
+										<option value="">선택</option>
+    									#foreach( $choice in $!{fc_02050_cov_start} )
+    										<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{start_date}") selected #end >$choice.get(0)</option>
+    									#end
+									</select>
+                                </td>
+								<td>
+									 &nbsp~&nbsp
+								</td>
+								<td align="left" width="100"> 
+									<select name="end_date" style="width:100;" OnChange="setThisTemp(document.frm.d_end_date, this);">
+										<option value="">--------------</option>    									
+									</select>				
+                                 </td>
+							</tr>
+							<tr>
+								<td width="100" align="center" class="td1">
+									<span>COV Index</span>
+								</td>
+								<td align="left" colspan="3"> 
+									<input type="text" name="cov_index" value="$!{cov_index}" style="width:30;" class="normal">           															
+								</td>
+							</tr>	
+						</table>
+					</td>							
+					<td width="50%" align="left">
+						<table height="21" border="0" cellpadding="0" cellspacing="0">							
+							<tr>
+								<td width="100" align="center" class="td1">
+									<span>분석 방법</span>
+								</td>
+								<td align="left">
+									<select name="analysis_method" style="width:100;" OnChange="setThisTemp(document.frm.d_analysis_method, this);">
+    									<option value="">선택</option>
+    									#foreach( $choice in $!{analysis_methods} )
+    										<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{analysis_method}") selected #end >$choice.get(1)</option>
+    									#end
+    								</select>									
+								</td>
+							</tr>
+							<tr>        								
+								<td width="100" align="center" class="td1" rowspan="2"> 
+									<span>품목(조회시)</span>
+								</td>
+								<td width="213" align="center"> 
+									<input name="item_cd" type="hidden" value="$!{item_cd}">
+									<select name="selected_item" style="width:215;" onChange="splitCodeName(this, item_cd, item_code, item_name);">
+										    <option value="">전체</option>
+										#foreach( $choice in $!{fc_01040_items} )
+											<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{selected_item}") selected #end >$choice.get(1)</option>
+										#end
+										   
+									</select>	
+								</td>
+								 
+							</tr>
+							<tr> 
+								<td width="250" align="center">
+									<input name="item_code" type="text" value="$!{item_code}" class="normal" style="width:88px;" onFocus="this.value='';item_name.value='';" onKeyPress="enterSearchCodeName(item_code, item_name, 'ITEM');"
+								   ><input name="item_name" type="text" value="$!{item_name}" class="normal" style="width:142px;" onFocus="this.value='';item_code.value='';" onKeyPress="enterSearchCodeName(item_code, item_name, 'ITEM');"
+								   ><img name="searchBt1" src="$!{project}/sinc/template/basic/skin/nongshim/images/common/icon_search.gif" align="absmiddle" onClick="searchCodeName(item_code, item_name, 'ITEM');" style="cursor:pointer; " /> 
+								</td>								
+								<script>
+									splitCodeName(document.frm.selected_item, document.frm.item_cd, document.frm.item_code, document.frm.item_name);
+								</script>
+							</tr>
+							<tr>
+								<td width="100" align="center" class="td1">
+									<span>사분면(조회시)</span>
+								</td>
+								<td align="left">
+									<select name="quadrant" style="width:50;">
+    									<option value="">전체</option>
+										<option value="1">1</option>
+										<option value="2">2</option>
+										<option value="3">3</option>
+    									<option value="4">4</option>
+    								</select>		
+								</td>
+							</tr>						
+						</table>
+					</td>
+				 </tr>
+				 <tr id="tempBtArea" style="display:none;">
+					<td align="left">								
+                		<input type="button" name="option" value=" Option" onClick="displayOption();" class="btn1_on">
+						<input type="button" name="btnSave1" value=" 저장" onClick="updateData('fc_02050_cov_tailer_save');" class="btn_mod_on">	
+					</td>
+				 </tr>
+				 <tr id="tempTrArea" style="display:none;">
+					<td width="50%" align="center">
+						<table height="21" border="0" cellpadding="0" cellspacing="0">
+							
+							<tr>
+								<td height="5" align="left"></td>
+							</tr>
+							<tr>
+								<td width="100" align="center" class="td1">
+									<span>분석 기준그룹</span>
+								</td>
+								<td align="left">
+									<input type="text" name="d_analysis_group" style="width:100;background:#CCCCCC;" class="normal" readonly>					
+								</td>
+							</tr>
+							<tr>
+								<td width="100" align="center" class="td1">
+									<span>분석 기준대상</span> 
+								</td>
+								<td align="left" colspan="3">
+									<input type="text" name="d_analyze_by" style="width:170;background:#CCCCCC;" class="normal" readonly>	
+								</td>
+							</tr>
+							<tr>        								
+								<td width="100" align="center" class="td1">
+									<span>실적 기간</span>
+								</td> 
+								<td align="left" width="100">
+									<input type="text" name="d_start_date" style="width:100;background:#CCCCCC;" class="normal" readonly>
+                                </td>
+								<td>
+									 &nbsp~&nbsp
+								</td>
+								<td align="left" width="100"> 
+									<input type="text" name="d_end_date" style="width:100;background:#CCCCCC;" class="normal" readonly>	
+                                </td>
+							</tr>																				 					
+						</table>
+					</td>							
+					<td width="50%" align="left">
+						<table height="21" border="0" cellpadding="0" cellspacing="0">									
+							<tr>
+								<td width="100" align="center" class="td1">
+									<span>분석 방법</span>
+								</td>
+								<td align="left">
+									<input type="text" name="d_analysis_method" style="width:100;background:#CCCCCC;" class="normal" readonly>    					
+								</td>
+							</tr>
+							<tr>
+								<td width="100" align="center" class="td1">
+									<span>COV Index</span>
+								</td>
+								<td align="left">
+									<input type="text" name="d_cov_index" style="width:30;background:#CCCCCC;" class="normal" readonly>            															
+								</td>
+							</tr>						
+						</table>
+					</td>
+				 </tr>	
+		  		 <tr height="10"><td></td></tr>
+		     </table>    			
+		 </td>   
+	 </tr>	 
+	 <tr class="line" height="10"><td></td></tr>
+	 <tr>
+	 	 <td valign="top">
+			<iframe id="child" name="iframe" src="service.do?_moon_service=fc_02050_cov_tailer&amp;_moon_perpage=100&amp;_moon_pagenumber=1" width="100%" height="100%" scrolling="no" topmargin="0" leftmargin="0" frameborder="NO" border="0" framespacing="0"></iframe>
+		 </td>
+	 </tr>
+	 <input type="hidden" name="_moon_service" value="${_moon_service}">
+	 <input type="hidden" name="_moon_perpage"  value="${_moon_perpage}">
+	 <input type="hidden" name="_moon_pagenumber" value="${_moon_pagenumber}">
+</table>
+
+## waiting 표시 영역
+<table width="100%" height="100%" id="waitArea" style="display:none;"> 
+	<tr>
+		<td valign="middle" align="center">
+			<img src="sinc/template/basic/skin/nongshim/images/common/progress_waiting.gif" 
+				align="absmiddle" border="0" width="200px" height="60px">
+			<img src="sinc/template/basic/skin/nongshim/images/common/loading_icon.gif" 
+				align="absmiddle" border="0" width="60px" height="60px">
+			<br><h1>&nbsp;</h1><br><h1>&nbsp;</h1><br>
+		</td>
+	</tr>
+</table>
+	
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력  
+	var helpStr = "각 실적의 변동율과 판매율을 통하여, 수요예측의 정확성과 효율성을 예측할 수 있다.<br><br>";
+	helpStr += "- CV : 실적의 표준편차 / 평균실적<br>";
+	helpStr += "- 변동율 : CV / COV Index<br>";
+	helpStr += "- 판매율 : 평균실적 / 제품분류별 평균실적 또는 TREND / 제품분류별 TREND<br><br>";
+	helpStr += "◈1사분면 : 변동율이 낮고, 판매율은 높다.(수요예측 시, 90%이상 신뢰할만함)<br>";
+	helpStr += "◈2사분면 : 변동율이 높고, 판매율도 높다.(수요예측 시, 신뢰할 수 없으나 주문량을 조절하는 영업적 전략을 세워 수요예측을 할 수 있도록 하는 방향)<br>"; 
+	helpStr += "◈3사분면 : 변동율이 높고, 판매율은 낮다.(수요예측 시, 신뢰할 수 없음)<br>"; 
+	helpStr += "◈4사분면 : 변동율이 낮고, 판매율도 낮다.(수요예측 시, 90%이상 신뢰할만 하나, 영업적으로 전략은 달리 가야 함)<br>";  
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;	
+				
+</script>

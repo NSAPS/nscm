@@ -1,0 +1,135 @@
+#macro(toolbar2 $toolbar $target_register $target_save $target_edit $target_delete)
+	#if($toolbar.substring(0,1) == "0")
+		#button2("search_down")
+	#else
+		#button2_target("search" $target_register)
+	#end			
+#end
+
+#macro(toolbar3 $toolbar $target_register $target_save $target_edit $target_delete)
+	#if($toolbar.substring(0,1) == "0")
+		#button2("search_down")
+	#else
+		#button2_target("search" $target_register)
+	#end
+	
+	#if($toolbar.substring(1,2) == "0")
+		#button2("save_down")
+	#else
+		#button2_target("save" $target_save)
+	#end
+	
+	#if($toolbar.substring(2,3) == "0")
+		#button2("edit_down")
+	#else
+		#button2_target("edit" $target_edit)
+	#end
+	
+	#if($toolbar.substring(3,4) == "0")
+		#button2("delete_down")
+	#else
+		#button2_target("delete" $target_delete)
+	#end
+#end
+
+#macro(toolbar4 $toolbar $target_init $target_exec $target_confirm $target_cancel)
+	#if($toolbar.substring(0,1) == "0")
+		#button2("init_down")
+	#else
+		#button2_target("init" $target_init)
+	#end
+	
+	#if($toolbar.substring(1,2) == "0")
+		#button2("exec_down")
+	#else
+		#button2_target("exec" $target_exec)
+	#end
+	
+	#if($toolbar.substring(2,3) == "0")
+		#button2("confirm_down")
+	#else
+		#button2_target("confirm" $target_confirm)
+	#end
+	
+	#if($toolbar.substring(3,4) == "0")
+		#button2("cancel_down")
+	#else
+		#button2_target("cancel" $target_cancel)
+	#end
+#end
+
+#macro(toolbar5 $toolbar $target_save)
+	#if($toolbar.substring(0,1) == "0")
+		#button2("save_down")
+	#else
+		#button2_target("save" $target_save)
+	#end			
+#end
+
+#macro(toolbar6 $toolbar $target_search $target_save)
+	#if($toolbar.substring(0,1) == "0")
+		#button2("search_down")
+	#else
+		#button2_target("search" $target_search)
+	#end
+	
+	#if($toolbar.substring(1,2) == "0")
+		#button2("save_down")
+	#else
+		#button2_target("save" $target_save)
+	#end			
+#end
+
+#macro(button2 $type)
+	#if($type == "register_down")
+		<input type="button" value=" Register "  class="button2_3" disabled> 	
+	#elseif($type == "save_down")
+		<input type="button" value=" Save "  class="button2_3" disabled> 	
+	#elseif($type == "edit_down")
+		<input type="button" value=" Modify "  class="button2_3" disabled> 		
+	#elseif($type == "delete_down")
+		<input type="button" value=" Delete "  class="button2_3" disabled>
+	#elseif($type == "search_down")
+		<input type="button" value=" Search "  class="button2_3" disabled>
+	#elseif($type == "init_down")
+		<input type="button" value=" INIT "  class="button2_3" disabled>
+	#elseif($type == "exec_down")
+		<input type="button" value=" EXEC "  class="button2_3" disabled>
+	#elseif($type == "confirm_down")
+		<input type="button" value=" CONFIRM "  class="button2_3" disabled>
+	#elseif($type == "cancel_down")
+		<input type="button" value=" CANCEL "  class="button2_3" disabled>				
+	#end
+#end
+
+#macro(button2_target $type $target_service)
+	#if($type == "excel")
+		<input type="button" onClick="GoExcel('$target_service')" value=" Excel "  class="button1_1" onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"> 
+	#elseif($type == "print")
+		<input type="button" onClick="GoPrint('$target_service')" value=" Print "  class="button1_1" onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"> 
+	#elseif($type == "list")
+		<input type="button" onClick="GoList('$target_service')" value=" List "  class="button1_1" onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"> 
+	#elseif($type == "search")
+		<input type="button" onClick="GoSearch('${target_service}')" value=" Search "  class="button2_1" onmouseover="this.className='button2_2'" onmouseout="this.className='button2_1'"> 	
+	#elseif($type == "register")
+		<input type="button" onClick="GoRegister('$target_service')" value=" Register "  class="button2_1" onmouseover="this.className='button2_2'" onmouseout="this.className='button2_1'"> 	
+	#elseif($type == "save")
+		<input type="button" onClick="GoSave('$target_service')" value=" Save "  class="button2_1" onmouseover="this.className='button2_2'" onmouseout="this.className='button2_1'">
+	#elseif($type == "edit")
+		<input type="button" onClick="GoEdit('$target_service')" value=" Modify "  class="button2_1" onmouseover="this.className='button2_2'" onmouseout="this.className='button2_1'"> 	
+	#elseif($type == "delete")
+		<input type="button" onClick="GoDelete('$target_service')" value=" Delete "  class="button2_1" onmouseover="this.className='button2_2'" onmouseout="this.className='button2_1'">
+	#elseif($type == "reply")
+		<input type="button" onClick="GoReply('$target_service')" value=" Reply "  class="button1_1" onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"> 
+	#elseif($type == "init")
+		<input type="button" onClick="GoExec('$target_service', 'INIT')" value=" INIT "  class="button1_1" onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"> 
+	#elseif($type == "exec")
+		<input type="button" onClick="GoExec('$target_service', 'EXEC')" value=" EXEC "  class="button1_1" onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"> 
+	#elseif($type == "confirm")
+		<input type="button" onClick="GoExec('$target_service', 'CONFIRM')" value=" CONFIRM "  class="button1_1" onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"> 
+	#elseif($type == "cancel")
+		<input type="button" onClick="GoExec('$target_service', 'CANCEL')" value=" CANCEL "  class="button1_1" onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'"> 				
+	#end
+#end
+
+

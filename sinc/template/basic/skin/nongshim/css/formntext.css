@@ -1,0 +1,225 @@
+/* CSS Document */
+
+.chbx{ border:none;}
+
+.hd_scr {
+	scrollbar-face-color: #FFFFFF; 
+	scrollbar-highlight-color: #FFFFFF; 
+	scrollbar-3dlight-color: #FFFFFF; 
+	scrollbar-shadow-color: #FFFFFF; 
+	scrollbar-darkshadow-color: #FFFFFF; 
+	scrollbar-track-color: #FFFFFF; 
+	scrollbar-arrow-color: #ffffff; 
+	overflow:scroll; 
+	overflow-x:hidden; 
+	text-align:left;
+}
+
+input {
+	border: 1px solid #d6dede;
+	font-family:"µ¸¿ò";
+	font-size: 12px;
+	height:15px;
+	padding-top:2px;
+	line-height: normal;
+	color:#2c2c2c;
+}
+
+.input_login {
+	font-family:"µ¸¿ò";
+	padding-left:5px;
+	width:110px;
+	height:19px;
+	color:#2c2c2c;
+	border:0px solid #ffffff;
+	background:url(../images/bg_input.png) no-repeat;
+}
+
+select {
+	border: 1px solid #d6dede;
+	font-family:"µ¸¿ò";
+	font-size: 12px;
+	color:#2c2c2c;
+}
+
+.input_num {
+	border: 1px solid #d6dede;
+	text-align: right;
+	color:#2c2c2c;
+	padding-right: 5px;
+}
+
+.input_c {
+	background-color:#eaeaea;
+}
+
+textarea {
+	border: 1px solid #d6d6d6;
+	font-family:"µ¸¿ò";
+	font-size: 12px;
+	color:#2c2c2c;
+}
+
+.b {font-weight:bold;}
+.black {color:#3d3d3d;}
+.white {color:#ffffff;}
+.f14 {text-align:left; font-size:14px; font-weight:bold;}
+.f_color_g {color:#7a9b2f;}
+.f_color_g1 {color:#7a9b2f;}
+.f_color_b {color:#248ec7;}
+.f_color_o {color:#fa7c0c;}
+.f_tab_p {color:#8161d3;}
+.f_tab_g {color:#868686;}
+
+.red_title {
+	color: #f26522;
+	font-weight:bold;
+}
+
+.bar {
+	color:#c1c4ca;
+	font-size:11px;
+	padding: 0px 10px;
+}
+
+/* ¹öÆ°½ºÅ¸ÀÏ */ 
+
+.btn1_on {
+	font-size:12px; font-weight:bold; color:#ffffff;
+	background:url(../images/btn/btn_st01.gif) left no-repeat;
+	width: 72px;
+	height: 22px;
+	text-align:center;
+	word-spacing:-0.5;
+	border:none;
+	cursor:pointer;
+}
+
+.btn1_off {
+	font-size:12px; font-weight:bold; color:#ffffff;
+	background:url(../images/btn/btn_st01_off.gif) left no-repeat;
+	width: 72px;
+	height: 22px;
+	text-align:center;
+	word-spacing:-0.5;
+	border:none;
+}
+
+.btn2_on {
+	font-size:12px; font-weight:bold; color:#ffffff;
+	background:url(../images/btn/btn_st02.gif) left no-repeat;
+	width: 96px;
+	height: 22px;
+	text-align:left;
+	padding-left:15px;
+	word-spacing:-0.5;
+	border:none;
+	cursor:pointer;
+}
+
+.btn2_off {
+	font-size:12px; font-weight:bold; color:#ffffff;
+	background:url(../images/btn/btn_st02_off.gif) left no-repeat;
+	width: 96px;
+	height: 22px;
+	text-align:left;
+	padding-left:15px;
+	word-spacing:-0.5;
+	border:none;
+}
+
+.btn3_on {
+	font-size:12px; font-weight:bold; color:#ffffff;
+	background:url(../images/btn/btn_st03.gif) left no-repeat;
+	width: 116px;
+	height: 22px;
+	text-align:left;
+	padding-left:15px;
+	word-spacing:-0.5;
+	border:none;
+	cursor:pointer;
+}
+
+.btn3_off {
+	font-size:12px; font-weight:bold; color:#ffffff;
+	background:url(../images/btn/btn_st03_off.gif) left no-repeat;
+	width: 116px;
+	height: 22px;
+	text-align:left;
+	padding-left:15px;
+	word-spacing:-0.5;
+	border:none;
+}
+
+.btn4_on {
+	font-size:12px; font-weight:bold; color:#ffffff;
+	background:url(../images/btn/btn_st04.gif) left no-repeat;
+	width: 130px;
+	height: 22px;
+	text-align:left;
+	padding-left:15px;
+	word-spacing:-0.5;
+	border:none;
+	cursor:pointer;
+}
+
+.btn4_off {
+	font-size:12px; font-weight:bold; color:#ffffff;
+	background:url(../images/btn/btn_st04_off.gif) left no-repeat;
+	width: 130px;
+	height: 22px;
+	text-align:left;
+	padding-left:15px;
+	word-spacing:-0.5;
+	border:none;
+}
+
+.btn_reg_on{
+	font-size:12px; font-weight:bold; color:#000000;
+	background:url(../images/btn/btn_wrt.gif) left no-repeat;
+	width: 55px;
+	height: 22px;
+	text-align:center;
+	border:none;
+	cursor:pointer;
+}
+
+.btn_mod_on{
+	font-size:12px; font-weight:bold; color:#000000;
+	background:url(../images/btn/btn_mod.gif) left no-repeat;
+	width: 55px;
+	height: 22px;
+	text-align:center;
+	border:none;
+	cursor:pointer;
+}
+
+.btn_sav_on{
+	font-size:12px; font-weight:bold; color:#000000;
+	background:url(../images/btn/btn_save.gif) left no-repeat;
+	width: 55px;
+	height: 22px;
+	text-align:center;
+	border:none;
+	cursor:pointer;
+}
+
+.btn_del_on{
+	font-size:12px; font-weight:bold; color:#000000;
+	background:url(../images/btn/btn_del.gif) left no-repeat;
+	width: 55px;
+	height: 22px;
+	text-align:center;
+	border:none;
+	cursor:pointer;
+}
+
+.btn_search_on{
+	font-size:12px; font-weight:bold; color:#ffffff;
+	background:url(../images/btn/btn_search_01.gif) left no-repeat;
+	width: 66px;
+	height: 22px;
+	text-align:center;
+	border:none;
+	cursor:pointer;
+}

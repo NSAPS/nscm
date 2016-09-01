@@ -1,0 +1,1408 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>	
+
+<!--
+=====================================================================================================
+	기준정보 >> 생산계획 
+=====================================================================================================
+--> 
+
+	<!-- 
+	===============================
+		Capacity 기준정보
+	===============================
+	-->
+		
+	<!--Capacity 기준정보  조회--> 
+	<query id="md_05170_capaMaster_list">
+	
+			SELECT  IC.PLANT_ID, -- 공장 코드  0
+			        IC.ITEM_ID,  -- 제품 코드  1
+			        IM.ITEM_NAME,-- 제품명     2
+			        IC.LINE_ID,	 -- LINE 코드  3
+			        IC.LINE_NAME,-- LINE NAME 4
+			        IC.PROC_ID,  -- 작업장 코드 5
+			        IC.PROC_NAME,-- 작업장 NAME 6 
+			        IC.ERP_STD_TIME, -- ERP 정의 표준시간 7
+			        IC.CONV_QTY,     -- CONV QTY 8
+			        IC.QTY_UOM,      -- UOM  9
+			        CM.STANDARD_TIME,-- 표준시간 10
+			        CM.QTY,           -- QTY 11
+			        IM.SPEC			-- SPEC 12
+			FROM    (
+			        SELECT  DISTINCT IC.PLANT_ID, IC.ITEM_ID, 
+			                IC.LINE_ID, VH.LINE_NAME, 
+			                IC.PROC_ID, VH.PROC_NAME,
+			                IC.CAPA_MC / IC.MC_QTY  ERP_STD_TIME,
+			                IC.CONV_QTY, IC.QTY_UOM
+			        FROM    ITEM_CAPA IC, V_HRCHY_PROC VH
+			        WHERE   IC.PLANT_ID = '$!{selected_plant}' -- 공장
+			        [AND     IC.LINE_ID  = '${selected_line}'] -- 라인
+			        [AND     IC.PROC_ID = '${selected_proc}' ] -- 작업장
+			        [AND	 IC.ITEM_ID LIKE '${item_id}'||'%'] -- 제품코드
+			        AND     IC.QTY_UOM = 'BOX'
+			        AND     IC.PLANT_ID = VH.PLANT_ID
+			        AND     IC.LINE_ID  = VH.LINE_ID
+			        AND     IC.PROC_ID  = VH.PROC_ID
+			        AND		IC.MADE_TYPE &lt;&gt; 'DE'
+			        )   IC,
+			        (
+			        SELECT  CM.PLANT_ID, CM.ITEM_ID,
+			                CM.LINE_ID,  CM.PROC_ID,
+			                CM.STANDARD_TIME, CM.QTY
+			        FROM    CAPA_MST CM
+			        WHERE   PLANT_ID = '$!{selected_plant}'
+			        [AND     CM.LINE_ID  = '${selected_line}'] -- 라인
+			        [AND     CM.PROC_ID = '${selected_proc}' ] -- 작업장
+			        [AND	 CM.ITEM_ID LIKE '${item_id}'||'%'] -- 제품코드
+			        )   CM,
+			        ITEM_MST    IM
+			WHERE   IC.PLANT_ID = CM.PLANT_ID(+)
+			AND     IC.ITEM_ID  = CM.ITEM_ID(+)
+			AND     IC.LINE_ID  = CM.LINE_ID(+)
+			AND     IC.PROC_ID  = CM.PROC_ID(+)
+			AND     IC.ITEM_ID  = IM.ITEM_ID
+			ORDER   BY IC.ITEM_ID
+	
+	</query>
+
+	<!-- 01. 화면에 있는 데이터 모두 삭제 -->
+	<query id="md_05170_capaMaster_list_save_01">
+	
+			DELETE  CAPA_MST
+			WHERE   PLANT_ID = '$!{selected_plant}'
+			[AND     LINE_ID  = '${selected_line}'] -- 라인
+			[AND     PROC_ID  = '${selected_proc}'] -- 작업장
+			[AND     ITEM_ID  LIKE '${item_id}'||'%'] -- 제품코드	
+			  
+	</query>
+	
+	<!-- 02. 화면에 있는 데이터 모두 INSERT-->
+	<query id="md_05170_capaMaster_list_save_02" fix="_user_id" 
+		iterator="qty qty_uom plant_id v_item_id line_id proc_id std_time erp_std_time">
+	
+			INSERT  INTO CAPA_MST
+			        (PLANT_ID, ITEM_ID, LINE_ID, PROC_ID, STANDARD_TIME, QTY,
+			         QTY_UOM, MADE_TYPE, MADE_DTTM, MADE_BY)
+			SELECT  '$!{plant_id}'      PLANT_ID,
+			        '$!{v_item_id}'       ITEM_ID,
+			        '$!{line_id}'       LINE_ID,
+			        '$!{proc_id}'       PROC_ID,
+			        DECODE(TO_NUMBER('$!{std_time}'), NULL, TO_NUMBER('$!{erp_std_time}'), TO_NUMBER('$!{std_time}')) STANDARD_TIME,
+			        TO_NUMBER(REPLACE('$!{qty}',',','')) QTY,
+			        '$!{qty_uom}'       QTY_UOM,
+			        'AD'                MADE_TYPE,
+			        SYSDATE             MADE_DTTM,
+			        '$!{_user_id}'      MADE_BY
+			FROM    DUAL
+	
+	</query>
+	
+	<!-- 
+	===============================
+		최소생산량 정보관리
+	===============================
+	-->
+		
+	<!--최소생산량 정보관리  조회--> 
+	<query id="md_05190_itemShiftLot_list">
+	
+			SELECT  IT.PLANT_ID, 
+			        IT.PLANT_NAME,
+			        IT.ITEM_ID,
+			        IT.ITEM_NAME,
+			        IT.BASE_VAL,
+			        IT.UOM,
+			        IL.DAYWEEK_PATTERN,
+			        IL.CD_NAME,
+			        IT.FIRST_QTY
+			FROM    (
+			        SELECT  IO.PLANT_ID, IO.PLANT_NAME, 
+			                IO.ITEM_ID, IO.ITEM_NAME,
+			                IO.BASE_VAL, IO.UOM,
+			                IO.FIRST_QTY 
+			        FROM    ITEM_SHIFT_LOT IO
+			        WHERE   IO.PLANT_ID = '$!{selected_plant}'
+			        [AND     IO.ITEM_ID  LIKE '${item_id}'||'%']
+			        --AND     IO.ITEM_NAME LIKE '%'||'$!{item_name}'||'%'
+			        ) IT,
+			        (
+			        SELECT  IL.ITEM_ID, IL.PLANT_ID, 
+			                IL.DAYWEEK_PATTERN, CM.CD_NAME
+			        FROM    ITEM_DTL IL,
+			                (
+			                SELECT  CM.CD, CD_NAME
+			                FROM    CODE_MST CM
+			                WHERE   CD_GRP = 'DAYWEEK_PATTERN'
+			                ) CM
+			        WHERE   IL.PLANT_ID = '$!{selected_plant}'
+			        AND     IL.DAYWEEK_PATTERN = CM.CD(+)
+			        ) IL
+			WHERE   IT.PLANT_ID = IL.PLANT_ID
+			AND     IT.ITEM_ID  = IL.ITEM_ID
+			ORDER   BY IT.ITEM_ID
+
+	</query>
+	
+	<!-- 01. 화면에 있는 데이터 모두 삭제 (조회화면에서 저장)-->
+	<query id="md_05190_itemShiftLot_list_save_01">
+	
+			DELETE  ITEM_SHIFT_LOT
+			WHERE   PLANT_ID = '$!{selected_plant}'
+			[AND     ITEM_ID  LIKE '${item_id}'||'%']
+			  
+	</query>
+	
+	<!-- 02. 화면에 있는 데이터 모두 INSERT (조회화면에서 저장)-->
+	<query id="md_05190_itemShiftLot_list_save_02" fix="_user_id" 
+		iterator="plant_id v_item_id plant_name v_item_name base_val uom cd_name first_qty">
+	
+			INSERT  INTO ITEM_SHIFT_LOT
+		            (PLANT_ID, ITEM_ID, PLANT_NAME, ITEM_NAME, KIND, BASE_VAL, UOM, 
+		             FIRST_QTY, MADE_TYPE, MADE_DTTM, MADE_BY)
+			SELECT  '$!{plant_id}'      PLANT_ID,
+			        '$!{v_item_id}'     ITEM_ID,
+			        '$!{plant_name}'    PLANT_NAME,
+			        '$!{v_item_name}'   ITEM_NAME,
+			        NULL                KIND,
+			        '$!{base_val}'      BASE_VAL,
+			        '$!{uom}'           UOM,
+			        '$!{first_qty}'     FIRST_QTY,
+			        'AD'                MADE_TYPE,
+			        SYSDATE             MADE_DTTM,
+			        '$!{_user_id}'      MADE_BY
+			FROM    DUAL
+			WHERE	NOT EXISTS (
+				SELECT  ITEM_ID
+				FROM	ITEM_SHIFT_LOT
+				WHERE	PLANT_ID = '$!{plant_id}'
+				AND		ITEM_ID = '$!{v_item_id}'
+			)
+	
+	</query>
+	
+	<!-- 등록 페이지에서 ITEM_ID가 중복되는지 체크하는 쿼리 -->
+	<query id="item_id_dup_check_in_item_capa"> 
+	
+		SELECT  CASE WHEN
+		                (SELECT  COUNT(IL.ITEM_ID) CNT
+		                 FROM    ITEM_SHIFT_LOT IL
+		                 WHERE   IL.PLANT_ID = SUBSTR('$!{check_value}',0,4)
+		                 AND     IL.ITEM_ID = SUBSTR('$!{check_value}',8)) = 0 -- 중복된 데이타가 없고
+		                 AND
+		                (SELECT  COUNT(IC.ITEM_ID) CNT
+		                 FROM    ITEM_CAPA IC, ITEM_MST IM
+		                 WHERE   IC.ITEM_ID = IM.ITEM_ID
+		                 AND     IM.ITEM_STATUS = 'ST'
+		                 AND     IC.PLANT_ID = SUBSTR('$!{check_value}',0,4)
+		                 AND     IC.ITEM_ID = SUBSTR('$!{check_value}',8)) &gt; 0 -- 입력가능한 아이템인 경우
+		             THEN 0
+		             ELSE 1
+		        END CNT
+		FROM    DUAL		
+			
+	</query>
+	
+	<!-- 화면에 있는 데이터 모두 INSERT (등록화면에서 저장)-->
+	<query id="md_05190_itemShiftLot_reg_save" fix="_user_id" 
+		iterator="selected_plant v_item_id v_item_name base_val uom first_qty">
+	
+			INSERT  INTO ITEM_SHIFT_LOT
+		            (PLANT_ID, ITEM_ID, PLANT_NAME, ITEM_NAME, KIND, BASE_VAL, UOM, 
+		             FIRST_QTY, MADE_TYPE, MADE_DTTM, MADE_BY)
+			SELECT  '$!{selected_plant}'      PLANT_ID,
+			        '$!{v_item_id}'     ITEM_ID,
+			        (SELECT	DISTINCT HR.HID_NAME
+					 FROM	HRCHY HR
+					 WHERE	HR.LVL_TYPE = '공장'
+					 AND    HR.MADE_TYPE != 'DE'
+					 AND    HR.HID = '$!{selected_plant}')    PLANT_NAME,
+			        '$!{v_item_name}'   ITEM_NAME,
+			        NULL                KIND,
+			        '$!{base_val}'      BASE_VAL,
+			        '$!{uom}'           UOM,
+			        '$!{first_qty}'     FIRST_QTY,
+			        'AD'                MADE_TYPE,
+			        SYSDATE             MADE_DTTM,
+			        '$!{_user_id}'      MADE_BY
+			FROM    DUAL
+	
+	</query>
+	
+	<!-- 
+	===============================
+		설비정보 관리
+	===============================
+	-->
+		
+	<!--설비정보 관리  조회--> 
+	<query id="md_05180_extraProcMc_list">
+	
+			SELECT  EP.PLANT_ID,        -- 공장코드 0 
+					EP.ITEM_ID,         -- 제품코드 1
+			        IM.ITEM_NAME,       -- 제품명  2
+			        EP.ITEM_TYPE,       -- 제품타입 3
+			        VH.LINE_ID,         -- 라인코드 4
+			        VH.LINE_NAME,       -- 라인명    5
+			        EP.PROC_ID,         -- 작업장코드 6
+			        VH.PROC_NAME,       -- 작업장명 7			        
+			        EP.MC_KIND,         -- MC_KIND 8
+			        CM.CD_NAME,         -- MC_KIND명 9
+			        EP.MC_QTY           -- 수량 10
+			FROM    EXTRA_PROC_MC EP,
+			        ITEM_MST IM,
+			        (SELECT CD, CD_NAME FROM CODE_MST WHERE CD_GRP = 'MC_KIND') CM,
+			        V_HRCHY_PROC VH
+			WHERE   EP.PLANT_ID = VH.PLANT_ID
+			AND     EP.PROC_ID  = VH.PROC_ID
+			AND     EP.ITEM_ID  = IM.ITEM_ID
+			AND     EP.MC_KIND  = CM.CD
+			AND     EP.PLANT_ID = '$!{selected_plant}' -- 공장
+			[AND     VH.LINE_ID  = '${selected_line}'] -- 라인
+			[AND     EP.PROC_ID = '${selected_proc}' ] -- 작업장
+			[AND	 EP.ITEM_ID LIKE '${item_id}'||'%'] -- 제품코드
+			ORDER   BY EP.ITEM_ID
+	
+	</query>
+	
+	<!-- CODE_MST 의 MC_KIND 조회 -->
+	<query id="mc_kind_in_code_mst">
+		SELECT  CD, CD_NAME
+		FROM    CODE_MST
+		WHERE   CD_GRP = 'MC_KIND'
+	</query>
+	
+	<!-- 설비정보 관리 DELETE(조회화면) -->
+	<query id="md_05180_extraProcMc_list_save_01">
+		DELETE  EXTRA_PROC_MC
+		WHERE   PLANT_ID = '$!{selected_plant}'
+		AND     PROC_ID  IN (SELECT  PROC_ID
+							 FROM    V_HRCHY_PROC
+							 WHERE   PLANT_ID = '$!{selected_plant}'
+							 [AND     LINE_ID = '${selected_line}']) -- 라인
+		[AND     PROC_ID  = '${selected_proc}'] -- 작업장
+		[AND     ITEM_ID  LIKE '${item_id}'||'%'] -- 제품코드
+	</query>
+	
+	<!-- 설비정보 관리 INSERT(조회화면) -->
+	<query id="md_05180_extraProcMc_list_save_02" fix="_user_id" 
+		iterator="plant_id v_item_id item_type proc_id mc_kind mc_qty">
+		INSERT  INTO EXTRA_PROC_MC
+		        (PLANT_ID, ITEM_ID, ITEM_TYPE, PROC_ID, MC_KIND, MC_QTY, MADE_TYPE, MADE_DTTM, MADE_BY)    
+		SELECT  '$!{plant_id}'      PLANT_ID,
+		        '$!{v_item_id}'     ITEM_ID,
+		        '$!{item_type}'     ITEM_TYPE,
+		        '$!{proc_id}'       PROC_ID,
+		        '$!{mc_kind}'       MC_KIND,
+		        '$!{mc_qty}'        MC_QTY,
+		        'AD'         	    MADE_TYPE,
+		        SYSDATE         	MADE_DTTM,
+		        '$!{_user_id}'      MADE_BY
+		FROM    DUAL
+	</query>
+	
+	<!-- 01. 화면에 있는 데이터 모두 update (등록화면에서 수정)-->
+	<query id="md_05180_extraProcMc_reg_save_01">
+	
+			UPDATE  EXTRA_PROC_MC
+			SET     MC_QTY      = '$!{mc_qty}',
+			        MADE_TYPE   = 'UP',
+			        MADE_DTTM   = SYSDATE,
+			        MADE_BY     = '$!{_user_id}'
+			WHERE   PLANT_ID    = '$!{selected_plant}'
+			AND     ITEM_ID     = '$!{item_id}'
+			AND     PROC_ID     = '$!{v_proc_id}'
+			AND     MC_KIND     = '$!{mc_kind}'
+			AND     EXISTS      (
+			            SELECT  PLANT_ID
+			            FROM    EXTRA_PROC_MC
+			            WHERE   PLANT_ID    = '$!{selected_plant}'
+			            AND     ITEM_ID     = '$!{item_id}'
+			            AND     PROC_ID     = '$!{v_proc_id}'
+			            AND     MC_KIND     = '$!{mc_kind}'
+			        )
+	
+	</query>
+	
+	<!-- 02. 화면에 있는 데이터 모두 INSERT (등록화면에서 저장)-->
+	<query id="md_05180_extraProcMc_reg_save_02">
+	
+			INSERT  INTO EXTRA_PROC_MC
+			        (PLANT_ID, ITEM_ID, ITEM_TYPE, PROC_ID, MC_KIND, MC_QTY, MADE_TYPE, MADE_DTTM, MADE_BY)    
+			SELECT  '$!{selected_plant}'      PLANT_ID,
+			        '$!{item_id}'     ITEM_ID,
+			        (SELECT  ITYPE
+					 FROM    ITEM_MST
+					 WHERE   ITEM_ID = '$!{item_id}')     ITEM_TYPE,
+			        '$!{v_proc_id}'     PROC_ID,
+			        '$!{mc_kind}'       MC_KIND,
+			        '$!{mc_qty}'        MC_QTY,
+			        'AD'         	    MADE_TYPE,
+			        SYSDATE         	MADE_DTTM,
+			        '$!{_user_id}'      MADE_BY
+			FROM    DUAL
+			WHERE   NOT  EXISTS      (
+                        SELECT  PLANT_ID
+                        FROM    EXTRA_PROC_MC
+                        WHERE   PLANT_ID    = '$!{selected_plant}'
+                        AND     ITEM_ID     = '$!{item_id}'
+                        AND     PROC_ID     = '$!{v_proc_id}'
+                        AND     MC_KIND     = '$!{mc_kind}'
+                    )
+	
+	</query>
+
+	<!-- 
+	===============================
+		수출오더 생산요청일 관리
+	===============================
+	-->
+	<!-- 
+	===============================
+		수출오더 생산요청일 관리
+	===============================
+	-->
+	<query id="sc_03010_Nfos_Order_Prod_Reqt">
+
+		SELECT	T1.ORD_NO,
+				T1.ORD_ITEM_NO,
+				T1.SOLD_PART,
+				T1.CUST_NAME,
+				F_GET_CODE_NAME('CAT06',CAT06)	CAT06,
+				T1.ITEM_ID,
+				T1.ITEM_NAME,
+				T1.SPEC,
+				T1.MTO_MTS,
+				T1.QTY,
+				NVL2(T2.PROD_REQ_DATE, TO_CHAR(T2.PROD_REQ_DATE,'YYYYMMDD'),T1.PROD_REQ_DATE)	PROD_REQ_DATE,
+				''													CRUD
+		FROM	(
+			    SELECT  TRIM(TO_CHAR(A.SLIP_NO,'0000000000'))		ORD_NO,
+			            TRIM(TO_CHAR(B.SEQ_NO,'000000'))			ORD_ITEM_NO,
+						A.SOLD_PART,
+						NVL(D.CUST_NAME,'거래처명 없음')				CUST_NAME,
+						C.CAT06,
+			            B.PROD_CODE									ITEM_ID,
+						C.ITEM_NAME,
+						C.SPEC,
+						DECODE(C.MTO_MTS_TYPE,'0001','MTO','MTS')			MTO_MTS,
+			            --TO_DATE(A.SHIP_PLAN_DATE,'YYYYMMDD')				DUE_DATE,           
+			            B.REQT_BOX											QTY,
+						A.PRDT_PLAN_DATE									PROD_REQ_DATE
+			    FROM    SDORT101    A,
+			            SDORT102    B,
+			            ITEM_MST	C,
+						SDSTT101	D
+			    WHERE   A.SLIP_NO						=	B.SLIP_NO
+			    AND     A.PRDT_PLAN_DATE				BETWEEN  TO_DATE('$!{in_fr_date}','YYYY-MM-DD')	AND TO_DATE('$!{in_to_date}','YYYY-MM-DD')
+			    AND		SUBSTR(A.SLIP_GUBN_CODE,1,1)	= 'X'
+			    AND		LENGTH(A.CNFM_DATE) 			= 8  
+			    AND		B.PROD_CODE						= C.ITEM_ID
+			    AND		C.ITYPE							= 'FERT'
+				AND		A.SOLD_PART						= '000'||D.CUST_CODE(+)
+				AND		A.UPDT_GUBN						!= 'DE'
+				AND		C.MTO_MTS_TYPE					LIKE 		'%'||'$!{in_mto_mts}'
+				)						T1,
+				NFOS_ORDER_PROD_REQT	T2
+		WHERE	T1.ORD_NO	= T2.ORD_NO(+)
+		AND		T1.ORD_ITEM_NO	= T2.ORD_ITEM_NO(+)
+		AND		T1.ITEM_ID		= T2.ITEM_ID(+)	
+		ORDER
+		BY		T1.ORD_NO,
+				T1.ORD_ITEM_NO
+		
+	</query>
+
+
+	<!-- 
+	===============================
+		생산의뢰 기초자료
+	===============================
+	-->
+
+	<!-- 생산의뢰 기초자료 header -->
+	<query id="sc_17010_ColHeader">
+
+		SELECT	TO_CHAR(ADD_MONTHS(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''),'YYYY-MM-DD'),-4),'MM')||'월실적'	M01,
+				TO_CHAR(ADD_MONTHS(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''),'YYYY-MM-DD'),-3),'MM')||'월실적'	M02,
+				TO_CHAR(ADD_MONTHS(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''),'YYYY-MM-DD'),-2),'MM')||'월실적'	M03,
+				TO_CHAR(ADD_MONTHS(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''),'YYYY-MM-DD'),-1),'MM')||'월실적'	M04,
+				TO_CHAR(ADD_MONTHS(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''),'YYYY-MM-DD'),0),'MM')||'월실적'		M05,
+				'기초재고','3주평균','1주평균','당주생산계획','차주수출선적예정',
+				TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''),'YYYY-MM-DD'),'MM/DD')||'주문량'	P01,
+				TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''),'YYYY-MM-DD'),'MM/DD')||'판매계획'	D01,		
+				TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''),'YYYY-MM-DD')+ 1,'MM/DD')||'판매계획'	D02,		
+				TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''),'YYYY-MM-DD')+ 2,'MM/DD')||'판매계획'	D03,		
+				TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''),'YYYY-MM-DD')+ 3,'MM/DD')||'판매계획'	D04,		
+				TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''),'YYYY-MM-DD')+ 4,'MM/DD')||'판매계획'	D05,		
+				TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''),'YYYY-MM-DD')+ 5,'MM/DD')||'판매계획'	D06,		
+				TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''),'YYYY-MM-DD')+ 6,'MM/DD')||'판매계획'	D07,		
+				TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''),'YYYY-MM-DD')+ 7,'MM/DD')||'판매계획'	D08,		
+				TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''),'YYYY-MM-DD')+ 8,'MM/DD')||'판매계획'	D09,		
+				TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''),'YYYY-MM-DD')+ 9,'MM/DD')||'판매계획'	D10,		
+				TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''),'YYYY-MM-DD')+10,'MM/DD')||'판매계획'	D11,		
+				TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''),'YYYY-MM-DD')+11,'MM/DD')||'판매계획'	D12,		
+				TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''),'YYYY-MM-DD')+12,'MM/DD')||'판매계획'	D13,		
+				TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''),'YYYY-MM-DD')+13,'MM/DD')||'판매계획'	D14		
+		FROM	DUAL
+		
+	</query>
+
+	<!-- 생산의뢰 기초자료 조회 -->
+	<query id="sc_17010_Production_base_list">
+
+	#if("$!{in_cnfm_date}" == "" )
+		
+		SELECT	*
+		FROM	DUAL
+		WHERE	1=0
+		
+	#else	
+		/* 생산의뢰 기초자료 */
+		SELECT	K1.ITEM_ID,
+				K2.ITEM_NAME,
+				K2.SELL_STOP_DATE,
+				SUM(QM3)		M01,
+				SUM(QM2)		M02,
+				SUM(QM1)		M03,
+				SUM(QM0)		M04,
+				SUM(QM0_1)		M05,
+				SUM(BASE_STOCK       )	"기초재고",
+				SUM(SALES_MEAN_3WEEK )	"3주평균",
+				SUM(SALES_MEAN_1WEEK )	"1주평균",
+				SUM(PRD_QTY          )	"당주생산계획",
+				MAX(NVL(EX_QTY,0))		"차주수출선적예정",
+				SUM(REQT_BOX)			P01,
+				SUM(PLAN00           )	D01,
+				SUM(PLAN01           )	D02,
+				SUM(PLAN02           )	D03,
+				SUM(PLAN03           )	D04,
+				SUM(PLAN04           )	D05,
+				SUM(PLAN05           )	D06,
+				SUM(PLAN06           )	D07,
+				SUM(PLAN07           )	D08,
+				SUM(PLAN08           )	D09,
+				SUM(PLAN09           )	D10,
+				SUM(PLAN10           )	D11,
+				SUM(PLAN11           )	D12,
+				SUM(PLAN12           )	D13,
+				SUM(PLAN13           )	D14
+		FROM	(
+				/* 과3개월 실적 */
+				SELECT	T1.ITEM_ID,
+						SUM(DECODE(TRUNC(SALE_DATE,'MM')
+								,TRUNC(ADD_MONTHS(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''),'YYYY-MM-DD'),-4),'MM'),T1.QTY))	QM3,
+						SUM(DECODE(TRUNC(SALE_DATE,'MM')
+								,TRUNC(ADD_MONTHS(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''),'YYYY-MM-DD'),-3),'MM'),T1.QTY))	QM2,
+						SUM(DECODE(TRUNC(SALE_DATE,'MM')
+								,TRUNC(ADD_MONTHS(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''),'YYYY-MM-DD'),-2),'MM'),T1.QTY))	QM1,
+						SUM(DECODE(TRUNC(SALE_DATE,'MM')
+								,TRUNC(ADD_MONTHS(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''),'YYYY-MM-DD'),-1),'MM'),T1.QTY))	QM0,
+						SUM(DECODE(TRUNC(SALE_DATE,'MM')
+								,TRUNC(ADD_MONTHS(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''),'YYYY-MM-DD'), 0),'MM'),T1.QTY))	QM0_1,
+						0	BASE_STOCK,
+						0	ISSUE,
+						0	SALES_MEAN_3WEEK,
+						0	SALES_MEAN_1WEEK,
+						0	PRD_QTY,
+						0	PLAN00,
+						0	PLAN01,
+						0	PLAN02,
+						0	PLAN03,
+						0	PLAN04,
+						0	PLAN05,
+						0	PLAN06,
+						0	PLAN07,
+						0	PLAN08,
+						0	PLAN09,
+						0	PLAN10,
+						0	PLAN11,
+						0	PLAN12,
+						0	PLAN13,
+						0		REQT_BOX
+				FROM	SALES_ACT	T1,
+						(
+						SELECT	CAL_DATE
+						FROM	CAL_MST
+						WHERE	CAL_DATE	BETWEEN TRUNC(ADD_MONTHS(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''),'YYYY-MM-DD'),-4),'MM') AND TRUNC(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''))-1)
+						)			T3	
+				WHERE	T1.SALE_DATE	= T3.CAL_DATE
+				GROUP
+				BY		T1.ITEM_ID
+				UNION	ALL
+				SELECT	ITEM_ID,
+						0						QM3,
+						0						QM2,
+						0						QM1,
+						0						QM0,
+						0						QM0_1,
+						SUM(QTY)			BASE_STOCK,
+						0	ISSUE,
+						0	SALES_MEAN_3WEEK,
+						0	SALES_MEAN_1WEEK,
+						0	PRD_QTY,
+						0	PLAN00, 
+						0	PLAN01, 
+						0	PLAN02, 
+						0	PLAN03, 
+						0	PLAN04, 
+						0	PLAN05, 
+						0	PLAN06, 
+						0	PLAN07, 
+						0	PLAN08, 
+						0	PLAN09, 
+						0	PLAN10, 
+						0	PLAN11, 
+						0	PLAN12, 
+						0	PLAN13,
+						0		REQT_BOX  
+				FROM	WMS_STOCK
+				WHERE	IF_DTTM = '$!{in_cnfm_date}'
+				GROUP
+				BY		ITEM_ID	
+				UNION	ALL	
+				/* 3주평균,1주평균 */
+				SELECT	ITEM_ID,
+						0						QM3,
+						0						QM2,
+						0						QM1,
+						0						QM0,
+						0						QM0_1,
+						0						BASE_STOCK,--SUM(BASE_STOCK)			BASE_STOCK,
+						SUM(ISSUE+ISSUE_EXPT)	ISSUE,
+						SUM(SALES_MEAN_3WEEK)	SALES_MEAN_3WEEK,
+						SUM(SALES_MEAN_1WEEK)	SALES_MEAN_1WEEK,
+						0	PRD_QTY,
+						0	PLAN00, 
+						0	PLAN01, 
+						0	PLAN02, 
+						0	PLAN03, 
+						0	PLAN04, 
+						0	PLAN05, 
+						0	PLAN06, 
+						0	PLAN07, 
+						0	PLAN08, 
+						0	PLAN09, 
+						0	PLAN10, 
+						0	PLAN11, 
+						0	PLAN12, 
+						0	PLAN13,
+						0		REQT_BOX  
+				FROM	DC_DATAWAREHOUSE
+				WHERE	CNFM_DATE	= REPLACE('$!{in_cnfm_date}','-','')
+				GROUP
+				BY		ITEM_ID
+				UNION	ALL
+				/* 금주 생산계획 */
+				SELECT	T1.ITEM_ID,
+						0						QM3,
+						0						QM2,
+						0						QM1,
+						0						QM0,
+						0						QM0_1,
+						0						BASE_STOCK,
+						0						ISSUE,
+						0						SALES_MEAN_3WEEK,
+						0						SALES_MEAN_1WEEK,
+						SUM(PO_QTY)				PRD_QTY,
+						0	PLAN00, 
+						0	PLAN01, 
+						0	PLAN02, 
+						0	PLAN03, 
+						0	PLAN04, 
+						0	PLAN05, 
+						0	PLAN06, 
+						0	PLAN07, 
+						0	PLAN08, 
+						0	PLAN09, 
+						0	PLAN10, 
+						0	PLAN11, 
+						0	PLAN12, 
+						0	PLAN13,
+						0		REQT_BOX  				
+				FROM	(
+						SELECT	PLAN_DATE	CNFM_DATE,
+								T1.PLANT,
+								T2.ITEM_ID,
+								SUM(PLAN_QTY)	PO_QTY
+						FROM	(
+								SELECT	PLANT,
+										CASE
+										WHEN PTO_TIME &lt; '060000' THEN TO_CHAR(TO_DATE(PTO_DATE)-1,'YYYYMMDD')
+										ELSE PTO_DATE	
+										END			PLAN_DATE,
+										MATR_CODE,
+										PLAN_QTY	PLAN_QTY
+								FROM	PP20T110
+								WHERE	PTO_DATE	BETWEEN REPLACE('$!{in_cnfm_date}','-','') AND	TO_CHAR(to_date(REPLACE('$!{in_cnfm_date}','-',''))+6,'YYYYMMDD')
+								AND		ORDER_STAT	NOT IN ('TECO','DLT','DLFL')
+								)			T1,
+								ITEM_MST	T2
+						WHERE	T1.MATR_CODE	= T2.ITEM_ID
+						/* 야간조 날짜 계산을 다시 감안 */
+						AND		T1.PLAN_DATE	BETWEEN REPLACE('$!{in_cnfm_date}','-','') AND	TO_CHAR(to_date(REPLACE('$!{in_cnfm_date}','-',''))+6,'YYYYMMDD')
+						AND		T2.ITYPE		= 'FERT'
+						GROUP
+						BY		PLAN_DATE,
+								T1.PLANT,
+								T2.ITEM_ID		
+						)			T1,
+						ITEM_MST	T2
+				WHERE	T1.ITEM_ID		= T2.ITEM_ID
+				AND		T1.CNFM_DATE	&gt;= REPLACE('$!{in_cnfm_date}','-','')
+				GROUP
+				BY		T1.ITEM_ID
+				UNION	ALL
+				/* 판매계획 */
+				SELECT	T1.ITEM_ID,
+						0						QM3,
+						0						QM2,
+						0						QM1,
+						0						QM0,
+						0						QM0_1,
+						0						BASE_STOCK,
+						0						ISSUE,
+						0						SALES_MEAN_3WEEK,
+						0						SALES_MEAN_1WEEK,
+						0						PRD_QTY,
+						NVL(SUM(DECODE(T1.YYYYMMDD,TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''))+0 ,'YYYYMMDD'),NORMAL_QTY + PROM_QTY + SUPT_QTY + SAMP_QTY)),0)	PLAN00,
+						NVL(SUM(DECODE(T1.YYYYMMDD,TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''))+1 ,'YYYYMMDD'),NORMAL_QTY + PROM_QTY + SUPT_QTY + SAMP_QTY)),0)	PLAN01,
+						NVL(SUM(DECODE(T1.YYYYMMDD,TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''))+2 ,'YYYYMMDD'),NORMAL_QTY + PROM_QTY + SUPT_QTY + SAMP_QTY)),0)	PLAN02,
+						NVL(SUM(DECODE(T1.YYYYMMDD,TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''))+3 ,'YYYYMMDD'),NORMAL_QTY + PROM_QTY + SUPT_QTY + SAMP_QTY)),0)	PLAN03,
+						NVL(SUM(DECODE(T1.YYYYMMDD,TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''))+4 ,'YYYYMMDD'),NORMAL_QTY + PROM_QTY + SUPT_QTY + SAMP_QTY)),0)	PLAN04,
+						NVL(SUM(DECODE(T1.YYYYMMDD,TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''))+5 ,'YYYYMMDD'),NORMAL_QTY + PROM_QTY + SUPT_QTY + SAMP_QTY)),0)	PLAN05,
+						NVL(SUM(DECODE(T1.YYYYMMDD,TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''))+6 ,'YYYYMMDD'),NORMAL_QTY + PROM_QTY + SUPT_QTY + SAMP_QTY)),0)	PLAN06,
+						NVL(SUM(DECODE(T1.YYYYMMDD,TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''))+7 ,'YYYYMMDD'),NORMAL_QTY + PROM_QTY + SUPT_QTY + SAMP_QTY)),0)	PLAN07,
+						NVL(SUM(DECODE(T1.YYYYMMDD,TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''))+8 ,'YYYYMMDD'),NORMAL_QTY + PROM_QTY + SUPT_QTY + SAMP_QTY)),0)	PLAN08,
+						NVL(SUM(DECODE(T1.YYYYMMDD,TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''))+9 ,'YYYYMMDD'),NORMAL_QTY + PROM_QTY + SUPT_QTY + SAMP_QTY)),0)	PLAN09,
+						NVL(SUM(DECODE(T1.YYYYMMDD,TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''))+10,'YYYYMMDD'),NORMAL_QTY + PROM_QTY + SUPT_QTY + SAMP_QTY)),0)	PLAN10,
+						NVL(SUM(DECODE(T1.YYYYMMDD,TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''))+11,'YYYYMMDD'),NORMAL_QTY + PROM_QTY + SUPT_QTY + SAMP_QTY)),0)	PLAN11,
+						NVL(SUM(DECODE(T1.YYYYMMDD,TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''))+12,'YYYYMMDD'),NORMAL_QTY + PROM_QTY + SUPT_QTY + SAMP_QTY)),0)	PLAN12,
+						NVL(SUM(DECODE(T1.YYYYMMDD,TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''))+13,'YYYYMMDD'),NORMAL_QTY + PROM_QTY + SUPT_QTY + SAMP_QTY)),0)	PLAN13,
+						0		REQT_BOX
+				FROM	NFOS_SALES_PLAN_WEEKLY		T1,
+						ITEM_MST					T2,
+						(
+						SELECT	*
+						FROM	V_NFOS_PLAN_VERSION
+						WHERE	YYYYMMDD	BETWEEN REPLACE('$!{in_cnfm_date}','-','') AND TO_DATE(REPLACE('$!{in_cnfm_date}','-',''))+13
+						)							T3
+				WHERE	T1.YYYYMMDD BETWEEN REPLACE('$!{in_cnfm_date}','-','') AND TO_DATE(REPLACE('$!{in_cnfm_date}','-',''))+13
+				AND		T1.ITEM_ID	= T2.ITEM_ID
+				AND		T2.ITYPE	= 'FERT'
+				AND		T1.YYYY		= T3.YYYY
+				AND		T1.VERSION	= T3.VERSION
+				AND		T1.YYYYMMDD	= T3.YYYYMMDD
+				GROUP
+				BY		T1.ITEM_ID
+				UNION	ALL
+				SELECT	B.PROD_CODE				ITEM_ID,
+						0						QM3,
+						0						QM2,
+						0						QM1,
+						0						QM0,
+						0						QM0_1,
+						0						BASE_STOCK,
+						0						ISSUE,
+						0						SALES_MEAN_3WEEK,
+						0						SALES_MEAN_1WEEK,
+						0						PRD_QTY,
+						0	PLAN00, 
+						0	PLAN01, 
+						0	PLAN02, 
+						0	PLAN03, 
+						0	PLAN04, 
+						0	PLAN05, 
+						0	PLAN06, 
+						0	PLAN07, 
+						0	PLAN08, 
+						0	PLAN09, 
+						0	PLAN10, 
+						0	PLAN11, 
+						0	PLAN12, 
+						0	PLAN13,  
+						SUM(B.REQT_BOX)						REQT_BOX
+				FROM    SDORT101    A,
+						SDORT102    B
+				WHERE   A.SLIP_NO						=	B.SLIP_NO
+				AND     A.CNFM_DATE						= REPLACE('$!{in_cnfm_date}','-','')
+				AND		SUBSTR(A.SLIP_GUBN_CODE,1,2)	= 'YO'
+				AND		LENGTH(A.CNFM_DATE) 			= 8 
+				GROUP
+				BY		B.PROD_CODE
+				)	K1,
+				ITEM_MST	K2,
+				(
+				/* 수출오더_내수품목_차주 선적예정 */
+				SELECT  B.PROD_CODE			ITEM_ID,
+						SUM(B.REQT_BOX)		EX_QTY
+				FROM    SDORT101    A,
+						SDORT102    B,
+						ITEM_MST	C
+				WHERE   A.SLIP_NO						=	B.SLIP_NO
+				AND     A.SHIP_PLAN_DATE				BETWEEN TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{in_cnfm_date}','-','')),'D')+7,'YYYYMMDD') 
+														AND		TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{in_cnfm_date}','-','')),'D')+13,'YYYYMMDD') 
+				AND		SUBSTR(A.SLIP_GUBN_CODE,1,1)	= 'X'
+				AND		LENGTH(A.CNFM_DATE) 			= 8  
+				AND		B.PROD_CODE						= C.ITEM_ID
+				AND		A.UPDT_GUBN						!= 'DE'
+				AND		C.ITYPE							= 'FERT'
+				AND		NVL(C.CAT03,'XX')				NOT LIKE 'O%'	
+				GROUP
+				BY		B.PROD_CODE
+				)			K3
+		WHERE	K1.ITEM_ID		= K2.ITEM_ID
+		AND		K2.ITYPE		= 'FERT'
+		AND		K2.CAT03		NOT LIKE 'O%'
+		AND		K2.ITEM_STATUS	= 'ST'
+		AND		K1.ITEM_ID		= K3.ITEM_ID(+)
+		AND		(K2.SELL_STOP_DATE >= TO_CHAR(TO_DATE(REPLACE('$!{in_cnfm_date}','-',''))-30,'YYYYMMDD') OR K2.SELL_STOP_DATE = '00000000')
+		GROUP
+		BY		K1.ITEM_ID,
+				K2.ITEM_NAME,
+				K2.SELL_STOP_DATE
+		ORDER
+		BY		K1.ITEM_ID		
+	
+	#end
+		
+	</query>
+
+	<!-- 차주 수출판매계획 등록 -->
+	<query id="sc_01120_plantAllocationPlanResult_export">
+
+		SELECT	CASE
+					WHEN K2.DIVISION IN ('10','20') THEN '면스낵'
+					ELSE '기타'
+				END	GUBN,
+				F_GET_CODE_NAME('DIVISION', K2.DIVISION),
+				K2.SALES_CAT03,
+				F_GET_CODE_NAME('SALES_CAT3', K2.SALES_CAT03),
+				K1.ITEM_ID,
+				K2.ITEM_NAME,
+				K2.SPEC,
+				ROUND(SUM(STOCK),0)	STOCK,
+				ROUND(SUM(STOCK_8901),0)	STOCK_8901,
+				SUM(W0_REQT_QTY)	W0_REQT_QTY,
+				SUM(W0_PROD_PLAN)	W0_PROD_PLAN,
+				SUM(REMN_PROD_BOX)	REMN_PROD_BOX,
+				SUM(MI_ORDER)		MI_ORDER,
+				SUM(W0_ORDER)		W0_ORDER,
+				ROUND(SUM(STOCK),0) + SUM(REMN_PROD_BOX) - SUM(MI_ORDER) - SUM(W0_ORDER) W0_CLOS_STOCK,
+				SUM(W1_REQT_QTY)	W1_REQT_QTY,
+				SUM(W1_PROD_PLAN)	W1_PROD_PLAN,
+				SUM(W1_ORDER)		W1_ORDER,
+				CASE 
+					WHEN ROUND(SUM(STOCK),0) + SUM(REMN_PROD_BOX) - SUM(MI_ORDER) - SUM(W0_ORDER) > 0 THEN
+						ROUND(SUM(STOCK),0) + SUM(REMN_PROD_BOX) - SUM(MI_ORDER) - SUM(W0_ORDER)
+					ELSE 0
+				END 
+				 + SUM(W1_PROD_PLAN) - SUM(W1_ORDER) 						W1_CLOS_STOCK,
+				SUM(W2_ORDER)		W2_ORDER,
+				SUM(W2_REQT_QTY)	W2_REQT_QTY,
+				SUM(W2_PROD_PLAN)	W2_PROD_PLAN,
+				CASE 
+					WHEN ROUND(SUM(STOCK),0) + SUM(REMN_PROD_BOX) - SUM(MI_ORDER) - SUM(W0_ORDER) > 0 THEN
+						ROUND(SUM(STOCK),0) + SUM(REMN_PROD_BOX) - SUM(MI_ORDER) - SUM(W0_ORDER)
+					ELSE 0
+				END 
+				 + SUM(W1_PROD_PLAN) - SUM(W1_ORDER) 
+				 + SUM(W2_PROD_PLAN) - SUM(W2_ORDER)						W2_CLOS_STOCK,
+				SUM(W3_ORDER)		W3_ORDER,
+				CASE 
+					WHEN ROUND(SUM(STOCK),0) + SUM(REMN_PROD_BOX) - SUM(MI_ORDER) - SUM(W0_ORDER) > 0 THEN
+						ROUND(SUM(STOCK),0) + SUM(REMN_PROD_BOX) - SUM(MI_ORDER) - SUM(W0_ORDER)
+					ELSE 0
+				END 
+				 + SUM(W1_PROD_PLAN) - SUM(W1_ORDER) 
+				 + SUM(W1_PROD_PLAN) - SUM(W2_ORDER) -	SUM(W3_ORDER)		W3_CLOS_STOCK,
+				K2.MINSS,			-- 안전재고
+				-- 생산계획 마감여부
+				(
+				SELECT	NVL2(MAX(STATUS),'Y','N')
+				FROM	PLAN_VERSION_LOG
+				WHERE	RUN_DATE	BETWEEN TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D') AND TRUNC(TO_DATE(REPLACE('$!{sdate}','-',''))+7,'D')-1
+				AND		CAT_ID		= 'PS'
+				AND		STATUS		>= '23'
+				)	PROD_PLAN_YN
+		FROM	(
+				/* 현재고 */
+				SELECT 	T1.MATNR													ITEM_ID, 
+						SUM(f_getconv_UOM(T1.MATNR, T2.MEINS,'BOX',T1.LABST))		STOCK,
+						SUM(f_getconv_UOM(T1.MATNR, T2.MEINS,'BOX',T1.LABST_8901))	STOCK_8901,
+						0	W0_REQT_QTY,
+						0	W1_REQT_QTY,
+						0	W2_REQT_QTY,
+						0	MI_ORDER,
+						0	W0_ORDER,
+						0	W1_ORDER,
+						0	W2_ORDER,
+						0	W3_ORDER,
+						0	W0_PROD_PLAN,
+						0	W1_PROD_PLAN,
+						0	W2_PROD_PLAN,
+						0	REMN_PROD_BOX
+				FROM	(
+						SELECT	T1.MATNR, 
+								SUM(T1.LABST)	LABST,
+								SUM(DECODE(T1.LGORT,'8901',T1.LABST))	LABST_8901
+						FROM	SAPMARD	T1
+						WHERE	T1.MANDT	= '100'
+						AND		T1.LGORT	!= '1510' -- 부적합 창고 제외
+						GROUP 
+						BY	 	T1.MATNR
+						UNION	ALL
+						/* 고객재고 */
+						SELECT	MATNR,
+								SUM(SALAB)	LABST,
+								0	LABST_8901
+						FROM	SAPMSSA	T1,
+								ITEM_MST	T2
+						WHERE	MANDT		= '100'
+						AND		T1.MATNR	= T2.ITEM_ID
+						AND		T2.ITYPE	IN ('FERT','HAWA')
+						GROUP
+						BY		MATNR
+						)	T1,
+						SAPMARA	T2
+				WHERE	T2.MANDT	= '100'
+				AND		T1.MATNR	= T2.MATNR
+				AND		T2.MTART	IN ('HAWA', 'FERT')
+				GROUP 
+				BY	 	T1.MATNR 
+				UNION	ALL
+				/* 당주에 해당하는 생산의뢰량(전주수립계획) */
+				SELECT	ITEM_ID,
+						0	STOCK,
+						0	STOCK_8901,
+						NVL(EXPORT_PLAN,0)	W0_REQT_QTY,
+						0	W1_REQT_QTY,
+						0	W2_REQT_QTY,
+						0	MI_ORDER,
+						0	W0_ORDER,
+						0	W1_ORDER,
+						0	W2_ORDER,
+						0	W3_ORDER,
+						0	W0_PROD_PLAN,
+						0	W1_PROD_PLAN,
+						0	W2_PROD_PLAN,
+						0	REMN_PROD_BOX
+				FROM	PLANT_ALLOC_ITEM_ADJ
+				WHERE	VERSION	= (	SELECT	MAX(VERSION) 
+									FROM	PLANT_ALLOC_ITEM_ADJ
+									WHERE	DUE_DATE	= TRUNC(TO_DATE(REPLACE('$!{sdate}','-',''))+7,'D')-1
+									)
+				AND		DUE_DATE	= TRUNC(TO_DATE(REPLACE('$!{sdate}','-',''))+7,'D')-1
+				UNION	ALL								
+				/* 차주 생산의뢰량 (당주 계획) */
+				SELECT	ITEM_ID,
+						0	STOCK,
+						0	STOCK_8901,
+						0	W0_REQT_QTY,
+						SUM(DECODE(DUE_DATE, TRUNC(TO_DATE(REPLACE('$!{sdate}','-',''))+14,'D')-1, NVL(EXPORT_PLAN,0)))	W1_REQT_QTY,
+						SUM(DECODE(DUE_DATE, TRUNC(TO_DATE(REPLACE('$!{sdate}','-',''))+21,'D')-1, NVL(EXPORT_PLAN,0)))	W2_REQT_QTY,
+						0	MI_ORDER,
+						0	W0_ORDER,
+						0	W1_ORDER,
+						0	W2_ORDER,
+						0	W3_ORDER,
+						0	W0_PROD_PLAN,
+						0	W1_PROD_PLAN,
+						0	W2_PROD_PLAN,
+						0	REMN_PROD_BOX
+				FROM	PLANT_ALLOC_ITEM_ADJ
+				WHERE	VERSION	= (	SELECT	MAX(VERSION) 
+									FROM	PLANT_ALLOC_ITEM_ADJ
+									WHERE	DUE_DATE	= TRUNC(TO_DATE(REPLACE('$!{sdate}','-',''))+14,'D')-1
+									)
+				--AND		SUBSTR(VERSION,1,8) >= TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D'),'YYYYMMDD')
+				AND		(DUE_DATE	= TRUNC(TO_DATE(REPLACE('$!{sdate}','-',''))+14,'D')-1 OR
+						DUE_DATE	= TRUNC(TO_DATE(REPLACE('$!{sdate}','-',''))+21,'D')-1)
+				GROUP
+				BY		ITEM_ID
+				UNION	ALL								
+				SELECT	ITEM_ID,
+						0	STOCK,
+						0	STOCK_8901,
+						0	W0_REQT_QTY,
+						0	W1_REQT_QTY,
+						0	W2_REQT_QTY,
+						-- 미출고 오더 W-1주차
+						NVL(
+							SUM(
+								CASE
+									WHEN TO_DATE(SHIP_DATE,'YYYY-MM-DD') &lt;= TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D') THEN ORDER_QTY	-- = 추가
+									ELSE 0
+								END
+								)
+							,0)	MI_ORDER,
+						-- W주 오더(당주)
+						NVL(
+							SUM(
+								CASE
+									--WHEN TRUNC(TO_DATE(SHIP_DATE,'YYYY-MM-DD'),'D') = TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D') THEN ORDER_QTY
+									
+									WHEN TRUNC(TO_DATE(SHIP_DATE,'YYYY-MM-DD')-1,'D')+1 = TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+1 THEN ORDER_QTY
+									ELSE 0
+								END
+								)
+							,0)	W0_ORDER,
+						-- W+1주 오더(차주)
+						NVL(
+							SUM(
+								CASE
+									--WHEN TRUNC(TO_DATE(SHIP_DATE,'YYYY-MM-DD'),'D') = TRUNC(TO_DATE(REPLACE('$!{sdate}','-',''))+7,'D') THEN ORDER_QTY
+									
+									WHEN TRUNC(TO_DATE(SHIP_DATE,'YYYY-MM-DD')-1,'D')+1 = TRUNC(TO_DATE(REPLACE('$!{sdate}','-',''))+7,'D')+1 THEN ORDER_QTY
+									ELSE 0
+								END
+								)	
+							,0)	W1_ORDER,
+						-- W+2주 오더(차차주)
+						NVL(
+							SUM(
+								CASE
+									--WHEN TRUNC(TO_DATE(SHIP_DATE,'YYYY-MM-DD'),'D') = TRUNC(TO_DATE(REPLACE('$!{sdate}','-',''))+14,'D') THEN ORDER_QTY
+									
+									WHEN TRUNC(TO_DATE(SHIP_DATE,'YYYY-MM-DD')-1,'D')+1 = TRUNC(TO_DATE(REPLACE('$!{sdate}','-',''))+14,'D')+1 THEN ORDER_QTY
+									ELSE 0
+								END
+								)	
+							,0)	W2_ORDER,
+						-- W+3주 오더(차차차주)
+						NVL(
+							SUM(
+								CASE
+									--WHEN TRUNC(TO_DATE(SHIP_DATE,'YYYY-MM-DD'),'D') = TRUNC(TO_DATE(REPLACE('$!{sdate}','-',''))+21,'D') THEN ORDER_QTY
+									
+									WHEN TRUNC(TO_DATE(SHIP_DATE,'YYYY-MM-DD')-1,'D')+1 = TRUNC(TO_DATE(REPLACE('$!{sdate}','-',''))+21,'D')+1 THEN ORDER_QTY
+									ELSE 0
+								END
+								)	
+							,0)	W3_ORDER,
+						0	W0_PROD_PLAN,
+						0	W1_PROD_PLAN,
+						0	W2_PROD_PLAN,
+						0	REMN_PROD_BOX			
+				FROM	(
+						--	납품문서는 생성되었으나 출고가 안된것.
+						SELECT	A.VBELN,	-- 오더번호
+								A.ZFEPSD	SHIP_DATE,	-- 선적예정일
+								A.AUART,	-- 오더타입
+								B.MATNR		ITEM_ID,	-- 제품코드
+								B.LFIMG		ORDER_QTY	-- 제품수량
+						FROM	SAPVBAK		A,
+								SAPLIPS		B,
+								SAPVBUK		C
+						WHERE	A.MANDT		=	'100'
+						AND		A.AUDAT		BETWEEN	TO_CHAR(TO_DATE(REPLACE('$!{sdate}','-',''))-100,'YYYYMMDD')
+											AND		TO_CHAR(TO_DATE(REPLACE('$!{sdate}','-','')),'YYYYMMDD')
+						AND		A.ZFEPSD	BETWEEN	TO_CHAR(TO_DATE(REPLACE('$!{sdate}','-',''))-30,'YYYYMMDD')
+											AND		TO_CHAR(TO_DATE(REPLACE('$!{sdate}','-',''))+60,'YYYYMMDD')
+						AND		A.VKORG		=	'1500'
+						AND		C.MANDT		=	'100'
+						AND		B.VBELN		=	C.VBELN
+						AND		A.VBELN		=	B.VGBEL
+						AND		C.WBSTK		!=	'C'
+						AND		B.MANDT		=	'100'
+						AND		B.PSTYV		LIKE	'X%'
+						--AND		B.MATNR	= '101000617'
+						UNION	ALL
+						--	납품문서가 아예 생기지 않은 경우.
+						SELECT	A.VBELN,	-- 오더번호
+								A.ZFEPSD	SHIP_DATE,	-- 선적예정일
+								A.AUART,	-- 오더타입
+								B.MATNR		ITEM_ID,	-- 제품코드
+								B.LSMENG	ORDER_QTY	-- 제품수량
+						FROM	SAPVBAK		A,
+								SAPVBAP		B,
+								SAPVBUK		C
+						WHERE	A.MANDT		=	'100'
+						AND		A.AUDAT		BETWEEN	TO_CHAR(TO_DATE(REPLACE('$!{sdate}','-',''))-100,'YYYYMMDD')
+											AND		TO_CHAR(TO_DATE(REPLACE('$!{sdate}','-','')),'YYYYMMDD')
+						AND		A.ZFEPSD	BETWEEN	TO_CHAR(TO_DATE(REPLACE('$!{sdate}','-',''))-30,'YYYYMMDD')
+											AND		TO_CHAR(TO_DATE(REPLACE('$!{sdate}','-',''))+60,'YYYYMMDD')
+						AND		A.VKORG		=	'1500'
+						AND		C.MANDT		=	'100'
+						AND		A.VBELN		=	C.VBELN
+						AND		C.LFSTK		=	'A'
+						AND		B.MANDT		=	'100'
+						AND		A.VBELN		=	B.VBELN
+						AND		B.PSTYV		LIKE	'X%'
+						--AND		B.MATNR	= '101000617'
+						)
+				GROUP
+				BY		ITEM_ID
+				UNION	ALL
+				/* 생산계획 */
+				SELECT	T1.ITEM_ID,
+						0	STOCK,
+						0	STOCK_8901,
+						0	W0_REQT_QTY,
+						0	W1_REQT_QTY,
+						0	W2_REQT_QTY,
+						0	MI_ORDER,
+						0	W0_ORDER,
+						0	W1_ORDER,
+						0	W2_ORDER,
+						0	W3_ORDER,
+						NVL(SUM(DECODE(TRUNC(CAL_DATE-1,'D'),TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D'),SHIFT_QTY)),0)		W0_PROD_PLAN,
+						NVL(SUM(DECODE(TRUNC(CAL_DATE-1,'D'),TRUNC(TO_DATE(REPLACE('$!{sdate}','-',''))+7,'D'),SHIFT_QTY)),0)	W1_PROD_PLAN,
+						NVL(SUM(DECODE(TRUNC(CAL_DATE-1,'D'),TRUNC(TO_DATE(REPLACE('$!{sdate}','-',''))+14,'D'),SHIFT_QTY)),0)	W2_PROD_PLAN,
+						0	REMN_PROD_BOX
+				FROM	(
+						SELECT 	T4.CAL_DATE,
+								T1.ITEM_ID,
+								SUM(T1.SHIFT_QTY)	SHIFT_QTY
+						FROM 	DAILY_SCH_PLAN_SHIFT T1,
+								(
+								/* 3주전부터 생산계획 확정 VERSION정보(완제품)*/
+								SELECT K1.CAT_ID, K2.PLANT_ID, K1.VERSION,
+								TO_CHAR(TRUNC(TO_DATE(SUBSTR(K1.VERSION,1,8),'YYYY-MM-DD')+ 7,'D')+ 1,'YYYYMMDD') 	S_DATE,
+								-- 차차주 생산계획 운영시 PLAN_VERSION_LOG의 TWO_WEEK_FLAG = 'Y' 기간을 차차주까지 고려
+								TO_CHAR(TRUNC(TO_DATE(SUBSTR(K1.VERSION,1,8),'YYYY-MM-DD')+DECODE(TWO_WEEK_FLAG,'N',14,21),'D'),'YYYYMMDD') 		E_DATE
+								FROM PLAN_VERSION_LOG K1,
+								(SELECT CAT_ID, SUB_CAT, PLANT_ID
+								FROM ENGN_BAT_MST
+								WHERE PERIOD_TYPE = 'DAILY' AND CAT_ID = 'PS') K2
+								WHERE K1.PERIOD_TYPE = 'DAILY'
+								AND K1.CAT_ID = 'PS'
+								AND K1.RUN_DATE BETWEEN TRUNC (TO_DATE(REPLACE('$!{sdate}','-','')) - 21)
+								AND TRUNC (TO_DATE(REPLACE('$!{sdate}','-','')))
+								AND TRIM (VERSION) IS NOT NULL
+								AND K1.STATUS &gt;= '23'
+								AND K1.CAT_ID = K2.CAT_ID
+								AND K1.SUB_CAT = K2.SUB_CAT
+								) T2,
+								(
+								/* 마지막 공정(투입공정) 추출 */
+								SELECT PLANT_ID, ITEM_ID, PROD_VER, PROC_ID
+								FROM V_LAST_PROC_PRODVER
+								) T3,         --마지막 공정정보
+								(
+								SELECT	YYYYMMDD, CAL_DATE
+								FROM	CAL_MST
+								WHERE	CAL_DATE	BETWEEN	TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D'),'YYYYMMDD')
+											AND		TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+21,'YYYYMMDD')
+								) T4
+						WHERE 	T1.CAT_ID = T2.CAT_ID
+						AND 	T1.PLANT_ID = T2.PLANT_ID
+						AND 	T1.VERSION = T2.VERSION
+						AND 	T1.PROD_DATES BETWEEN T2.S_DATE AND T2.E_DATE
+						-- 오늘이후 계획만
+						AND 	T1.PROD_DATES = T4.YYYYMMDD
+						AND 	T1.PLANT_ID = T3.PLANT_ID
+						AND 	T1.PROC_ID = T3.PROC_ID
+						AND 	T1.ITEM_ID = T3.ITEM_ID
+						GROUP
+						BY		T4.CAL_DATE,
+								T1.ITEM_ID
+						)		T1
+				GROUP
+				BY		T1.ITEM_ID
+				UNION	ALL
+				/* 잔여생산계획 */
+				SELECT	MATNR	ITEM_ID,
+						/* 조회일자가 SYSDATE기준으로 차주 생산주간이면 모두 재고에 포함되어야 한다. */ 
+						NVL(
+							SUM(
+								CASE 
+									WHEN TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D') != TRUNC(SYSDATE,'D')
+										THEN PSMNG
+									ELSE 0
+								END
+								)								
+						,0)		STOCK,
+						0	STOCK_8901,
+						0	W0_REQT_QTY,
+						0	W1_REQT_QTY,
+						0	W2_REQT_QTY,
+						0	MI_ORDER,
+						0	W0_ORDER,
+						0	W1_ORDER,
+						0	W2_ORDER,
+						0	W3_ORDER,
+						0	W0_PROD_PLAN,
+						0	W1_PROD_PLAN,
+						0	W2_PROD_PLAN,
+						/* 조회일자가 SYSDATE기준으로 당주 생산주간이면 모두 잔여생산량 */
+						NVL(
+							SUM(
+								CASE 
+									WHEN TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D') = TRUNC(SYSDATE,'D')
+										THEN PSMNG
+									ELSE 0
+								END
+								)								
+						,0)		REMN_PROD_BOX
+						-- NVL(SUM(DECODE(TRUNC(CAL_DATE-1,'D'),TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D'),PSMNG)),0) REMN_PROD_BOX
+						-- SUM(PSMNG)	REMN_PROD_BOX
+				FROM	SAPAFPO				T1,
+						(
+						SELECT	YYYYMMDD, CAL_DATE
+						FROM	CAL_MST
+						WHERE	CAL_DATE	BETWEEN	TO_CHAR(TRUNC(SYSDATE,'D'),'YYYYMMDD')
+									--AND		TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+14,'YYYYMMDD')
+									AND		TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+7,'YYYYMMDD')	--2013-05-31 변경
+						)					T2,
+						ITEM_MST			T3
+				WHERE	T1.MANDT	= '100'
+				AND		T1.ELIKZ = ' ' -- 마감된 것 제외
+				AND		T1.DNREL = ' ' -- 삭제된 것 제외
+				AND     T1.LTRMI = '00000000' -- 실제납품/종료일 : 입고일자가 있으면 마감되지 않았더라도 마감으로 인정
+				AND		DGLTP	= T2.YYYYMMDD
+				AND		T1.MATNR	= T3.ITEM_ID
+				AND		T3.ITYPE	= 'FERT'
+				GROUP
+				BY		MATNR
+				)		K1,
+				(
+				SELECT	ITEM_ID,
+						ITEM_NAME,
+						SPEC,
+						DIVISION,
+						SALES_CAT03,
+						MINSS
+				FROM	ITEM_MST
+			#if("$!{checked_domain}" == "EXMTS" )
+				/* MTS */
+				WHERE	ITYPE	= 'FERT'
+				AND		NVL(CAT03,'XX')	LIKE 'O%'
+				AND		MTO_MTS_TYPE		= '0002'
+				AND		ITEM_STATUS			= 'ST'
+			#elseif("$!{checked_domain}" == "DO" )
+				/* 내수품목 */
+				WHERE	ITYPE	= 'FERT'
+				AND		SELL_STOP_DATE	= '99991231'
+				AND		NVL(CAT03,'XX')	NOT LIKE 'O%'
+				AND		MATERIAL_GROUP NOT LIKE '62%'
+				AND		MATERIAL_GROUP NOT LIKE '63F%'	-- 엑기스
+				AND		HR_TY1 NOT LIKE '606006%'
+				AND		(MATERIAL_GROUP &lt; '5K000' OR  MATERIAL_GROUP &gt; '5S999')
+				AND		NVL(CAT01,'XX')  != 'PX' -- PX품목제거
+			#elseif("$!{checked_domain}" == "EXMTO" )
+				/* MTO */
+				WHERE	ITYPE	= 'FERT'
+				AND		NVL(CAT03,'XX')	LIKE 'O%'
+				AND		MTO_MTS_TYPE		= '0001'
+				AND		ITEM_STATUS			= 'ST'
+			#else
+				WHERE	ITYPE	= 'HAWA'
+				AND		MATERIAL_GROUP LIKE '62%'
+			#end
+				)	K2
+		WHERE	K1.ITEM_ID	= K2.ITEM_ID
+		GROUP
+		BY		CASE
+					WHEN K2.DIVISION IN ('10','20') THEN '면스낵'
+					ELSE '기타'
+				END,
+				F_GET_CODE_NAME('DIVISION', K2.DIVISION),
+				K2.SALES_CAT03,
+				F_GET_CODE_NAME('SALES_CAT3', K2.SALES_CAT03),
+				K1.ITEM_ID,
+				K2.ITEM_NAME,
+				K2.SPEC,
+				K2.MINSS
+		ORDER
+		BY		K2.SALES_CAT03, K1.ITEM_ID	
+
+	</query>
+
+	<!-- 수출오더조회Popup -->
+	<query id="sc_01120_Export_Order_List_Popup">
+
+		/* 수출오더 상세조회 */
+		--	납품문서는 생성되었으나 출고가 안된것.
+		SELECT	A.VBELN,															-- 오더번호
+                A.ERNAM													EMP_NO,		-- 사번
+                F_GET_EMP_NAME(A.ERNAM) 								EMP_NAME,	-- 성명
+				B.LFIMG													ORDER_QTY,	-- 제품수량
+				TO_CHAR(TO_DATE(A.ZFEPSD,'YYYY-MM-DD'),'YYYY-MM-DD')	SHIP_DATE,	-- 선적예정일
+				TO_CHAR(TO_DATE(A.AUDAT	,'YYYY-MM-DD'),'YYYY-MM-DD'),				-- 입력일
+				B.VBELN		VBELN													-- 납품문서번호
+		FROM	SAPVBAK		A,
+				SAPLIPS		B,
+				SAPVBUK		C
+		WHERE	A.MANDT		=	'100'
+		--AND		A.AUDAT		BETWEEN	TO_CHAR(TO_DATE(REPLACE('$!{sdate}','-',''))-100,'YYYYMMDD')
+		--					AND		TO_CHAR(TO_DATE(REPLACE('$!{sdate}','-','')),'YYYYMMDD')
+		#if("$!{sel_week}" == "W0" )
+		-- 당주
+		AND		A.ZFEPSD	BETWEEN	TO_CHAR(TO_DATE(REPLACE('$!{sdate}','-',''))-30,'YYYYMMDD')
+							--AND		TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+6,'YYYYMMDD')	--D+6 -> 7로 변경
+							AND		TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+7,'YYYYMMDD')	--D+6 -> 7로 변경
+							--AND	TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+1,'YYYYMMDD')
+		#elseif("$!{sel_week}" == "W1" )
+		-- 차주
+		--AND		A.ZFEPSD	BETWEEN	TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+7,'YYYYMMDD')
+							--AND		TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+13,'YYYYMMDD')
+		AND		A.ZFEPSD	BETWEEN	TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+8,'YYYYMMDD')
+							AND		TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+14,'YYYYMMDD')
+							
+		#elseif("$!{sel_week}" == "W2" )
+		-- 차차주
+		--AND		A.ZFEPSD	BETWEEN	TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+14,'YYYYMMDD')
+							--AND		TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+20,'YYYYMMDD')
+		AND		A.ZFEPSD	BETWEEN	TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+15,'YYYYMMDD')
+							AND		TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+21,'YYYYMMDD')
+							
+		#else
+		-- 차차차주
+		--AND		A.ZFEPSD	BETWEEN	TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+21,'YYYYMMDD')
+							--AND		TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+26,'YYYYMMDD')
+		AND		A.ZFEPSD	BETWEEN	TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+22,'YYYYMMDD')
+							AND		TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+28,'YYYYMMDD')							
+		#end
+		AND		A.VKORG		=	'1500'
+		AND		C.MANDT		=	'100'
+		AND		B.VBELN		=	C.VBELN
+		AND		A.VBELN		=	B.VGBEL
+		AND		C.WBSTK		!=	'C'
+		AND		B.MANDT		=	'100'
+		AND		B.PSTYV		LIKE	'X%'
+		AND		B.MATNR		= '$!{item_id}'
+		UNION	ALL
+		--	납품문서가 아예 생기지 않은 경우.
+		SELECT	A.VBELN,															-- 오더번호
+                A.ERNAM													EMP_NO,		-- 사번
+                F_GET_EMP_NAME(A.ERNAM) 								EMP_NAME,	-- 성명
+				B.LSMENG												ORDER_QTY,	-- 제품수량
+				TO_CHAR(TO_DATE(A.ZFEPSD,'YYYY-MM-DD'),'YYYY-MM-DD')	SHIP_DATE,	-- 선적예정일
+				TO_CHAR(TO_DATE(A.AUDAT	,'YYYY-MM-DD'),'YYYY-MM-DD'),				-- 입력일
+				''														VBELN		-- 납품문서번호
+		FROM	SAPVBAK		A,
+				SAPVBAP		B,
+				SAPVBUK		C
+		WHERE	A.MANDT		=	'100'
+		AND		A.AUDAT		BETWEEN	TO_CHAR(TO_DATE(REPLACE('$!{sdate}','-',''))-100,'YYYYMMDD')
+							AND		TO_CHAR(TO_DATE(REPLACE('$!{sdate}','-','')),'YYYYMMDD')
+		#if("$!{sel_week}" == "W0" )
+		-- 당주
+		AND		A.ZFEPSD	BETWEEN	TO_CHAR(TO_DATE(REPLACE('$!{sdate}','-',''))-30,'YYYYMMDD')
+							--AND		TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+6,'YYYYMMDD')	--D+6 -> 7로 변경
+							AND		TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+7,'YYYYMMDD')	--D+6 -> 7로 변경
+							--AND	TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')-1,'YYYYMMDD')
+		#elseif("$!{sel_week}" == "W1" )
+		-- 차주
+		--AND		A.ZFEPSD	BETWEEN	TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+7,'YYYYMMDD')
+							--AND		TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+13,'YYYYMMDD')
+		
+		AND		A.ZFEPSD	BETWEEN	TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+8,'YYYYMMDD')
+							AND		TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+14,'YYYYMMDD')							
+		#elseif("$!{sel_week}" == "W2" )
+		-- 차차주
+		--AND		A.ZFEPSD	BETWEEN	TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+14,'YYYYMMDD')
+							--AND		TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+20,'YYYYMMDD')
+		
+		AND		A.ZFEPSD	BETWEEN	TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+15,'YYYYMMDD')
+							AND		TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+21,'YYYYMMDD')
+							
+		#else
+		-- 차차차주
+		--AND		A.ZFEPSD	BETWEEN	TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+21,'YYYYMMDD')
+							--AND		TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+26,'YYYYMMDD')
+		
+		AND		A.ZFEPSD	BETWEEN	TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+22,'YYYYMMDD')
+							AND		TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{sdate}','-','')),'D')+28,'YYYYMMDD')							
+							
+		#end
+		AND		A.VKORG		=	'1500'
+		AND		C.MANDT		=	'100'
+		AND		A.VBELN		=	C.VBELN
+		AND		C.LFSTK		=	'A'
+		AND		B.MANDT		=	'100'
+		AND		A.VBELN		=	B.VBELN
+		AND		B.PSTYV		LIKE	'X%'
+		AND		B.MATNR		= '$!{item_id}'
+		ORDER
+		BY		3
+
+	</query>
+
+	<!-- 수출생산의뢰 물량조회 -->
+	<query id="sc_17020_Export_volumn_list">
+		
+		-- 1차 공장할당 MTS수출/내수품목 생산의뢰 물량
+		SELECT  C.CAT06||' '||
+				F_GET_CODE_NAME('CAT06', C.CAT06),
+				DECODE(MTO_MTS_TYPE,'0001','MTO','MTS')	GUBN,
+				A.ITEM_ID,
+				C.ITEM_NAME,
+				C.SPEC,
+				SUM(NVL(EXPORT_PLAN,0))	BOX,
+				SUM(NVL(EXPORT_PLAN,0))*C.QTY
+		FROM    PLANT_ALLOC_ITEM_ADJ    A,
+				ITEM_MST				C
+		WHERE   VERSION		= (	-- 1차공장할당 버젼을 가져온다.
+								SELECT  MAX(PV.VERSION)
+					            FROM    PLAN_VERSION_LOG PV
+						        WHERE   PV.MADE_TYPE != 'DE'
+						        AND     PV.PERIOD_TYPE = 'DAILY'
+						        AND     PV.CAT_ID = 'FA'
+						        AND     PV.SEQ = 2
+						        AND		TRUNC(PV.RUN_DATE) &lt;= TRUNC(TO_DATE('$!{fr_date}','YYYY-MM-DD'),'D')-1 -- 조회일의 전주에 있는 공장할당버젼 찾는다
+						      )
+		AND		A.ITEM_ID						= C.ITEM_ID
+		AND		A.DUE_DATE	BETWEEN TO_DATE('$!{fr_date}','YYYY-MM-DD') AND TO_DATE('$!{to_date}','YYYY-MM-DD')
+		#if("$!{in_mto_mts}" == "0001")
+			AND	MTO_MTS_TYPE = '0001'
+		#elseif("$!{in_mto_mts}" == "0002")
+			AND	MTO_MTS_TYPE = '0002'
+		#end
+		#if("$!{in_sel_gubn}" == "EX")
+			AND	SUBSTR(CAT03,1,1) = 'O'
+		#elseif("$!{in_sel_gubn}" == "DO")
+			AND	NVL(CAT03,'XX') NOT LIKE 'O%'
+		#end	
+		GROUP
+		BY		C.CAT06,
+				DECODE(MTO_MTS_TYPE,'0001','MTO','MTS'),
+				A.ITEM_ID,
+				C.ITEM_NAME,
+				C.SPEC,
+				C.QTY	
+	#if("$!{in_sel_gubn}" != "DO"  &amp;&amp; "$!{in_mto_mts}" != "0002")
+		UNION	ALL
+		-- 수출 MTO ONLY
+		SELECT  C.CAT06||' '||
+				F_GET_CODE_NAME('CAT06', C.CAT06),
+				DECODE(MTO_MTS_TYPE,'0001','MTO','MTS')	GUBN,
+				B.PROD_CODE,
+				C.ITEM_NAME,
+				C.SPEC,
+				SUM(B.REQT_BOX)	BOX,
+				SUM(B.REQT_BOX)*C.QTY
+		FROM    SDORT101    A,
+				SDORT102    B,
+				ITEM_MST	C
+		WHERE   A.SLIP_NO						=	B.SLIP_NO
+		AND		SUBSTR(A.SLIP_GUBN_CODE,1,1)	= 'X'
+		AND		LENGTH(A.CNFM_DATE) 			= 8  
+		AND		B.PROD_CODE						= C.ITEM_ID
+		AND		C.ITYPE							= 'FERT'
+		AND		A.UPDT_GUBN						!= 'DE'
+		AND		A.PRDT_PLAN_DATE				BETWEEN REPLACE('$!{fr_date}','-','') AND REPLACE('$!{to_date}','-','')
+		AND		SUBSTR(CAT03,1,1) 				= 'O'
+		AND		MTO_MTS_TYPE 					= '0001'
+		GROUP
+		BY		C.CAT06,
+				DECODE(MTO_MTS_TYPE,'0001','MTO','MTS'),
+				B.PROD_CODE,
+				C.ITEM_NAME,
+				C.SPEC,
+				C.QTY
+	#end
+		ORDER
+		BY		1,3
+	
+	</query>
+	
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</queries>
+	

@@ -1,0 +1,9 @@
+<input type="hidden" name="_board_contents">
+<font id='TextEditView' style='width: 100%; height: 100%;display: inline;'>
+<iframe id="TextEditor" frameborder="0" width="100%" height="280" 
+		marginwidth="5" marginheight="5" topmargin="5" 
+		scrolling="auto" 
+		STYLE="border-right: solid EEEEEE 1px; border-left: solid EEEEEE 1px; 
+					border-top: solid EEEEEE 0px; border-bottom: solid EEEEEE 0px;" 
+		border="2"></iframe> 
+</font>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="euc-kr"?><jobs>	<!-- 	=======================	  일간생산계획 분석(재구성)	=======================	-->		<!--  일간생산계획 분석(재구성)  조회 -->	<job id="sc_11020_dailyProductionPlan_List" job_type="single" check_permission="no">		<path>/sinc/20.Scheduling</path>		<navigation>생산계획 >> 운영정보 >> 일간생산계획 배포</navigation>		<toolbars>0000</toolbars><!--(등록/수정/저장/삭제)-->		<title>일간생산계획 배포</title>		<authority>1</authority>				<description>일간생산계획 배포</description>		<request_type>list</request_type>		<queries>			<query idref="weekly_3_start_end_date" datasource="t3sinc"/>			<query idref="check_plant_list" datasource="t3sinc"/>		</queries>	</job>
+	
+	<!--  생산계획 ERP I/F 현황 popup -->
+	<job id="sc_11020_dailyProductPlan_ERP_IF_Check_popup" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation> </navigation>
+		<title>생산계획 ERP_I/F현황</title>
+		<authority>1</authority>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="sc_11020_dailyProductPlan_ERP_IF_Check_popup" datasource="t3sinc"/>
+		</queries>
+	</job>	</jobs>	

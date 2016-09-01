@@ -1,0 +1,248 @@
+############################################################
+## 프로그램ID : sc_11020_dailyProductionPlanAnalysisNew_list.vm
+## 프로그램명 : 일간생산계획 분석(재구성)
+## 개발자  : 정재교
+## 개발일자 : 2008-11-27 목요일
+##
+##관련 job file : job_sinc_20_scheduling_00.xml
+##
+##관련 query file : query_sinc_20_scheduling_00.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2008-11-27  정재교    sc_11020_dailyProductionPlanAnalysisNew_list.vm 개발
+## 1.1		  2010-01-15  남웅용	batch환산여부를 확인하여 batch환산처리
+##
+############################################################
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+##set( $resizeFuncCallCode = "setGridAutoResize('142', '307')" ) 
+#set( $resizeFuncCallCode = "setGridAutoResize('112', '167')" )    
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/scheduling.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<input type="hidden" name="plant_version" value="$!{plant_version}">
+<input type="hidden" name="version_list" value="$!{version_list}">
+<input type="hidden" name="plant_list" value="$!{plant_list}">	
+<input type="hidden" name="line_grp" value="$!{line_grp}">
+<input type="hidden" name="semi_version" value="$!{semi_version}">
+<input type="hidden" name="semi_plant" value="$!{semi_plant}">
+##<input type="hidden" name="cat_id" value="$!{cat_id}">
+	
+##숨기 필드 CHECK FLAG
+<input type="hidden" name="f01" value="$!{f01}">##공장
+<input type="hidden" name="f02" value="$!{f02}">##작업장
+<input type="hidden" name="f03" value="$!{f03}">##제품코드
+<input type="hidden" name="f04" value="$!{f04}">##제품명
+<input type="hidden" name="f05" value="$!{f05}">##규격
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">  
+	## 기능 버튼 영역 
+	<tr> 
+		<td height="25" align="right" >
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+				<tr>		
+				  <td align="left">
+						<input type="button" name="btnExcelDownload" value=" Excel ▼"  onClick="excelDownload(); " class="btn1_on"/>
+						<input type="button" name="btnExcelUpload" value=" Excel ▲"  onClick="excelUpload(); " class="btn1_on"/>
+						##<input type="button" name="btnChangeReasonAll" value=" 변경내역"  onClick="changeReasonAll(); " class="btn1_on"/>
+					</td>
+					<td align="center">
+						<table width="100%" border="0" cellspacing="0" cellpadding="0">
+							<tr>
+								<td align="left">합계 :</td>
+								<td>
+									<input type="text" name="totalSum" value="0" style="width:50px; text-align:right; " size="10" readOnly class="normal"/><input 
+										type="button" name="btnInit" value="C" onClick="document.frm.totalSum.value = '0'; totCnt=0; " class="button1_1" />
+									<select name="totCount" style="width:40px;"> 
+										<option value="10">10</option>
+										<option value="20">20</option>
+										<option value="30">30</option>
+									</select>
+								</td>
+								<td align="center" >  
+									<input type="button" name="btnExt" value="축소" onClick="colExtension(this); " class="button1_1" />
+								</td>
+							</tr>
+						</table>						
+					</td>
+					<td align="right"> 
+						<input type="button" name="btnSelect" value=" 선택" onClick="selectPlantAndVersionPopUp(); " class="btn1_on">
+						<input type="button" name="btnStockChk" value=" 검증" onClick="stockCheck(); " class="btn1_on">
+						#button("search")
+						#toolbar_nscm($_moon_toolbar "sc_12020_dailySemifinishedProductPlanAnalysisNewItem_reg" "" "sc_12020_dailySemifinishedProductPlanAnalysisNew_list_save_comp" "")
+					</td>
+				</tr>
+			</table> 
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" 
+							id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr >            
+								#set( $week = $weekly_3_start_end_date.get(0) )
+            					<td width="5%" align="right">주차 :</td>
+            					<td width="80%">  
+									<input type="radio" name="checked_weekly" value="w0" style="border:0px; "
+            							onClick="this.checked" #if($!{checked_weekly} == "w0") checked #else #end>당주($week.get(0)~$week.get(6))</input>&nbsp;
+            						<input type="radio" name="checked_weekly" value="w1" style="border:0px; "
+            							onClick="this.checked" #if($!{checked_weekly} == "w1" || "$!{checked_weekly}" == "") checked #else #end>차주($week.get(7)~$week.get(13))</input>&nbsp;
+            						<input type="radio" name="checked_weekly" value="w2" style="border:0px; "
+            							onClick="this.checked" #if($!{checked_weekly} == "w2") checked #else #end>차차주($week.get(14)~$week.get(20))</input>&nbsp;
+									<input type="hidden" name="w0" value="$week.get(0)"/>
+									<input type="hidden" name="w1" value="$week.get(7)"/>
+									<input type="hidden" name="w2" value="$week.get(14)"/>
+								</td>
+								<td width="15%" align="right">  
+								batch입력
+									<input name="chk_input_to_batch" type="checkbox" class="normal" onClick=""
+        								style="background-color:#f2f2f2; border:0;"  checked >
+								</td>
+							</tr>
+							<tr>
+								<td colspan="4" class="normal-table">
+							#foreach( $tr in $semi_plant_and_version_list)  
+									##&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" class="normal" style="width:70px; text-align:center; font-size:8pt; " name="plant_name" value="$tr.get(0)" readOnly /> : <input type="text" class="normal" style="width:85px; text-align:center; font-size:8pt; " name="version_info" value="$tr.get(1)" readOnly/>
+									&nbsp;&nbsp;$!{tr.get(0)} : $!{tr.get(1)}
+							#end
+								</td>
+							</tr>
+            			</table> 
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td> 
+	</tr>
+	 
+	<input name="search_h" type="hidden" value="40"> ## search 조건 부분 높이      
+	<tr><td height="5"></td></tr> 
+	## TAB 영역
+	<tr>						
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				##tabLeft()
+				
+					##--------------- WiseGrid Event ---------------------------------##			
+					<script language=javascript for="WiseGrid" event="MouseOver(strType ,strColumnKey, nRow)">
+                      handler1(strType, strColumnKey, nRow);
+                    </script>
+					
+					<script language=javascript for="WiseGrid" event="UserContextMenuClick(strMenuKey, strMenuItemKey, strColumnKey, nRow)">
+                      handler(strMenuKey, strMenuItemKey, strColumnKey, nRow);
+                    </script>
+					
+					   ##   	 WiseGrid의 t_combo타입의 컬럼내용이 변경되었을때 발생합니다  
+                    <script language=javascript for="WiseGrid" event="ChangeCombo(strColumnKey,nRow,nOldIndex,nNewIndex)">
+                    	changCombohandler(strColumnKey, nRow, nOldIndex, nNewIndex);
+                    </script>
+					##--------------- WiseGrid Event ---------------------------------##
+					<table width="100%" border="1px" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td width="8%" align="center" rowspan="2">
+								<input type="button" name="btnQtyChk" value=" 저장" onClick="saveMsg(); " class="btn1_on" tabindex="5"/>
+							</td>
+							<td width="10%" align="right" style="background-color:#f2f2f2;" >계획수정내역 :</td>
+							<td width="10%" align="center">
+								<select name="msg_grp_code" style="width:100%;" onChange="doChangeMsgGroup(this); " tabindex="1"> ##
+									<option value="">선택</option>
+								#foreach( $con in $msg_group_code_list ) 
+                        			<option value="$con.get(0)" #if( "$!{msg_grp_code}" == "$con.get(0)" ) selected #end >$con.get(1)</option> 
+                        		#end 
+                            	</select> 
+							</td>
+							<td width="10%" align="center">
+								<a id="divMsgDetail">
+									<select	name="msg_grp_detail" style="width:100%" tabindex="2">
+										<option value="">선택</option>
+									</select>
+								</a>								
+							</td>
+							<td width="62%" align="left">
+								<input type="text" name="msg_grp" style="width:100%; " class="normal" value="" tabindex="3"/> 
+							</td>
+							<input type="hidden" name="colKey" value=""/>
+							<input type="hidden" name="nRow" value=""/>
+						</tr>  
+						<tr>
+							<td width="10%" align="right" style="background-color:#f2f2f2;">알림사항 :</td>
+							<td width="90%" align="left" colspan="3">
+								<input type="text" name="msg" style="width:100%; " class="normal" value="" tabindex="4"/> 
+							</td> 
+						</tr>
+					</table>
+					
+					<table name="grid" width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						 
+						<tr>
+							<td align="left" > 
+								<script>initWiseGrid("WiseGrid", "100%", "450");</script>  
+							</td> 
+						</tr>
+					</table> 
+					 
+					<table height="5px"><tr><td></td></tr></table>
+					
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+						##$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+						<input type="hidden" name="_moon_service" value="${_moon_service}">
+						<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+						<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+						<input type="hidden" name="_user_id" value="$!{_user_id}">
+					</td></tr></table> 
+					 
+					## waiting 표시영역
+					#waitingArea()
+					 
+				</div>  
+			</div> 
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 공장, 계획버전을 반드시 입력하고 조회해야 합니다.";
+	helpStr += "<br>◈ 각 항목을 선택후 상단의 조회 버튼을 클릭하여 일간 생산 계획량을 조회합니다.";
+	helpStr += "<br>◈ 제품 명(또는 제품 코드)을 더블클릭하면 워크 오더 번호별 작업장, 생산일, SHIFT를 수정 할 수 있는 팝업 창이 실행됩니다."; 
+	helpStr += "<br>◈ 제품명 (또는 제품 코드)을 더블클릭하면 해당 제품 전체에 대한 워크 오더가 조회가 되고, 수량을 더블클릭하면 해당 수량에 대한<br>&nbsp;&nbsp;&nbsp;&nbsp;워크 오더가 조회됩니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+	//setFeildWidth();
+	
+	function doChangeMsgGroup(obj){   
+		var div_detail = "<select name=\"msg_grp_detail\" style=\"width:100%; \" tabindex=\"2\"> "; 
+		div_detail += "<option  value=\"\">선택</option> ";    
+	#foreach( $condition in $msg_group_detail_list )
+		if ( obj[obj.selectedIndex].text == "$condition.get(0)" ) { 
+			div_detail += "<option value=\"$condition.get(1)\"" 
+				if("$condition.get(1)" == "$!{msg_grP_detail}")
+					div_detail += " selected ";
+			div_detail += ">$condition.get(2)</option>"; 
+		}
+	#end 
+		div_detail += "</select>"; 
+		divMsgDetail.innerHTML = div_detail;	
+	};
+				
+</script> 

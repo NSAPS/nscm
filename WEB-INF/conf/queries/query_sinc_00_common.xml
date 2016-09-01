@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+
+<queries>
+
+<!--
+=====================================================================================================
+	공통
+=====================================================================================================
+-->
+	
+	<!--
+	======================================================================
+		CODE SEARCH POPUP
+	======================================================================
+	-->
+	
+	<!-- CODE SEARCH POPUP : PAGING -->
+	<!-- 코드 검색 일반 : 코드-코드명 -->
+	<query id="code_search_popup" paging="true"> 
+			
+		<!-- 제품 검색 -->
+		#if( "$!{id_input}" == "item_id" )
+			SELECT 	IM.ITEM_ID, IM.ITEM_NAME
+			  FROM 	ITEM_MST IM, DUAL B
+			 WHERE 	IM.MADE_TYPE != 'DE'
+			   AND	 IM.ITEM_STATUS = 'ST'
+			   AND	IM.HR_TY1 NOT LIKE '606006%' 	/* 수산물 제외 */
+			  [AND 	UPPER(IM.ITEM_ID)||UPPER(IM.ITEM_NAME) LIKE UPPER('%${code_input}%')]
+			  AND    (IM.SELL_STOP_DATE > TO_CHAR(SYSDATE,'YYYYMMDD') OR IM.SELL_STOP_DATE = '00000000')
+			 ORDER 	BY IM.ITEM_ID
+		#else
+			SELECT 	IM.ITEM_ID, IM.ITEM_NAME
+			  FROM 	ITEM_MST IM, DUAL B
+			 WHERE 	1=0 -- 아무것도 검색하지 않음
+			   AND  IM.ITEM_STATUS = 'ST'
+			   AND    (IM.SELL_STOP_DATE > TO_CHAR(SYSDATE,'YYYYMMDD') OR IM.SELL_STOP_DATE = '00000000')
+		#end
+			
+	</query>
+	
+	<!-- ITEM SEARCH POPUP : PAGING --> 
+	<query id="item_search_popup" paging="true"> 
+			
+			/* item_search_popup */
+			SELECT 	F_GET_CODE_NAME('ITYPE', IM.ITYPE) ITYPE, IM.ITEM_ID, IM.ITEM_NAME
+			  FROM 	ITEM_MST IM, DUAL B
+			 WHERE 	IM.MADE_TYPE != 'DE'
+			   AND  IM.ITEM_STATUS = 'ST'
+			   AND	IM.HR_TY1 NOT LIKE '606006%' 	/* 수산물 제외 */
+			  [AND 	UPPER(IM.ITEM_ID)||UPPER(IM.ITEM_NAME) LIKE UPPER('%${code_input}%')]
+			  [AND 	IM.ITYPE = '${itype}']
+			 ORDER 	BY IM.ITYPE, IM.ITEM_ID
+			
+	</query>
+	
+	<!-- 품목 타입 구분 -->
+	<query id="item_type_list"> 
+			
+			SELECT 	CM.CD, CM.CD_NAME
+			  FROM 	CODE_MST CM, DUAL B
+			 WHERE 	CM.MADE_TYPE != 'DE'
+			   AND 	CM.CD_GRP = 'ITYPE'
+			 ORDER 	BY CAT01
+			
+	</query>
+	
+	<!-- ITEM SEARCH POPUP : PAGING : 수송계획조회 및 조정 화면 용 -->
+	<query id="item_search_popup_for_trans" paging="true"> 
+			
+			<!-- tgt_loc : 입고장, src_loc : 출고장-->
+			-- 자사 생산제품인 경우 ITEM_DTL 에서 BOX_PER_PALET 을 참조
+			SELECT 	IM.ITYPE, IM.ITEM_ID, IM.ITEM_NAME, 
+			        DECODE(NVL(ID.BOX_PER_PALET, 100), 0, 100, NVL(ID.BOX_PER_PALET, 100))BOX_PER_PALET
+			  FROM 	ITEM_MST IM, ITEM_DTL ID, DC_MST DM--, MAP_PROD_DCPATH PD
+			 WHERE 	IM.ITYPE = ID.ITYPE
+			   AND 	IM.ITEM_ID = ID.ITEM_ID
+			   AND	 IM.ITEM_STATUS = 'ST'
+			   AND 	ID.PLANT_ID = DM.PLANT_ID
+			   AND 	IM.MADE_TYPE != 'DE'
+			   AND 	ID.MADE_TYPE != 'DE'
+			   AND 	DM.MADE_TYPE != 'DE'
+			   AND 	DM.DC_ID = '$!{src_loc}'
+			  [AND 	UPPER(IM.ITEM_ID)||UPPER(IM.ITEM_NAME) LIKE UPPER('%${code_input}%')]
+			  [AND 	IM.ITYPE = '${itype}']
+			   AND 	IM.ITYPE = 'FERT' -- 자사 생산제품
+			   --AND 	IM.ITEM_ID = PD.PROD_ID AND PD.SRC_LOC = '$!{src_loc}' AND PD.TGT_LOC = '$!{tgt_loc}'
+			   --AND 	PD.MADE_TYPE != 'DE'
+			   AND 	NVL(TRIM(ID.BOX_PER_PALET), 0) != 0
+			 GROUP 	BY IM.ITYPE, IM.ITEM_ID, IM.ITEM_NAME, NVL(ID.BOX_PER_PALET, 100)
+			--
+			UNION ALL
+			-- 자사 생산제품 중 ITEM_DTL 에서 BOX_PER_PALET 을 참조할 수 없는 경우 ITEM_MST 에서 BOX_PER_PALET 을 참조
+			SELECT 	IM.ITYPE, IM.ITEM_ID, IM.ITEM_NAME, 
+					DECODE(NVL(IM.BOX_PER_PALET, 100), 0, 100, NVL(IM.BOX_PER_PALET, 100)) BOX_PER_PALET
+			  FROM 	ITEM_MST IM--, MAP_PROD_DCPATH PD
+			 WHERE 	IM.MADE_TYPE != 'DE'
+			   AND  IM.ITEM_STATUS = 'ST'
+			  [AND 	UPPER(IM.ITEM_ID)||UPPER(IM.ITEM_NAME) LIKE UPPER('%${code_input}%')]
+			  [AND 	IM.ITYPE = '${itype}']
+			   AND 	IM.ITYPE = 'FERT' -- 자사 생산제품이 아닌 제품
+			   --AND 	IM.ITEM_ID = PD.PROD_ID AND PD.SRC_LOC = '$!{src_loc}' AND PD.TGT_LOC = '$!{tgt_loc}'
+			   --AND 	PD.MADE_TYPE != 'DE'
+			   AND 	IM.ITEM_ID NOT IN (
+						SELECT 	ID.ITEM_ID
+						  FROM 	ITEM_DTL ID, DC_MST DM
+						 WHERE 	ID.PLANT_ID = DM.PLANT_ID
+						   AND 	ID.ITYPE = 'FERT' -- 자사 생산제품
+						   AND 	DM.DC_ID = '$!{src_loc}'
+						   AND 	ID.MADE_TYPE != 'DE'
+						   AND 	DM.MADE_TYPE != 'DE'
+						   AND 	NVL(TRIM(ID.BOX_PER_PALET), 0) != 0
+					)
+			 GROUP 	BY IM.ITYPE, IM.ITEM_ID, IM.ITEM_NAME, NVL(IM.BOX_PER_PALET, 100)
+			--
+			UNION ALL
+			-- 자사 생산제품이 아닌 경우 ITEM_MST 에서 BOX_PER_PALET 을 참조
+			SELECT 	IM.ITYPE, IM.ITEM_ID, IM.ITEM_NAME, 
+					DECODE(NVL(IM.BOX_PER_PALET, 100), 0, 100, NVL(IM.BOX_PER_PALET, 100)) BOX_PER_PALET
+			  FROM 	ITEM_MST IM--, MAP_PROD_DCPATH PD
+			 WHERE 	IM.MADE_TYPE != 'DE'
+			   AND  IM.ITEM_STATUS = 'ST'
+			  [AND 	UPPER(IM.ITEM_ID)||UPPER(IM.ITEM_NAME) LIKE UPPER('%${code_input}%')]
+			  [AND 	IM.ITYPE = '${itype}']
+			  AND     IM.ITYPE in('HAWA', 'NEWB') -- 자사 생산제품이 아닌 제품
+			   --AND 	IM.ITEM_ID = PD.PROD_ID AND PD.SRC_LOC = '$!{src_loc}' AND PD.TGT_LOC = '$!{tgt_loc}'
+			   --AND 	PD.MADE_TYPE != 'DE'
+			 GROUP 	BY IM.ITYPE, IM.ITEM_ID, IM.ITEM_NAME, NVL(IM.BOX_PER_PALET, 100)
+			------------------------------------------------------------------------------------------------
+			 ORDER 	BY 1, 2
+			
+	</query>
+	<!-- ITEM SEARCH POPUP : PAGING : 수송계획조회 및 조정 화면 용 : 2008/07/30 수정 전 원본 -->
+	<query id="item_search_popup_for_trans_org" paging="true"> 
+			
+			-- 자사 생산제품인 경우 ITEM_DTL 에서 BOX_PER_PALET 을 참조
+			SELECT 	IM.ITYPE, IM.ITEM_ID, IM.ITEM_NAME, 
+					DECODE(NVL(ID.BOX_PER_PALET, 100), 0, 100, NVL(ID.BOX_PER_PALET, 100)) BOX_PER_PALET
+			  FROM 	ITEM_MST IM, ITEM_DTL ID, DC_MST DM
+			 WHERE 	IM.ITYPE = ID.ITYPE
+			   AND 	IM.ITEM_ID = ID.ITEM_ID
+			   AND 	ID.PLANT_ID = DM.PLANT_ID
+			   AND	 IM.ITEM_STATUS = 'ST'
+			   AND 	IM.MADE_TYPE != 'DE'
+			   AND 	ID.MADE_TYPE != 'DE'
+			   AND 	DM.MADE_TYPE != 'DE'
+			   AND 	DM.DC_ID = '$!{src_loc}'
+			  [AND 	UPPER(IM.ITEM_ID)||UPPER(IM.ITEM_NAME) LIKE UPPER('%${code_input}%')]
+			  [AND 	IM.ITYPE = '${itype}']
+			   AND 	IM.ITYPE = 'FERT' -- 자사 생산제품
+			 GROUP 	BY IM.ITYPE, IM.ITEM_ID, IM.ITEM_NAME, NVL(ID.BOX_PER_PALET, 100)
+			--
+			UNION ALL
+			-- 자사 생산제품이 아닌 경우 ITEM_MST 에서 BOX_PER_PALET 을 참조
+			SELECT 	IM.ITYPE, IM.ITEM_ID, IM.ITEM_NAME, 
+					DECODE(NVL(IM.BOX_PER_PALET, 100), 0, 100, NVL(IM.BOX_PER_PALET, 100)) BOX_PER_PALET
+			  FROM 	ITEM_MST IM
+			 WHERE 	IM.MADE_TYPE != 'DE'
+			   AND  IM.ITEM_STATUS = 'ST'
+			  [AND 	UPPER(IM.ITEM_ID)||UPPER(IM.ITEM_NAME) LIKE UPPER('%${code_input}%')]
+			  [AND 	IM.ITYPE = '${itype}']
+			   AND     IM.ITYPE in('HAWA', 'NEWB') -- 자사 생산제품이 아닌 제품
+			 GROUP 	BY IM.ITYPE, IM.ITEM_ID, IM.ITEM_NAME, NVL(IM.BOX_PER_PALET, 100)
+			------------------------------------------------------------------------------------------------
+			 ORDER 	BY 1, 2
+			
+	</query>
+	
+	<!-- ITEM SEARCH POPUP : PAGING : 멀티포장 동시제약 용 화면 -->
+	<query id="item_search_popup_for_simul" paging="true"> 
+			
+			SELECT  DISTINCT MI.ITEM_ID, MI.ITEM_NAME, MI.SPEC
+			  FROM  (
+						SELECT  IM.ITEM_ID, IM.ITEM_NAME, IM.SPEC
+						  FROM  ITEM_MST IM, ITEM_DTL ID
+						 WHERE  IM.ITEM_ID = ID.ITEM_ID(+)
+						   AND  IM.ITEM_STATUS = 'ST'
+						   AND  IM.MADE_TYPE != 'DE'
+						   AND  ID.MADE_TYPE != 'DE'
+						   AND  IM.ITYPE = 'FERT' -- 완제품
+						   AND  IM.MULTI_FLAG IN ('M','V') -- 멀티
+						   AND  ID.PLANT_ID = '$!{selected_plant}'
+						  [AND  UPPER(IM.ITEM_ID) || UPPER(IM.ITEM_NAME) LIKE UPPER('%${selected_item_id}%')] 
+						 ORDER  BY IM.ITEM_NAME
+					) MI, ITEM_CAPA IC
+			 WHERE  MI.ITEM_ID = IC.ITEM_ID(+)			   
+			   AND  IC.MADE_TYPE != 'DE'
+			   AND  IC.PLANT_ID = '$!{selected_plant}'
+			  [AND  IC.PROC_ID = '${proc_id}']
+			  [AND  IC.LINE_ID = '${line_id}']
+			
+	</query>
+	
+	<!-- 공장 이름 리스트 -->
+	<query id="plant_name_list">
+	
+			SELECT	HR.HID, HR.HID_NAME
+			  FROM	HRCHY HR, DUAL B
+			 WHERE	HR.LVL_TYPE = '공장'
+			   AND  HR.MADE_TYPE != 'DE'
+			 ORDER  BY HR.HID_NAME
+			 
+	</query>
+	
+	<!-- ITEM SEARCH POPUP : PAGING : 공장 할당 정책 용 화면 -->
+	<query id="item_search_popup_for_plant_alloc" paging="true">
+				
+			<!-- 제품 검색 -->
+			#if( "$!{id_input}" == "item_id" )
+				<!-- 제품중 완제품이고 생산하는 공장이 2개 이상인 제품--> 
+				SELECT  DTL.ITEM_ID, IM.ITEM_NAME
+				  FROM  (
+							SELECT  ID.ITEM_ID, COUNT(ID.PLANT_ID) CNT
+							  FROM  ITEM_DTL ID
+							 GROUP  BY ID.ITEM_ID
+						) DTL,
+						ITEM_MST IM			   
+				 WHERE  DTL.ITEM_ID = IM.ITEM_ID(+)			   
+				   AND  IM.ITYPE = 'FERT' --완제품
+				   AND  IM.ITEM_STATUS = 'ST'
+				   AND  DTL.CNT &gt; 1 
+				   AND  IM.ITEM_ID IS NOT NULL 
+				  [AND  IM.SALES_CAT02 = '${sales_cat2}'] -- 영업품종분류2 변수
+				  [AND 	UPPER(IM.ITEM_ID)||UPPER(IM.ITEM_NAME) LIKE UPPER('%${code_input}%')]
+				 ORDER  BY IM.ITEM_ID
+			#else
+				SELECT 	IM.ITEM_ID, IM.ITEM_NAME
+				  FROM 	ITEM_MST IM, DUAL B
+				 WHERE 	1=0 -- 아무것도 검색하지 않음
+				   AND  IM.ITEM_STATUS = 'ST'
+			#end
+				
+	</query>
+	
+	<!-- ITEM SEARCH POPUP : PAGING : 월간 생산 계획 조회 용 화면 -->
+	<query id="item_search_popup_for_monthly" paging="true">
+	
+			<!-- 완제품만 -->					   
+			#if( "$!{id_input}" == "item_id" )
+				SELECT 	IM.ITEM_ID, IM.ITEM_NAME
+				  FROM 	ITEM_MST IM, DUAL B
+				 WHERE 	IM.MADE_TYPE != 'DE'
+				   AND  IM.ITEM_STATUS = 'ST'
+				   AND  IM.ITYPE = 'FERT' -- 완제품
+				  [AND  IM.SALES_CAT01 = '${sales_cat1}'] --영업 품종 분류1
+				  [AND 	UPPER(IM.ITEM_ID)||UPPER(IM.ITEM_NAME) LIKE UPPER('%${code_input}%')]
+				 ORDER 	BY IM.ITEM_ID
+			#else
+				SELECT 	IM.ITEM_ID, IM.ITEM_NAME
+				  FROM 	ITEM_MST IM, DUAL B
+				 WHERE 	1=0 -- 아무것도 검색하지 않음
+				   AND  IM.ITEM_STATUS = 'ST'
+			#end
+	
+	</query>
+	
+	
+<!--
+=====================================================================================================
+	코드입력
+=====================================================================================================
+-->
+	
+	<!--
+	======================================================================
+		제품코드 입력
+	======================================================================
+	-->
+	
+	<!-- ITEM_ID 직접입력한 값에대해 ITEM_NAME 조회 -->
+	<query id="search_item_id_and_item_name_by_item_input">
+			
+			SELECT 	IM.ITEM_ID, IM.ITEM_NAME
+			  FROM 	ITEM_MST IM, DUAL B
+			 WHERE 	IM.ITEM_ID || IM.ITEM_NAME LIKE '%'||'$!{input_value}'||'%'
+			   AND  IM.ITEM_STATUS = 'ST'
+			   AND 	IM.MADE_TYPE != 'DE'
+			
+	</query>
+	
+	
+<!--
+=====================================================================================================
+	INSERT CONNECTION LOGS 
+=====================================================================================================
+-->
+	
+	<!-- INSERT CONNECTION LOGS --> 
+	<query id="insert_connection_logs"> 
+			
+			INSERT INTO CONNECTION_LOGS( USER_ID, CONNECTION_DATE, SERVICE_ID, CONNECTION_IP, DESCRIPTION, MADE_TYPE, MADE_DTTM, MADE_BY ) 
+			SELECT 	'$!{login_id}' AS USER_ID, T.CUR_TIME AS CONNECTION_DATE 
+					, '$!{service_id}' AS SERVICE_ID, '$!{connection_ip}' AS CONNECTION_IP, '정상' AS DESCRIPTION
+					, 'AD' AS MADE_TYPE, SYSDATE AS MADE_DTTM, 'SYSTEM' AS MADE_BY 
+			FROM 	( SELECT SYSDATE CUR_TIME FROM DUAL ) T 
+			WHERE 	NOT EXISTS
+					( 	SELECT USER_ID FROM CONNECTION_LOGS 
+						WHERE USER_ID = '$!{login_id}' AND CONNECTION_DATE = T.CUR_TIME AND SERVICE_ID = '$!{service_id}' )
+			
+	</query> 
+	
+	<!-- INSERT CONNECTION LOGS : CAUSED BY ERROR -->
+	<query id="insert_connection_logs_err"> 
+			
+			INSERT INTO CONNECTION_LOGS( USER_ID, CONNECTION_DATE, SERVICE_ID, CONNECTION_IP, DESCRIPTION, ERROR_MESSAGE, MADE_TYPE, MADE_DTTM, MADE_BY )
+			SELECT 	'$!{login_id}' AS USER_ID, T.CUR_TIME AS CONNECTION_DATE, '$!{service_id}' AS SERVICE_ID
+					, '$!{connection_ip}' AS CONNECTION_IP, '$!{err_msg}' AS DESCRIPTION, '$!{err_detail}' AS ERROR_MESSAGE
+					, 'AD' AS MADE_TYPE, SYSDATE AS MADE_DTTM, 'SYSTEM' AS MADE_BY 
+			FROM 	( SELECT SYSDATE CUR_TIME FROM DUAL ) T
+			WHERE 	NOT EXISTS
+					( 	SELECT USER_ID FROM CONNECTION_LOGS 
+						WHERE USER_ID = '$!{login_id}' AND CONNECTION_DATE = T.CUR_TIME AND SERVICE_ID = '$!{service_id}' )
+			
+	</query>
+
+
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</queries>

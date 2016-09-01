@@ -1,0 +1,212 @@
+## 비정상적 접근 방지 
+#loginCheck()
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('125', '152')" )
+
+#if( ${group_job_permission_detail_user_info.size()} > 0 ) 
+	#set( $p_group_id = "${group_job_permission_detail_user_info.get(0).get(0)}" ) 
+	#set( $p_group_name = "${group_job_permission_detail_user_info.get(0).get(1)}" ) 
+#else 
+	#set( $p_group_id = "" ) 
+	#set( $p_group_name = "" ) 
+#end 
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+					<td align="right" width="70%">
+						#if( $!{super_user_check.size()} > 0 ) 
+							#toolbar($_moon_toolbar "" "group_job_permission_detail_save" "" "")
+						#else 
+							#toolbar("0000" "" "" "" "") 
+						#end
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2">
+					<td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; ">
+					</td>
+				</tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; ">
+            				<tr id="search_menu" style="display:block; ">
+								<td width="10%" align="right">
+									그룹 코드 :
+								</td> 
+								<td width="40%" align="left">
+									<input name="group_id" readOnly value="$!{p_group_id}"
+										style="border-width:0px; font-family:'돋움'; width:200px; background-color:${search_bgcolor}; "> 
+								</td>
+								<td width="10%" align="right">
+									그룹 명 :
+								</td> 
+								<td width="40%" align="left">
+									<input name="group_name" readOnly value="$!{p_group_name}"
+										style="border-width:0px; font-family:'돋움'; width:200px; background-color:${search_bgcolor}; "> 
+								</td>
+            				</tr>
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2">
+					<td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="19"> ## search 조건 부분 높이 
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>						
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					#set( $body = $xmlJobHandler.getJobInfo() )
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+								<img src="/nscm/sinc/template/basic/skin/nongshim/images/common/dot_sub6.gif" width="16" height="13">Total :
+								<span id="areaTot" class="f_color_o b">$body.size()</span>
+							</td>
+						</tr>
+					</table>
+					
+					<table id="tbMain" border="0" width="100%" cellpadding="0" cellspacing="0"><tr><td>
+						<div id="topLeft" style="height:40px; width:370px; overflow:hidden; ">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead>
+									<tr align="center" height="40px"> 
+										<td align="center" width="30px">번호</td> 
+										<td align="center" width="30px">
+											<input name="checkAll" type="checkbox" onClick="clickAll(this.checked); " style="border:0px; ">
+										</td> 
+										<td align="center" width="310px">JOB ID</td> 
+									</tr> 
+		   						</thead>
+			   				</table>
+			   			</div>
+					</td>
+					<td> 
+						<div id="topLine" style="height:40px; width:626px;overflow:hidden;">
+							<table width="500px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead>
+									<tr align="center" height="40px">
+										##<td align="center" width="200px">TITLE</td>
+										<td align="center" width="200px">DESCRIPTION</td>
+										<td align="center" width="300px" class="right">NAVIGATION</td>
+									</tr> 
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td></tr>	
+					<tr><td valign="top">
+						<div id="leftDisplay" style="width:370px; overflow:hidden; ">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="left_tbody">
+									<input name="job_id" type="hidden" > 
+									<input name="check_box" type="hidden" > 
+									##set( $td_style = "overflow: hidden; text-overflow:ellipsis; white-space:nowrap; " ) 
+								#foreach( $tr in ${body} ) 
+									<tr id="left_tr" height="26px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); "> 
+										<td align="center" width="30px" 
+											style="background-color:${search_bgcolor}; $!{td_style}">$velocityCount</td> 
+										<input name="job_id" type="hidden" value=""> 
+										<td align="center" width="30px" style="$!{td_style}"> 
+											<input name="check_box" type="checkbox" onClick="clickCheck(this, $velocityCount); " 
+												value="$tr.get(1)" style="border:0px; "> 
+										</td> 
+										<td align="left" width="310px" style="$!{td_style}">&nbsp;$tr.get(1)</td> 
+									</tr> 
+								#end 
+								</tbody>
+							</table> 
+						</div>
+					</td> 
+					<td valign="top"> 
+						<div id="mainDisplay" class="ns_scroll" style="border:0; width:645px; overflow-y:scroll; overflow-x:scroll; "
+							onscroll="scrollX(); scrollY(); ">
+							<table width="500px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="main_tbody">
+								#foreach( $tr in ${body} )
+									<tr id="main_tr" height="26px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); " > 
+										##<td align="left" width="200px">&nbsp;$!tr.get(2)</td>
+										<td align="left" width="200px">&nbsp;$!tr.get(3)</td>
+										<td align="left" width="300px" class="right">&nbsp;$!tr.get(4)</td>
+									</tr>	
+								#end 
+								</tbody>
+							</table>
+						</div>
+					</td></tr></table>
+					
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+						##$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+						<input type="hidden" name="_moon_service" value="${_moon_service}">
+						<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+						<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					</td></tr></table>
+					
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 해당 그룹에 허용할 권한을 체크한 후 상단의 저장 버튼을 클릭하여 해당 그룹의 권한을 지정합니다.";
+	//helpStr += "<br>◈ 관리자가 아닌 일반 사용자는 본인의 정보만 조회 및 수정가능하고, 사용자 등록을 할 수 없습니다.";
+	helpCont.innerHTML = helpStr;
+	// 도움말 zoomOut 높이 조절 변수
+	hDynamicHeight = 0;
+	
+	// 권한 initializing
+	initCheck();
+	function initCheck() { 
+			
+		#foreach( $tr in $group_job_permission_detail )
+			var loopCondition = true; 
+			var i = 1; 
+			while( loopCondition && i <= Number($body.size()) ) { 
+				if( document.frm.check_box[i].value == "$!{tr.get(0)}" ) { 
+					document.frm.check_box[i].checked = true; 
+					document.frm.job_id[i].value = document.frm.check_box[i].value; 
+					loopCondition = false;
+					left_tr[i-1].style.backgroundColor 	= "#D0B8F1"; 
+					main_tr[i-1].style.backgroundColor 	= "#D0B8F1";
+				} 
+				++i; 
+			} 
+		#end 
+	
+	}
+
+</script>

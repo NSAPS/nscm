@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+<!--
+=====================================================================================================
+	재고운영계획 >> 운영정보
+=====================================================================================================
+-->
+	<!--
+	======================================================================
+		중장기 자재발주 계획
+	======================================================================
+	-->
+
+	<!-- 중장기 자재발주 계획 -->
+	<job id="op_02010_Long_Term_Planning_list" job_type="single" check_permission="no">
+		<path>/sinc/30.OrderPlanning</path>
+		<navigation>자재계획 >> 운영정보 >> 중장기 자재발주 계획</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>중장기 자재발주 계획</title>
+		<authority>1</authority>		
+		<description>중장기 자재발주 계획</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="md_10010_DOMAIN_list_2" datasource="t3sinc"/>
+			<query idref="Aps_Pr_version_list" datasource="t3sinc"/>
+			<query idref="sel_dmd_list" datasource="t3sinc"/>			
+		</queries>		
+	</job>
+
+	<!-- 중장기 자재발주 계획 완제품 반제품 재고조회-->
+	<job id="op_02010_Long_Term_Planning_list_fert_halb_stock_list" job_type="single" check_permission="no">
+		<path>/sinc/30.OrderPlanning</path>
+		<navigation>중장기 자재발주 계획 >> 완제품 반제품 재고조회</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>완제품 반제품 재고조회</title>
+		<authority>1</authority>		
+		<description>완제품 반제품 재고조회</description>
+		<request_type>list</request_type>
+		<queries>
+		</queries>		
+	</job>
+	<!-- 중장기 자재발주 계획 완제품 반제품 재고조회-->
+	<job id="op_02010_Long_Term_Planning_list_PR_PO_term_pop_up" job_type="single" check_permission="no">
+		<path>/sinc/30.OrderPlanning</path>
+		<navigation>중장기 자재발주 계획 >> 구매요청 주기 분석 </navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>구매요청 주기 분석</title>
+		<authority>1</authority>		
+		<description>구매요청 주기 분석</description>
+		<request_type>list</request_type>
+		<queries>
+		</queries>		
+	</job>
+	
+	<!--
+	======================================================================
+		자재현황 조회
+	======================================================================
+	-->
+
+
+	<!-- 자재현황 조회 -->
+	<job id="op_02020_Long_Term_Planning_list_roh" job_type="single" check_permission="no">
+		<path>/sinc/30.OrderPlanning</path>
+		<navigation>자재계획 >>운영정보>>자재현황 조회</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>자재현황 조회</title>
+		<authority>1</authority>		
+		<description>자재현황 조회</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="md_10010_DOMAIN_list" datasource="t3sinc"/>
+			<query idref="Aps_Pr_version_list" datasource="t3sinc"/>
+			<query idref="sel_dmd_list" datasource="t3sinc"/>
+			<query idref="sel_dmd_list_2" datasource="t3sinc"/>
+		</queries>		
+	</job>
+
+
+	<!--
+	======================================================================
+		제품별 자재현황 조회
+	======================================================================
+	-->
+
+
+	<!-- 제품별 자재현황 조회 -->
+	<job id="op_02030_Material_Refreshing_List" job_type="single" check_permission="no">
+		<path>/sinc/30.OrderPlanning</path>
+		<navigation>자재계획 >>운영정보>>제품별 자재현황 조회</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>제품별 자재현황 조회</title>
+		<authority>1</authority>		
+		<description>제품별 자재현황 조회</description>
+		<request_type>list</request_type>
+		<queries>
+		</queries>		
+	</job>
+
+
+	<!--
+	======================================================================
+		계열사 재고정보 등록
+	======================================================================
+	-->
+
+
+	<!-- 계열사 재고정보 등록 -->
+	<job id="op_02040_Mfs_Stock_Info" job_type="single" check_permission="no">
+		<path>/sinc/30.OrderPlanning</path>
+		<navigation>자재계획 >>운영정보>>계열사 재고정보 등록</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>계열사 재고정보 등록</title>
+		<authority>1</authority>		
+		<description>계열사 재고정보 등록</description>
+		<request_type>list</request_type>
+		<queries>
+		<query idref="op_02050_plan_date_mst" datasource="t3sinc"/>
+		</queries>		
+	</job>
+
+
+
+
+
+
+
+	<!--
+	======================================================================
+		중장기 상품발주 계획
+	======================================================================
+	-->
+
+	<!-- 중장기 상품발주 계획 -->
+	<job id="op_02010_Long_Term_Planning_list_Hawa" job_type="single" check_permission="no">
+		<path>/sinc/30.OrderPlanning</path>
+		<navigation>재고정책 >> 운영정보>>중장기 상품발주 계획</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>중장기 상품발주 계획</title>
+		<authority>1</authority>		
+		<description>중장기 상품발주 계획</description>
+		<request_type>list</request_type>
+		<queries>    
+			<query idref="Aps_Pr_version_list_hawa" datasource="t3sinc"/>
+			<query idref="op_02010_Long_Term_Planning_list_Hawa_combo" datasource="t3sinc"/>
+			<query idref="sel_dmd_list" datasource="t3sinc"/>	
+			<query idref="cdc_id_and_name_list_hawa" datasource="t3sinc"/>			
+		</queries>		
+	</job>	
+
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+	<!--
+	======================================================================
+		발주예시 Main화면
+	======================================================================
+	-->
+
+
+	<!-- 발주예시 Main화면-->
+	<job id="op_02050_roh_expt_master" job_type="single" check_permission="no">
+		<path>/sinc/30.OrderPlanning</path>
+		<navigation>자재계획 >>운영정보>>발주예시 Main화면</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>발주예시 Main화면</title>
+		<authority>1</authority>		
+		<description>발주예시 Main화면</description>
+		<request_type>list</request_type>
+		<queries>
+			
+			<!-- <query idref="md_10010_DOMAIN_list" datasource="t3sinc"/>
+			<query idref="Aps_Pr_version_list" datasource="t3sinc"/> -->
+			<query idref="op_02050_plan_date_mst" datasource="t3sinc"/>
+			<!-- <query idref="sel_dmd_list" datasource="t3sinc"/> -->
+			<query idref="sel_dmd_list_3" datasource="t3sinc"/>
+
+		</queries>		
+	</job>
+
+
+
+<!--
+	======================================================================
+		계열사 발주예고량 조회
+	======================================================================
+	-->
+
+
+	<!-- 계열사 발주예고량 조회 -->
+	<job id="op_02060_com_roh_cnfm_list" job_type="single" check_permission="no">
+		<path>/sinc/30.OrderPlanning</path>
+		<navigation>자재계획 >>운영정보>>계열사 발주예고량 조회</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>계열사 발주예고량 조회</title>
+		<authority>1</authority>		
+		<description>계열사 발주예고량 조회</description>
+		<request_type>list</request_type>
+		<queries>
+			
+			<query idref="op_02050_plan_date_mst" datasource="t3sinc"/>
+			
+			<!-- <query idref="md_10010_DOMAIN_list" datasource="t3sinc"/>
+			<query idref="Aps_Pr_version_list" datasource="t3sinc"/> 
+			<query idref="sel_dmd_list" datasource="t3sinc"/>
+			<query idref="sel_dmd_list_2" datasource="t3sinc"/> -->
+		</queries>		
+	</job>
+
+	<!--
+	======================================================================
+		유통본부  판촉계획 등록
+	======================================================================
+	-->
+
+
+	<!-- 유통본부  판촉계획 등록 -->
+	<job id="op_02070_evnet_plan_info" job_type="single" check_permission="no">
+		<path>/sinc/30.OrderPlanning</path>
+		<navigation>자재계획 >>운영정보>>유통본부  판촉계획 등록</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>유통본부  판촉계획 등록</title>
+		<authority>1</authority>		
+		<description>유통본부  판촉계획 등록</description>
+		<request_type>list</request_type>
+		<queries>
+		</queries>		
+	</job>
+	
+	<!--
+	======================================================================
+		발주계획 대비 실적조회
+	======================================================================
+	-->
+
+	<!-- 발주계획 대비 실적조회 -->
+	<job id="op_02080_fc_planVsActual_list" job_type="single" check_permission="no">
+		<path>/sinc/30.OrderPlanning</path>
+		<navigation>자재계획 >>분석정보>>발주계획 대비 실적조회</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>발주계획 대비 실적조회</title>
+		<authority>1</authority>		
+		<description>발주계획 대비 실적조회</description>
+		<request_type>list</request_type>
+		<queries>
+		</queries>		
+	</job>
+	
+	<!--
+	======================================================================
+		중장기 베이스 수급 계획
+	======================================================================
+	-->
+
+	<!-- 중장기 베이스 수급 계획 -->
+	<job id="op_02090_Long_Term_Planning_semi_list" job_type="single" check_permission="no">
+		<path>/sinc/30.OrderPlanning</path>
+		<navigation>자재계획 >> 운영정보 >> 웰치 자재수급계획</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>웰치 자재수급계획</title>
+		<authority>1</authority>		
+		<description>웰치 자재수급계획</description>
+		<request_type>list</request_type>
+		<queries>
+						
+		</queries>		
+	</job>
+	
+	
+
+</jobs>	

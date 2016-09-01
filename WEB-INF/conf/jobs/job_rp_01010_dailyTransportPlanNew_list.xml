@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+<!--
+=====================================================================================================
+	수송계획 >> 운영정보
+=====================================================================================================
+-->
+	
+	<!--
+	======================================================================
+		수송계획조회 및 조정
+	======================================================================
+	-->
+	
+	<!-- 수송계획조회 및 조정 -->
+	<job id="rp_01010_dailyTransportPlanNew_list" job_type="single" check_permission="no">
+		<path>/sinc/wisegrid</path>
+		<navigation>수송계획 >> 운영정보 >> 수송계획조회 및 조정</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>수송계획조회 및 조정</title>
+		<authority>1</authority>		
+		<description>수송계획조회 및 조정</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="dailyTransportPlan_period_type_list" datasource="t3sinc"/> <!-- 계획주기리스트 -->
+			<query idref="dailyTransportPlan_version_list" datasource="t3sinc"/> <!-- 버전리스트 -->
+			<query idref="nfos_sales_plan_weekly_version_list" datasource="t3sinc"/><!-- 판매계획  최종버젼  -->
+			<query idref="nfos_order_version_list" datasource="t3sinc"/><!-- NFOS 주문정보 최종 I/F 버젼  -->
+			<query idref="trans_dc_id_and_short_name_list" datasource="t3sinc"/> <!-- 입고장 리스트 -->
+			<query idref="dc_id_and_short_name_list" datasource="t3sinc"/> <!-- 입고장 SHORT NAME 리스트 -->
+			<query idref="src_loc_and_short_name_list" datasource="t3sinc"/> <!-- 출고장 SHORT NAME 리스트 -->
+			<query idref="trans_class_list" datasource="t3sinc"/> <!-- 수송구분 리스트 -->
+			<query idref="rp_01010_dailyTransportPlan_list_capa" datasource="t3sinc"/> <!-- 최대CAPA -->
+			<query idref="rp_01010_dailyTransportPlan_list_stock" datasource="t3sinc"/> <!-- 예상재고 -->
+			<query idref="rp_01010_dailyTransportPlan_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+		
+	<!-- ITEM SEARCH POPUP : PAGING : 수송계획조회 및 조정 화면 용 -->
+	<job id="item_search_popup_for_trans_wisegrid" job_type="single">
+		<path>/sinc/00.common</path>
+		<navigation>제품 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>제품 조회</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="item_type_list" datasource="t3sinc"/> <!-- 품목 타입 구분 -->
+			<query idref="item_search_popup_for_trans" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+	<!-- ITEM SEARCH POPUP : PAGING : 수송계획조회 및 조정 화면 용 -->
+	<job id="GoTransPlanRegen" job_type="single">
+		<path>/sinc/00.common</path>
+		<navigation>제품 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>제품 조회</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="TransPlanRegen" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+	
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</jobs>	

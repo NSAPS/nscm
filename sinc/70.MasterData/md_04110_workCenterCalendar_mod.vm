@@ -1,0 +1,574 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('100', '138')" )
+
+## 이전 화면으로 이동할 때 조회조건을 기억하기 위한 parameter
+<input type="hidden" name="sel_plant" value="$!{sel_plant}">
+<input type="hidden" name="sel_line" value="$!{sel_line}">
+<input type="hidden" name="sel_cal_grp" value="$!{sel_cal_grp}">
+<input type="hidden" name="sel_cycle_type" value="$!{sel_cycle_type}">
+<input type="hidden" name="perpage_pre" value="${perpage_pre}">
+<input type="hidden" name="pagenumber_pre" value="$!{pagenumber_pre}">
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						<input type="button" name="btnBack" value=" 이전화면" onClick="moveBack(); "
+							class="btn1_on">
+						<input type="button" name="btnAddRow" value=" 라인추가" onClick="addRow(1); "
+							class="btn1_on">
+						#toolbar_nscm($_moon_toolbar "" "" "md_04110_workCenterCalendar_mod_save_comp" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; ">
+            				<tr id="search_menu" style="display:block; ">
+            					<td width="10%" align="right">
+            						Plant :
+            					</td>
+            					<td width="10%" align="left">
+									<select name="insel_plant" onChange="doChange(this); " disabled>
+										#foreach( $condition in $md_04110_combo_plant )
+											<option value="$condition.get(0)" #if( "$!{sel_plant}" == "$condition.get(0)") selected #end>$condition.get(1)</option>
+										#end
+									</select>
+            					</td>
+            					<td width="5%" align="right">
+            						Line :
+            					</td>
+            					<td width="10%" align="left">
+									<select name="insel_line" disabled>
+										<option value="%" #if( "$!{sel_line}" == "*" ||"$!{sel_line}" == "%") selected #end >전체</option>
+										#foreach( $condition in $md_04110_combo_line )
+											#if("$!{sel_plant}" == "$condition.get(0)")
+												<option value="$condition.get(1)"  #if( "$!{sel_line}" == "$condition.get(1)" ) selected #end>$condition.get(2)</option>
+											#end
+										#end
+									</select>
+            					</td>
+								<td width="10%" align="right">
+									칼렌다구분 :
+								</td> 
+								<td width="10%" align="left">
+									<select name="insel_cal_grp" disabled>
+										<option value="%" #if( "$!{sel_cal_grp}" == "%" || "$!{sel_cal_grp}" == "") selected #end >전체</option>
+										#foreach( $condition in $md_04110_combo_calGrp )
+											<option value="$condition.get(0)" #if( "$!{sel_cal_grp}" == "$condition.get(0)" ) selected #end>$condition.get(1)</option>
+										#end
+									</select>
+								</td>
+								<td width="10%" align="right">
+            						반복주기 :
+            					</td>
+            					<td width="10%" align="left">
+									<select name="insel_cycle_type" disabled>
+										<option value="%" #if( "$!{sel_cycle_type}" == "%" || "$!{sel_cycle_type}" == "") selected #end >전체</option>
+										#foreach( $condition in $md_04110_combo_cycleType )
+											<option value="$condition.get(0)"  #if( "$!{sel_cycle_type}" == "$condition.get(0)" ) selected #end>$condition.get(1)</option>
+										#end
+									</select>
+            					</td>
+            				</tr> 
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="23"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+
+					<table id="tbMain" border="0" width="715" cellpadding="0" cellspacing="0" >
+						<tr>
+							<td> 
+								<div id="topLeft" style="height:35px; width:410px; overflow:hidden; "> 
+									<table width="410px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>
+											<tr align="center" height="35px"> 
+												<td align="center" width="30px">번호</td>
+												<td align="center" width="30px">삭제</td>
+												<td align="center" width="150px">Line 명</td>
+												<td align="center" width="200px">작업장 명</td>
+											</tr> 
+					   					 </thead>
+					   				</table>
+					   			</div>
+							</td>
+							<td> 
+								<div id="topLine" style="height:35px; width:1040px;overflow:hidden;"> 
+									<table width="1040px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>
+											<tr height="35px">
+												<td align="center" width="200px">시작일시</td>
+												<td align="center" width="200px">종료일시</td>
+												<td align="center" width="90px">반복주기</td>
+												<td align="center" width="90px">TYPE</td>
+												<td align="center" width="100px">칼렌다구분</td>
+												<td align="center" width="300px">비고</td>
+												<td align="center" width="60px">적용여부</td>
+											</tr>
+					   					 </thead>
+					   				</table>
+					   			</div>
+							</td>
+						</tr>	
+						
+						<tr>
+							<td valign="top"> 
+								<div id="leftDisplay" style="width:410px; overflow:hidden; ">
+									<table width="410px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="left_tbody">
+										#foreach( $tr in $md_04110_workCenterCalendar_list )
+											<tr id="left_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+												<td width="30px" align="center" style="background-color:${search_bgcolor}; "> ## 번호
+													<a id="divRowNo">$velocityCount</a>
+													<input type="hidden" name="idu_flag" value="U">
+												</td>
+												<td width="30px" align="center"> ## 삭제
+													<input name="check_del" type="checkbox" class="normal" onClick="doChangeDel(this);" >
+												</td>
+												<td width="150px" ondblClick="setEditMode1(this); " > ## Line ID
+													<a id="divIn_Line">&nbsp;$tr.get(0)&nbsp;$tr.get(1)</a><select
+														name="in_line" onChange="doChange1(this);" onFocusOut="setViewMode1(this,0);"
+														style="width:100%; padding-left:5px; display:none;">
+														<option value="*" #if( "$tr.get(0)" == "*" ) selected #end>전체</option>
+														#foreach( $condition in $md_04110_combo_line )
+															#if("$!{sel_plant}" == "$condition.get(0)")
+																<option value="$condition.get(1)"  #if( "$tr.get(0)" == "$condition.get(1)" ) selected #end>$condition.get(2)
+																</option>
+															#end
+    													#end
+													</select>
+													<input type="hidden" name="old_line" value="$tr.get(0)">	
+												</td>
+												<td width="200px" id= "proc" ondblClick="setEditMode1(this); "> ## 작업장 ID
+                                                	<a id="divIn_Proc">&nbsp;$tr.get(2)&nbsp;$tr.get(3)</a><select
+														name="in_proc" onChange="chkDupProc(this);" onFocusOut="setViewMode1(this,0);"  
+														style="width:100%; padding-left:5px; display:none;">
+														<option value="*" #if( "$tr.get(2)" == "*" ) selected #end>전체</option>
+														#foreach( $condition in $md_04110_combo_workCenter )
+															#if("$tr.get(0)" == "$condition.get(0)")
+																<option value="$condition.get(1)"  #if( "$tr.get(2)" == "$condition.get(1)" ) selected #end>$condition.get(2)
+																</option>
+															#end
+    													#end
+													</select>
+													<input type="hidden" name="old_proc" value="$tr.get(2)">	
+												</td>
+											</tr>
+										#end
+										</tbody> 
+									</table> 
+								</div> 	
+							</td> 
+							<td valign="top"> 
+								<div id="mainDisplay" class="ns_scroll" style="border:0; width:1040px; overflow-y:scroll; overflow-x:scroll; " onscroll="scrollX(); scrollY(); ">
+									<table width="1040px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="main_tbody">
+										#foreach( $tr in $md_04110_workCenterCalendar_list )
+											<tr id="main_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+												<td width="200px" id="td_strt_dttm" align="center" ondblClick="setEditMode1(this); "> ## 시작일시
+													<a id="divIn_start_dttm">&nbsp;$tr.get(4)</a><a id="tmp_start_dttm" style="width:100%; padding-left:5px; display:none;" >
+   														#date_sole_no_title( "in_strt_dttm$velocityCount" "10" "normal" "strtBtn$velocityCount" $tr.get(4).substring(0,10) )
+    													<select name="strt_hour" > 
+    														#foreach( $i in[0..23]) ## 시간   
+    															<option  value=#if($i < 10) "0$i" #else "$i" #end 
+    																#if($math.toNumber("$tr.get(4).substring(11,13)") == $i ) selected #end
+    																>#if($i < 10)0#end$i
+    															</option>
+    														#end 
+    													</select>
+    													<select name="strt_min" >   
+    														#foreach( $j in[0..59])	## 분
+    															<option  value= #if($j < 10)"0$j" #else "$j" #end 
+    																#if($math.toNumber("$tr.get(4).substring(14,16)") == $j ) selected #end
+    																>#if($j < 10)0#end$j
+    															</option>
+    														#end
+    													</select>
+													<input type="hidden" name="old_strt_dttm" value="$tr.get(4)">
+													<input type="hidden" name="new_strt_dttm" value="$tr.get(4)">
+													</a>
+												</td>
+												<td width="200px" id="td_end_dttm" align="center" ondblClick="setEditMode1(this);" > ## 종료일시
+													<a id="divIn_end_dttm">&nbsp;$tr.get(5)</a><a id="tmp_end_dttm" style="width:100%; padding-left:5px; display:none;" >
+   														#date_sole_no_title( "in_end_dttm$velocityCount" "10" "normal" "endBtn$velocityCount" $tr.get(5).substring(0,10) )
+    													<select name="end_hour" > 
+    														#foreach( $k in[0..23]) ## 시간   
+    															<option  value=#if($k < 10) "0$k" #else "$k" #end 
+    																#if($math.toNumber("$tr.get(5).substring(11,13)") == $k ) selected #end
+    																>#if($k < 10)0#end$k
+    															</option>
+    														#end 
+    													</select>
+    													<select name="end_min" >   
+    														#foreach( $l in[0..59])	## 분
+    															<option  value= #if($l < 10)"0$l" #else "$l" #end 
+    																#if($math.toNumber("$tr.get(5).substring(14,16)") == $l ) selected #end
+    																>#if($l < 10)0#end$l
+    															</option>
+    														#end
+    													</select>
+													<input type="hidden" name="new_end_dttm" value="$tr.get(4)">
+													</a>
+												</td>
+												<td width="90px" align="center" ondblClick="setEditMode1(this); "> ## 반복주기
+													<a id="divIn_cycle_type">&nbsp;$tr.get(6)</a><select
+														name="in_cycle_type"  onFocusOut="setViewMode1(this,1);" 
+														style="width:100%; padding-left:5px; display:none;">
+														#foreach( $condition in $md_04110_combo_cycleType )
+															<option value="$condition.get(0)"  #if( "$tr.get(6)" == "$condition.get(1)" ) selected #end>$condition.get(1)
+															</option>
+														#end
+													</select>
+												</td>
+												<td width="90px" align="center" ondblClick="setEditMode1(this); "> ## TYPE
+													<a id="divIn_cal_type">&nbsp;$tr.get(7)</a><select
+														name="in_cal_type"  onFocusOut="setViewMode1(this,1);" 
+														style="width:100%; padding-left:5px; display:none;">
+														#foreach( $condition in $md_04110_combo_calType )
+															<option value="$condition.get(0)"  #if( "$tr.get(7)" == "$condition.get(1)" ) selected #end>$condition.get(1)
+															</option>
+														#end
+													</select>
+												</td>
+												<td width="100px" align="center" ondblClick="setEditMode1(this); " > ## 칼렌다구분
+													<a id="divIn_cal_grp">&nbsp;$tr.get(8)</a><select
+														name="in_cal_grp"  onFocusOut="setViewMode1(this,1);" 
+														style="width:100%; padding-left:5px; display:none;">
+														#foreach( $condition in $md_04110_combo_calGrp )
+															<option value="$condition.get(0)"  #if( "$tr.get(8)" == "$condition.get(1)" ) selected #end>$condition.get(1)
+															</option>
+														#end
+													</select>
+												</td>
+												<td width="300px" ondblClick="setEditMode(this); " class="right"> ## 비고
+													<a id="divIn_description">&nbsp;$tr.get(9)</a><input
+														type="text" name="in_description" class="normal" size="20" value="$tr.get(9)"
+														onKeyDown="" onFocusOut="setViewMode(this);"
+														style="width:100%; padding-left:5px; display:none;">
+												</td>
+												<td width="60px" align="center" ondblClick="setEditMode1(this); " > ## 적용여부
+													<a id="divIn_use_flag">&nbsp;$tr.get(10)</a><select
+														name="in_use_flag"  onFocusOut="setViewMode1(this,1);" 
+														style="width:100%; padding-left:5px; display:none;">
+														#foreach( $condition in $md_04110_combo_YN )
+															<option value="$condition.get(0)"  #if( "$tr.get(10)" == "$condition.get(1)" ) selected #end>$condition.get(1)
+															</option>
+														#end
+													</select>
+												</td>
+											</tr>
+										#end
+										</tbody>
+									</table>
+								</div>
+							</td>
+						</tr>
+					</table>
+						
+					<input type="hidden" name="_moon_service">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+					## waiting 표시영역
+					<td><tr>
+					#waitingArea()
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+
+ 	// 행추가시 Line combobox 채움 
+	function line_combo(obj1){
+		var strPlant = document.frm.sel_plant.value;
+		var strLine = document.frm.sel_line.value;
+		var 	div_code = "<a id=\"divIn_Line\"></a><select name=\"in_line\" onChange=\"doChange1(this);\" "; 
+		div_code += "onFocusOut=\"setViewMode1(this,0); \" style=\"width:100%; padding-left:5px; display:block;\" >";
+		div_code += "<option  value=\"*\">전체</option> "; 
+		#foreach( $condition in $md_04110_combo_line )
+			if(strPlant == "$condition.get(0)"){
+				div_code += "<option value=\"$condition.get(1)\"";
+				if(strLine == "$condition.get(1)") div_code += " selected";
+				div_code += ">$condition.get(2)</option>";
+			}
+        #end 
+        div_code += "</select>"; 
+		div_code += "<input type=\"hidden\" name=\"old_line\" value=\"+strLine+\">";
+		obj1.innerHTML = div_code; 
+
+		obj1.childNodes(1).focus();
+	}
+
+	// 화면 reload 없이 Line 입력 값에 따라 공정 combobox 채움 
+	function doChange1(obj1){
+		var rowIdx = obj1.parentNode.parentNode.rowIndex;
+		
+		var div_code = "<td width=\"200px\" ondblClick=\"setEditMode1(this);\" >\n";
+		div_code += "<a id=\"divIn_Proc\" ></a><select \n";
+		div_code += "name=\"in_proc\" onChange=\"chkDupProc(this);\" onFocusOut=\"setViewMode1(this,0); \"\n";
+		
+		div_code += "style=\"width:100%; padding-left:5px; display:block;\" >\n";
+		div_code += "<option  value=\"*\" selected >전체\n</option>\n"; 
+		#foreach( $condition in $md_04110_combo_workCenter )
+			if ( obj1.value == "$condition.get(0)" ) {
+				div_code += "<option value=\"$condition.get(1)\">$condition.get(2) \n</option>\n"; 
+			}
+		#end 
+        div_code += "</select>\n";
+		div_code += "<input type=\"hidden\" name=\"old_proc\" value=\"*\">";
+		if (proc[rowIdx]) {
+			proc[rowIdx].innerHTML = div_code;
+        	proc[rowIdx].childNodes(1).focus();	
+		}
+		else {
+			proc.innerHTML = div_code;
+        	proc.childNodes(1).focus();	
+		}
+	}
+
+	// 행추가시 cycle_type_combo 채움 
+	function cycle_type_combo(obj1){
+		var strCycleType = document.frm.sel_cycle_type.value;
+		var	div_code = "<a id=\"divIn_cycle_type\">&nbsp;"; 
+		if(strCycleType =="%" || strCycleType =="") div_code += "$md_04110_combo_cycleType.get(0).get(1)";
+		else{
+			#foreach( $condition in $md_04110_combo_cycleType )
+				if(strCycleType == "$condition.get(0)") div_code += "$condition.get(1)";
+			#end
+		}
+		div_code += "</a><select name=\"in_cycle_type\" "; 
+		div_code += "onFocusOut=\"setViewMode1(this,1); \" style=\"width:100%; padding-left:5px; display:none;\" >";
+		#foreach( $condition in $md_04110_combo_cycleType )
+			div_code += "<option value=\"$condition.get(0)\"";
+			if(strCycleType == "$condition.get(0)") div_code += " selected";
+			div_code += ">$condition.get(1)</option>";
+        #end 
+        div_code += "</select>"; 
+		obj1.innerHTML = div_code; 
+	}
+
+	// 행추가시 cal_type_combo 채움 
+	function cal_type_combo(obj1){
+		var	div_code = "<a id=\"divIn_cal_type\">&nbsp;$md_04110_combo_calType.get(0).get(1)</a><select name=\"in_cal_type\" "; 
+		div_code += "onFocusOut=\"setViewMode1(this,1); \" style=\"width:100%; padding-left:5px; display:none;\" >";
+ 		#foreach( $condition in $md_04110_combo_calType )
+			div_code += "<option value=\"$condition.get(0)\">$condition.get(1)</option>"; 
+        #end 
+        div_code += "</select>"; 
+		obj1.innerHTML = div_code; 
+	}
+
+	// 행추가시 use_flag_combo 채움 
+	function use_flag_combo(obj1){
+		var	div_code = "<a id=\"divIn_use_flag\">&nbsp;$md_04110_combo_YN.get(0).get(1)</a><select name=\"in_use_flag\" "; 
+		div_code += "onFocusOut=\"setViewMode1(this,1); \" style=\"width:100%; padding-left:5px; display:none;\" >";
+ 		#foreach( $condition in $md_04110_combo_YN )
+			div_code += "<option value=\"$condition.get(0)\">$condition.get(1)</option>"; 
+        #end 
+        div_code += "</select>"; 
+		obj1.innerHTML = div_code; 
+	}
+
+	// 행추가시 cal_grp_combo 채움 
+	function cal_grp_combo(obj1){
+		var strCalGrp = document.frm.sel_cal_grp.value;
+		var div_code = "<a id=\"divIn_cal_grp\">&nbsp;";
+		if(strCalGrp =="%" || strCalGrp =="") div_code += "$md_04110_combo_calGrp.get(0).get(1)";
+		else{
+			#foreach( $condition in $md_04110_combo_calGrp )
+				if(strCalGrp == "$condition.get(0)") div_code += "$condition.get(1)";
+			#end
+		}
+		div_code += "</a><select name=\"in_cal_grp\" "; 
+		div_code += "onFocusOut=\"setViewMode1(this,1); \" style=\"width:100%; padding-left:5px; display:none;\" >";
+		#foreach( $condition in $md_04110_combo_calGrp )
+			div_code += "<option value=\"$condition.get(0)\"";
+			if(strCalGrp == "$condition.get(0)") div_code += " selected";
+			div_code += ">$condition.get(1)</option>";
+        #end 
+        div_code += "</select>"; 
+		obj1.innerHTML = div_code; 
+	}
+
+	// 행추가시 strt_dttm 채움
+	function strt_dttm_obj(obj1, rowNo){
+		rowNumber = rowNo;
+		var div_code = "<a id=\"divIn_start_dttm\">&nbsp;$date.get('yyyy-MM-dd')&nbsp;00:00:00</a><a id=\"tmp_start_dttm\" style=\"width:100%; padding-left:5px; display:none;\" >\n";
+		div_code	+= "<input type=\"text\" name=\"in_strt_dttm"+rowNo+"\" size=\"10\" class=\"normal\" value=\"$date.get('yyyy-MM-dd')\" maxlength=\"10\" onBlur=\"chkDate(this, '10')\""; 
+		div_code	+= " onkeypress=\"enterCheckDate('md_04110_workCenterCalendar_list', this, '10')\" style=\"text-align:center; \"><img src=\"sinc/template/basic/skin/nongshim/images/common/icon_cal.gif\"";
+		div_code	+= " id=\"strtBtn"+rowNo+"\" align=\"absmiddle\" border=\"0\" style=\"cursor:pointer;\">\n";
+		// tag 갯수를 맞추기 위해 포함
+		div_code	+= " <script type=\"text/javascript\"> \n";
+		div_code	+= " <\/script> ";
+		div_code	+= "<select name=\"strt_hour\" > ";
+						#foreach( $i in[0..23]) ## 시간   
+		div_code	+= "	<option  value=\"";
+							#if($i < 10) 
+								div_code	+= "0$i\" ";
+							#else 
+								div_code	+= "$i\" ";
+							#end
+							#if( $i == 0 )
+							    div_code	+= "selected ";
+							#end
+		div_code	+= "	>"
+							#if($i < 10)
+								div_code	+= "0$i";
+							#else
+								div_code	+= "$i";
+							#end
+		div_code	+= "	</option>";
+						#end 
+		div_code	+= "\n</select>\n";
+
+		div_code	+= "<select name=\"strt_min\" > ";   
+						#foreach( $j in[0..59]) ## 분   
+		div_code	+= "	<option  value=\"";
+							#if($j < 10) 
+								div_code	+= "0$j\" ";
+							#else 
+								div_code	+= "$j\" ";
+							#end
+							#if( $j == 0 )
+							    div_code	+= "selected ";
+							#end
+		div_code	+= "	>"
+							#if($j < 10)
+								div_code	+= "0$j";
+							#else
+								div_code	+= "$j";
+							#end
+		div_code	+= "	</option>";
+						#end 
+		div_code	+= "</select>\n";
+		div_code	+= "<input type=\"hidden\" name=\"old_strt_dttm\" value=\"$date.get('yyyy-MM-dd') 00:00:00\">\n";
+		div_code	+= "<input type=\"hidden\" name=\"new_strt_dttm\" value=\"$date.get('yyyy-MM-dd') 00:00:00\">\n";
+		div_code	+= "</a>";
+		obj1.innerHTML = div_code; 
+
+		Calendar.setup({
+	        inputField     :    "in_strt_dttm"+rowNo,     // id of the input field
+				        ifFormat       :    "%Y-%m-%d",      // format of the input field 
+				        button         :    "strtBtn"+rowNo,  // trigger for the calendar (button ID)
+	        align          :    "Tl",           // alignment (defaults to "Bl")
+	        singleClick    :    true
+	    });		
+
+	}
+	
+	// 행추가시 end_dttm 채움
+	function end_dttm_obj(obj1, rowNo){
+		var div_code = "<a id=\"divIn_end_dttm\">&nbsp;$date.get('yyyy-MM-dd')&nbsp;00:00:00</a><a id=\"tmp_end_dttm\" style=\"width:100%; padding-left:5px; display:none;\" >\n";
+		div_code	+= "<input type=\"text\" name=\"in_end_dttm"+rowNo+"\" size=\"10\" class=\"normal\" value=\"$date.get('yyyy-MM-dd')\" maxlength=\"10\" onBlur=\"chkDate(this, '10')\""; 
+		div_code	+= " onkeypress=\"enterCheckDate('md_04110_workCenterCalendar_list', this, '10')\" style=\"text-align:center; \"><img src=\"sinc/template/basic/skin/nongshim/images/common/icon_cal.gif\"";
+		div_code	+= " id=\"endBtn"+rowNo+"\" align=\"absmiddle\" border=\"0\" style=\"cursor:pointer;\">\n";
+		// tag 갯수를 맞추기 위해 포함
+		div_code	+= " <script type=\"text/javascript\"> \n";
+		div_code	+= " <\/script> ";
+		div_code	+= "<select name=\"end_hour\" > ";
+						#foreach( $i in[0..23]) ## 시간   
+		div_code	+= "	<option  value=\"";
+							#if($i < 10) 
+								div_code	+= "0$i\" ";
+							#else 
+								div_code	+= "$i\" ";
+							#end
+							#if( $i == 0 )
+							    div_code	+= "selected ";
+							#end
+		div_code	+= "	>"
+							#if($i < 10)
+								div_code	+= "0$i";
+							#else
+								div_code	+= "$i";
+							#end
+		div_code	+= "	</option>";
+						#end 
+		div_code	+= "\n</select>\n";
+
+		div_code	+= "<select name=\"end_min\" > ";   
+						#foreach( $j in[0..59]) ## 분   
+		div_code	+= "	<option  value=\"";
+							#if($j < 10) 
+								div_code	+= "0$j\" ";
+							#else 
+								div_code	+= "$j\" ";
+							#end
+							#if( $j == 0 )
+							    div_code	+= "selected ";
+							#end
+		div_code	+= "	>"
+							#if($j < 10)
+								div_code	+= "0$j";
+							#else
+								div_code	+= "$j";
+							#end
+		div_code	+= "	</option>";
+						#end 
+		div_code	+= "</select>\n";
+		div_code	+= "<input type=\"hidden\" name=\"new_end_dttm\" value=\"$date.get('yyyy-MM-dd') 00:00:00\">\n";
+		div_code	+= "</a>";
+
+		obj1.innerHTML = div_code; 
+
+	    Calendar.setup({
+	        inputField     :    "in_end_dttm"+rowNo,     // id of the input field
+				        ifFormat       :    "%Y-%m-%d",      // format of the input field 
+				        button         :    "endBtn"+rowNo,  // trigger for the calendar (button ID)
+	        align          :    "Tl",           // alignment (defaults to "Bl")
+	        singleClick    :    true
+	    });		
+		
+	}
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 각 항목을 입력한 후 상단의 저장 버튼을 클릭하여 정보를 수정합니다.";
+	helpStr += "<br>◈ 라인, 작업장, 시작일시가 중복된 항목이 있으면 저장되지 않습니다.";
+	helpStr += "<br>◈ 날짜는 반드시 숫자와 '-'를 이용하여 YYYY-MM-DD의 형식으로 입력합니다.";
+	helpStr += "<br>◈ 입력된 항목은 T3Schedule의 계획시에 중요하게 활용됩니다.";
+	helpStr += "<br>◈ ";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+	// 최초 화면 로드 시, 5 LINE DISPLAY
+	//addRows(5);
+	
+</script>

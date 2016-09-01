@@ -1,0 +1,72 @@
+﻿@charset "utf-8";
+/* allpage */
+/*폼스타일 텍스트 스타일 */
+@import url('formntext.css');
+/*테이블 스타일*/
+@import url('table.css');
+
+
+body {
+	margin:0; 
+	padding:0; 
+	font-family:"돋움";
+	font-size: 12px;
+	color:#2c2c2c;
+	text-align: center;
+	line-height:18px;
+}
+
+
+
+img	{
+border:0;
+margin:0;
+}
+
+form	{margin:0;}
+
+
+
+
+a:link		{color:#2c2c2c;text-decoration:none;}
+a:visited	{color:#2c2c2c;text-decoration:none;}
+a:hover		{color:#000000;text-decoration:none;}
+a:active	{color:#2c2c2c;text-decoration:none;}
+
+
+/* 링크 스타일 */
+
+
+
+/*layout div*/
+.div_pd{
+padding-left:13px;
+padding-right:25px;
+}
+
+
+
+
+/* Left 메뉴 스타일*/
+.memu_bg_top {
+	margin:0 auto;
+	height:50px;
+	text-align:right;
+	padding-right:35px;
+	background-image:url(../images/common/left_bg_top.gif);
+	background-repeat:no-repeat;
+	background-position:top;
+}
+
+
+.memu_bg_mid {
+	margin:0 auto;
+	height:157px;
+	padding-left:27px;
+	background-image:url(../images/common/left_bg_mid.gif);
+	background-repeat:no-repeat;
+	background-position:top;
+}
+
+
+

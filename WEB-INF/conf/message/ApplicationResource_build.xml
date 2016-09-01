@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="euc-kr" ?> 
+<project name="native2ascii" default="convert" basedir="." > 
+	<property name="src.dir" value="${basedir}" /> 
+	<property name="dest.dir" value="${basedir}/../../classes" /> 
+	<target name="clear"> 
+		<delete> 
+			<fileset dir="${dest.dir}" includes="**/*.properties"/> 
+		</delete> 
+	</target> 
+	<target name="convert" depends="clear"> 
+		<native2ascii src="${src.dir}" dest="${dest.dir}" includes="ApplicationResources_ko.properties"/> 
+		<copy todir="${dest.dir}">
+            <fileset dir="${basedir}" includes="ApplicationResources_en.properties"/>
+        </copy>
+	</target> 
+</project>

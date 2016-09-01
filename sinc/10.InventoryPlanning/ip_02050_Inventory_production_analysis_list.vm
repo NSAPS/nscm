@@ -1,0 +1,273 @@
+############################################################
+## 프로그램ID		: ip_02050_Inventory_production_analysis_list.vm
+## 프로그램명      	: 공급적합성 사전분석
+## 개발자          	: 권용찬
+## 개발일자        	: 2009-10-13
+##
+## 관련 job file   : job_sinc_10_inventoryPlanning_04.xml
+## 관련 query file : query_sinc_10_inventoryPlanning_04.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2009-10-13  남웅용      create
+##
+############################################################
+
+
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setGridAutoResize('79', '130')" )
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/scheduling.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<script language=javascript for="WiseGrid" event="CellDblClick(strColumnKey, nRow)">
+  GridCellDblClick(strColumnKey, nRow);
+</script>
+
+
+## 등록/수정 화면 이동한 후, 본 화면으로 이동할 때 조회조건을 기억하기 위한 parameter
+<input type="hidden" name="cd_grp_pre" value="$!{cd_grp}">
+<input type="hidden" name="perpage_pre" value="${_moon_perpage}">
+<input type="hidden" name="pagenumber_pre" value="$!{_moon_pagenumber}">
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+    ## 기능 버튼 영역
+    <tr>
+        <td height="25" align="right">
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+                <tr>
+                    <td align="right">
+                        #button("search")
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>    
+    ## 조회 영역
+## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " ></td>
+					<td width="100%"> 
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" 
+							id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr>
+##            					<td width="70px" align="right"> 
+##            						작업일자 :
+##            					</td>								
+##            					<td width="120px" align="left" colspan="4">
+##									#date_sole_no_title("in_cnfm_date" "10" "normal" "btnC" "$date.get('yyyy-MM-dd')")
+##            					</td>
+								#############
+            					<td width="70px" align="right"> 
+            						구분 :
+            					</td>
+            					<td width="65px" align="left" 	colspan="3">
+									<select name="search_type">
+                              			<option value="">선택</option> 
+                              			<option value="1020"#if( "$!{search_type}" == "1020" ) selected #end>면/스낵</option> 
+											<option value="10V"#if( "$!{search_type}" == "10V" ) selected #end>면(Visual구분)</option>
+										#foreach( $condition in $ip_02020_combo_search_type )
+											<option value="$condition.get(0)"  #if( "$!{search_type}" == "$condition.get(0)" ) selected #end>$condition.get(1)</option>
+										#end
+                              			<option value="P40"#if( "$!{search_type}" == "P40" ) selected #end>유통가공품</option> 
+										<option value="310"#if( "$!{search_type}" == "310" ) selected #end>용기면(VISUAL)</option>
+										<option value="T86"#if( "$!{search_type}" == "T86" ) selected #end>관심 품목</option>
+									</select>
+            					</td>
+								<td width="70px" align="right" > 
+									검색기준 :
+								</td> 
+            					<td width="60px" align="left">
+									<select name="week_flag">
+                              			<option value="31week"  #if( "$!{week_flag}" == "31week") selected #end>(3주+1주)/2</option>
+                              			<option value="3week"   #if( "$!{week_flag}" == "3week")  selected #end>3주평균</option>
+                              			<option value="1week"   #if( "$!{week_flag}" == "1week")  selected #end>1주평균</option>
+									</select>
+            					</td>								
+								<td width="70px" align="right" onChange="get_line_id(this);" > 
+									생산공장 :
+								</td> 
+								<td width="60px" align="left">
+									<select name="plant_id" onChange="doChangePlant(this); ")>
+                              			<option value=""      #if( "$!{plant_id}" == "")  	  selected #end>전체</option>
+                              			<option value="1110"  #if( "$!{plant_id}" == "1110")  selected #end>안양</option>
+                              			<option value="1120"  #if( "$!{plant_id}" == "1120")  selected #end>안성</option>
+                              			<option value="1140"  #if( "$!{plant_id}" == "1140")  selected #end>아산</option>
+                              			<option value="1160"  #if( "$!{plant_id}" == "1160")  selected #end>구미</option>
+                              			<option value="1170"  #if( "$!{plant_id}" == "1170")  selected #end>부산</option>
+                              			<option value="1180"  #if( "$!{plant_id}" == "1180")  selected #end>녹산</option>
+									</select>
+            					</td>								
+								<td width="70px" align="right" > 
+									생산라인 :
+								</td> 
+								<td id="divStage" width="60px" align="left">
+                                	<script>
+										// 화면 reload 없이 공장 입력 값에 따라  라인 combo box 채움 
+                                    	function doChangePlant(obj){
+											var 	div_code = "<select name=\"line_id\"> ";
+																"<option value=\"0000\">전체</option>"
+                                    		#foreach( $condition in $ip_02050_get_line_id )
+                                    			if ( obj.value == "$condition.get(0)" ) {
+                                    				div_code += "<option value=\"$condition.get(1)\" ";
+        													if("$!{line_id}" == "${condition.get(1)}")
+        														div_code += " selected>$condition.get(2)</option>";
+        													else													
+													div_code += ">$condition.get(2)</option>";  
+                                    			}
+                                    		#end 
+                                			div_code += "</select>"; 
+                                			divStage.innerHTML = div_code; 
+                                    	}
+										// 처음에는 한번 강제로 호출해야 한다.
+										doChangePlant(document.frm.plant_id); 
+						        		if( "$!{plant_id}" != "" ) {
+                        					document.frm.plant_id.value = "$!{plant_id}";
+										}
+                                	</script>
+            					</td>									
+								<td colspan="2">
+									<input type="radio" name="term_gubn"  style="border:0px; " value="Day" checked="on" onClick="setHeader(GridObj); " >Day</intput>
+            						<input type="radio" name="term_gubn"  style="border:0px; " value="Week" onClick="setHeader(GridObj); ">Week</intput> 
+								</td>
+							</tr>
+							<tr>
+								<td width="70px" align="right">
+									재고일수 :
+								</td>  
+								<td width="20px" align="left">
+									<input type="text" name="stock_day" size="20" class="normal" onKeyPress="enterCheck('$_moon_service'); " 
+										style="width:40px; padding-left:1px; " onBlur="strCheck(); " onClick="select(); " 
+										onChange="strCheck(this); " value="$commonUtil.replaceQuot($!{stock_day})">
+								</td>
+								<td width="25px" align="left">
+									이상
+								</td> 
+								<td width="20px" align="right">
+									<input name="stock_day_chk" type="checkbox" class="normal" onClick="doCheckFlag(this);"
+										style="background-color:#f2f2f2; border:0;"
+										#if($!{stock_day_flag} == "Y")checked #end>
+									<input type="hidden" name="stock_day_flag" value ="$!{stock_day_flag}">								
+								</td>
+            					<td width="70px" align="right">
+            						기간 :
+            					</td> 
+            					<td width="60px" align="left">
+									<select name="search_period">
+                              			<option value="3"  #if( "$!{search_period}" == "3") selected #end>3일</option>
+                              			<option value="4"  #if( "$!{search_period}" == "4") selected #end>4일</option>
+                              			<option value="5"  #if( "$!{search_period}" == "5") selected #end>5일</option>
+                              			<option value="6"  #if( "$!{search_period}" == "6") selected #end>6일</option>
+                              			<option value="7"  #if( "$!{search_period}" == "7") selected #end>7일</option>
+                              			<option value="8"  #if( "$!{search_period}" == "8") selected #end>8일</option>
+                              			<option value="9"  #if( "$!{search_period}" == "9") selected #end>9일</option>
+                              			<option value="10"  #if( "$!{search_period}" == "10") selected #end>10일</option>
+									</select>
+            					</td>
+								<td width="50px" align="right" >
+									검색어 :
+								</td> 
+								<td width="10px" align="left">
+									<input type="text" name="search_item" size="20" class="normal" onKeyPress="enterCheck('$_moon_service'); " 
+										style="width:80px; padding-left:5px; " onBlur="strCheck(); " ondblClick="select(); " 
+										onChange="strCheck(this); " value="$commonUtil.replaceQuot($!{search_item})">
+									<input type="hidden" name="serch_item_pre" value ="$!{search_item}" >
+								</td>									
+								<td width="70px" align="right" > 
+									포장 타입 :
+								</td> 
+								<td width="100px" align="left">
+									<select name="multi_flag" >
+                              			##<option value="">선택</option>
+											<option value="">전체</option> 
+										#foreach( $condition in $md_01060_combo_multi )
+											<option value="$condition.get(0)"  #if( "${multi_flag}" == "$condition.get(0)" ) selected #end>$condition.get(1)</option>
+										#end
+									</select>
+									##<input type="hidden" name="item_type_pre" value ="$!{item_type}" >
+								</td>
+								<td width="70px" align="right" > 
+									제품 유형 :
+								</td> 
+								<td width="100px" align="left">
+									<select name="cat06" >
+											<option value="">전체</option> 
+										#foreach( $condition in $get_CAT06_list )
+											<option value="$condition.get(0)"  #if( "${cat06}" == "$condition.get(0)" ) selected #end>$condition.get(1)</option>
+										#end
+									</select>
+								</td>
+
+								<td width="70px" align="right">
+##									생산계획 :
+								</td> 
+								<td width="60px" align="left">
+									<input name="prod_chk" type="hidden" class="normal" onClick="doCheckFlag(this);"
+										style="background-color:#f2f2f2; border:0;"
+										#if($!{stock_day_flag} == "Y")checked #end> ##유/무
+									<input type="hidden" name="prod_flag" value ="$!{prod_flag}">								
+								</td>
+								<td>
+								</td>
+            				</tr>            				
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " ></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " ></td></tr>
+			</table>
+		</td>
+	</tr>
+
+    <input name="search_h" type="hidden" value="45"> ## search 조건 부분 높이 
+    <tr><td height="1"></td></tr>
+    ## TAB 영역
+    <tr>
+        <td valign="top">
+        ## tab 좌측 여백
+        ##tabLeft()               
+            
+            <table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>                    
+
+            <table name="grid" width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+                <tr>
+                    <td align="left" width="100%" >
+                        <script>initWiseGrid("WiseGrid", "100%", "100%");</script>
+                    </td>
+				</tr>
+            </table> 
+            
+            <table height="5"><tr><td></td></tr></table>
+            <table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+                <input type="hidden" name="_moon_service" value="${_moon_service}">
+                <input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+                <input type="hidden" name="_user_id" value="$!{_user_id}">
+            </td></tr></table>
+            
+            </td></tr></table>
+            
+        </td>
+    </tr>
+</table>
+
+<script>
+    
+    // 화면 resize
+    $!{resizeFuncCallCode};
+    function window.onresize() { $!{resizeFuncCallCode}; }
+    
+    // 도움말 내용 입력
+    var helpStr = "◈ Job Change 시간 ";    
+    helpCont.innerHTML = helpStr;
+    hDynamicHeight = 0; 
+           
+</script> 

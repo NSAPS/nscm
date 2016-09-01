@@ -1,0 +1,1191 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>
+
+	<!-- 
+	===============================
+		유통가공 생산오더 조회
+	===============================
+	-->
+	
+	<!--
+	======================================================================
+		제품코드 입력
+	======================================================================
+	-->
+
+	<!-- ITEM_ID 직접입력한 값에대해 ITEM_NAME 조회 -->
+	<query id="sc_13010_get_proc_combo">
+		/* get_set_prod_item_code */
+		SELECT  DISTINCT PROC_ID, 
+		        F_GET_HRCHY_NAME(CA.PROC_ID) PROC_NAME
+		FROM    ITEM_CAPA CA
+		WHERE   PLANT_ID = '1300'
+		ORDER BY 1
+	</query>
+	
+	<!-- ITEM_ID 직접입력한 값에대해 ITEM_NAME 조회 -->
+	<query id="get_set_prod_item_code">
+			/* get_set_prod_item_code */
+			SELECT 	IM.ITEM_ID, IM.ITEM_NAME, IM.SPEC 
+			  FROM 	ITEM_MST IM, DUAL B
+			 WHERE 	IM.ITEM_ID || IM.ITEM_NAME LIKE '%'||'$!{input_value}'||'%'
+			   AND  IM.ITEM_STATUS = 'ST'
+			   AND 	IM.MADE_TYPE != 'DE'
+			
+	</query>	
+
+	<!-- ITEM SEARCH POPUP : PAGING --> 
+	<query id="get_set_prod_item_code_popup" paging="true"> 
+			/* get_set_prod_item_code_popup */
+			SELECT 	F_GET_CODE_NAME('ITYPE', IM.ITYPE) ITYPE, IM.ITEM_ID, IM.ITEM_NAME, IM.SPEC
+			  FROM 	ITEM_MST IM, DUAL B
+			 WHERE 	IM.MADE_TYPE != 'DE'
+			   AND  IM.ITEM_STATUS = 'ST'
+			   AND	IM.HR_TY1 NOT LIKE '606006%' 	/* 수산물 제외 */
+			  [AND 	UPPER(IM.ITEM_ID)||UPPER(IM.ITEM_NAME) LIKE UPPER('%${code_input}%')]
+			  [AND 	IM.ITYPE = '${itype}']
+			 ORDER 	BY IM.ITYPE, IM.ITEM_ID
+	</query>
+	
+
+	<!-- 유통가공 생산오더 조회 -->
+	<query id="sc_17010_W1_EXPT_STOCK">
+
+		SELECT  TO_CHAR(TRUNC(TO_DATE('2010-11-16')+7,'D')+1,'MM-DD')||'일 예상재고' "차주초 예상재고",
+		FROM    DUAL
+		
+	</query>
+
+
+
+	<!-- 유통가공 생산오더 조회 -->
+	<query id="sc_13010_set_prod_order_list">
+        -- 유통가공 생산오더 조회
+        SELECT  PO.PLANT_ID         "플랜트ID",
+                PO.ITEM_ID          "플랜트명",
+                F_GET_ITEM_NAME(PO.ITEM_ID) ITEM_NAME,
+                PO.QTY                 "생산량",
+                PO.QTY_UOM             "생산단위",
+                PO.PROD_VER            "생산버전",
+                PO.PROC_ID             		"거래처",
+                F_GET_HRCHY_NAME(PO.PROC_ID) 	"거래처명",
+                PO.LOC_ID                  	"입출고저장위치",
+                F_GET_DC_NAME(PO.LOC_ID)   	"입출고저장위치명",
+                TO_CHAR(TO_DATE(PO.START_DATE),'YYYY-MM-DD')          "시작일자",
+                PO.START_TIME          "시작시간",
+                TO_CHAR(TO_DATE(PO.END_DATE),'YYYY-MM-DD')            "종료일자",
+                PO.END_TIME            "종료시간",
+                ''                  "ERP전송",
+                ''                  "삭제",
+                PO.PROD_PO             "생산오더번호",
+                CASE
+                	WHEN PO.IF_FLAG = 'N'	THEN '전송전'
+                	WHEN PO.IF_FLAG = 'Y'	THEN '전송중'
+                	WHEN PO.IF_FLAG = 'C'	THEN '전송완료'
+                	WHEN PO.IF_FLAG = 'F'	THEN '전송실패'
+                END					"ERP전송상태",
+                PO.IF_MSGS             "전송메세지",
+                PO.WO_ID				"WO_ID",
+                PO.OPER_ID             "OPER_ID",
+                CASE
+                    WHEN PO.IDU_FLAG = 'I'    THEN '생성'
+                    WHEN PO.IDU_FLAG = 'D'    THEN '삭제'
+                    WHEN PO.IDU_FLAG = 'U'    THEN '수정'
+                    ELSE '생성'
+                END                    "생성상태"
+		FROM    IF_SET_PROD_ORDER PO, ITEM_MST IM
+		WHERE   PO.ITEM_ID	= IM.ITEM_ID
+		AND		SEQ = '10'
+		--scm_charge = "$!{scm_charge}"
+    #if(	"$!{scm_charge}" == "00") -- 판매중 
+		AND		(IM.SELL_STOP_DATE > TO_CHAR(SYSDATE-7,'YYYYMMDD') or IM.SELL_STOP_DATE = '00000000') --판매종료일 -- 00 판매중
+    #elseif("$!{scm_charge}" == "XX") -- 전
+		--AND		SCM_CHARGE	LIKE '%'||'${scm_charge}'||'%'
+    #else
+		AND		SCM_CHARGE	LIKE '%'||'${scm_charge}'||'%'
+    #end
+    --idu_flag = "$!{idu_flag}"
+    #if(	"$!{idu_flag}" == "I")
+		AND		IDU_FLAG != 'D'  --생성
+    #elseif("$!{idu_flag}" == "D")
+		AND		IDU_FLAG  = 'D'  --삭제
+    #elseif("$!{idu_flag}" == "T")
+    #end
+    --if_flag = "$!{if_flag}"
+    #if(	"$!{if_flag}" == "N")
+    	AND        NVL(IF_FLAG,'X') != 'C'
+    #elseif("$!{if_flag}" == "T")
+    #end
+		AND		START_DATE	BETWEEN  REPLACE('$!{start_date}','-','') AND  REPLACE('$!{end_date}','-','') 
+				--OR
+				--END_DATE	BETWEEN  REPLACE('$!{start_date}','-','') AND  REPLACE('$!{end_date}','-',''))
+		ORDER
+		BY		PO.ITEM_ID, WO_ID
+		
+	</query>
+	
+
+	<!-- 유통가공 생산오더 GET PROD_VER -->
+	<query id="sc_13010_set_prod_order_get_prod_ver">
+		-- 유통가공 생산오더 GET PROD_VER
+		SELECT  DISTINCT PROD_VER, 
+		        PROC_ID,
+		        F_GET_HRCHY_NAME(PROC_ID) HID_NAME,
+		        OPER_ID, 
+		        LOC_ID,
+		        LOC_ID||'-'||F_GET_DC_NAME(LOC_ID) DC_NAME
+		FROM    ITEM_CAPA
+		WHERE   ITEM_ID = '$!{item_id}'
+		ORDER	BY PROD_VER
+		
+	</query>
+	
+	<!-- 유통가공 생산오더 GET BOM -->
+	<query id="sc_13010_set_prod_order_get_mbom">
+		-- 유통가공 생산오더 GET BOM
+		SELECT  TO_NUMBER(BM.CONS_ITEM_SEQ ) SEQ,
+		        BM.CONS_ITEM_ID,
+		        F_GET_ITEM_NAME(BM.CONS_ITEM_ID) CONS_ITEM_NAME,
+		        BM.CONS_QTY_UOM,
+--		        f_getconv_UOM(PROD_ITEM_ID,'BOX',BM.PROD_QTY_UOM,1)*CONS_QTY/DECODE(PROD_QTY,0,1,PROD_QTY) * '$!{qty}'    QTY
+	            CASE
+	                WHEN    BM.CONS_ITEM_TYPE = 'ROH2'
+	                THEN    0
+	                ELSE    F_GETCONV_UOM(PROD_ITEM_ID,'BOX',BM.PROD_QTY_UOM,1)*CONS_QTY/DECODE(PROD_QTY,0,1,PROD_QTY) * '$!{qty}'     
+	            END QTY		        
+		FROM    MBOM BM
+		WHERE   PROD_ITEM_ID = '$!{item_id}'
+		AND     PROD_VER	= NVL('$!{prod_ver}', (SELECT  MAX(PROD_VER) FROM    MBOM WHERE   PROD_ITEM_ID = '$!{item_id}' ))
+	</query>	
+	
+	<!-- 유통가공 생산오더 GET MAX_SEQ -->
+	<query id="sc_13010_set_prod_order_get_max_wo_id">
+		-- 유통가공 생산오더 GET MAX_SEQ
+		SELECT  '$!{plant_id}'||'_'||REPLACE('$!{start_date}','-','')||'_'||
+				LPAD(TO_NUMBER(NVL(MAX(TO_NUMBER(SUBSTR(wo_id,15,5))),0000))+1,5,'0') MAX_SEQ, ''
+		FROM    IF_SET_PROD_ORDER
+		WHERE   PLANT_ID    = '$!{plant_id}'   -- 플랜트
+		--AND     PROC_ID	= '$!{proc_id}'    -- 작업장
+		AND     START_DATE	= REPLACE('$!{start_date}','-','') -- 시작일자
+		
+	</query>	
+
+	<!-- 유통가공 생산오더  수정화면 detail -->
+	<query id="sc_13010_set_prod_order_pop_up">
+		-- 유통가공 생산오더 수정화면 detail
+		SELECT  SEQ, 
+		        CONS_ITEM_ID, 
+		        F_GET_ITEM_NAME(CONS_ITEM_ID),
+		        CONS_QTY_UOM,
+		        CONS_QTY
+		FROM    IF_SET_PROD_ORDER
+		WHERE   WO_ID	= '$!{wo_id}'
+		
+	</query>
+
+
+	<!-- 
+	===============================
+		유통가공품 관리 마스터 
+	===============================
+	-->
+
+
+	<!-- 유통가공품 관리 마스터 조회 -->
+	<query id="sc_13020_set_prod_mst">
+        /* 유통가공품 관리 마스터 조회 */
+        SELECT  DECODE(ITYPE, 'FERT','제품총괄', '상품총괄') ITYPE,
+                F_GET_CODE_NAME('DIVISION', IM.DIVISION)||'CM' DIVISION,
+                F_GET_CODE_NAME('SALES_CAT1', IM.SALES_CAT01) SALES_CAT01,
+                F_GET_CODE_NAME('SALES_CAT2', IM.SALES_CAT02) SALES_CAT02,
+                CA.ITEM_ID,
+                IM.ITEM_NAME,
+                IM.SPEC                     "규격",
+                BM,
+                CA.PROD_VER                 "생산버전",
+                CA.PROC_ID                  "작업장",
+                F_GET_HRCHY_NAME(CA.PROC_ID)"작업장",	-- ||'-'||F_GET_DC_NAME(CA.LOC_ID)
+                CA.LOC_ID                   "저장위치",
+                F_GET_DC_NAME(CA.LOC_ID)  "저장위치",
+                SM.PROC_TYPE                "작업설비", 
+                SM.OPER_TYPE                "운영형태",
+                SM.OPER_QTY                 "계획수량",
+                SM.START_DATE               "시작일자",
+                DECODE(OPER_TYPE, '001', NULL, SM.END_DATE) "종료일자",
+                IM.SELL_STOP_DATE           "판매종료일",
+                --F_GET_ROH1_COST(CA.ITEM_ID, 10) ROH1_COST,
+                SM.COST_GUBN,
+                SM.MAN_TO,
+                SM.WOMEN_TO,
+                SM.MAN_COST,
+                SM.WOMEN_COST,
+                SM.BOX_COST,
+                SM.WORK_CAPA
+        FROM    SET_PROD_MST SM
+                ,(
+                -- 유통가공 생산오더 GET PROD_VER
+                SELECT  DISTINCT CA.ITEM_ID, 
+                        F_GET_ITEM_NAME(CA.ITEM_ID) ITEM_NAME,
+                        CA.PROD_VER, 
+                        CA.PROC_ID,
+                        F_GET_HRCHY_NAME(CA.PROC_ID) PROC_NAME,
+                        CA.OPER_ID, 
+                        CA.LOC_ID,
+                        F_GET_DC_NAME(CA.LOC_ID) DC_NAME
+                FROM    ITEM_CAPA CA, 
+                        (
+                        SELECT  DISTINCT BM.PROD_ITEM_ID, PLANT_ID
+                        FROM    MBOM BM, ITEM_MST IM
+                        WHERE   BM.PROD_ITEM_ID = IM.ITEM_ID
+                        AND     BM.PLANT_ID = '1300'
+                        AND    (IM.SELL_STOP_DATE > TO_CHAR(SYSDATE-7,'YYYYMMDD') OR IM.SELL_STOP_DATE = '00000000') --판매종료일
+                        ) BM
+                WHERE   CA.ITEM_ID  = BM.PROD_ITEM_ID
+                AND     CA.PLANT_ID = BM.PLANT_ID        
+                )CA, ITEM_MST IM
+        WHERE   CA.ITEM_ID  = SM.ITEM_ID(+)
+        AND     CA.PROD_VER = SM.PROD_VER(+)
+        AND     CA.ITEM_ID  = IM.ITEM_ID
+		AND		NOT (IM.MATERIAL_GROUP >= '5K000' AND     IM.MATERIAL_GROUP &lt;= '5S999') --수출품
+        AND     NVL(IM.CAT03,'XX')    NOT LIKE 'O%' --수출품
+		AND		F_GET_HRCHY_NAME(CA.PROC_ID) != '한솔' -- 오픈마켓 제외
+		AND		CA.ITEM_ID != '102001302' -- 102001302	농심 해피 스낵박스(이채환 부장 제외요청 20120725)
+        AND		IM.DIVISION	LIKE '%'||'${cm_gubn}'||'%'
+    #if(	"$!{scm_charge}" == "00") -- 판매중 
+		AND		(IM.SELL_STOP_DATE > TO_CHAR(SYSDATE-7,'YYYYMMDD') or IM.SELL_STOP_DATE = '00000000') --판매종료일 -- 00 판매중
+    #elseif("$!{scm_charge}" == "XX") -- 전체
+		--AND		SCM_CHARGE	LIKE '%'||'${scm_charge}'||'%'
+    #else
+		AND		SCM_CHARGE	LIKE '%'||'${scm_charge}'||'%'
+    #end
+        ORDER BY ITYPE DESC, DIVISION, SALES_CAT01, SALES_CAT02, CA.ITEM_ID, CA.PROD_VER
+	</query>
+	
+	<!-- 운영타입 콤보 박스 -->
+	<query id="sc_13020_combo_oper_type"> 
+		SELECT		CD, CD_NAME
+		FROM		CODE_MST, DUAL B
+		WHERE		CD_GRP = 'OPER_TYPE'
+		ORDER BY	CAT01
+	</query> 
+
+	<!-- 거래처타입타입 콤보 박스 -->
+	<query id="sc_13020_combo_cust_type"> 
+		SELECT		CD, CD_NAME
+		FROM		CODE_MST, DUAL B
+		WHERE		CD_GRP = 'CUST_TYPE'
+		ORDER BY	CAT01
+	</query> 
+	
+	<!-- 설비유형 콤보 박스 -->
+	<query id="sc_13020_combo_proc_type"> 
+		SELECT		CD, CD_NAME
+		FROM		CODE_MST, DUAL B
+		WHERE		CD_GRP = 'PROC_TYPE'
+		ORDER BY	CAT01
+	</query> 	
+
+	<!-- 설비유형 콤보 박스 -->
+	<query id="sc_13020_combo_cost_gubn"> 
+		SELECT		CD, CD_NAME
+		FROM		CODE_MST, DUAL B
+		WHERE		CD_GRP = 'COST_GUBN'
+		ORDER BY	CAT01
+	</query> 	
+	
+
+	<!-- 유통가공 생산오더 GET BOM -->
+	<query id="sc_13010_set_prod_mst_get_prod_ver_box_cost">
+		/* 유통가공 생산오더 GET BOM : BOX당 작업비 기준 */
+		SELECT  CA.ITEM_ID,
+		        F_GET_ITEM_NAME(CA.ITEM_ID) ITEM_NAME,
+		        PROD_VER,   --생산버전
+		        PROC_ID,    --공정번호
+		        PROC_NAME,  --작업장명
+		        '' BOX_COST,  
+		        '' WORK_CAPA,  
+		        TO_CHAR(SYSDATE, 'YYYY-MM-DD') BOX_COST_START,
+		        '9999-12-31' BOX_COST_END
+		FROM    (
+		        -- 유통가공 생산오더 GET PROD_VER
+		        SELECT  DISTINCT ITEM_ID, 
+		                PROD_VER, 
+		                PROC_ID,
+		                F_GET_HRCHY_NAME(PROC_ID) PROC_NAME,
+		                OPER_ID, 
+		                LOC_ID,
+		                F_GET_DC_NAME(LOC_ID) DC_NAME
+		        FROM    ITEM_CAPA
+		        WHERE   ITEM_ID = '$!{item_id}'
+		        )CA, ITEM_MST IM
+		WHERE   CA.ITEM_ID = IM.ITEM_ID
+		ORDER   BY PROD_VER
+	</query>
+
+
+
+	<!-- 유통가공 생산오더 GET BOM -->
+	<query id="sc_13010_set_prod_mst_get_prod_ver_man_cost">
+		/* 유통가공 생산오더 GET BOM : 인건비 기준 */
+		SELECT  CA.ITEM_ID,
+		        F_GET_ITEM_NAME(CA.ITEM_ID) ITEM_NAME,
+		        PROD_VER,   --생산버전
+		        PROC_ID,    --공정번호
+		        PROC_NAME,  --작업장명
+		        '' MEN_TO,  
+		        '' WOMEN_TO,
+		        '' MEN_COST,  
+		        '' WOMEN_COST,
+		        TO_CHAR(SYSDATE, 'YYYY-MM-DD') MAN_COST_START,
+		        '9999-12-31' MAN_COST_END
+		FROM    (
+		        -- 유통가공 생산오더 GET PROD_VER
+		        SELECT  DISTINCT ITEM_ID, 
+		                PROD_VER, 
+		                PROC_ID,
+		                F_GET_HRCHY_NAME(PROC_ID) PROC_NAME,
+		                OPER_ID, 
+		                LOC_ID,
+		                F_GET_DC_NAME(LOC_ID) DC_NAME
+		        FROM    ITEM_CAPA
+		        WHERE   ITEM_ID = '$!{item_id}'
+		        )CA, ITEM_MST IM
+		WHERE   CA.ITEM_ID = IM.ITEM_ID
+		ORDER   BY PROD_VER
+	</query>
+	
+	<!--
+	===============================
+		유통가공품 입출고 일보 
+	===============================
+	-->
+	
+	<!-- 유통가공품 입출고일보 -->
+	<query id="sc_13030_set_prod_inout_list">
+		/* 유통가공 입출고일보 */ 
+        SELECT  F_GET_CODE_NAME('SALES_CAT2', IM.SALES_CAT02)       SALES_CAT02,
+                F_GET_CODE_NAME('SALES_CAT3', IM.SALES_CAT03)       SALES_CAT03,
+        		DW.ITEM_ID, 
+                F_GET_ITEM_NAME(DW.ITEM_ID) ITEM_NAME,
+                IM.SPEC                "규격",
+                MAX(DW.BASE_STOCK)  "기초재고",
+                SUM(PL.QTY)   		"작업계획",
+                MAX(DW.SALES_PRE)   "전일판매",
+                MAX(DW.ISSUE)       "당일출고",
+                MAX(DW.STOCK_EXPT)  "예상재고",
+                MAX(OPER_QTY)       "총잡업 요청량",
+                MAX(COMPL_QTY)      "작업 누적량",
+                CASE
+                	WHEN MAX(OPER_QTY) - MAX(COMPL_QTY) &lt;= 0 THEN 0
+                	ELSE MAX(OPER_QTY) - MAX(COMPL_QTY)
+                END "작업잔량",
+                DECODE(MAX(OPER_QTY), 0, 0,
+                ROUND((MAX(COMPL_QTY) / MAX(OPER_QTY))*100,2)) "진도율(%)",
+                MAX(SAU_QTY)        "사용자지정기간실적",
+                --SUM(PRE_YEAR_SELL)  "전년동월",
+                SUM(NVL(PRE_MONTH_SELL,0) + NVL(PRE_MONTH_SELL_TA,0)) "전월판매",
+                MAX(SALES_PRE_CUM)  "당월판매",
+                MAX(IM.PROD_TERM) PROD_TERM
+        FROM    (
+                SELECT  CNFM_DATE,
+                        ITEM_ID,
+                        SUM(BASE_STOCK)     BASE_STOCK,
+                        SUM(SALES_PRE)      SALES_PRE,
+                        SUM(ISSUE)          ISSUE,
+                        SUM(STOCK_EXPT)     STOCK_EXPT,
+                        SUM(PRE_MONTH_SELL) PRE_MONTH_SELL,
+                        SUM(PRE_MONTH_SELL_TA) PRE_MONTH_SELL_TA,
+                        SUM(SALES_PRE_CUM)  SALES_PRE_CUM
+                FROM    DC_DATAWAREHOUSE DW
+                WHERE   CNFM_DATE = TO_CHAR(SYSDATE,'YYYYMMDD')
+                GROUP BY CNFM_DATE,
+                        ITEM_ID        		
+        		) DW, ITEM_MST IM,
+                (
+              	SELECT  SM.ITEM_ID,
+                        SM.OPER_QTY,
+                        --SUM(PO.COMPL_QTY) COMPL_QTY
+                        DECODE(OPER_TYPE, '001', 0, SUM(PO.COMPL_QTY)) COMPL_QTY
+                FROM    V_ERP_PO_MES PO,
+                        (
+                        /* 유통가공 마스터 정보 */
+                        SELECT  DISTINCT ITEM_ID,
+                                START_DATE,
+                                END_DATE,
+                                OPER_QTY,
+                                OPER_TYPE
+                        FROM    SET_PROD_MST SM
+                        )SM
+                        --,CAL_MST CAL
+                WHERE   PO.ITEM_ID(+) = SM.ITEM_ID
+                --AND   PO.START_DTTM = CAL.CAL_DATE(+)
+                AND     PO.START_DTTM(+) BETWEEN SM.START_DATE AND SM.END_DATE
+                AND		SM.OPER_QTY IS NOT NULL
+                GROUP 
+                BY        SM.ITEM_ID, SM.OPER_QTY, SM.OPER_TYPE
+                )SM,
+                (
+                SELECT	*
+                FROM	IF_SET_PROD_ORDER
+                WHERE	SEQ = '10'
+                AND		START_DATE = TO_CHAR(SYSDATE,'YYYYMMDD')
+                AND		IDU_FLAG = 'I'
+                )PL,
+                (
+                SELECT  SA.ITEM_ID,
+                        SUM(SA.QTY) SAU_QTY
+                FROM    SALES_ACT SA,
+                        (
+                        SELECT  DISTINCT BM.PROD_ITEM_ID ITEM_ID
+                        FROM    MBOM BM, ITEM_MST IM
+                        WHERE   BM.PROD_ITEM_ID = IM.ITEM_ID
+                        AND     BM.PLANT_ID = '1300'
+                        AND    (IM.SELL_STOP_DATE > TO_CHAR(SYSDATE-7,'YYYYMMDD') OR IM.SELL_STOP_DATE = '00000000') --판
+                        )SM,
+                        (
+                        SELECT    *
+                        FROM    CAL_MST
+                        WHERE    CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                        )CAL
+                WHERE   SA.ITEM_ID = SM.ITEM_ID
+                AND     SA.SALE_DATE = CAL.CAL_DATE
+                AND     SA.DOMAIN = 'DO'
+                GROUP 
+                BY		SA.ITEM_ID                
+                )SAU,
+                (
+                SELECT  DISTINCT CA.ITEM_ID PROD_ITEM_ID
+                FROM    ITEM_CAPA CA, 
+                        (
+                        SELECT  DISTINCT BM.PROD_ITEM_ID, PLANT_ID
+                        FROM    MBOM BM, ITEM_MST IM
+                        WHERE   BM.PROD_ITEM_ID = IM.ITEM_ID
+                        AND     BM.PLANT_ID = '1300'
+                        AND    (IM.SELL_STOP_DATE > TO_CHAR(SYSDATE-7,'YYYYMMDD') OR IM.SELL_STOP_DATE = '00000000') --판매종료일
+                        ) BM
+                WHERE   CA.ITEM_ID  = BM.PROD_ITEM_ID
+                AND     CA.PLANT_ID = BM.PLANT_ID
+                AND     CA.LOC_ID != '8922'  --  한솔 csn 제외
+                ) BM
+        WHERE   DW.ITEM_ID = IM.ITEM_ID
+        AND     DW.ITEM_ID = SM.ITEM_ID(+)
+        AND		DW.ITEM_ID = PL.ITEM_ID(+)
+        AND     DW.ITEM_ID = SAU.ITEM_ID(+)
+        AND     DW.ITEM_ID = BM.PROD_ITEM_ID
+        AND     DW.CNFM_DATE = TO_CHAR(SYSDATE,'YYYYMMDD')
+        AND		NOT (IM.MATERIAL_GROUP >= '5K000' AND     IM.MATERIAL_GROUP &lt;= '5S999') --수출품
+        AND     NVL(IM.CAT03,'XX')    NOT LIKE 'O%' --수출품 
+        --AND		F_GET_HRCHY_NAME(CA.PROC_ID) != '한솔' -- 오픈마켓 제외
+        AND		IM.ITEM_ID != '102001302'  -- 102001302	농심 해피 스낵박스 // 관리상품 X  제외요청 이채환 부장.
+		AND		DIVISION	LIKE '%'||'${cm_gubn}'||'%'
+    #if(	"$!{scm_charge}" == "00") -- 판매중 
+		AND		(IM.SELL_STOP_DATE > TO_CHAR(SYSDATE,'YYYYMMDD') or IM.SELL_STOP_DATE = '00000000') --판매종료일 -- 00 판매중
+    #elseif("$!{scm_charge}" == "XX") -- 전체
+		--AND		SCM_CHARGE	LIKE '%'||'${scm_charge}'||'%'
+    #else
+		AND		SCM_CHARGE	LIKE '%'||'${scm_charge}'||'%'
+    #end
+		GROUP BY DW.ITEM_ID, IM.SPEC, IM.SALES_CAT02, IM.SALES_CAT03
+		ORDER BY IM.SALES_CAT02, IM.SALES_CAT03, DW.ITEM_ID
+	</query>	
+
+
+	<!--
+	===============================
+		유통가공품 계획조정
+	===============================
+	-->
+	
+	<!-- 유통가공품 계획조정 -->
+	<query id="sc_13040_set_prod_productionPlan">
+	    SELECT  CA.PROC_ID                         PROC_ID,
+		        F_GET_HRCHY_NAME(CA.PROC_ID)       HID_NAME,
+		        CA.LOC_ID                          LOC_ID,        --3     작업장 코드
+		        F_GET_DC_NAME(CA.LOC_ID)           DC_NAME,                                                                                                                                                                                                                                                                                                                                                   
+		        CA.PROD_VER                        PROD_VER,            
+		        CA.ITEM_ID                         ITEM_ID,        --5     제품 코드                                                                                                                                                                                                                                                                                                                                                     
+		        CA.ITEM_NAME                       ITEM_NAME,      --6     제품 명                                                                                                                                                                                                                                                                                                                                                       
+		        IM.SPEC                            SPEC,           --7     규격
+		        f_get_code_name('PROC_TYPE',CA.PROC_TYPE)		PROC_TYPE,
+                CA.LABOR_MAN,
+                CA.LABOR_WOMAN, 
+                CA.WORK_CAPA,
+                CA.BOX_COST,                                                                                                                                                                                                                                                                                                                                                        
+		        FA.QTY                             FA_QTY,         --12    공장할당량(의뢰량)                                                                                                                                                                                                                                                                                                                          
+		        /* SHIFT별 수량 */                                                                                                                                                                                                                                                                                                                                                                                                                                 
+		        TRIM(TL.D01A)                      D01A,           --13    월/조                                                                                                                                                                                                                                                                                                                                                                               
+		        TRIM(TL.D02A)                      D02A,           --16    화/조                                                                                                                                                                                                                                                                                                                                                                               
+		        TRIM(TL.D03A)                      D03A,           --19    수/조                                                                                                                                                                                                                                                                                                                                                                               
+		        TRIM(TL.D04A)                      D04A,           --22    목/조                                                                                                                                                                                                                                                                                                                                                                               
+		        TRIM(TL.D05A)                      D05A,           --25    금/조                                                                                                                                                                                                                                                                                                                                                                               
+		        TRIM(TL.D06A)                      D06A,           --28    토/조                                                                                                                                                                                                                                                                                                                                                                               
+		        TRIM(TL.D07A)                      D07A,           --31    일/조                                                                                                                                                                                                                                                                                                                                                                               
+		        TRIM(TL.TOT )                      TOT,            --34    합계   
+		        NVL(TL.TOT,0) - NVL(FA.QTY,0)      PROD_FA_DIFF,   --35    생산량 - 의뢰량
+				--------------------------------------------------------------------
+		        TRIM(TL.D01W)                      D01W,           --13    월/조                                                                                                                                                                                                                                                                                                                                                                               
+		        TRIM(TL.D02W)                      D02W,           --16    화/조                                                                                                                                                                                                                                                                                                                                                                               
+		        TRIM(TL.D03W)                      D03W,           --19    수/조                                                                                                                                                                                                                                                                                                                                                                               
+		        TRIM(TL.D04W)                      D04W,           --22    목/조                                                                                                                                                                                                                                                                                                                                                                               
+		        TRIM(TL.D05W)                      D05W,           --25    금/조                                                                                                                                                                                                                                                                                                                                                                               
+		        TRIM(TL.D06W)                      D06W,           --28    토/조                                                                                                                                                                                                                                                                                                                                                                               
+		        TRIM(TL.D07W)                      D07W,           --31    일/조                                                                                                                                                                                                                                                                                                                                                                               
+				--------------------------------------------------------------------
+		        TRIM(TL.D01F)                      D01F,           --13    월/조                                                                                                                                                                                                                                                                                                                                                                               
+		        TRIM(TL.D02F)                      D02F,           --16    화/조                                                                                                                                                                                                                                                                                                                                                                               
+		        TRIM(TL.D03F)                      D03F,           --19    수/조                                                                                                                                                                                                                                                                                                                                                                               
+		        TRIM(TL.D04F)                      D04F,           --22    목/조                                                                                                                                                                                                                                                                                                                                                                               
+		        TRIM(TL.D05F)                      D05F,           --25    금/조                                                                                                                                                                                                                                                                                                                                                                               
+		        TRIM(TL.D06F)                      D06F,           --28    토/조                                                                                                                                                                                                                                                                                                                                                                               
+		        TRIM(TL.D07F)                      D07F            --31    일/조                                                                                                                                                                                                                                                                                                                                                                               
+				--------------------------------------------------------------------
+		FROM    (
+                /* 유통가공 대상품목 (한솔제외) */
+                SELECT  DISTINCT CA.ITEM_ID ITEM_ID,
+                        F_GET_ITEM_NAME(CA.ITEM_ID) ITEM_NAME,
+                        CA.PROD_VER,
+                        CA.PROC_ID,
+                        CA.LOC_ID,
+                        SM.PROC_TYPE,
+                        SM.MAN_TO		LABOR_MAN,
+                        SM.WOMEN_TO		LABOR_WOMAN,
+                        SM.WORK_CAPA,
+                        SM.BOX_COST
+                FROM    ITEM_CAPA CA, 
+                        (
+                        SELECT  DISTINCT BM.PROD_ITEM_ID, PLANT_ID
+                        FROM    MBOM BM, ITEM_MST IM
+                        WHERE   BM.PROD_ITEM_ID = IM.ITEM_ID
+                        AND     BM.PLANT_ID = '1300'
+                        AND    (IM.SELL_STOP_DATE > TO_CHAR(SYSDATE-30,'YYYYMMDD') OR IM.SELL_STOP_DATE = '00000000') --판매종료일
+                        ) BM,
+                        SET_PROD_MST SM
+                WHERE   CA.ITEM_ID  = BM.PROD_ITEM_ID
+                AND     CA.PLANT_ID = BM.PLANT_ID
+                AND     CA.ITEM_ID  = SM.ITEM_ID(+)
+                AND     CA.PROD_VER = SM.PROD_VER(+)
+                AND     CA.LOC_ID != '8922'  --  한솔 CSN 제외
+                AND		CA.ITEM_ID != '102001302'  --102001302	농심 해피 스낵박스 제외(한솔관리제품)
+                --------------------------------------------- TEST 용 
+                AND     CA.PROC_ID LIKE '%'||'$!{proc_code}'||'%' 
+                ---------------------------------------------
+		        )CA,            
+		        (  
+		                 
+		        SELECT  DS.ITEM_ID, 
+		                IM.ITEM_NAME,
+		                DS.PROD_VER,
+		                DS.PROC_ID,
+		                DS.LOC_ID,
+		                IM.SPEC,
+		                NE.LABOR_MAN,
+		                NE.LABOR_WOMAN,
+		                NE.WORK_CAPA,
+		                NE.BOX_COST
+		                --DS.SEQ, 
+		                , SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(WK.MON+0, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN  DS.SHIFT_QTY  ELSE NULL END) D01A 
+		                , SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(WK.MON+1, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN  DS.SHIFT_QTY  ELSE NULL END) D02A 
+		                , SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(WK.MON+2, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN  DS.SHIFT_QTY  ELSE NULL END) D03A 
+		                , SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(WK.MON+3, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN  DS.SHIFT_QTY  ELSE NULL END) D04A 
+		                , SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(WK.MON+4, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN  DS.SHIFT_QTY  ELSE NULL END) D05A  
+		                , SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(WK.MON+5, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN  DS.SHIFT_QTY  ELSE NULL END) D06A  
+		                , SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(WK.MON+6, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN  DS.SHIFT_QTY  ELSE NULL END) D07A 
+		                ---------------------------------------------------------------------------------------------------------------------------
+		                , SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(WK.MON+0, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN  DS.SHIFT_QTY  ELSE 0 END)
+		                + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(WK.MON+1, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN  DS.SHIFT_QTY  ELSE 0 END)
+		                + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(WK.MON+2, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN  DS.SHIFT_QTY  ELSE 0 END)
+		                + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(WK.MON+3, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN  DS.SHIFT_QTY  ELSE 0 END)
+		                + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(WK.MON+4, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN  DS.SHIFT_QTY  ELSE 0 END)
+		                + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(WK.MON+5, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN  DS.SHIFT_QTY  ELSE 0 END)
+		                + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(WK.MON+6, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN  DS.SHIFT_QTY  ELSE 0 END) TOT
+		                ----------------------------------------------------------------------------------------------------------------------------
+		                ,NVL(IM.CAT04,IM.RECIPE_TYPE) CAT04, 
+		                IM.RECIPE_TYPE
+		                , MAX(CASE WHEN DS.PROD_DATES = TO_CHAR(WK.MON+0, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN  DS.WO_ID  ELSE NULL END) D01W 
+		                , MAX(CASE WHEN DS.PROD_DATES = TO_CHAR(WK.MON+1, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN  DS.WO_ID  ELSE NULL END) D02W 
+		                , MAX(CASE WHEN DS.PROD_DATES = TO_CHAR(WK.MON+2, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN  DS.WO_ID  ELSE NULL END) D03W 
+		                , MAX(CASE WHEN DS.PROD_DATES = TO_CHAR(WK.MON+3, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN  DS.WO_ID  ELSE NULL END) D04W 
+		                , MAX(CASE WHEN DS.PROD_DATES = TO_CHAR(WK.MON+4, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN  DS.WO_ID  ELSE NULL END) D05W  
+		                , MAX(CASE WHEN DS.PROD_DATES = TO_CHAR(WK.MON+5, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN  DS.WO_ID  ELSE NULL END) D06W  
+		                , MAX(CASE WHEN DS.PROD_DATES = TO_CHAR(WK.MON+6, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN  DS.WO_ID  ELSE NULL END) D07W 
+		                ---------------------------------------------------------------------------------------------------------------------------
+		                , MAX(CASE WHEN DS.PROD_DATES = TO_CHAR(WK.MON+0, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN  DS.IF_FLAG  ELSE NULL END) D01F 
+		                , MAX(CASE WHEN DS.PROD_DATES = TO_CHAR(WK.MON+1, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN  DS.IF_FLAG  ELSE NULL END) D02F 
+		                , MAX(CASE WHEN DS.PROD_DATES = TO_CHAR(WK.MON+2, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN  DS.IF_FLAG  ELSE NULL END) D03F 
+		                , MAX(CASE WHEN DS.PROD_DATES = TO_CHAR(WK.MON+3, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN  DS.IF_FLAG  ELSE NULL END) D04F 
+		                , MAX(CASE WHEN DS.PROD_DATES = TO_CHAR(WK.MON+4, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN  DS.IF_FLAG  ELSE NULL END) D05F  
+		                , MAX(CASE WHEN DS.PROD_DATES = TO_CHAR(WK.MON+5, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN  DS.IF_FLAG  ELSE NULL END) D06F  
+		                , MAX(CASE WHEN DS.PROD_DATES = TO_CHAR(WK.MON+6, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN  DS.IF_FLAG  ELSE NULL END) D07F 
+		                ---------------------------------------------------------------------------------------------------------------------------
+		        FROM    (
+		                SELECT  ITEM_ID,
+		                        PROD_VER,
+		                        PROC_ID,
+		                        LOC_ID,
+		                        '1' SHIFT_TYPE, 
+		                        START_DATE  PROD_DATES,
+		                        QTY         SHIFT_QTY,
+		                        QTY_UOM,
+		                        WO_ID,
+		                        IF_FLAG
+		                FROM    IF_SET_PROD_ORDER
+		                WHERE   SEQ = '10'
+		                AND     IDU_FLAG != 'D' -- 삭제품목 제외
+		                ) DS, 
+		                ITEM_MST IM, 
+		                (
+                            -- DEFAULT : 차주, 차주 월요일
+                        #if("$!{checked_weekly}" == "w0")
+                            SELECT  NEXT_DAY(SYSDATE-7,2) MON --금주
+                        #elseif("$!{checked_weekly}" == "w2")
+                            SELECT  NEXT_DAY(SYSDATE+7,2) MON --차차주
+                        #else
+                            SELECT NEXT_DAY(SYSDATE,2) MON --차주
+                        #end                                  
+                            FROM   DUAL
+		                ) WK,
+		                (
+		                /* 인원 TO 정보 */
+		                SELECT  ITEM_ID, 
+		                        PROD_VER,
+		                        MAN_TO      LABOR_MAN,
+		                        WOMEN_TO    LABOR_WOMAN,
+		                        WORK_CAPA,
+                                BOX_COST
+		                FROM    SET_PROD_MST                            
+		                ) NE
+		        WHERE   DS.PROD_DATES BETWEEN  TO_CHAR(WK.MON,'YYYYMMDD') AND TO_CHAR(WK.MON+6,'YYYYMMDD') 
+		        AND     DS.ITEM_ID    = IM.ITEM_ID
+		        AND     DS.ITEM_ID    = NE.ITEM_ID(+)
+		        AND     DS.PROD_VER   = NE.PROD_VER(+)
+		        GROUP   BY DS.PROD_VER, DS.PROC_ID, DS.LOC_ID, DS.ITEM_ID, IM.ITEM_NAME, IM.SPEC, 
+		                NE.LABOR_MAN, LABOR_WOMAN, IM.CAT04, IM.RECIPE_TYPE, NE.WORK_CAPA, NE.BOX_COST
+		                
+		        ) TL,
+		        (
+		        SELECT  PA.ITEM_ID,
+		                PA.FRC_QTY QTY
+		        FROM    USER_FORECAST PA,
+		                (
+	                        -- DEFAULT : 차주, 차주 월요일
+	                    #if("$!{checked_weekly}" == "w0")
+	                        SELECT  NEXT_DAY(SYSDATE-7,2) MON --금주
+	                    #elseif("$!{checked_weekly}" == "w2")
+	                        SELECT  NEXT_DAY(SYSDATE+7,2) MON --차차주
+	                    #else
+	                        SELECT NEXT_DAY(SYSDATE,2) MON --차주
+	                    #end                                  
+	                        FROM   DUAL
+		                ) WK
+		        WHERE   PA.CNFM_DATE = WK.MON
+		        ) FA, ITEM_MST IM
+		WHERE   CA.ITEM_ID  = TL.ITEM_ID(+)
+		AND     CA.PROD_VER = TL.PROD_VER(+)
+		AND     CA.PROC_ID  = TL.PROC_ID(+)
+		AND     CA.ITEM_ID  = FA.ITEM_ID(+)
+		AND     CA.ITEM_ID  = IM.ITEM_ID
+		AND		NOT (IM.MATERIAL_GROUP >= '5K000' AND     IM.MATERIAL_GROUP &lt;= '5S999') --수출품
+        AND     NVL(IM.CAT03,'XX')    NOT LIKE 'O%' --수출품
+		----------------------------------------------------------------------------------------------------------------------------------
+		--PLANT_ID, TEAM_ID, PROC_ID, ITEM_ORDER
+		ORDER   BY PROC_ID, LOC_ID, ITEM_ID, PROD_VER         
+	</query>	
+	
+
+	<!--
+	======================================================================
+		유통가공 부자재 발주 
+	======================================================================
+	-->
+
+	<!-- 유통가공 부자재 발주   -->
+	<query id="sc_13050_set_roh_pr_plan_list">
+/* SC_13050_SET_ROH_PR_PLAN_LIST */
+        SELECT  SB.ITEM_ID,
+                F_GET_ITEM_NAME(SB.ITEM_ID) ITEM_NAME,
+                SB.SEQ,
+                F_GET_CODE_NAME('SET_ROH', SB.SEQ) CONS_ITEM_NAME,
+                --SB.CONS_ITEM_NAME,
+                SB.BASE_UOM,
+                NVL(RS.QTY,0) STOCK_QTY,
+                (NVL(PO.QTY,0)*SB.REQ_QTY)  PROD_QTY,
+                NVL(RS.SIL_IPGO,0)	"SIL_IPGO",                
+                NVL(W_IPGO,0),
+                (NVL(RS.QTY,0) - (NVL(PO.QTY,0)*SB.REQ_QTY)  + NVL(W_IPGO,0) )    "W1_STOCK",
+                (NVL(W1PO.QTY, 0)*SB.REQ_QTY)                		"W1_PROD_QTY",
+                ''													"W1_SIL_IPGO",
+                W1_IPGO                         					"W1_IPGO",
+                (NVL(RS.QTY,0) - (NVL(PO.QTY,0)*SB.REQ_QTY)  + NVL(W_IPGO,0) ) - (NVL(W1PO.QTY, 0)*SB.REQ_QTY) + NVL(W1_IPGO,0)  "W2_STOCK",
+                /*
+                발주량계산
+                필요발주량은 차차주 예상재고 
+                안전재고
+                최소발주량 
+                1. 주초재고 - 금주필요량 + 금주입고수량 - 차주필요량 + 차주입고량 이 안전재고보다 작으면 최소발주량
+                */
+                CASE
+                    WHEN ((RS.QTY - (PO.QTY*SB.REQ_QTY) + NVL(W_IPGO,0) ) - (NVL(W1PO.QTY, 0)*SB.REQ_QTY) + NVL(W1_IPGO,0)) &lt; SB.SAFETY_STOCK  THEN SB.MIN_LOT_SIZE
+                    ELSE 0
+                END "REQ_QTY",
+                pr.pr_qty  "PR_QTY",
+                /*  
+                PR_DATE = 납기요구일
+                계산된 납기일이 휴일이면 월요일?로 변경
+                */
+                TO_CHAR(TRUNC(SYSDATE)+SB.LEAD_TIME, 'YYYY-MM-DD') "PR_DATE", 
+                SB.MIN_LOT_SIZE     "MIN_LOT_SIZE",
+                SB.LOT_SIZE         "LOT_SIZE",
+                SB.SAFETY_STOCK     "SAFETY_STOCK",
+                SB.UNIT_COST        "UNIT_COST",
+                TGT_LOC             "TGT_LOC",
+                SB.CUST_CODE        "CUST_CODE",
+                (SELECT COM_NAME FROM MMBAT100 WHERE   CUST_CODE = SB.CUST_CODE)  "CUST_NAME",
+                PR_NO                "PR_NO",
+                ''               "IF_MSG",
+				CASE
+					WHEN PR.IF_FLAG = 'I'	THEN '전송전'
+					WHEN PR.IF_FLAG = 'P'	THEN '전송중'
+					WHEN PR.IF_FLAG = 'S'	THEN '완료'
+					WHEN PR.IF_FLAG = 'E'	THEN '오류'
+					ELSE PR.IF_FLAG
+				END		IF_FLAG                
+        FROM    (
+                /* 코드정보 */
+                SELECT  *
+                FROM    SET_BOM SB
+                ) SB,
+                ITEM_MST IM,
+                (
+                /* 재고정보 */
+                SELECT  *
+                FROM    REAL_STOCK_TEST
+                WHERE   USABLE_DATE = TRUNC(SYSDATE, 'D')+1 -- 당주 월요일
+                ) RS,
+                (
+                SELECT *
+                FROM    SET_PR_PLAN_IF
+                WHERE   CNFM_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+                ) PR,
+                (
+                SELECT  ITEM_ID,
+                        SUM(QTY)    QTY
+                FROM    (
+                        /* 생산계획량 */
+                        SELECT  ITEM_ID,
+                                SUM(QTY)    QTY
+                        FROM    IF_SET_PROD_ORDER
+                        WHERE   START_DATE BETWEEN TRUNC(SYSDATE) AND (TRUNC(SYSDATE, 'D'))+7 
+                        AND     IDU_FLAG = 'I'
+                        AND     SEQ = '10'
+                        GROUP BY ITEM_ID     
+                        UNION ALL
+                        /* 생산실적량 */
+                        SELECT  ITEM_ID,
+                                SUM(COMPL_QTY) QTY
+                        FROM    V_SET_PROD_PO_MES
+                        WHERE   START_DTTM BETWEEN TRUNC(SYSDATE, 'D')+1 AND TRUNC(SYSDATE)-1 
+                        GROUP BY ITEM_ID                
+                        )
+                GROUP BY ITEM_ID
+                ) PO,
+                (
+                /* 차주 생산계획량 */
+                SELECT  ITEM_ID,
+                        SUM(QTY) QTY
+                FROM    IF_SET_PROD_ORDER
+                WHERE   START_DATE BETWEEN (TRUNC(SYSDATE, 'D')+1)+7 AND (TRUNC(SYSDATE, 'D'))+7+7
+                AND     IDU_FLAG = 'I'
+                AND     SEQ = '10'
+                GROUP BY ITEM_ID             
+                ) W1PO,
+                (
+                SELECT  ITEM_ID,
+                        SEQ,
+                        /* 
+                        SUM(MENGE) W_IPGO,
+                        SUM(MENGE) W1_IPGO
+                        */
+                        SUM(
+                        CASE
+                            WHEN    LFDAT BETWEEN (TRUNC(SYSDATE, 'D')+1) AND (TRUNC(SYSDATE, 'D'))+7 THEN MENGE 
+                            ELSE    0
+                        END) W_IPGO,
+                        SUM(
+                        CASE
+                            WHEN    LFDAT BETWEEN (TRUNC(SYSDATE, 'D')+1)+7 AND (TRUNC(SYSDATE, 'D'))+7+7 THEN MENGE 
+                            ELSE    0
+                        END) W1_IPGO
+                FROM    ERP_SET_PR
+                WHERE   SEQ IS NOT NULL
+                --AND     ITEM_ID IS NOT NULL
+                --AND		LFDAT BETWEEN '20130101'AND'20130304'
+                GROUP BY ITEM_ID, SEQ                
+                ) IP
+        <!-- WHERE   SB.ITEM_ID = RS.ITEM_ID
+        AND     SB.SEQ = RS.ITYPE
+        AND     SB.ITEM_ID = PR.ITEM_ID(+)
+        AND     SB.SEQ = PR.SEQ(+)
+        AND     SB.ITEM_ID = PO.ITEM_ID
+        AND     SB.ITEM_ID = W1PO.ITEM_ID(+)
+        AND     SB.ITEM_ID = IP.ITEM_ID(+)
+        AND     SB.SEQ = IP.SEQ(+)-->
+        WHERE   SB.ITEM_ID		= RS.ITEM_ID(+)		--기존--
+        AND     SB.ITEM_ID		= PR.ITEM_ID(+)
+        AND     SB.ITEM_ID		= PO.ITEM_ID(+)		--기존--        
+        AND     SB.ITEM_ID		= W1PO.ITEM_ID(+)
+        AND     SB.ITEM_ID		= IP.ITEM_ID(+)
+        AND     SB.ITEM_ID		= IM.ITEM_ID
+        AND     SB.SEQ			= RS.ITYPE(+)		--기존--
+        AND     SB.SEQ			= PR.SEQ(+)
+        AND     SB.SEQ			= IP.SEQ(+)        
+        AND		SB.CUST_CODE	LIKE	'%'||'$!{cust_code}'||'%'
+        AND		IM.ITYPE	LIKE	'%'||'$!{item_type}'||'%'
+        
+        
+        ORDER BY 1, 3
+	</query>
+
+	<!--  발주 진행 상황 -->
+	<query id="sc_13050_set_roh_pr_plan_list_dw2">
+		/* 발주 진행 상황 */
+		SELECT  ITEM_ID,
+		        SEQ,
+		        TXZ01, --품목명
+		        BANFN, --PR번호
+		        --ERDAT, --PR등록일
+		        BADAT, --납품요청일
+		        LFDAT,
+		        MENGE, --수량
+		        EBELN, --PO번호
+		        BEDAT --증빙일
+		FROM    ERP_SET_PR
+		WHERE	ITEM_ID = '$!{item_id}'
+		AND		SEQ		= '$!{seq}'
+	</query>
+
+
+
+	
+	<!--  DW 4 월간 생산량 -->
+	<query id="sc_13050_set_roh_pr_plan_list_dw4">
+		-- DW 4 월간 생산량
+			SELECT  ITEM_ID, F_GET_ITEM_NAME(ITEM_ID) ITEM_NAME,
+			        ROUND(SUM(DECODE(IDX, 10, USE_QTY)))   "M-3",
+			        ROUND(SUM(DECODE(IDX, 11, USE_QTY)))   "M-2",
+			        ROUND(SUM(DECODE(IDX, 12, USE_QTY)))   "M-1",
+			        ROUND(SUM(DECODE(IDX, 13, USE_QTY)))   "M",
+			        ROUND(SUM(DECODE(IDX, 1,  USE_QTY)))   "LY+0",
+			        ROUND(SUM(DECODE(IDX, 2,  USE_QTY)))   "LY+1",
+			        ROUND(SUM(DECODE(IDX, 3,  USE_QTY)))   "LY+2",
+			        ROUND(SUM(DECODE(IDX, 4,  USE_QTY)))   "LY+3",
+			        ROUND(SUM(DECODE(IDX, 5,  USE_QTY)))   "LY+4",
+			        ROUND(SUM(DECODE(IDX, 6,  USE_QTY)))   "LY+5"               
+			FROM    (
+			        SELECT  NVL(ITEM_ID, '$!{item_id}') ITEM_ID, 
+			                TO_CHAR(TO_DATE(CAL.YYYYMM||'01'),'YYYY-MM') YYMM, NVL(SUM(QTY),0)  USE_QTY,
+			                RANK() OVER (ORDER BY  CAL.YYYYMM) IDX
+			        FROM    (
+                            SELECT  ITEM_ID, SUBSTR(START_DATE,1,6) YYYYMM, QTY
+                            FROM    IF_SET_PROD_ORDER
+                            WHERE   SEQ ='10'
+                            AND     IDU_FLAG = 'I'
+                            AND     ITEM_ID  = '$!{item_id}'
+                            ) MV, 
+			                (
+			                SELECT DISTINCT YYYYMM
+			                FROM    CAL_MST CAL
+			                WHERE   CAL.YYYYMM BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(LAST_DAY(SYSDATE),-12),'MONTH'),'yyyymm') 
+			                                       AND TO_CHAR(TRUNC(ADD_MONTHS(LAST_DAY(SYSDATE), 0)),'yyyymm')
+			                ) CAL
+			        WHERE   CAL.YYYYMM = MV.YYYYMM(+)
+			        GROUP BY ITEM_ID, CAL.YYYYMM
+			        )
+			GROUP BY ITEM_ID       		
+	</query>
+	
+	<!-- DW4 주간생산량 -->
+	<query id="sc_13050_set_roh_pr_plan_list_dw4_weekly">
+		-- DW4 주간생산량
+		SELECT  '$!{item_id}', F_GET_ITEM_NAME('$!{item_id}') ITEM_NAME,
+		        ROUND(SUM(DECODE(IDX, 10, USE_QTY)))   "W-9",
+		        ROUND(SUM(DECODE(IDX, 9,  USE_QTY)))   "W-8",
+		        ROUND(SUM(DECODE(IDX, 8,  USE_QTY)))   "W-7",
+		        ROUND(SUM(DECODE(IDX, 7,  USE_QTY)))   "W-6",
+		        ROUND(SUM(DECODE(IDX, 6,  USE_QTY)))   "W-5",
+		        ROUND(SUM(DECODE(IDX, 5,  USE_QTY)))   "W-4",
+		        ROUND(SUM(DECODE(IDX, 4,  USE_QTY)))   "W-3",
+		        ROUND(SUM(DECODE(IDX, 3,  USE_QTY)))   "W-2",
+		        ROUND(SUM(DECODE(IDX, 2,  USE_QTY)))   "W-1",
+		        ROUND(SUM(DECODE(IDX, 1,  USE_QTY)))   "W"               
+		FROM    (
+		        SELECT  NVL(ITEM_ID, '$!{item_id}') ITEM_ID, 
+		                MOVE_DATE,
+		                NVL(SUM(MOVE_QTY),0) USE_QTY,
+		                RANK() OVER (ORDER BY  CAL.CAL_DATE DESC) IDX
+		        FROM    (
+                        SELECT  ITEM_ID, 
+                                TRUNC(TO_DATE(MV.START_DATE),'IW') MOVE_DATE,
+                                SUM(QTY) MOVE_QTY
+                        FROM    IF_SET_PROD_ORDER MV
+                        WHERE   SEQ ='10'
+                        AND     IDU_FLAG = 'I'
+                        AND     ITEM_ID  =  '$!{item_id}'
+                        GROUP BY ITEM_ID, 
+                                TRUNC(TO_DATE(MV.START_DATE),'IW') 
+		                )  MV, 
+		                (
+		                SELECT DISTINCT TRUNC(TO_DATE(CAL.CAL_DATE),'IW') CAL_DATE
+		                FROM    CAL_MST CAL
+		                WHERE   CAL.CAL_DATE BETWEEN TRUNC(SYSDATE-80) AND TRUNC(SYSDATE) 
+		                ) CAL
+		        WHERE   CAL.CAL_DATE = MV.MOVE_DATE(+)
+		        GROUP BY ITEM_ID, MOVE_DATE, CAL.CAL_DATE
+		        )
+		GROUP BY ITEM_ID	
+	</query>	
+	
+	
+	<!-- DW4  일자별 생산량 -->
+	<query id="sc_13050_set_roh_pr_plan_list_dw4_daily">
+		SELECT  '$!{item_id}', 
+				F_GET_ITEM_NAME('$!{item_id}') ITEM_NAME,
+		        ROUND(SUM(DECODE(IDX, 13, NVL(USE_QTY,0))))		P_3,
+		        ROUND(SUM(DECODE(IDX, 14, NVL(USE_QTY,0))))		P_2,
+		        ROUND(SUM(DECODE(IDX, 15, NVL(USE_QTY,0))))		P_1,
+		        ROUND(SUM(DECODE(IDX, 16, NVL(USE_QTY,0))))		D,               
+		        ROUND(SUM(DECODE(IDX, 17, NVL(USE_QTY,0))))		D_1,
+		        ROUND(SUM(DECODE(IDX, 18, NVL(USE_QTY,0))))		D_2,
+		        ROUND(SUM(DECODE(IDX, 19, NVL(USE_QTY,0))))		D_3,
+		        ROUND(SUM(DECODE(IDX, 20, NVL(USE_QTY,0))))		D_4,
+		        ROUND(SUM(DECODE(IDX, 21, NVL(USE_QTY ,0))))	D_5,
+		        ROUND(SUM(DECODE(IDX, 22, NVL(USE_QTY,0))))		D_6
+		        <!-- ROUND(SUM(DECODE(IDX, 1,  NVL(USE_QTY,0))))		P_15,	
+		        ROUND(SUM(DECODE(IDX, 2,  NVL(USE_QTY,0))))		P_14,
+		        ROUND(SUM(DECODE(IDX, 3,  NVL(USE_QTY,0))))		P_13,
+		        ROUND(SUM(DECODE(IDX, 4,  NVL(USE_QTY,0))))		P_12,
+		        ROUND(SUM(DECODE(IDX, 5,  NVL(USE_QTY,0))))		P_11,	      
+		        ROUND(SUM(DECODE(IDX, 6,  NVL(USE_QTY,0))))		P_10,
+		        ROUND(SUM(DECODE(IDX, 7,  NVL(USE_QTY,0))))		P_9,
+		        ROUND(SUM(DECODE(IDX, 8,  NVL(USE_QTY,0))))		P_8,
+		        ROUND(SUM(DECODE(IDX, 9,  NVL(USE_QTY,0))))		P_7,
+		        ROUND(SUM(DECODE(IDX, 10, NVL(USE_QTY,0))))		P_6,
+		        ROUND(SUM(DECODE(IDX, 11, NVL(USE_QTY,0))))		P_5,
+		        ROUND(SUM(DECODE(IDX, 12, NVL(USE_QTY,0))))		P_4, -->
+		FROM    (
+		        SELECT  NVL(ITEM_ID, '$!{item_id}') ITEM_ID, 
+		                MOVE_DATE,
+		                NVL(SUM(MOVE_QTY),0) USE_QTY,
+		                RANK() OVER (ORDER BY  CAL.yyyymmdd) IDX
+		        FROM    (
+                        SELECT  ITEM_ID, 
+                        		MV.START_DATE 	MOVE_DATE,
+                                SUM(QTY) MOVE_QTY
+                        FROM    IF_SET_PROD_ORDER MV
+                        WHERE   SEQ			= '10'
+                        AND     IDU_FLAG	= 'I'
+                        AND     ITEM_ID  	= '$!{item_id}'
+                        GROUP BY	ITEM_ID, 
+                                	MV.START_DATE 
+                        )  MV, 
+		                (
+		                SELECT	TO_DATE(CAL.YYYYMMDD,'YYYY-MM-DD') YYYYMMDD
+		                FROM    CAL_MST CAL
+		                WHERE   CAL.YYYYMMDD BETWEEN TRUNC(SYSDATE-15) AND TRUNC(SYSDATE+6) 
+                        ) CAL
+		        WHERE   CAL.yyyymmdd = MV.MOVE_DATE(+)
+		        GROUP BY ITEM_ID, MOVE_DATE, CAL.YYYYMMDD
+		        )
+		GROUP BY ITEM_ID		
+	</query>	
+	
+	
+	
+	
+	<!-- DW 5 MIN/MAX/AVG -->
+	<query id="sc_13050_set_roh_pr_plan_list_dw5">
+	-- DW 5 MIN MAX AVG 
+        SELECT  ITEM_ID, ITEM_NAME,
+                DECODE(A, 1, 'MAX',     2, 'AVG',   3, 'MIN')    "구분",
+                DECODE(A, 1, MAX_QTY,   2, AVG_QTY, 3, MIN_QTY) QTY,
+                DECODE(A, 1, MAX_MM,    2, NULL,    3, MIN_MM)  YYYY_MM
+        FROM    (
+                SELECT  ITEM_ID, F_GET_ITEM_NAME(ITEM_ID) ITEM_NAME,
+                        ROUND(AVG(USE_QTY),3)       AVG_QTY, 
+                        TO_CHAR(TO_DATE(SUM(DECODE(IDX, 1, YYMM))||'01'),'YYYY-MM')   MAX_MM, 
+                        SUM(DECODE(IDX, 1, USE_QTY))MAX_QTY,
+                        TO_CHAR(TO_DATE(SUM(DECODE(IDX, MAX_IDX, YYMM))||'01'),'YYYY-MM')  MIN_MM, 
+                        SUM(DECODE(IDX, MAX_IDX, USE_QTY))MIN_QTY
+                FROM    (
+                        SELECT  '$!{item_id}' ITEM_ID, MOVE_YYYYMM YYMM, SUM(MOVE_QTY) USE_QTY,
+                                RANK() OVER (ORDER BY  SUM(MOVE_QTY) DESC, MOVE_YYYYMM) IDX
+                        FROM    (
+                                SELECT  ITEM_ID, SUBSTR(START_DATE,1,6) MOVE_YYYYMM, QTY MOVE_QTY
+                                FROM    IF_SET_PROD_ORDER
+                                WHERE   SEQ ='10'
+                                AND     IDU_FLAG = 'I'
+                                AND     ITEM_ID  = '$!{item_id}'
+                                )
+                        WHERE   ITEM_ID = '$!{item_id}'
+                        AND     MOVE_YYYYMM BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(LAST_DAY(SYSDATE),-12),'MONTH'),'yyyymm') 
+                                AND TO_CHAR(TRUNC(ADD_MONTHS(LAST_DAY(SYSDATE),-1)),'yyyymm')
+                        GROUP BY MOVE_YYYYMM
+                        ) RANK,
+                        (
+                        SELECT  MIN(IDX) MIN_IDX,
+                                MAX(IDX) MAX_IDX
+                        FROM    (
+                                SELECT  '$!{item_id}' ITEM_ID, MOVE_YYYYMM YYMM, SUM(MOVE_QTY) USE_QTY,
+                                        RANK() OVER (ORDER BY  SUM(MOVE_QTY) DESC, MOVE_YYYYMM) IDX
+                                FROM    (
+                                        SELECT  ITEM_ID, SUBSTR(START_DATE,1,6) MOVE_YYYYMM, QTY MOVE_QTY
+                                        FROM    IF_SET_PROD_ORDER
+                                        WHERE   SEQ ='10'
+                                        AND     IDU_FLAG = 'I'
+                                        AND     ITEM_ID  = '$!{item_id}'
+                                        )
+                                WHERE   ITEM_ID = '$!{item_id}'
+                                AND     MOVE_YYYYMM BETWEEN TO_CHAR(TRUNC(ADD_MONTHS(LAST_DAY(SYSDATE),-12),'MONTH'),'YYYYMM') 
+                                                    AND     TO_CHAR(TRUNC(ADD_MONTHS(LAST_DAY(SYSDATE),-1)),'YYYYMM')
+                                GROUP BY MOVE_YYYYMM
+                                )        
+                        )IDX
+                GROUP BY ITEM_ID
+                ),
+                (
+                SELECT 1 A
+                FROM DUAL
+                UNION ALL
+                SELECT 2 A
+                FROM DUAL
+                UNION ALL
+                SELECT 3 A
+                FROM DUAL        
+                )	
+	</query>
+	
+	<!-- select_mmort100_pr_no -->
+	<query id="select_mmort100_pr_no">
+	-- select_mmort100_pr_no
+		SELECT	PRCH_REQT_NO
+		FROM	MMORT100 --_TEST
+		WHERE	SUBJECT = 'APS_PR'
+		-----------------------
+		AND     REQT_DATE = TO_CHAR(SYSDATE,'YYYYMMDD')
+		------------------------		
+		AND		IF_FLAG IS NULL
+		and		rownum =1
+
+	</query>		
+
+	<!-- select_zmm_pr_mro_create_form --> 
+	<query id="select_zmm_pr_mro_create_form">
+		/* ZMM_PR_MRO_CREATE 호출 양식 */
+        SELECT  PRCH_REQT_NO,
+                'NO'          "DOCU_TYPE",
+                PRCH_REQT_SEQ,
+                ACCT_FIXD,
+                '0'         "PRCH_DOCU_ATCL",
+                REQT_SITE_CODE,
+                REQT_DATE,
+                MATR_CODE,
+                PRCH_DOCU_DETL,
+                QTY_UNIT,
+                REQT_QTY,
+                CURR_KEY,
+                PLAN_AMT,
+                CUST_CODE,
+                GL_ACCT,
+                USED_COST_CNTR,
+                WBS_NO, 
+                PRCH_GRUP,
+                MATR_GRUP,
+                DELV_REQT_DATE,
+                REQT_RESN,
+                REQT_NAME,
+                NULL "REAL_NAME"
+		FROM    MMORT100 --_TEST
+		WHERE   PRCH_REQT_NO = '$!{selPrNo}'	
+	</query>				
+	
+	<query id="sc_13050_set_roh_pr_plan_cust_list">
+	SELECT	DISTINCT	CUST_CODE,
+						CUST_NAME
+	FROM	SET_BOM	
+	</query>				
+	
+	<query id="sc_13050_set_roh_pr_plan_dc_list">
+	<!-- 유통가공 작업장 리스트-->
+	SELECT	DISTINCT 				LOC_ID,
+			F_GET_DC_NAME(LOC_ID)	LOC_NAME
+	FROM	ITEM_CAPA
+	WHERE	PLANT_ID = '1300'
+	AND		LOC_ID	NOT IN('7100','7500','7700','8904','8913','8914','8922','8927')
+	AND		LOC_ID	LIKE	'%'||'$!{loc_id}'||'%'
+	ORDER	BY 1
+	</query>
+	
+	<!--
+	======================================================================
+		유통가공 부자재 마스터 관리
+	======================================================================
+	-->
+
+	<!-- 유통가공 부자재 마스터 관리   -->
+	<query id="sc_13060_set_bom_mst">	
+		SELECT  DECODE(IM.ITYPE, 'FERT','제품총괄', '상품총괄') ITYPE,
+		        F_GET_CODE_NAME('DIVISION', IM.DIVISION)||'CM' DIVISION,
+		        F_GET_CODE_NAME('SALES_CAT1', IM.SALES_CAT01) SALES_CAT01,
+		        F_GET_CODE_NAME('SALES_CAT2', IM.SALES_CAT02) SALES_CAT02,
+		        IM.ITEM_ID,
+		        IM.ITEM_NAME,
+		        IM.SPEC                     "규격",
+		        SB.SEQ,
+		        F_GET_CODE_NAME('SET_ROH', SB.SEQ) SEQ,
+		        SB.BASE_UOM,
+		        SB.UNIT_COST,
+		        SB.REQ_QTY,
+		        SB.MIN_LOT_SIZE,
+		        SB.LOT_SIZE,
+		        SB.LEAD_TIME,
+		        SB.CUST_CODE,
+		        F_GET_CODE_NAME('SET_ROH_CUST', SB.CUST_CODE) CUST_NAME,
+		        SB.SAFETY_STOCK
+		FROM    ITEM_MST    IM,
+		        SET_BOM     SB
+		WHERE   IM.ITEM_ID = SB.ITEM_ID    
+		AND		IM.ITYPE	LIKE	'%'||'$!{item_type}'||'%'
+		ORDER BY IM.ITEM_ID, SB.SEQ                
+	</query>
+	
+	<!-- 유통가공 부자재 BOM 마스터 신규 등록 -->
+	<query id="sc_13060_get_set_bom_mst_reg_list">
+	-- 유통가공 부자재 BOM 마스터 신규 등록
+		SELECT  ITEM_ID,
+		        SB.CD,
+		        SB.CD_NAME,
+		        ''bASE_UOM,
+		        ''uNIT_COST,
+		        ''rEQ_QTY,
+		        ''mIN_LOT_SIZE,
+		        ''lEAD_TIME,
+		        ''cUST_CODE,
+		        ''cUST_NAME,
+		        ''sAFETY_STOCK
+		FROM    (
+		        SELECT  *
+		        FROM    ITEM_MST
+		        WHERE   ITEM_ID = '$!{item_id}'
+		        ) IM,
+		        (
+		        SELECT  CD, CD_NAME
+		        FROM    CODE_MST
+		        WHERE   CD_GRP = 'SET_ROH'
+		        ORDER BY CD        
+		        )SB
+		ORDER BY CD	
+           
+	</query>	
+		
+	
+</queries>
+	

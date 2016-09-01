@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+	
+<!--
+=====================================================================================================
+	기준정보 >> 수송계획
+=====================================================================================================
+--> 
+    <!--
+	======================================================================
+		◈1. DC기준정보
+	======================================================================
+	-->
+	
+	<!-- DC기준정보 -->
+	<job id="md_04010_dcMaster_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 수송계획 >> DC기준정보</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>DC기준정보 조회</title>
+		<authority>1</authority>		
+		<description>DC기준정보 조회</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="dc_loc_list" datasource="t3sinc"/>
+			<query idref="sl_cat_list" datasource="t3sinc"/> 
+			<query idref="md_04010_dcMaster_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- DC기준정보 수정 : 저장 -->
+	<job id="md_04010_dcMaster_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_04010_dcMaster_list_save"/>		
+		<sub_job id="md_04010_dcMaster_list"/>
+		<permission_desc>수정-저장</permission_desc>
+	</job>
+	<job id="md_04010_dcMaster_list_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<!-- 01. DC_MST 정보 업데이트 -->
+			<!-- 02. DC_DTL 그룹 전체 삭제  -->
+			<!-- 03_1_2_3. DC_DTL 그룹 전체 INSERT -->
+			<query idref="md_04010_dcMaster_list_save_01" datasource="t3sinc"/>
+			<query idref="md_04010_dcMaster_list_save_02" datasource="t3sinc"/>	
+			<query idref="md_04010_dcMaster_list_save_03_1" datasource="t3sinc"/>
+			<query idref="md_04010_dcMaster_list_save_03_2" datasource="t3sinc"/>
+			<query idref="md_04010_dcMaster_list_save_03_3" datasource="t3sinc"/>		
+		</queries>
+	</job>
+	
+	
+	<!--
+	======================================================================
+		◈2. 운송수단 기준정보
+	======================================================================
+	-->
+	
+	<!-- 운송수단 기준정보 -->
+	<job id="md_04020_transModeMaster_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 수송계획 >> 운송수단 기준정보</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>운송수단 기준정보 조회</title>
+		<authority>1</authority>		
+		<description>운송수단 기준정보 조회</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="md_04020_transModeMaster_list" datasource="t3sinc"/>			
+		</queries>
+	</job>
+	
+	<!--
+	======================================================================
+		◈3. 수송 Route 자동생성
+	======================================================================
+	-->
+	
+	<!-- 수송 Route 자동생성 : 조회-->
+	<job id="md_04030_transRoute_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 수송계획 >> 수송 Route 자동생성</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>수송 Route 자동생성</title>
+		<authority>1</authority>		
+		<description>수송 Route 자동생성</description>
+		<request_type>list</request_type>
+		<queries>
+		    <query idref="dc_id_and_name_list" datasource="t3sinc"/><!-- 입고장 정보 검색 조건 -->
+			<query idref="md_04030_transRoute_list" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH 조회 -->
+		</queries>
+	</job>
+	
+	<!-- 수송 Route 자동생성 : 생성버튼 클릭시 -->
+	<job id="md_04030_transRoute_list_create_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_04030_transRoute_list_create"/>		
+		<sub_job id="md_04030_transRoute_list"/>
+		<permission_desc>수송 Route 자동생성-생성</permission_desc>
+	</job>
+	
+	<!-- 수송 Route 자동생성 : PROCEDURE 호출 -->
+	<job id="md_04030_transRoute_list_create" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="md_04030_transRoute_list_create" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 수송Route무결성 체크 Popup : 조회-->
+	<job id="md_04030_transRoute_integrity_check_popup" job_type="single">
+		<path>/sinc/70.MasterData</path>
+		<navigation>수송Route무결성 체크 Popup</navigation>
+		<toolbars>0000</toolbars>
+		<title>수송Route무결성 체크 Popup</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="md_04030_transRoute_integrity_check_popup" datasource="t3sinc"/>
+		</queries>
+	</job>	
+	
+	<!--
+	======================================================================
+		◈4. 품목별 수송Route 관리
+	======================================================================
+	-->
+	
+	<!-- 품목별 수송Route 관리 : 조회-->
+	<job id="md_04040_transRouteByProduct_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 수송계획 >> 품목별 수송Route 관리</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>품목별 수송Route 관리</title>
+		<authority>1</authority>		
+		<description>품목별 수송Route 관리</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="md_04040_transRouteByProduct_list" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH_EXCEPT 조회 -->
+			<query idref="transRouteByProduct_header" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 품목별 수송 Route 관리 : 저장 -->
+	<job id="md_04040_transRouteByProduct_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_04040_transRouteByProduct_list_save"/>		
+		<sub_job id="md_04040_transRouteByProduct_list"/>
+		<permission_desc>품목별 수송 Route 관리-저장</permission_desc>
+	</job>
+	<job id="md_04040_transRouteByProduct_list_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="md_04040_transRouteByProduct_list_save_01" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH_EXCEPT 삭제 -->
+			<query idref="md_04040_transRouteByProduct_list_save_02" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH_EXCEPT 수정-->
+			<query idref="md_04040_transRouteByProduct_list_save_03" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH_EXCEPT 입력 -->
+			<query idref="md_04040_transRouteByProduct_list_save_04" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH 삭제 -->
+			<query idref="md_04040_transRouteByProduct_list_save_05" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH 수정-->
+			<query idref="md_04040_transRouteByProduct_list_save_06" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH 입력 -->
+		</queries>
+	</job>
+	
+	
+	<!--
+	======================================================================
+		◈5. 거점별 수송Route 관리
+	======================================================================
+	-->
+	
+	<!-- 거점별 수송Route 관리 : 조회-->
+	<job id="md_04050_transRouteByLocation_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 수송계획 >> 거점별 수송Route 관리</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>거점별 수송Route 관리</title>
+		<authority>1</authority>		
+		<description>거점별 수송Route 관리</description>
+		<request_type>list</request_type>
+		<queries>
+		    <query idref="dc_id_and_name_list" datasource="t3sinc"/><!-- 입고장 정보 검색 조건 -->			
+			<query idref="transRouteByLocation_header" datasource="t3sinc"/>
+			<query idref="code_mst_cat3" datasource="t3sinc"/>
+			<query idref="md_04050_transRouteByLocation_list" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH_EXCEPT 조회 -->
+		</queries>
+	</job>
+	
+	<!-- 거점별 수송 Route 관리 : 저장 -->
+	<job id="md_04050_transRouteByLocation_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_04050_transRouteByLocation_list_save"/>		
+		<sub_job id="md_04050_transRouteByLocation_list"/>
+		<permission_desc>거점별 수송Route 관리-저장</permission_desc>
+	</job>
+	<job id="md_04050_transRouteByLocation_list_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="md_04050_transRouteByLocation_list_save_01" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH_EXCEPT 삭제 -->
+			<query idref="md_04050_transRouteByLocation_list_save_02" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH_EXCEPT 수정-->
+			<query idref="md_04050_transRouteByLocation_list_save_03" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH_EXCEPT 입력 -->
+			<query idref="md_04050_transRouteByLocation_list_save_04" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH 삭제 -->
+			<query idref="md_04050_transRouteByLocation_list_save_05" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH 수정-->
+			<query idref="md_04050_transRouteByLocation_list_save_06" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH 입력 -->
+		</queries>
+	</job>
+	
+	
+	<!--
+	======================================================================
+		◈6. 수송자원 정보
+	======================================================================
+	-->
+	
+	<!-- 수송자원 정보 -->
+	<job id="md_04060_transResourceMaster_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 수송계획 >> 수송자원정보</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>수송자원정보 조회</title>
+		<authority>1</authority>		
+		<description>수송자원정보 조회</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="dc_name_list" datasource="t3sinc"/>
+			<query idref="md_04060_transResourceMaster_list" datasource="t3sinc"/>			
+		</queries>
+	</job>
+	
+	<!--
+	======================================================================
+		◈7. 물류Calendar정보
+	======================================================================
+	-->
+	
+	<!-- 물류Calendar정보 -->
+	<job id="md_04070_trnasCalendar_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 수송계획 >> 수송자원정보</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>물류Calendar정보 조회</title>
+		<authority>1</authority>		
+		<description>물류Calendar정보 조회</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="dc_name_list" datasource="t3sinc"/>
+			<query idref="use_flag_list" datasource="t3sinc"/>
+			<query idref="md_04070_trnasCalendar_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	
+	<!-- 물류Calendar정보 적용유무 저장 -->
+	<job id="md_04070_trnasCalendar_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_04070_trnasCalendar_list_save"/>		
+		<sub_job id="md_04070_trnasCalendar_list"/>
+		<permission_desc>적용유무 수정-저장</permission_desc>
+	</job>
+	<job id="md_04070_trnasCalendar_list_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<!-- 01. 적용유무 그룹 업데이트 -->
+			<query idref="md_04070_trnasCalendar_list_save_01" datasource="t3sinc"/>			
+		</queries>
+	</job>
+	
+	<!--
+	======================================================================
+		◈8. 수송Route 기준정보
+	======================================================================
+	-->
+	
+	<!-- 수송Route 기준정보  -->
+	<job id="md_04080_transRouteCost_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 수송계획 >> 수송Route기준정보</navigation>
+		<toolbars>1000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>수송Route 기준정보 조회</title>
+		<authority>1</authority>		
+		<description>수송Route 기준정보 조회</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="dc_id_and_name_list" datasource="t3sinc"/>
+			<query idref="md_04080_transRouteCost_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 수송Route 기준정보 : 등록 -->
+	<job id="md_04080_transRouteCost_reg" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 수송계획 >> 수송Route기준정보 >> 등록</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>수송Route기준정보 등록</title>
+		<authority>1</authority>		
+		<description>수송Route기준정보 등록</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="dc_id_and_name_list" datasource="t3sinc"/><!-- 입고장 정보 검색 조건 -->
+			<query idref="src_loc_and_name_list" datasource="t3sinc"/> <!-- 출고장 리스트 -->
+		</queries>
+	</job>
+	
+	<!-- 수송Route 기준정보 : 저장 -->
+	<job id="md_04080_transRouteCost_reg_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_04080_transRouteCost_reg_save"/>		
+		<sub_job id="md_04080_transRouteCost_list"/>
+		<permission_desc>수송Route 기준정보-저장</permission_desc>
+	</job>
+	<job id="md_04080_transRouteCost_reg_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="md_04080_transRouteCost_reg_save" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 수송Route 기준정보 : 수정 -->
+	<job id="md_04080_transRouteCost_mod" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 수송계획 >> 수송Route기준정보 >> 수정</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>수송Route 기준정보 수정</title>
+		<authority>1</authority>		
+		<description>수송Route 기준정보 수정</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="md_04080_transRouteCost_mod" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 수송Route 기준정보 : 수정 저장 -->
+	<job id="md_04080_transRouteCost_mod_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_04080_transRouteCost_mod_save"/>		
+		<sub_job id="md_04080_transRouteCost_mod"/>
+		<permission_desc>수송Route 기준정보 수정-저장</permission_desc>
+	</job>
+	<job id="md_04080_transRouteCost_mod_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="md_04080_transRouteCost_mod_save" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!--
+	======================================================================
+		◈9. Route수송 기준정보
+	======================================================================
+	-->
+	
+	<!-- Route 수송 기준정보 : 조회-->
+	<job id="md_04090_routeMultiDrop_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 수송계획 >> Route수송 기준정보</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>Route수송 기준정보</title>
+		<authority>1</authority>		
+		<description>Route수송 기준정보</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="src_loc_and_name_list" datasource="t3sinc"/><!-- 출고장 정보 검색 조건 -->
+			<query idref="dc_id_and_name_list" datasource="t3sinc"/><!-- 입고장 정보 검색 조건 -->
+			<query idref="md_04090_routeMultiDrop_list" datasource="t3sinc"/> 
+		</queries>
+	</job>
+	
+	<!-- Route 수송 기준정보 : 저장 -->
+	<job id="md_04090_routeMultiDrop_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_04090_routeMultiDrop_list_save"/>		
+		<sub_job id="md_04090_routeMultiDrop_list"/>
+		<permission_desc>Route 수송 기준정보-저장</permission_desc>
+	</job>
+	<job id="md_04090_routeMultiDrop_list_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="md_04090_routeMultiDrop_list_save_01" datasource="t3sinc"/> 
+			<query idref="md_04090_routeMultiDrop_list_save_02" datasource="t3sinc"/> 
+		</queries>
+	</job>
+
+	
+	<!--
+	======================================================================
+		◈10. 중계수송거점설정
+	======================================================================
+	-->
+	<!-- 중계수송거점설정 : 조회-->
+	<job id="md_04100_crossDockMst_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 수송계획 >> 중계수송거점설정</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>중계수송거점설정</title>
+		<authority>1</authority>		
+		<description>중계수송거점설정</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="src_loc_and_name_list" datasource="t3sinc"/><!-- 출고장 정보 검색 조건 -->
+			<query idref="dc_id_and_name_list" datasource="t3sinc"/><!-- 입고장 정보 검색 조건 -->
+			<query idref="combo_sales_cat2_list" datasource="t3sinc"/><!-- 품종 중분류 -->
+			<query idref="md_04100_crossDockMst_list_02" datasource="t3sinc"/><!-- 적용할 품목 조회 --> 
+			<query idref="md_04100_crossDockMst_list_01" datasource="t3sinc"/><!-- 적용중인 품목 조회 -->
+		</queries>
+	</job>
+	
+	<!-- 중계수송거점설정 : 저장 -->
+	<job id="md_04100_crossDockMst_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_04100_crossDockMst_list_save"/>		
+		<sub_job id="md_04100_crossDockMst_list"/>
+		<permission_desc>중계수송거점설정-저장</permission_desc>
+	</job>
+	<job id="md_04100_crossDockMst_list_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="md_04100_crossDockMst_list_save_01" datasource="t3sinc"/> 
+			<query idref="md_04100_crossDockMst_list_save_02" datasource="t3sinc"/> 
+			<query idref="md_04100_crossDockMst_list_save_03" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</jobs>	

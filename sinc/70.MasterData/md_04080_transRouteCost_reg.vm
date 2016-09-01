@@ -1,0 +1,155 @@
+############################################################
+## 프로그램ID : md_04080_transRouteCost_reg.vm
+## 프로그램명 : 수송Route 기준정보 (등록)
+## 개발자  : 허준성
+## 개발일자 : 2008-07-28 월요일
+##
+##관련 job file : job_sinc_70_masterData_00.xml
+##
+##관련 query file : query_sinc_70_masterData_00.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2008-07-28  허준성    md_04080_transRouteCost_reg.vm 개발
+##
+##
+############################################################
+
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('100', '138')" )
+
+## 코드 중복 체크를 위해 dwr 선언
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+## 이전 화면으로 이동할 때 조회조건을 기억하기 위한 parameter
+<input type="hidden" name="tgt_loc_sel" value="${tgt_loc_sel}">
+<input type="hidden" name="perpage_pre" value="${perpage_pre}">
+<input type="hidden" name="pagenumber_pre" value="$!{pagenumber_pre}">
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						<input type="button" name="btnBack" value=" 이전화면" onClick="moveBack(); " class="btn1_on">
+						#toolbar_nscm($_moon_toolbar "" "" "md_04080_transRouteCost_reg_save_comp" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	<tr><td height="5"></td></tr>
+	<input name="search_h" type="hidden" value="23"> ## search 조건 부분 높이 
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="tbMain" border="0" width="715" cellpadding="0" cellspacing="0" >
+						<tr>
+							<td> 
+								<div id="topLeft" style="height:35px; width:400px; overflow:hidden; ">
+									<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>
+											<tr height="35px"> 
+												<td width="100px">입고장</td>
+												<td width="100px">출고장</td>
+												<td width="100px">운송비</td>
+												<td width="100px">중복체크</td>
+											</tr> 
+					   					 </thead>
+					   				</table>
+					   			</div>
+							</td>
+						</tr>	
+						
+						<tr>
+							<td valign="top"> 
+								<div id="leftDisplay" style="width:400px; overflow:hidden; ">
+									<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="left_tbody">
+											<tr id="left_tr" height="22px">
+												## 입고장
+        										<td width="100px" align="left" onClick="setEditMode(this); ">
+        											<a id="divTgtLoc"></a><select 
+        												name="tgt_loc" style="width:100%; display:none; " onChange="document.frm.checkDupFlag.value='';"
+        												onFocusOut="setViewMode(this); ">
+            											<option value="">선택</option>
+            										#foreach( $record in $dc_id_and_name_list )
+            											<option value="${record.get(0)}">${record.get(1)}</option>
+        											#end
+        											</select>
+        										</td>
+												## 출고장
+        										<td width="100px" align="left" onClick="setEditMode(this); ">
+        											<a id="divSrcLoc"></a><select 
+        												name="src_loc" style="width:100%; display:none; " onChange="document.frm.checkDupFlag.value='';"
+        												onFocusOut="setViewMode(this);" >
+            											<option value="">선택</option>
+            										#foreach( $record in $src_loc_and_name_list )
+            											<option value="${record.get(0)}">${record.get(1)}</option>
+        											#end
+        											</select>
+        										</td>
+												## 운송비
+        										<td width="100px" align="right" onClick="setEditMode(this); ">
+        											<a id="divBaseBox"></a><input
+        												type="text" name="pallet_cost" class="normal" size="20" onkeypress="filterKey('[0-9]')"
+        												onFocusOut="setViewMode(this); " onDblClick="this.select(); "
+        												style="width:100%; padding-right:5px; display:none; text-align:right; ">
+        										</td>
+												<td width="100px" align="center">
+                            						<input name="btnChkDup" type="button" value="체크" style="width:60px; text-align:center; " onClick="checkDup(); " 
+                            							class="button1_1" onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'">
+                            						## 코드 그룹 중복 체크 확인 FLAG
+                            						## LOGIC : 중복 체크를 하면 cd_grp 와 같은 값을 가짐
+                            						##         cd_grp != checkDupFlag 이면 중복 체크를 안 한 것으로 간주
+                            						<input type="hidden" name="checkDupFlag" value="">
+                            					</td>
+											</tr>
+										</tbody> 
+									</table> 
+								</div> 	
+							</td> 
+						</tr>
+					</table>
+						
+					<input type="hidden" name="_moon_service">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 각 항목을 입력한 후 상단의 저장 버튼을 클릭하여 새로운 데이타를 등록합니다.";
+	helpStr += "<br>◈ 입고장, 출고장을  선택한 후, 반드시 중복체크를 해야 합니다.";
+	helpStr += "<br>◈ 수송Route 기준정보 내에 중복되는 입고장 출고장은 존재할 수 없습니다.";
+	helpStr += "<br>◈ 운송비값은 반드시 숫자로만 입력합니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+</script>

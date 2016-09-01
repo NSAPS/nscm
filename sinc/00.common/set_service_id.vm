@@ -1,0 +1,1 @@
+$session.setAttribute("_user_service", "${user_service}")

@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+	<!-- 
+	=======================
+	  작업장별  TO/PO 조회 - 기준정보
+	=======================
+	-->
+	<!-- 작업장별 TO/PO조회 -->
+	<job id="sc_01070_workCenterTO_PO_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 기준정보 >> 작업장별 T/O, P/O조회</navigation>
+		<toolbars>0100</toolbars><!--(등록/수정/저장/삭제)-->
+		<title>작업장별 T/O, P/O조회</title>
+		<authority>1</authority>		
+		<description>작업장별 T/O, P/O조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="sc_01070_combo_plant" datasource="t3sinc"/>
+			<query idref="sc_01070_combo_line" datasource="t3sinc"/>
+			<query idref="sc_01070_workCenterTO_PO_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	
+	<!-- 
+	=======================
+	  자재 재고 등록 및 조정
+	=======================
+	-->
+	<!-- 자재 재고 등록 및 조정 조회 -->
+	<job id="sc_01110_realStockReg_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 자재 재고 등록 및 조정</navigation>
+		<toolbars>0010</toolbars><!--(등록/수정/저장/삭제)-->
+		<title>자재 재고 등록 및 조정</title>
+		<authority>1</authority>		
+		<description>자재 재고 등록 및 조정</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="sc_01070_combo_plant" datasource="t3sinc"/>
+			<query idref="md_01060_combo_item_type" datasource="t3sinc"/>
+			<query idref="sc_01110_combo_halb_type" datasource="t3sinc"/>
+			<query idref="sc_01110_realStockReg_list" datasource="t3sinc"/>
+		</queries>
+	</job>	
+	<!-- 자재 재고 등록 및 조정 조회 -->
+	<job id="sc_01110_realStockReg_list_new" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 자재 재고 등록 및 조정</navigation>
+		<toolbars>0010</toolbars><!--(등록/수정/저장/삭제)-->
+		<title>자재 재고 등록 및 조정</title>
+		<authority>1</authority>		
+		<description>자재 재고 등록 및 조정</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="sc_01070_combo_plant" datasource="t3sinc"/>
+			<query idref="md_01060_combo_item_type" datasource="t3sinc"/>
+			<query idref="sc_01110_combo_halb_type" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 자재 재고 등록 및 조정 저장 -->
+	<job id="sc_01110_realStockReg_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_01110_realStockReg_save"/>		
+		<sub_job id="sc_01110_realStockReg_list"/>
+		<permission_desc>자재 재고 등록 및 조정 저장</permission_desc>
+	</job>	
+	<job id="sc_01110_realStockReg_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="sc_01110_realStockReg_save" datasource="t3sinc"/>
+			<query idref="sc_01110_realStockReg_save_02" datasource="t3sinc"/>
+			<query idref="sc_01110_realStockReg_save_03" datasource="t3sinc"/>
+		</queries>
+	</job>	
+
+	<!-- 
+	=======================
+		제품별 생산/판매 실적조회 
+	=======================
+	--> 		
+
+	<!-- 제품별 생산/판매 실적조회 -->
+	<job id="sc_20010_ProdSellAnal_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >> 제품별 생산/판매 실적조회</navigation>
+		<toolbars>0000</toolbars><!--(등록/수정/저장/삭제)-->
+		<title>제품별 생산/판매 실적조회</title>
+		<authority>1</authority>		
+		<description>제품별 생산/판매 실적조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="sc_20010_HEADER_DATE" datasource="t3sinc"/>
+			<query idref="sc_20010_ProdSellAnal_list" datasource="t3sinc"/>
+		</queries>
+	</job>	
+
+
+	<!-- 
+	=======================
+		폐기자재 실적현황관리
+	=======================
+	--> 		
+
+	<!-- 폐기자재 실적현황조회 -->
+	<job id="sc_20020_Mat_Scrap_Monthly_Info" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>자재계획 >> 운영정보 >> 폐기자재 실적현황관리</navigation>
+		<toolbars>0000</toolbars><!--(등록/수정/저장/삭제)-->
+		<title>폐기자재 실적현황관리</title>
+		<authority>1</authority>		
+		<description>폐기자재 실적현황관리</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="sc_20010combo_yyyy" datasource="t3sinc"/>
+			<query idref="sc_20010combo_mm" datasource="t3sinc"/>
+			<query idref="sc_20020_Plant_combo" datasource="t3sinc"/>
+			<query idref="sc_20020_Mat_Disuse_Reason_combo" datasource="t3sinc"/>
+			<query idref="sc_20020_Disuse_Dept_combo" datasource="t3sinc"/>
+			<query idref="sc_20020_Mat_Scrap_Monthly_Info" datasource="t3sinc"/>
+		</queries>
+	</job>	
+
+	<!-- 폐기자재 기초데이터 생성 : SP call -->
+	<job id="sc_20020_SP_IP_MAT_SCRAP_MONTHLY_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_20020_SP_IP_MAT_SCRAP_MONTHLY"/>
+		<sub_job id="sc_20020_Mat_Scrap_Monthly_Info"/>
+		<permission_desc>폐기자재 기초데이터 생성</permission_desc>
+	</job>
+	<job id="sc_20020_SP_IP_MAT_SCRAP_MONTHLY" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="sc_20020_SP_IP_MAT_SCRAP_MONTHLY" datasource="t3sinc"/>
+		</queries>
+	</job>	
+
+	<!-- 폐기자재 실적현황정정 조회-->
+	<job id="sc_20020_Mat_Scrap_Monthly_Info_mod" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>자재계획 >> 운영정보 >> 폐기자재 실적현황정정</navigation>
+		<toolbars>0000</toolbars><!--(등록/수정/저장/삭제)-->
+		<title>폐기자재 실적현황정정</title>
+		<authority>1</authority>		
+		<description>폐기자재 실적현황정정</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="sc_20010combo_yyyy" datasource="t3sinc"/>
+			<query idref="sc_20010combo_mm" datasource="t3sinc"/>
+			<query idref="sc_20020_Plant_combo" datasource="t3sinc"/>
+			<query idref="sc_20020_Mat_Disuse_Reason_combo" datasource="t3sinc"/>
+			<query idref="sc_20020_Disuse_Dept_combo" datasource="t3sinc"/>
+			<query idref="sc_20020_Mat_Scrap_Monthly_Info_mod" datasource="t3sinc"/>
+		</queries>
+	</job>	
+
+	<!-- 폐기자재 기초데이터 생성 : SP call -->
+	<job id="sc_20020_Mat_Scrap_Monthly_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_20020_Mat_Scrap_Monthly_save"/>
+		<sub_job id="sc_20020_Mat_Scrap_Monthly_Info_mod"/>
+		<permission_desc>폐기자재 기초데이터 생성</permission_desc>
+	</job>
+	<job id="sc_20020_Mat_Scrap_Monthly_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="sc_20020_Mat_Scrap_Monthly_save" datasource="t3sinc"/>
+		</queries>
+	</job>	
+
+	<!-- 
+	=======================
+		생산계획 요약
+	=======================
+	--> 		
+	<!-- 생산계획 요약-->	
+	<job id="sc_20040_Production_Planning_Summary_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >> 생산계획 요약</navigation>
+		<toolbars>0000</toolbars><!--(등록/수정/저장/삭제)-->
+		<title>생산계획 요약</title>
+		<authority>1</authority>		
+		<description>생산계획 요약</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="md_01060_combo_multi" datasource="t3sinc"/>
+			<query idref="ip_02020_combo_search_type" datasource="t3sinc"/>
+			<query idref="sc_20040_Production_Planning_Summary_list_header" datasource="t3sinc"/>
+			<query idref="sc_20040_Production_Planning_Summary_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 생산계획 요약 자재전용 -->	
+	<job id="sc_20040_Production_Planning_Summary_list_harb" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>자재계획 >> 운영정보 >> 생산계획 요약</navigation>
+		<toolbars>0000</toolbars><!--(등록/수정/저장/삭제)-->
+		<title>생산계획 요약</title>
+		<authority>1</authority>		
+		<description>생산계획 요약</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="md_01060_combo_multi" datasource="t3sinc"/>
+			<query idref="ip_02020_combo_search_type" datasource="t3sinc"/>
+			<query idref="sc_20040_Production_Planning_Summary_list_header" datasource="t3sinc"/>
+			<query idref="sc_20040_Production_Planning_Summary_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+
+	<!-- 
+	=======================
+	생산계획 변경 Time Fence 준수율 분석 
+	=======================
+	--> 	
+	<!-- 생산계획 변경 Time Fence 준수율 분석-->
+	<job id="sc_01130_ProductionPlanChange_TimeFance_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >> 생산계획 변경 Time Fence 준수율 분석</navigation>
+		<toolbars>0000</toolbars><!--(등록/수정/저장/삭제)-->
+		<title>생산계획 변경 Time Fence 준수율 분석</title>
+		<authority>1</authority>		
+		<description>생산계획 변경 Time Fence 준수율 분석</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="sc_01130_ProductionPlanChange_TimeFance_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+sc_13020_set_prod_mst	
+	
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+
+
+</jobs>	

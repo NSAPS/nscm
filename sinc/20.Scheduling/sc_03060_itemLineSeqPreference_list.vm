@@ -1,0 +1,253 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize2('122', '167')" )      
+  
+## 공장, 원가부문, 라인을 저장하기 위한 변수
+<input type="hidden" name="stored_plant" value="$!{selected_plant}"> 
+<input type="hidden" name="stored_won" value="$!{selected_won}">
+<input type="hidden" name="stored_line" value="$!{selected_line}">
+
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">						
+						#button("search")
+						##<input type="button" name="btnCreate" value=" 생성" onClick="GoCreate('sc_01050_shiftOperationCalendar_list')" class="btn1_on">
+						#toolbar_nscm($_moon_toolbar "" "" "sc_03060_itemLineSeqPreference_list_save_comp" "sc_03060_itemLineSeqPreference_list_del_comp")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; ">
+            				<tr id="search_menu" style="display:block; ">
+            					<td width="10%" align="right">공장 :</td> 
+            					<td width="15%" align="left"> 
+									<select name="selected_plant" style="width:145px; " onChange="doChangePlant(this); ")> 
+										<option value="">선택</option>
+									#foreach( $condition in $combo_plant_list )  
+										<option value="$condition.get(0)" #if($!{selected_plant} == "$condition.get(0)") selected #else #end >$condition.get(1)</option>											
+									#end 
+   									</select> 
+            					</td> 
+								<td width="12%" align="right">원가부문 :</td>  
+            					<td width="15%" align="left">
+									<a id="divSelectedWon">
+    									<select name="selected_won" style="width:100px; "> 
+    										<option value="">전체</option> 
+                						</select>  
+									</a>
+            					</td>  
+            					<td width="13%" align="right">라인 :</td> 
+								<td width="35%">  																	    
+            						<a id="divSelectedLine">
+    									<select name="selected_line" style="width:120px; "> 
+    										<option value="">전체</option> 
+                						</select>  
+									</a>
+            					</td>
+            				</tr> 
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="22"> ## search 조건 부분 높이  
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							##<td>#page_info2()</td>
+							<td>#page_info()</td>
+                            <td align="right">#table_display()</td>
+						</tr>
+					</table>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+								
+					<table id="tbMain" border="0" width="715" cellpadding="0" cellspacing="0" >
+						<tr>							
+							<td> 
+								<div id="topLine" style="height:45px; width:626px;overflow:hidden;">
+									<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>	
+											<tr height="45px">
+												<td width="5%">번호</td>
+												<td width="11%">공장</td>
+												<td width="11%">원가부문</td> 
+												<td width="6%">라인<br>코드</td>
+												<td width="17%">라인 명</td>  
+												<td width="9%">제품 코드</td>
+												<td width="24%">제품 명</td>
+												<td width="9%">규격</td>												
+												<td width="8%" class="right">우선순위</td>
+											</tr>
+					   					 </thead>
+					   				</table>
+					   			</div>
+							</td>
+						</tr>	
+						
+						<tr>							  
+							<td valign="top"> 
+								<div id="mainDisplay" class="ns_scroll" style="border:0; width:645px; overflow-y:scroll; ">
+									<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="main_tbody">	
+										#foreach( $tr in $sc_03060_itemLineSeqPreference_list )
+											<tr id="main_tr" height="22px" onMouseOver="bgOver2(this); " onMouseOut="bgOut2(this); ">
+    											## 번호
+                								<td width="5%" align="center" style="background-color:${search_bgcolor}; ">
+                									<a id="divRowNo">$velocityCount</a>
+                								</td>
+												## 공장
+        										<td width="11%" align="center" >
+        											<a id="divPlantName">$tr.get(0)</a><input
+        												type="text" name="plant_name" class="normal" value="$tr.get(0)"												
+        												style="width:100%; display:none; "> 											
+        										</td>
+    											## 원가부문
+        										<td width="11%" align="left" >
+        											<a id="divWonName">&nbsp;$tr.get(1)</a><input
+        												type="text" name="won_name" class="normal" value="$tr.get(1)"												
+        												style="width:100%; display:none; "> 											
+        										</td> 
+    											## 라인 코드
+        										<td width="6%" align="center" >
+        											<a id="divLineId">$tr.get(2)</a><input
+        												type="text" name="line_id" class="normal" value="$tr.get(2)"												
+        												style="width:100%; display:none; "> 											
+        										</td>
+    											## 라인 명
+        										<td width="17%" align="left" >
+        											<a id="divLineName">&nbsp;$tr.get(3)</a><input
+        												type="text" name="line_name" class="normal" value="$tr.get(3)"												
+        												style="width:100%; display:none; "> 											
+        										</td>
+    											## 제품 코드
+        										<td width="9%" align="center" >
+        											<a id="divItemId">$tr.get(4)</a><input
+        												type="text" name="item_id" class="normal" value="$tr.get(4)"				 								
+        												style="width:100%; display:none; "> 											
+        										</td>
+												## 제품 명  
+        										<td width="24%" align="left" >
+        											<a id="divItemName">&nbsp;$tr.get(5)</a><input
+        												type="text" name="item_name" class="normal" value="$tr.get(4)"				 								
+        												style="width:100%; display:none; ">										 										
+        										</td>
+												## 규격 
+        										<td width="9%" align="center" >
+        											<a id="divItemSpec">$tr.get(6)</a><input
+        												type="text" name="item_spec" class="normal" value="$tr.get(4)"				 								
+        												style="width:100%; display:none; ">
+        										</td>
+												## 우선순위
+        										<td width="8%" align="center" class="right" onClick="setEditMode(this); ">
+        											<a id="divPriority">$tr.get(7)</a><input 
+												type="text" name="priority" class="normal" size="3" value="$tr.get(7)"
+												onKeyDown="moveNextBox(this); " onFocusOut="setViewMode(this); " tabindex="1"
+												style="width:100%; padding-left:5px; display:none; text-align:center; " onDblClick="this.select(); ">
+        										</td>
+											</tr>
+										#end
+										</tbody>
+									</table>
+								</div>
+							</td>
+						</tr>
+					</table>
+					
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()	
+					
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+    					$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+    					<input type="hidden" name="_moon_service" value="${_moon_service}">
+    					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+    					##<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+    					## 번호 배경색
+    					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+					</td></tr></table>				
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script> 
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 공장을 반드시 선택하고 조회해야 합니다.";
+	helpStr += "<br>◈ 각 항목을 선택 후 상단의 조회 버튼을 클릭하여 생산라인-품목 투입 우선순위 관리 항목을 조회 합니다.";
+	helpStr += "<br>◈ 우선순위 항목을 입력  후 상단의 저장 버튼을 클릭하여 생산라인-품목 투입 우선순위를 저장합니다.";
+	helpStr += "<br>◈ 우선순위는 라인에 대해서 선택적으로 입력이 가능합니다.";
+	helpStr += "<br>◈ 상단의 삭제 버튼을 클릭하면 화면에 표시된 항목들의 우선순위가 삭제 됩니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;	
+	
+	// combo box:공장 선택시원가부문 리스트 채움
+	function doChangePlant(obj){
+		var div_won = "<select name=\"selected_won\" style=\"width:100px; \" onChange=\"doChangeWon(this); \">";
+		div_won += "<option value=\"\">전체</option>";		
+	#foreach( $condition in $combo_won_list )
+		if( obj.value == "$condition.get(0)"){
+			div_won += "<option value=\"$condition.get(1)\" ";
+				if("$condition.get(1)" == "$!{selected_won}")
+					div_won += " selected ";
+			div_won += ">$condition.get(2)</option>";
+		}
+	#end
+		div_won += "</select>";
+		divSelectedWon.innerHTML = div_won;			
+	}
+	doChangePlant(document.frm.selected_plant);
+	
+	// combo box:원가부문 선택시 라인 리스트 채움
+	function doChangeWon(obj){
+		var plant_id = document.frm.selected_plant.value;
+		var div_line = "<select name=\"selected_line\" style=\"width:120px; \" >";
+		div_line += "<option value=\"\">전체</option>";		
+	#foreach( $condition in $combo_line_list )
+		if( plant_id == "$condition.get(0)" && obj.value == "$condition.get(1)" ){
+			div_line += "<option value=\"$condition.get(2)\" ";
+				if("$condition.get(2)" == "$!{selected_line}")
+					div_line += " selected ";
+			div_line += ">$condition.get(3)</option>";
+		}
+	#end
+		div_line += "</select>";
+		divSelectedLine.innerHTML = div_line;			
+	}
+	doChangeWon(document.frm.selected_won);
+	
+</script>

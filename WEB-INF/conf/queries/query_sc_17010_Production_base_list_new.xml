@@ -1,0 +1,928 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>
+
+	<!-- 
+	===============================
+		생산의뢰 기초자료
+	===============================
+	-->
+
+	<!-- 생산의뢰 기초자료 header -->
+	<query id="sc_17010_W1_DAY">
+
+        SELECT  TO_CHAR(TRUNC(TO_DATE( NVL('$!{cnfm_date}',TRUNC(SYSDATE)) )+7,'D')+1,'MM-DD')	"차주초 예상재고", ''
+        --SELECT  TO_CHAR(TRUNC(TO_DATE( NVL('$!{cnfm_date}',TRUNC(SYSDATE)) )+7,'D')+1,'MM-DD')||'일 예상재고' "차주초 예상재고", ''
+        FROM    DUAL
+        		
+	</query>
+
+
+	<!-- 생산의뢰 기초자료 header -->
+	<query id="sc_17010_GET_PLANT_ALLOC_VERSION">
+		-- sc_17010_GET_PLANT_ALLOC_VERSION
+		SELECT  DISTINCT VERSION, ''
+		FROM    PLANT_ALLOC_PLAN 
+		WHERE   VERSION LIKE TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}'),'D')+2,'YYYYMMDD')||'%'
+		AND     SEQ = '2'
+		
+	</query> 
+
+
+	<!-- 생산의뢰 기초자료 header -->
+	<query id="sc_17010_ColHeader_new">
+
+		SELECT  '제품코드',
+		        '제품명',
+		        '기초재고',
+		        '당주생산계획',
+		        '수요예측',
+		        --'판매계획',
+		        '공급계획',
+		        TO_CHAR(TRUNC(TO_DATE('2010-11-16')+7,'D')+1,'MM-DD')||'일 예상재고' "차주초 예상재고",
+		        '수요예측대비 판매계획비율',
+		        '주초구분',
+		        '사용자예측',
+		        '생산계획',
+		        '수요예측',
+		        '판매계획',
+		        '공급계획',
+		        TO_CHAR(TRUNC(TO_DATE('2010-11-16')+14,'D')+1,'MM-DD')||'일 예상재고' "예상재고",
+		        TO_CHAR(TRUNC(TO_DATE('2010-11-16')+14,'D')+1,'MM-DD')||'일 예상재고' "기준재고",
+		        '기준일수',
+		        '3주평균판매',
+		        '1주평균판매',
+		        '수요예측',
+		        TO_CHAR(TRUNC(TO_DATE('2010-11-16')+14,'D')+1,'MM-DD')||'일주 판매계획' "판매계획",
+		        '공급계획',
+		        '수요예측대비 판매계획비율',
+		        '생산계획',
+		        TO_CHAR(TRUNC(TO_DATE('2010-11-16')+21,'D')+1,'MM-DD')||'일 예상재고' "예상재고",
+		        TO_CHAR(TRUNC(TO_DATE('2010-11-16')+21,'D')+1,'MM-DD')||'일 예상재고' "기준재고"
+		FROM    DUAL
+		
+	</query>
+	
+	<!-- 생산의뢰 기초자료 조회 -->
+	<query id="sc_17010_Production_base_list_new">
+        -- 생산의뢰 기초자료 조회
+        SELECT  K1.ITEM_ID,
+                K2.ITEM_NAME,
+                SUM(BASE_STOCK)     				"기초재고",
+                SUM(PRD_QTY)        				"당주생산계획",
+                ROUND(SUM(SALES_MEAN_13WEEK)*5)		"수요예측",
+                --SUM(PLAN_W0) 						"당주판매계획",
+                CASE 
+                    WHEN ROUND(SUM(SALES_MEAN_13WEEK)*5) >= SUM(PLAN_W0)    
+                    THEN ROUND(SUM(SALES_MEAN_13WEEK)*5)
+                    ELSE SUM(PLAN_W0)
+                END 								"공급계획",
+                SUM(BASE_STOCK)+SUM(PRD_QTY)-
+                CASE
+                    WHEN ROUND(SUM(SALES_MEAN_13WEEK)*5) >= SUM(PLAN_W0)    
+                    THEN ROUND(SUM(SALES_MEAN_13WEEK)*5)
+                    ELSE SUM(PLAN_W0)   
+                END									"차주주초예상재고", 
+                DECODE(SUM(SALES_MEAN_13WEEK), 0, 0,
+                ROUND(SUM(PLAN_W0)/
+                ROUND(SUM(SALES_MEAN_13WEEK)*5),2)) "예측대비계획비율",
+                
+                MAX(K4.WEEK_GUBN_NAME)					"주초구분",
+                MAX(K4.FRC_QTY) 						"사용자예측",
+                -----------------------------------------------------------------
+                DECODE(K3.W1_LST_PRODQTY, NULL, 
+                CASE
+                    WHEN ROUND(SUM(SALES_MEAN_13WEEK)*5) >= SUM(PLAN_W1)    
+                    THEN ROUND(SUM(SALES_MEAN_13WEEK)*5)
+                    ELSE SUM(PLAN_W1)   
+                END +
+                ROUND(SUM(SALES_MEAN_13WEEK)*MAX(K2.BASE_DAY)) -                  
+                (
+                SUM(BASE_STOCK)+SUM(PRD_QTY)-
+                CASE
+                    WHEN ROUND(SUM(SALES_MEAN_13WEEK)*5) >= SUM(PLAN_W0)    
+                    THEN ROUND(SUM(SALES_MEAN_13WEEK)*5)
+                    ELSE SUM(PLAN_W0)   
+                END                
+                ), NVL(K3.W1_LST_PRODQTY,0))                  "생산계획",
+                -----------------------------------------------------------------
+                ROUND(SUM(SALES_MEAN_13WEEK)*5)     "차주수요예측",
+                SUM(PLAN_W1) 						"차주판매계획",
+                CASE
+                    WHEN ROUND(SUM(SALES_MEAN_13WEEK)*5) >= SUM(PLAN_W1)    
+                    THEN ROUND(SUM(SALES_MEAN_13WEEK)*5)
+                    ELSE SUM(PLAN_W1)   
+                END 								"공급계획",
+                -------------------------------"W+2 주 예상재고"-------------------
+                (SUM(BASE_STOCK)+SUM(PRD_QTY)-
+                CASE
+                    WHEN ROUND(SUM(SALES_MEAN_13WEEK)*5) >= SUM(PLAN_W0)    
+                    THEN ROUND(SUM(SALES_MEAN_13WEEK)*5)
+                    ELSE SUM(PLAN_W0)   
+                END)                                   --- "차주주초예상재고",
+                +        
+                (DECODE(K3.W1_LST_PRODQTY, NULL,  
+                    (CASE
+                        WHEN ROUND(SUM(SALES_MEAN_13WEEK)*5) >= SUM(PLAN_W1)    
+                        THEN ROUND(SUM(SALES_MEAN_13WEEK)*5)
+                        ELSE SUM(PLAN_W1)   
+                    END) 
+                +
+                    (ROUND(SUM(SALES_MEAN_13WEEK)*MAX(K2.BASE_DAY))) -                  
+                    (SUM(BASE_STOCK)+SUM(PRD_QTY)-
+                    CASE
+                        WHEN ROUND(SUM(SALES_MEAN_13WEEK)*5) >= SUM(PLAN_W0)    
+                        THEN ROUND(SUM(SALES_MEAN_13WEEK)*5)
+                        ELSE SUM(PLAN_W0)   
+                    END                
+                ),NVL(K3.W1_LST_PRODQTY,0)))                  --"생산계획",                
+                -
+                    CASE
+                        WHEN ROUND(SUM(SALES_MEAN_13WEEK)*5) >= SUM(PLAN_W1)    
+                        THEN ROUND(SUM(SALES_MEAN_13WEEK)*5)
+                        ELSE SUM(PLAN_W1)   
+                    END        "W+2 주 예상재고", --차주주초예상재고+생산계획-공급계획                
+		        -----------------------------------------------------------------
+		        --ROUND(SUM(SALES_MEAN_13WEEK)*MAX(K2.BASE_DAY)) "W+2 주 예상재고", --차주주초예상재고+생산계획-공급계획
+		        ROUND(SUM(SALES_MEAN_13WEEK)*MAX(K2.BASE_DAY)) "W+2 주 기준재고", --( 1,3주평균/2)* 기준일수                
+                MAX(K2.BASE_DAY) 					"기준일수",
+                SUM(SALES_MEAN_3WEEK)   			"3주평균판매",
+                SUM(SALES_MEAN_1WEEK)   			"1주평균판매",
+                ROUND(SUM(SALES_MEAN_13WEEK)*5)     "수요예측",
+                SUM(PLAN_W2) 						"차차차주판매계획",                                
+                ----------------------------------------------------------------                
+                CASE 
+                    WHEN ROUND(SUM(SALES_MEAN_13WEEK)*5) >= SUM(PLAN_W2)    
+                    THEN ROUND(SUM(SALES_MEAN_13WEEK)*5)
+                    ELSE SUM(PLAN_W2)   
+                END     							"공급계획",
+                DECODE(SUM(SALES_MEAN_13WEEK),0, 0,
+                ROUND(SUM(PLAN_W2)/
+                ROUND(SUM(SALES_MEAN_13WEEK)*5),2)) "예측대비계획비율",
+		        ---------------------------"W+2 생산계획"-------------------------
+		        DECODE(K3.W2_LST_PRODQTY, NULL, 
+		        --차주생산필요량 = 공급계획량+차차주 기준재고- 차주주초예상재고 
+		        ((
+		            CASE 
+		                WHEN ROUND(SUM(SALES_MEAN_13WEEK)*5) >= SUM(PLAN_W2)    
+		                THEN ROUND(SUM(SALES_MEAN_13WEEK)*5)
+		                ELSE SUM(PLAN_W2)   
+		            END        --  "공급계획",
+		        )
+		        +
+		        (
+		            ROUND(SUM(SALES_MEAN_13WEEK)*MAX(K2.BASE_DAY))   --"W+2 주 기준재고"
+		        )
+		        -
+		        (
+		            SUM(BASE_STOCK)+SUM(PRD_QTY)-
+		            CASE
+		                WHEN ROUND(SUM(SALES_MEAN_13WEEK)*5) >= SUM(PLAN_W0)    
+		                THEN ROUND(SUM(SALES_MEAN_13WEEK)*5)
+		                ELSE SUM(PLAN_W0)   
+		            END                                   --- "차주주초예상재고",
+		            +        
+		            DECODE((K3.W1_LST_PRODQTY), NULL, 
+		            CASE
+		                WHEN ROUND(SUM(SALES_MEAN_13WEEK)*5) >= SUM(PLAN_W1)    
+		                THEN ROUND(SUM(SALES_MEAN_13WEEK)*5)
+		                ELSE SUM(PLAN_W1)   
+		            END +
+		            ROUND(SUM(SALES_MEAN_13WEEK)*MAX(K2.BASE_DAY)) -                  
+		            (
+		            SUM(BASE_STOCK)+SUM(PRD_QTY)-
+		            CASE
+		                WHEN ROUND(SUM(SALES_MEAN_13WEEK)*5) >= SUM(PLAN_W0)    
+		                THEN ROUND(SUM(SALES_MEAN_13WEEK)*5)
+		                ELSE SUM(PLAN_W0)   
+		            END                
+		            ), (NVL(K3.W1_LST_PRODQTY,0)))                  ---"생산계획",
+		            -
+		            CASE
+		                WHEN ROUND(SUM(SALES_MEAN_13WEEK)*5) >= SUM(PLAN_W1)    
+		                THEN ROUND(SUM(SALES_MEAN_13WEEK)*5)
+		                ELSE SUM(PLAN_W1)   
+		            END       -- "W+2 주 예상재고"        
+		            ))
+		        , K3.W2_LST_PRODQTY)         "생산계획",
+		        ------------------------------"W+3 주 예상재고"-------------------
+		            (
+		            -------------------------------"W+2 주 예상재고"-------------------
+		            SUM(BASE_STOCK)+SUM(PRD_QTY)-
+		            CASE
+		                WHEN ROUND(SUM(SALES_MEAN_13WEEK)*5) >= SUM(PLAN_W0)    
+		                THEN ROUND(SUM(SALES_MEAN_13WEEK)*5)
+		                ELSE SUM(PLAN_W0)   
+		            END                                   --- "차주주초예상재고",
+		            +        
+		            DECODE((K3.W1_LST_PRODQTY), NULL, 
+		            CASE
+		                WHEN ROUND(SUM(SALES_MEAN_13WEEK)*5) >= SUM(PLAN_W1)    
+		                THEN ROUND(SUM(SALES_MEAN_13WEEK)*5)
+		                ELSE SUM(PLAN_W1)   
+		            END +
+		            ROUND(SUM(SALES_MEAN_13WEEK)*MAX(K2.BASE_DAY)) -                  
+		            (
+		            SUM(BASE_STOCK)+SUM(PRD_QTY)-
+		            CASE
+		                WHEN ROUND(SUM(SALES_MEAN_13WEEK)*5) >= SUM(PLAN_W0)    
+		                THEN ROUND(SUM(SALES_MEAN_13WEEK)*5)
+		                ELSE SUM(PLAN_W0)   
+		            END                
+		            ), (NVL(K3.W1_LST_PRODQTY,0)))                  ---"생산계획",
+		            -
+		            CASE
+		                WHEN ROUND(SUM(SALES_MEAN_13WEEK)*5) >= SUM(PLAN_W1)    
+		                THEN ROUND(SUM(SALES_MEAN_13WEEK)*5)
+		                ELSE SUM(PLAN_W1)   
+		            END       -- "W+2 주 예상재고", --차주주초예상재고+생산계획-공급계획        
+		        )
+		        +
+		        (
+		            ---------------------------"W+2 생산계획"-------------------------
+		            DECODE(K3.W2_LST_PRODQTY, NULL, 
+		            --차주생산필요량 = 공급계획량+차차주 기준재고- 차주주초예상재고 
+		            (
+		                CASE 
+		                    WHEN ROUND(SUM(SALES_MEAN_13WEEK)*5) >= SUM(PLAN_W2)    
+		                    THEN ROUND(SUM(SALES_MEAN_13WEEK)*5)
+		                    ELSE SUM(PLAN_W2)   
+		                END        --  "공급계획",
+		            )
+		            +
+		            (
+		                ROUND(SUM(SALES_MEAN_13WEEK)*MAX(K2.BASE_DAY))   --"W+2 주 기준재고"
+		            )
+		            -
+		                (
+		                SUM(BASE_STOCK)+SUM(PRD_QTY)-
+		                CASE
+		                    WHEN ROUND(SUM(SALES_MEAN_13WEEK)*5) >= SUM(PLAN_W0)    
+		                    THEN ROUND(SUM(SALES_MEAN_13WEEK)*5)
+		                    ELSE SUM(PLAN_W0)   
+		                END                                   --- "차주주초예상재고",
+		                +        
+		                DECODE((K3.W1_LST_PRODQTY), NULL, 
+		                CASE
+		                    WHEN ROUND(SUM(SALES_MEAN_13WEEK)*5) >= SUM(PLAN_W1)    
+		                    THEN ROUND(SUM(SALES_MEAN_13WEEK)*5)
+		                    ELSE SUM(PLAN_W1)   
+		                END +
+		                ROUND(SUM(SALES_MEAN_13WEEK)*MAX(K2.BASE_DAY)) -                  
+		                (
+		                SUM(BASE_STOCK)+SUM(PRD_QTY)-
+		                CASE
+		                    WHEN ROUND(SUM(SALES_MEAN_13WEEK)*5) >= SUM(PLAN_W0)    
+		                    THEN ROUND(SUM(SALES_MEAN_13WEEK)*5)
+		                    ELSE SUM(PLAN_W0)   
+		                END                
+		                ), (NVL(K3.W1_LST_PRODQTY,0)))                  ---"생산계획",
+		                -
+		                CASE
+		                    WHEN ROUND(SUM(SALES_MEAN_13WEEK)*5) >= SUM(PLAN_W1)    
+		                    THEN ROUND(SUM(SALES_MEAN_13WEEK)*5)
+		                    ELSE SUM(PLAN_W1)   
+		                END       -- "W+2 주 예상재고"        
+		            )
+		            , K3.W2_LST_PRODQTY)    --    "생산계획",        
+		            )
+		        -
+		        (
+		            CASE 
+		                WHEN ROUND(SUM(SALES_MEAN_13WEEK)*5) >= SUM(PLAN_W2)    
+		                THEN ROUND(SUM(SALES_MEAN_13WEEK)*5)
+		                ELSE SUM(PLAN_W2)   
+		            END                              --   "공급계획",        
+		        )
+		         "W+3 주 예상재고",
+                ROUND(SUM(SALES_MEAN_13WEEK)*MAX(K2.BASE_DAY)) "W+3 주 기준재고",
+                DECODE(NVL(K3.W1_LST_PRODQTY,0), NULL, 'NULL', 'Y')	DATA_FALG
+        FROM    (
+                SELECT    ITEM_ID,
+                        0                        QM3,
+                        0                        QM2,
+                        0                        QM1,
+                        0                        QM0,
+                        0                        QM0_1,
+                        SUM(QTY)            BASE_STOCK,
+                        0    ISSUE,
+                        0    SALES_MEAN_3WEEK,
+                        0    SALES_MEAN_1WEEK,
+                        0    SALES_MEAN_13WEEK,
+                        0    PRD_QTY,
+                        0    PLAN_W0,
+                        0    PLAN_W1, 
+                        0    PLAN_W2,
+                        0        REQT_BOX  
+                FROM    WMS_STOCK
+                WHERE    IF_DTTM = '$!{cnfm_date}'
+		        --  수출창고들 삭제 20090714  이승용 요청
+		        AND     LOC_ID        NOT IN ('8901','8902','8903','8913','8914')                
+                GROUP
+                BY        ITEM_ID    
+                UNION    ALL    
+                SELECT    ITEM_ID,
+                        0                        QM3,
+                        0                        QM2,
+                        0                        QM1,
+                        0                        QM0,
+                        0                        QM0_1,
+                        0                        BASE_STOCK,
+                        SUM(ISSUE+ISSUE_EXPT)    ISSUE,
+                        SUM(SALES_MEAN_3WEEK)    SALES_MEAN_3WEEK,
+                        SUM(SALES_MEAN_1WEEK)    SALES_MEAN_1WEEK,
+                        DECODE(SUM(SALES_MEAN_1WEEK)+SUM(SALES_MEAN_3WEEK), 0, 0,
+                        ROUND((SUM(SALES_MEAN_1WEEK)+SUM(SALES_MEAN_3WEEK))/2)) SALES_MEAN_13WEEK, 
+                        0    PRD_QTY,
+                        0    PLAN_W0,
+                        0    PLAN_W1,
+                        0    PLAN_W2, 
+                        0        REQT_BOX  
+                FROM    DC_DATAWAREHOUSE
+                WHERE    CNFM_DATE    = REPLACE('$!{cnfm_date}','-','')
+                GROUP
+                BY        ITEM_ID
+                UNION    ALL
+                /*  */
+                SELECT    T1.ITEM_ID,
+                        0                        QM3,
+                        0                        QM2,
+                        0                        QM1,
+                        0                        QM0,
+                        0                        QM0_1,
+                        0                        BASE_STOCK,
+                        0                        ISSUE,
+                        0                        SALES_MEAN_3WEEK,
+                        0                        SALES_MEAN_1WEEK,
+                        0    SALES_MEAN_13WEEK,
+                        SUM(PO_QTY)                PRD_QTY,
+                        0    PLAN_W0,
+                        0    PLAN_W1, 
+                        0    PLAN_W2,
+                        0    REQT_BOX                  
+                FROM    (
+                        SELECT  PLAN_DATE    CNFM_DATE,
+                                T1.PLANT,
+                                T2.ITEM_ID,
+                                SUM(PLAN_QTY)    PO_QTY
+                        FROM    (
+                                SELECT  PLANT,
+                                        CASE
+	                                        WHEN PTO_TIME &lt; '060000' THEN TO_CHAR(TO_DATE(PTO_DATE)-1,'YYYYMMDD')
+	                                        ELSE PTO_DATE    
+                                        END            PLAN_DATE,
+                                        MATR_CODE,
+                                        PLAN_QTY    PLAN_QTY
+                                FROM    PP20T110
+                                WHERE   PTO_DATE    BETWEEN REPLACE('$!{cnfm_date}','-','') AND    TO_CHAR(TO_DATE(REPLACE('$!{cnfm_date}','-',''))+6,'YYYYMMDD')
+                                AND     ORDER_STAT    NOT IN ('TECO','DLT','DLFL')
+                                )           T1,
+                                ITEM_MST    T2
+                        WHERE   T1.MATR_CODE    = T2.ITEM_ID
+                        AND     T1.PLAN_DATE    BETWEEN REPLACE('$!{cnfm_date}','-','') AND    TO_CHAR(TO_DATE(REPLACE('$!{cnfm_date}','-',''))+6,'YYYYMMDD')
+                        AND     T2.ITYPE        = 'FERT'
+                        GROUP
+                        BY        PLAN_DATE,
+                                T1.PLANT,
+                                T2.ITEM_ID        
+                        )            T1,
+                        ITEM_MST    T2
+                WHERE    T1.ITEM_ID        = T2.ITEM_ID
+                AND        T1.CNFM_DATE    >= REPLACE('$!{cnfm_date}','-','')
+                GROUP
+                BY        T1.ITEM_ID
+                UNION    ALL
+                SELECT    T1.ITEM_ID,
+                        0                        QM3,
+                        0                        QM2,
+                        0                        QM1,
+                        0                        QM0,
+                        0                        QM0_1,
+                        0                        BASE_STOCK,
+                        0                        ISSUE,
+                        0                        SALES_MEAN_3WEEK,
+                        0                        SALES_MEAN_1WEEK,
+                        0    SALES_MEAN_13WEEK,
+                        0                        PRD_QTY,
+                        NVL(SUM(NORMAL_QTY + PROM_QTY + SUPT_QTY + SAMP_QTY),0)    PLAN_W0,
+                        0                        PLAN_W1,
+                        0                        PLAN_W2,
+                        0        REQT_BOX
+                FROM    NFOS_SALES_PLAN_WEEKLY        T1,
+                        ITEM_MST                    T2,
+                        (
+                        SELECT    *
+                        FROM    V_NFOS_PLAN_VERSION
+                        WHERE    YYYYMMDD    BETWEEN REPLACE('$!{cnfm_date}','-','') AND TO_DATE(REPLACE('$!{cnfm_date}','-',''))+5
+                        )                            T3
+                WHERE    T1.YYYYMMDD BETWEEN REPLACE('$!{cnfm_date}','-','') AND TO_DATE(REPLACE('$!{cnfm_date}','-',''))+5
+                AND        T1.ITEM_ID    = T2.ITEM_ID
+                AND        T2.ITYPE    = 'FERT'
+                AND        T1.YYYY        = T3.YYYY
+                AND        T1.VERSION    = T3.VERSION
+                AND        T1.YYYYMMDD    = T3.YYYYMMDD
+                GROUP
+                BY        T1.ITEM_ID
+                UNION ALL
+                SELECT    T1.ITEM_ID,
+                        0                        QM3,
+                        0                        QM2,
+                        0                        QM1,
+                        0                        QM0,
+                        0                        QM0_1,
+                        0                        BASE_STOCK,
+                        0                        ISSUE,
+                        0                        SALES_MEAN_3WEEK,
+                        0                        SALES_MEAN_1WEEK,
+                        0    SALES_MEAN_13WEEK,
+                        0                        PRD_QTY,
+                        0                        PLAN_W0,
+                        NVL(SUM(NORMAL_QTY + PROM_QTY + SUPT_QTY + SAMP_QTY),0)    PLAN_W1,
+                        0                        PLAN_W2,
+                        0        REQT_BOX
+                FROM    NFOS_SALES_PLAN_WEEKLY        T1,
+                        ITEM_MST                    T2,
+                        (
+                        SELECT    *
+                        FROM    V_NFOS_PLAN_VERSION
+                        WHERE    YYYYMMDD    BETWEEN REPLACE('$!{cnfm_date}','-','')+6 AND TO_DATE(REPLACE('$!{cnfm_date}','-',''))+13
+                        )                            T3
+                WHERE    T1.YYYYMMDD BETWEEN REPLACE('$!{cnfm_date}','-','')+6 AND TO_DATE(REPLACE('$!{cnfm_date}','-',''))+13
+                AND        T1.ITEM_ID    = T2.ITEM_ID
+                AND        T2.ITYPE    = 'FERT'
+                AND        T1.YYYY        = T3.YYYY
+                AND        T1.VERSION    = T3.VERSION
+                AND        T1.YYYYMMDD    = T3.YYYYMMDD
+                GROUP
+                BY        T1.ITEM_ID
+                UNION ALL
+                SELECT    T1.ITEM_ID,
+                        0                        QM3,
+                        0                        QM2,
+                        0                        QM1,
+                        0                        QM0,
+                        0                           QM0_1,
+                        0                           BASE_STOCK,
+                        0                           ISSUE,
+                        0                           SALES_MEAN_3WEEK,
+                        0                           SALES_MEAN_1WEEK,
+                        0                           SALES_MEAN_13WEEK,
+                        0                           PRD_QTY,
+                        0                           PLAN_W0,
+                        0                           PLAN_W1,
+                        NVL(SUM(NORMAL_QTY + PROM_QTY + SUPT_QTY + SAMP_QTY),0)    PLAN_W12,
+                        0        REQT_BOX
+                FROM    NFOS_SALES_PLAN_WEEKLY        T1,
+                        ITEM_MST                    T2,
+                        (
+                        SELECT    *
+                        FROM    V_NFOS_PLAN_VERSION
+                        WHERE    YYYYMMDD    BETWEEN REPLACE('$!{cnfm_date}','-','')+14 AND TO_DATE(REPLACE('$!{cnfm_date}','-',''))+21
+                        )                            T3
+                WHERE    T1.YYYYMMDD BETWEEN REPLACE('$!{cnfm_date}','-','')+14 AND TO_DATE(REPLACE('$!{cnfm_date}','-',''))+21
+                AND        T1.ITEM_ID    = T2.ITEM_ID
+                AND        T2.ITYPE    = 'FERT'
+                AND        T1.YYYY        = T3.YYYY
+                AND        T1.VERSION    = T3.VERSION
+                AND        T1.YYYYMMDD    = T3.YYYYMMDD
+                GROUP
+                BY        T1.ITEM_ID                             
+                UNION    ALL
+                SELECT    B.PROD_CODE                ITEM_ID,
+                        0                        QM3,
+                        0                        QM2,
+                        0                        QM1,
+                        0                        QM0,
+                        0                        QM0_1,
+                        0                        BASE_STOCK,
+                        0                        ISSUE,
+                        0                        SALES_MEAN_3WEEK,
+                        0                        SALES_MEAN_1WEEK,
+                        0    SALES_MEAN_13WEEK,
+                        0                        PRD_QTY,
+                        0    PLAN_W0,
+                        0    PLAN_W1, 
+                        0    PLAN_W2,
+                        SUM(B.REQT_BOX)                        REQT_BOX
+                FROM    SDORT101    A,
+                        SDORT102    B
+                WHERE   A.SLIP_NO                        =    B.SLIP_NO
+                AND     A.CNFM_DATE                        = REPLACE('$!{cnfm_date}','-','')
+                AND        SUBSTR(A.SLIP_GUBN_CODE,1,2)    = 'YO'
+                AND        LENGTH(A.CNFM_DATE)             = 8 
+                GROUP
+                BY        B.PROD_CODE
+                )    K1,
+                ITEM_MST    K2,
+                (
+                SELECT  ITEM_ID,
+                        SUM(CASE
+                            WHEN TO_CHAR(DUE_DATE,'YYYY-MM-DD') = TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}')+7,'D')+6,'YYYY-MM-DD')
+                            THEN LST_PRODQTY
+                            ELSE 0
+                        END) W1_LST_PRODQTY,        -- 차주 공장할당
+                        SUM(CASE
+                            WHEN TO_CHAR(DUE_DATE,'YYYY-MM-DD') = TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}')+14,'D')+6,'YYYY-MM-DD')
+                            THEN LST_PRODQTY
+                            ELSE 0
+                        END) W2_LST_PRODQTY         -- 차차주 공장할당              
+                FROM    PLANT_ALLOC_ITEM_ADJ
+               -- WHERE   VERSION LIKE REPLACE('$!{cnfm_date}','-','')||'%'
+                WHERE	VERSION LIKE TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}'),'D')+2,'YYYYMMDD')||'%'
+                --AND     ITEM_ID = '101000007'
+                GROUP 
+                BY      ITEM_ID                
+                ) K3,
+                (
+                SELECT	ITEM_ID,
+                		FRC_QTY * 6 FRC_QTY,
+                		DECODE(WEEK_GUBN,'01','주초','02','주중','주말') WEEK_GUBN_NAME
+                FROM	USER_FORECAST
+                WHERE	CNFM_DATE = TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'DY') + 8 -- 다음주 월요일
+                ) K4              
+        WHERE    K1.ITEM_ID        = K2.ITEM_ID
+        ----------------------------------------
+        AND     K1.ITEM_ID  = K3.ITEM_ID(+)
+        AND     K1.ITEM_ID  = K4.ITEM_ID(+)
+        ----------------------------------------        
+        AND        K2.ITYPE        = 'FERT'
+        AND        K2.CAT03        NOT LIKE 'O%'
+        AND        K2.ITEM_STATUS    = 'ST'
+        AND        K2.SELL_STOP_DATE = '99991231'
+        AND		   K2.SEARCH_FLAG = 'Y'
+        GROUP
+        BY      K1.ITEM_ID, K2.ITEM_NAME,
+                K2.SELL_STOP_DATE, K3.W1_LST_PRODQTY, K3.W2_LST_PRODQTY
+        ORDER
+        BY        K1.ITEM_ID   
+		
+	</query>
+
+	<!-- 생산의뢰 기초자료 조회 -->
+	<query id="sc_17010_Production_base_list_new2">
+        -- 생산의뢰 기초자료 조회
+      
+        SELECT	F_GET_CODE_NAME('SALES_CAT3', K2.SALES_CAT03)       											SALES_CAT03,
+        		F_GET_CODE_NAME('CAT07', K2.SALES_CAT_SCM)       											    SALES_CAT_SCM,       
+  				K1.ITEM_ID																						"제품코드",
+                K2.ITEM_NAME																					"제품명",
+                SUM(SALES_MEAN_1WEEK)   																		"1주평균판매", 
+                SUM(SALES_MEAN_3WEEK)   																		"3주평균판매",
+                MAX(NVL(K4.FRC_QTY,0)) 																			"일평균 판매예상량",   
+                MAX(NVL(K2.BASE_DAY,0)) 																		"판매일수",
+                MAX(NVL(K4.FRC_QTY,0)) * MAX(NVL(K2.BASE_DAY,0))												"판매예상량",
+                MAX(K2.BASE_CP_DAY)																				"판매보정일수",
+                MAX(K2.PRODUCE_TERM)																			"생산시기",
+                MAX(K2.PRE_STOCK_DAY)																			"사전비축일수",
+                MAX(K2.BASE_CP_DAY) + MAX(K2.PRODUCE_TERM) + MAX(K2.PRE_STOCK_DAY) 								"총 안전재고일수",
+                MAX(NVL(K4.FRC_QTY,0)) * (MAX(K2.BASE_CP_DAY) + MAX(K2.PRODUCE_TERM) + MAX(K2.PRE_STOCK_DAY)) 	"안전재고량",         		
+                MAX(NVL(K4.EVENT_QTY,0))																		"이벤트 물량",
+               (MAX(NVL(K4.FRC_QTY,0)) * MAX(NVL(K2.BASE_DAY,0))) + 
+               (MAX(NVL(K4.FRC_QTY,0)) * (MAX(K2.BASE_CP_DAY) + MAX(K2.PRODUCE_TERM) + MAX(K2.PRE_STOCK_DAY))) +
+                MAX(NVL(K4.EVENT_QTY,0)) 																		"총공급필요량",
+                SUM(BASE_STOCK)     																			"기초재고",
+                NVL(K5.W0_PROD_PLAN,0)																			"금주생산계획",
+                --SUM(PRD_QTY)        																			"금주생산계획",
+                SUM(BASE_STOCK) + SUM(PRD_QTY)																	"금주 공급가능량",
+               CASE WHEN
+               ((MAX(NVL(K4.FRC_QTY,0)) * MAX(NVL(K2.BASE_DAY,0))) + 
+                (MAX(NVL(K4.FRC_QTY,0)) * (MAX(K2.BASE_CP_DAY) + MAX(K2.PRODUCE_TERM) + MAX(K2.PRE_STOCK_DAY))) +
+                 MAX(NVL(K4.EVENT_QTY,0)) 
+                ) - ( SUM(BASE_STOCK) + SUM(PRD_QTY) ) > 0
+                THEN ((MAX(NVL(K4.FRC_QTY,0)) * MAX(NVL(K2.BASE_DAY,0))) + 
+                (MAX(NVL(K4.FRC_QTY,0)) * (MAX(K2.BASE_CP_DAY) + MAX(K2.PRODUCE_TERM) + MAX(K2.PRE_STOCK_DAY))) +
+                 MAX(NVL(K4.EVENT_QTY,0)) 
+                ) - ( SUM(BASE_STOCK) + SUM(PRD_QTY) )
+                ELSE 0
+                END																								"생산요청량",
+               	MAX(NVL(K3.W1_LST_PRODQTY,0))                 													"생산계획량",
+                NVL(K5.W1_PROD_PLAN,0)																			"차주주간생산계획",
+                NVL(K5.W1_PROD_PLAN,0)	- 
+                CASE WHEN
+               ((MAX(NVL(K4.FRC_QTY,0)) * MAX(NVL(K2.BASE_DAY,0))) + 
+                (MAX(NVL(K4.FRC_QTY,0)) * (MAX(K2.BASE_CP_DAY) + MAX(K2.PRODUCE_TERM) + MAX(K2.PRE_STOCK_DAY))) +
+                 MAX(NVL(K4.EVENT_QTY,0)) 
+                ) - ( SUM(BASE_STOCK) + SUM(PRD_QTY) ) > 0
+                THEN ((MAX(NVL(K4.FRC_QTY,0)) * MAX(NVL(K2.BASE_DAY,0))) + 
+                (MAX(NVL(K4.FRC_QTY,0)) * (MAX(K2.BASE_CP_DAY) + MAX(K2.PRODUCE_TERM) + MAX(K2.PRE_STOCK_DAY))) +
+                 MAX(NVL(K4.EVENT_QTY,0)) 
+                ) - ( SUM(BASE_STOCK) + SUM(PRD_QTY) )
+                ELSE 0
+                END																								"생산계획 차이량",
+                MAX(NVL(K3.W2_LST_PRODQTY,0))                 													"차주 생산계획량",
+                MAX(NVL(K4.FRC_QTY,0)) * (MAX(K2.BASE_CP_DAY) + MAX(K2.PRODUCE_TERM) + MAX(K2.PRE_STOCK_DAY))	+
+                NVL(K5.W1_PROD_PLAN,0)	- ((
+                (MAX(NVL(K4.FRC_QTY,0)) * MAX(NVL(K2.BASE_DAY,0))) + 
+                (MAX(NVL(K4.FRC_QTY,0)) * (MAX(K2.BASE_CP_DAY) + MAX(K2.PRODUCE_TERM) + MAX(K2.PRE_STOCK_DAY))) +
+                 MAX(NVL(K4.EVENT_QTY,0)) 
+                ) - ( SUM(BASE_STOCK) + SUM(PRD_QTY) ))														 	"생산계획 안전재고량",
+                CASE WHEN  
+                	    (MAX(NVL(K4.FRC_QTY,0)) * (MAX(K2.BASE_CP_DAY) + MAX(K2.PRODUCE_TERM) + MAX(K2.PRE_STOCK_DAY))	+
+                		NVL(K5.W1_PROD_PLAN,0)	- ((
+                		(MAX(NVL(K4.FRC_QTY,0)) * MAX(NVL(K2.BASE_DAY,0))) + 
+                		(MAX(NVL(K4.FRC_QTY,0)) * (MAX(K2.BASE_CP_DAY) + MAX(K2.PRODUCE_TERM) + MAX(K2.PRE_STOCK_DAY))) +
+                		 MAX(NVL(K4.EVENT_QTY,0)) 
+                		) - ( SUM(BASE_STOCK) + SUM(PRD_QTY) ))) > 0		
+                THEN 0
+                ELSE 1
+                END																								 "플래그"
+        FROM    (
+                SELECT	ITEM_ID,
+                        0           QM3,
+                        0           QM2,
+                        0           QM1,
+                        0           QM0,
+                        0           QM0_1,
+                        SUM(QTY)    BASE_STOCK,
+                        0    		ISSUE,
+                        0    		SALES_MEAN_3WEEK,
+                        0    		SALES_MEAN_1WEEK,
+                        0    		SALES_MEAN_13WEEK,
+                        0    		PRD_QTY,
+                        0    		PLAN_W0,
+                        0    		PLAN_W1, 
+                        0    		PLAN_W2,
+                        0        	REQT_BOX  
+                FROM    WMS_STOCK
+                WHERE   IF_DTTM = TRUNC(TO_DATE('$!{cnfm_date}'),'IW')
+		        --  수출창고들 삭제 20090714  이승용 요청
+		        AND     LOC_ID NOT IN ('8901','8902','8903','8913','8914')                
+                GROUP
+                BY		ITEM_ID    
+                UNION ALL    
+                SELECT  DD.ITEM_ID,
+                        0                        QM3,
+                        0                        QM2,
+                        0                        QM1,
+                        0                        QM0,
+                        0                        QM0_1,
+                        0                        BASE_STOCK,
+                        SUM(DD.ISSUE+DD.ISSUE_EXPT)    	ISSUE,
+                        SUM(DD.SALES_MEAN_3WEEK)    	SALES_MEAN_3WEEK,
+                        SUM(DD.SALES_MEAN_1WEEK)    	SALES_MEAN_1WEEK,
+                        DECODE(SUM(DD.SALES_MEAN_1WEEK)+SUM(DD.SALES_MEAN_3WEEK), 0, 0,
+                        ROUND((SUM(DD.SALES_MEAN_1WEEK)+SUM(DD.SALES_MEAN_3WEEK))/2)) SALES_MEAN_13WEEK, 
+                        0    PRD_QTY,
+                        0    PLAN_W0,
+                        0    PLAN_W1,
+                        0    PLAN_W2, 
+                        0    REQT_BOX  
+                FROM    DC_DATAWAREHOUSE DD,
+                		DC_MST			 DM
+                WHERE   CNFM_DATE    = TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}'),'IW'),'YYYYMMDD')   --이승용 대리 요청 2015-04-07 해당 주 월요일 값으로
+                AND		DD.DC_ID 	= DM.DC_ID
+                AND		DM.EXPORT_FLAG IS NULL
+                GROUP
+                BY      DD.ITEM_ID
+                UNION    ALL
+                /*  */
+                SELECT    T1.ITEM_ID,
+                        0                        QM3,
+                        0                        QM2,
+                        0                        QM1,
+                        0                        QM0,
+                        0                        QM0_1,
+                        0                        BASE_STOCK,
+                        0                        ISSUE,
+                        0                        SALES_MEAN_3WEEK,
+                        0                        SALES_MEAN_1WEEK,
+                        0    SALES_MEAN_13WEEK,
+                        SUM(PO_QTY)                PRD_QTY,
+                        0    PLAN_W0,
+                        0    PLAN_W1, 
+                        0    PLAN_W2,
+                        0    REQT_BOX                  
+                FROM    (
+                        SELECT  PLAN_DATE    CNFM_DATE,
+                                T1.PLANT,
+                                T2.ITEM_ID,
+                                SUM(PLAN_QTY)    PO_QTY
+                        FROM    (
+                                SELECT  PLANT,
+                                        CASE
+	                                        WHEN PTO_TIME &lt; '060000' THEN TO_CHAR(TO_DATE(PTO_DATE)-1,'YYYYMMDD')
+	                                        ELSE PTO_DATE    
+                                        END            PLAN_DATE,
+                                        MATR_CODE,
+                                        PLAN_QTY    PLAN_QTY
+                                FROM    PP20T110
+                                WHERE   PTO_DATE    BETWEEN TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}'),'IW'),'YYYYMMDD') AND TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}'),'IW')+6,'YYYYMMDD')
+                                AND     ORDER_STAT    NOT IN ('TECO','DLT','DLFL')
+                                )           T1,
+                                ITEM_MST    T2
+                        WHERE   T1.MATR_CODE    = T2.ITEM_ID
+                        AND     T1.PLAN_DATE    BETWEEN TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}'),'IW'),'YYYYMMDD') AND TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}'),'IW')+6,'YYYYMMDD')
+                        AND     T2.ITYPE        = 'FERT'
+                        GROUP
+                        BY        PLAN_DATE,
+                                T1.PLANT,
+                                T2.ITEM_ID        
+                        )            T1,
+                        ITEM_MST    T2
+                WHERE    T1.ITEM_ID        = T2.ITEM_ID
+               -- AND      T1.CNFM_DATE    >= REPLACE('$!{cnfm_date}','-','')
+                GROUP
+                BY        T1.ITEM_ID
+                UNION    ALL
+                SELECT    T1.ITEM_ID,
+                        0                        QM3,
+                        0                        QM2,
+                        0                        QM1,
+                        0                        QM0,
+                        0                        QM0_1,
+                        0                        BASE_STOCK,
+                        0                        ISSUE,
+                        0                        SALES_MEAN_3WEEK,
+                        0                        SALES_MEAN_1WEEK,
+                        0    SALES_MEAN_13WEEK,
+                        0                        PRD_QTY,
+                        NVL(SUM(NORMAL_QTY + PROM_QTY + SUPT_QTY + SAMP_QTY),0)    PLAN_W0,
+                        0                        PLAN_W1,
+                        0                        PLAN_W2,
+                        0        REQT_BOX
+                FROM    NFOS_SALES_PLAN_WEEKLY        T1,
+                        ITEM_MST                    T2,
+                        (
+                        SELECT    *
+                        FROM    V_NFOS_PLAN_VERSION
+                        WHERE    YYYYMMDD    BETWEEN REPLACE('$!{cnfm_date}','-','') AND TO_DATE(REPLACE('$!{cnfm_date}','-',''))+5
+                        )                            T3
+                WHERE    T1.YYYYMMDD BETWEEN REPLACE('$!{cnfm_date}','-','') AND TO_DATE(REPLACE('$!{cnfm_date}','-',''))+5
+                AND        T1.ITEM_ID    = T2.ITEM_ID
+                AND        T2.ITYPE    = 'FERT'
+                AND        T1.YYYY        = T3.YYYY
+                AND        T1.VERSION    = T3.VERSION
+                AND        T1.YYYYMMDD    = T3.YYYYMMDD
+                GROUP
+                BY        T1.ITEM_ID
+                UNION ALL
+                SELECT    T1.ITEM_ID,
+                        0                        QM3,
+                        0                        QM2,
+                        0                        QM1,
+                        0                        QM0,
+                        0                        QM0_1,
+                        0                        BASE_STOCK,
+                        0                        ISSUE,
+                        0                        SALES_MEAN_3WEEK,
+                        0                        SALES_MEAN_1WEEK,
+                        0    SALES_MEAN_13WEEK,
+                        0                        PRD_QTY,
+                        0                        PLAN_W0,
+                        NVL(SUM(NORMAL_QTY + PROM_QTY + SUPT_QTY + SAMP_QTY),0)    PLAN_W1,
+                        0                        PLAN_W2,
+                        0        REQT_BOX
+                FROM    NFOS_SALES_PLAN_WEEKLY        T1,
+                        ITEM_MST                    T2,
+                        (
+                        SELECT    *
+                        FROM    V_NFOS_PLAN_VERSION
+                        WHERE    YYYYMMDD    BETWEEN REPLACE('$!{cnfm_date}','-','')+6 AND TO_DATE(REPLACE('$!{cnfm_date}','-',''))+13
+                        )                            T3
+                WHERE    T1.YYYYMMDD BETWEEN REPLACE('$!{cnfm_date}','-','')+6 AND TO_DATE(REPLACE('$!{cnfm_date}','-',''))+13
+                AND        T1.ITEM_ID    = T2.ITEM_ID
+                AND        T2.ITYPE    = 'FERT'
+                AND        T1.YYYY        = T3.YYYY
+                AND        T1.VERSION    = T3.VERSION
+                AND        T1.YYYYMMDD    = T3.YYYYMMDD
+                GROUP
+                BY        T1.ITEM_ID
+                UNION ALL
+               SELECT    B.PROD_CODE                ITEM_ID,
+                        0                        QM3,
+                        0                        QM2,
+                        0                        QM1,
+                        0                        QM0,
+                        0                        QM0_1,
+                        0                        BASE_STOCK,
+                        0                        ISSUE,
+                        0                        SALES_MEAN_3WEEK,
+                        0                        SALES_MEAN_1WEEK,
+                        0    SALES_MEAN_13WEEK,
+                        0                        PRD_QTY,
+                        0    PLAN_W0,
+                        0    PLAN_W1, 
+                        0    PLAN_W2,
+                        SUM(B.REQT_BOX)                        REQT_BOX
+                FROM    SDORT101    A,
+                        SDORT102    B
+                WHERE   A.SLIP_NO                        =    B.SLIP_NO
+                AND     A.CNFM_DATE                        = REPLACE('$!{cnfm_date}','-','')
+                AND        SUBSTR(A.SLIP_GUBN_CODE,1,2)    = 'YO'
+                AND        LENGTH(A.CNFM_DATE)             = 8 
+                GROUP
+                BY        B.PROD_CODE
+                )    K1,
+                ITEM_MST    K2,
+                (
+                SELECT  ITEM_ID,
+                        SUM(CASE
+                            WHEN TO_CHAR(DUE_DATE,'YYYY-MM-DD') = TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}')+7,'D')+6,'YYYY-MM-DD')
+                            THEN LST_PRODQTY
+                            ELSE 0
+                        END) W1_LST_PRODQTY,        -- 차주 공장할당
+                        SUM(CASE
+                            WHEN TO_CHAR(DUE_DATE,'YYYY-MM-DD') = TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}')+14,'D')+6,'YYYY-MM-DD')
+                            THEN LST_PRODQTY
+                            ELSE 0
+                        END) W2_LST_PRODQTY         -- 차차주 공장할당              
+                FROM    PLANT_ALLOC_ITEM_ADJ
+                WHERE   VERSION LIKE TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}'),'D')+2,'YYYYMMDD')||'%'               
+                --AND     ITEM_ID = '101000007'
+                GROUP 
+                BY      ITEM_ID                
+                ) K3,
+                (
+                SELECT	ITEM_ID,
+                		FRC_QTY 	FRC_QTY,
+                		DECODE(WEEK_GUBN,'01','주초','02','주중','주말') WEEK_GUBN_NAME,
+                		EVENT_QTY
+                FROM	USER_FORECAST
+                WHERE	CNFM_DATE = TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''),'YYYY-MM-DD'),'DY') + 8 -- 다음주 월요일
+                ) K4 ,
+                (             
+                SELECT	T1.ITEM_ID,
+                		NVL(SUM(DECODE(TRUNC(CAL_DATE-1,'D'),TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-','')),'D'),SHIFT_QTY)),0)			W0_PROD_PLAN,
+						NVL(SUM(DECODE(TRUNC(CAL_DATE-1,'D')-7,TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-','')),'D'),SHIFT_QTY)),0)		W1_PROD_PLAN	
+						--  -7추가 차주주간생산계획 데이터 조
+				FROM	(
+						SELECT 	T4.CAL_DATE,
+								T1.ITEM_ID,
+								SUM(T1.SHIFT_QTY)	SHIFT_QTY
+						FROM 	DAILY_SCH_PLAN_SHIFT T1,
+								(
+								/* 3주전부터 생산계획 확정 VERSION정보(완제품)*/
+								SELECT K1.CAT_ID, K2.PLANT_ID, K1.VERSION,
+								TO_CHAR(TRUNC(TO_DATE(SUBSTR(K1.VERSION,1,8),'YYYY-MM-DD')+ 7,'D')+ 1,'YYYYMMDD') 	S_DATE,
+								-- 차차주 생산계획 운영시 PLAN_VERSION_LOG의 TWO_WEEK_FLAG = 'Y' 기간을 차차주까지 고려
+								TO_CHAR(TRUNC(TO_DATE(SUBSTR(K1.VERSION,1,8),'YYYY-MM-DD')+DECODE(TWO_WEEK_FLAG,'N',14,21),'D'),'YYYYMMDD') 		E_DATE
+								FROM PLAN_VERSION_LOG K1,
+								(SELECT CAT_ID, SUB_CAT, PLANT_ID
+								FROM ENGN_BAT_MST
+								WHERE PERIOD_TYPE = 'DAILY' AND CAT_ID = 'PS') K2
+								WHERE K1.PERIOD_TYPE = 'DAILY'
+								AND K1.CAT_ID = 'PS'
+								AND K1.RUN_DATE BETWEEN TRUNC (TO_DATE(REPLACE('$!{cnfm_date}','-','')) - 21)
+								AND TRUNC (TO_DATE(REPLACE('$!{cnfm_date}','-','')))
+								AND TRIM (VERSION) IS NOT NULL
+								AND K1.STATUS &gt;= '23'
+								AND K1.CAT_ID = K2.CAT_ID
+								AND K1.SUB_CAT = K2.SUB_CAT
+								) T2,
+								(
+								/* 마지막 공정(투입공정) 추출 */
+								SELECT PLANT_ID, ITEM_ID, PROD_VER, PROC_ID
+								FROM V_LAST_PROC_PRODVER
+								) T3,         --마지막 공정정보
+								(
+								SELECT	YYYYMMDD, CAL_DATE
+								FROM	CAL_MST
+								WHERE	CAL_DATE	BETWEEN	TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-','')),'D'),'YYYYMMDD')
+											AND		TO_CHAR(TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-','')),'D')+21,'YYYYMMDD')
+								) T4
+						WHERE 	T1.CAT_ID 		= T2.CAT_ID
+						AND 	T1.PLANT_ID 	= T2.PLANT_ID
+						AND 	T1.VERSION 		= T2.VERSION
+						AND 	T1.PROD_DATES BETWEEN T2.S_DATE AND T2.E_DATE
+						-- 오늘이후 계획만
+						AND 	T1.PROD_DATES 	= T4.YYYYMMDD
+						AND 	T1.PLANT_ID 	= T3.PLANT_ID
+						AND 	T1.PROC_ID 		= T3.PROC_ID
+						AND 	T1.ITEM_ID 		= T3.ITEM_ID
+						GROUP
+						BY		T4.CAL_DATE,
+								T1.ITEM_ID
+						)		T1
+				GROUP
+				BY		T1.ITEM_ID
+                ) K5              
+        WHERE    K1.ITEM_ID        = K2.ITEM_ID
+        AND		 K1.ITEM_ID		   = K5.ITEM_ID (+)
+        ----------------------------------------
+        AND     K1.ITEM_ID  = K3.ITEM_ID(+)
+        AND     K1.ITEM_ID  = K4.ITEM_ID(+)
+        ----------------------------------------        
+        AND		K2.ITYPE        = 'FERT'
+        AND     K2.CAT03        NOT LIKE 'O%'
+        AND     K2.ITEM_STATUS    = 'ST'
+        AND     K2.SELL_STOP_DATE = '99991231'
+        AND		K2.SEARCH_FLAG = 'Y'
+        AND		K2.SALES_CAT03 NOT IN ('190','187','181','178','139','134','127','126','125')
+        AND		K1.ITEM_ID != '101002978'		
+        GROUP
+        BY      K2.SALES_CAT03, K2.SALES_CAT_SCM, K1.ITEM_ID, K2.ITEM_NAME,
+                K2.SELL_STOP_DATE, K3.W1_LST_PRODQTY, K3.W2_LST_PRODQTY, K5.W1_PROD_PLAN, K5.W0_PROD_PLAN 
+        #if("$!{chk_sort}" == "N")
+     	ORDER
+        BY      K2.SALES_CAT03, K2.SALES_CAT_SCM, "생산계획 차이량" DESC, K1.ITEM_ID 
+        #else
+        ORDER
+        BY      K2.SALES_CAT03, K2.SALES_CAT_SCM, K1.ITEM_ID   
+        #end
+
+		
+	</query>
+	
+	
+	
+</queries>
+	

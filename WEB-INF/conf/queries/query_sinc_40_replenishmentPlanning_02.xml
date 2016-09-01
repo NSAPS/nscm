@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>
+
+<!--
+=====================================================================================================
+	수송계획 >> 분석정보
+=====================================================================================================
+--> 
+	
+	<!--
+	======================================================================
+		완/반제품/자재 재고 조회
+	======================================================================
+	-->
+
+	<!-- 완/반제품/자재 재고조회 -->
+	<query id="rp_02050_stockInfo_list" paging="true">
+	
+			SELECT  DM.DC_NAME, CM.CD_NAME, ES.ITEM_ID, IM.ITEM_NAME, IM.SPEC, TO_CHAR(ES.USABLE_DATE,'YYYY-MM-DD'), ES.QTY, ES.QTY_UOM 
+			  FROM  WMS_STOCK ES, ITEM_MST IM, DC_MST DM
+			        , (     SELECT  CM.CD, CM.CD_NAME
+			                  FROM  CODE_MST CM
+			                 WHERE  CM.MADE_TYPE != 'DE'
+			                   AND  CM.CD_GRP = 'ITYPE' ) CM
+			 WHERE  ES.MADE_TYPE != 'DE'
+               AND  IM.MADE_TYPE != 'DE'
+               AND  DM.MADE_TYPE != 'DE'
+               AND  ES.ITEM_ID = IM.ITEM_ID(+)
+               AND  ES.LOC_ID = DM.DC_ID(+)
+			   AND  ES.ITYPE = CM.CD   
+		#if("$!{selected_if_date}" == "")
+			   AND  ES.IF_DTTM = ( SELECT MAX(IF_DTTM) FROM ERP_STOCK )
+		#else
+		   AND  ES.IF_DTTM = TO_DATE('$!{selected_if_date}','YYYY-MM-DD')
+		#end
+			   AND  ES.LOC_TYPE = 'DC' --물류거점인 것만
+			  [AND  ES.LOC_ID = '${selected_dc}'] --물류거점
+			  [AND  ES.ITYPE = '${selected_itype}'] --자재구분 변수
+			  [AND  ES.ITEM_ID LIKE '%${item_id}%'] --자재(제품)변수
+			  [AND  IM.ITEM_NAME LIKE '%${item_name}%'] --자재(제품)변수
+			 ORDER  BY DM.DC_NAME, ES.ITEM_ID, ES.USABLE_DATE
+			 
+	</query>
+	<query id="rp_02050_stockInfo_list_org" paging="true">
+	
+			SELECT  DM.DC_NAME, CM.CD_NAME, ES.ITEM_ID, IM.ITEM_NAME, IM.SPEC, TO_CHAR(ES.USABLE_DATE,'YYYY-MM-DD'), ES.QTY, ES.QTY_UOM 
+			  FROM  ERP_STOCK ES, ITEM_MST IM, DC_MST DM
+			        , (     SELECT  CM.CD, CM.CD_NAME
+			                  FROM  CODE_MST CM
+			                 WHERE  CM.MADE_TYPE != 'DE'
+			                   AND  CM.CD_GRP = 'ITYPE' ) CM
+			 WHERE  ES.MADE_TYPE != 'DE'
+               AND  IM.MADE_TYPE != 'DE'
+               AND  DM.MADE_TYPE != 'DE'
+               AND  ES.ITEM_ID = IM.ITEM_ID(+)
+               AND  ES.LOC_ID = DM.DC_ID(+)
+			   AND  ES.ITYPE = CM.CD
+			#if("$!{selected_if_date}" == "")
+			   AND  ES.IF_DTTM = ( SELECT MAX(IF_DTTM) FROM ERP_STOCK )
+			#else
+			   AND  ES.IF_DTTM = TO_DATE('$!{selected_if_date}','YYYY-MM-DD')
+			#end			   
+			   AND  ES.LOC_TYPE = 'DC' --물류거점인 것만
+			  [AND  ES.LOC_ID = '${selected_dc}'] --물류거점
+			  [AND  ES.ITYPE = '${selected_itype}'] --자재구분 변수
+			  [AND  ES.ITEM_ID LIKE '%${item_id}%'] --자재(제품)변수
+			  [AND  IM.ITEM_NAME LIKE '%${item_name}%'] --자재(제품)변수
+			 ORDER  BY DM.DC_NAME, ES.ITEM_ID, ES.USABLE_DATE
+			 
+	</query>
+	
+	<!-- 물류거점 리스트 -->
+	<query id="combo_dc_list">
+	
+			SELECT  DC_ID, DC_NAME
+			  FROM  DC_MST DM
+			 ORDER  BY DC_NAME
+	
+	</query>
+	
+	<!-- 인터페이스 일시 리스트 -->
+	<query id="stockInofo_combo_if_date_list">
+	
+			SELECT  DISTINCT(TO_CHAR( ES.IF_DTTM, 'YYYY-MM-DD')) IF_DTTM
+
+			FROM  ERP_STOCK ES
+
+			WHERE	IF_DTTM = (SELECT MAX(IF_DTTM) FROM ERP_STOCK)
+            AND		  MADE_TYPE != 'DE'
+
+			ORDER  BY IF_DTTM DESC
+			 
+		
+	
+	</query>
+		
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</queries>

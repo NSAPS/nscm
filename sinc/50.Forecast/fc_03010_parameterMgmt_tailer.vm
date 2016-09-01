@@ -1,0 +1,99 @@
+ <script language="JavaScript" type="text/javascript">
+	window.onload = function() { setSize(); }
+	window.onresize = function() { setSize(); }
+	window.oncontextmenu="return $!{_moon_refresh_detect}"
+
+	function setSize() {
+		
+		var currentWidth = document.body.clientWidth;
+		var currentHeight = document.body.clientHeight;
+		
+		if (currentWidth > 82) {			
+			tbMain.width = currentWidth - 35;  
+    		topLine.style.width = currentWidth - 22;
+    		mainDisplay.style.width = currentWidth - 5; 
+		}
+
+		if (currentHeight > 167) {
+			
+			mainDisplay.style.height = currentHeight - 150;
+		}		
+
+	}
+</script>
+ 
+ <table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">	 
+	 <tr>
+		<td valign="top">
+			<div class="tab-pane" id="itemSiteTabPane">
+				<div class="tab-page" id="tabPage1">
+					<h2 class="tab">$_moon_title</h2>
+				
+					<table id="tbMain" border="0" width="100%" cellpadding="1" cellspacing="0">						
+						<tr>
+							<td>Total : <b>$_moon_service_count</b></td>
+						</tr>
+						<tr>							
+							<td>
+								<div id="topLine" style="height:40px; width:100%;overflow:hidden;">
+    								<table width="100%" border="0" cellpadding="0" cellspacing="0" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+    									<thead>
+    										<tr height="40px">
+    											<td width="5%" align="center">No</td>
+    											<td width="5%" align="center">선택</td>
+    											<td width="25%" align="center">수요예측 방법</td>
+    											<td width="5%" align="center">번호</td>
+    											<td width="20%" align="center">Parameter 명</td>
+    											<td width="10%" align="center">Parameter 값</td>
+    											<td width="30%" align="center">비고</td>
+    										</tr>
+    									</thead>
+    								</table> 
+								</div>
+							</td>
+							
+						</tr>
+						<tr>
+							<td valign="top">
+								<div id="mainDisplay" class="ns_scroll" style="border:0; width:100%; overflow-y:scroll;" onscroll="scrollX();">
+    								<table id="mainTable" width="100%" cellspacing="0" cellpadding="0" border="0" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+    									<tbody>
+    										#set($count = 0)
+    										#foreach( $row in $fc_03010_parameterMgmt_tailer)
+												<input type="hidden" name="fcst_method_cd" value="$!{row.get(0)}" disabled>
+												<input type="hidden" name="fcst_method_no" value="$!{row.get(2)}" disabled>
+    											
+												<tr id="tr1" height="24" align="center" style="background:#CCCCCC;">
+    												<input type="hidden" name="modifyCheckParam" value="0">														
+    												<td width="5%" align="center">$math.add($math.mul($_moon_perpage, $math.sub($_moon_pagenumber, 1)), $velocityCount)</td>
+    												<td width="5%" align="center"><input id="$!{count}" type="checkbox" name="updateCheck" value="0" onClick="changeRowField('$_moon_service_count', this); setCheckBoxValue('$_moon_service_count', this);"></td>
+    												<td width="25%" align="left">&nbsp $row.get(1)</td>
+        											<td width="5%" align="center">$row.get(2)</td>
+        											<td width="20%" align="left">&nbsp $row.get(3)</td>
+        											<td width="10%" align="center">
+														<input name="param_value" type="text" value="$!{row.get(4)}" class="normal" style="width:100%;padding-right:5px; text-align:right;" maxlength="5" onKeyPress="onlynumber();" disabled/>
+													</td>
+        											<td width="30%" align="center">
+														<input name="etc" type="text" value="$!{row.get(5)}" class="normal" style="width:100%;" disabled/>
+													</td>
+    											</tr>
+    											#set($count = $count + 1)
+    										#end
+    										<input type="hidden" name="isChecked" value="0">
+    									</tbody>
+    								</table>
+								</div>
+							</td>							
+						</tr>
+					</table>			
+				</div>
+				<input type="hidden" name="_user_id" value="$!{_user_id}">
+				<input type="hidden" name="_moon_service" value="${_moon_service}">  
+				<input type="hidden" name="_moon_pagenumber"  value="${_moon_pagenumber}">
+			</div>
+		</td> 
+	</tr>
+</table>
+<script>
+	//mergeInheritanceTableRows(mainTable, 3, 2);
+</script>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+		<!--  작업장별 유통가공 게획 대비 실적 조회 -->
+	<job id="sc_13050_set_prod_planVsActualResultByPlant_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>유통가공품운영계획 >> 분석정보 >> 작업장별 유통가공 계획 대비 실적 조회 </navigation>
+		<toolbars>0010</toolbars>
+		<title>작업장별 유통가공 계획 대비 실적 조회</title>
+		<authority>1</authority>		
+		<description>작업장별 유통가공 계획 대비 실적 조회</description>
+		<request_type>list</request_type>
+		<queries> 			
+		</queries>
+	</job>
+</jobs> 

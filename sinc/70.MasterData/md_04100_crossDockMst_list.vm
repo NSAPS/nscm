@@ -1,0 +1,307 @@
+############################################################
+## 프로그램ID : md_04100_crossDockMst_list.vm
+## 프로그램명 : 중계수송거점설정
+## 개발자  : 허준성
+## 개발일자 : 2008-09-18 목요일
+##
+##관련 job file : job_sinc_70_masterData_00.xml
+##
+##관련 query file : query_sinc_70_masterData_00.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2008-09-18  허준성    md_04100_crossDockMst_list.vm 개발
+##
+##
+############################################################
+
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('125', '141')" )
+
+## 코드 중복 체크를 위해 dwr 선언
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						#button("search")
+						#toolbar_nscm($_moon_toolbar "" "" "md_04100_crossDockMst_list_save_comp" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" 
+							id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr>
+            					<td width="15%" align="right">
+            						중계수송거점 :
+            					</td>
+            					<td width="18%" align="left">
+									<select name="src_loc_sel" style="width:90px; " onChange="compLoc(this);">
+											<option value="">선택</option>
+										#foreach( $tr in $src_loc_and_name_list )
+											<option value="$tr.get(0)" 
+												#if( "$!{src_loc_sel}" == "$tr.get(0)" ) selected #end>$tr.get(1)</option>
+										#end
+									</select>
+            					</td>
+								<td width="15%" align="right">
+            						입고장 :
+            					</td>
+            					<td width="18%" align="left">
+									<select name="tgt_loc_sel" style="width:90px; " onChange="compLoc(this);">
+										<option value="">선택</option>
+									#foreach( $tr in $dc_id_and_name_list )
+										<option value="${tr.get(0)}" 
+											#if( "$!{tgt_loc_sel}" == "${tr.get(0)}" ) selected #end)>${tr.get(1)}</option>
+									#end
+									</select>
+            					</td>
+								<td width="15%" align="right">
+            					    품종 중분류 :
+            					</td>
+            					<td width="19%" align="left">
+									<select name="sales_cat02_sel" style="width:110px; ">
+										<option value="">전체</option>
+									#foreach( $tr in $combo_sales_cat2_list )
+										<option value="${tr.get(0)}" 
+											#if( "$!{sales_cat02_sel}" == "${tr.get(0)}" ) selected #end)>${tr.get(1)}</option>
+									#end
+									</select>
+            					</td>
+            				</tr>
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="24"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+					<tr><td valign="top">
+					## 1. 왼쪽 : 적용중인 품목
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+								<img src="/nscm/sinc/template/basic/skin/nongshim/images/common/dot_sub6.gif" width="16" height="13">Total :
+								<span id="areaLeftTot" class="f_color_o b">$!{_moon_service_count}</span>
+							</td>
+							<td>
+								<span class="f_color_o b"> <적용중인 품목> </span>
+							</td>
+						</tr>
+					</table>
+					
+					<table id="tbMain" border="0" width="100%" cellpadding="0" cellspacing="0"><tr><td>
+						<div id="topLeft" class="ns_scroll" style="height:40px; width:100%; overflow:hidden; padding-right:16px;">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead>
+									<tr height="40px">
+										<td width="10%">번호</td>	
+										<td width="22%">품종중분류</td>
+										<td width="20%">품목코드</td>
+										<td width="37%">품목명</td>
+										<td width="11%">선택</td>
+									</tr> 
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td></tr>	
+					<tr><td valign="top">
+						<div id="leftDisplay" class="ns_scroll" style="border:0; width:100%; overflow-y:scroll;">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="left_tbody">
+								#foreach( $tr in $md_04100_crossDockMst_list_01 )
+									<tr id="left_tr" height="22px" onMouseOver="bgLeftOver(this); " onMouseOut="bgLeftOut(this); ">
+										## 번호
+										<td width="10%" align="center" style="background-color:${search_bgcolor}; ">
+											<a id="divLeftRowNo">$velocityCount</a>
+										</td>
+										## 품종중분류
+										<td width="22%" align="center">
+											<a id="divLeftCdName">$tr.get(0)</a>
+											<input type="hidden" name="leftCdName" value="$tr.get(0)">
+										</td>
+										## 품목코드
+										<td width="20%" align="center">
+											<a id="divLeftItemId">$tr.get(1)</a>
+											<input type="hidden" name="leftItemId" value="$tr.get(1)">
+										</td>
+										## 품목명
+										<td width="37%" align="left">
+											<a id="divLeftItemName">&nbsp;$tr.get(2)</a>
+											<input type="hidden" name="leftItemName" value="$tr.get(2)">
+										</td>
+										## 선택
+										<td width="11%" align="center">
+											<input type="checkbox" name="left_check_flag" class="normal"
+												style="text-align:center; border-width:0; "></input>
+										</td>
+									</tr>
+								#end
+								</tbody>
+							</table> 
+						</div>
+					</td></tr></table>
+					## END : 적용중인 품목
+					</td>
+					<td width="50px" valign="top">
+					## 2. 중앙 : 추가 , 제외 버튼
+						<table width="30px" border="0" cellpading="0" cellspacing="0" class="normal-table">
+							<tr height="40%"><td></td></tr>
+							<tr height="5%">
+								<td align="center">
+									<input type="button" name="btnAdd" value=" ☜ 추가" onClick="addItem();" class="btn1_on">
+								</td>
+							</tr>
+							<tr height="10%"><td></td></tr>
+							<tr height="5%">
+								<td align="center">
+									<input type="button" name="btnDel" value=" 제외 ☞" onClick="delItem();" class="btn1_on">
+								</td>
+							</tr>
+							<tr height="40%"><td></td></tr>
+						</table>
+					## END : 추가 , 제외 버튼
+					</td>
+                    <td valign="top">
+					## 3. 오른쪽 : 적용할 품목
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+								<img src="/nscm/sinc/template/basic/skin/nongshim/images/common/dot_sub6.gif" width="16" height="13">Total :
+								<span id="areaRightTot" class="f_color_o b">$!{md_04100_crossDockMst_list_02.size()}</span>
+							</td>
+							<td align="left">
+								<span class="f_color_o b"> <적용할 품목> </span>
+							</td>
+						</tr>
+					</table>
+					
+					<table id="tbMain1" border="0" width="100%" cellpadding="0" cellspacing="0"><tr><td>
+						<div id="topRight" style="height:40px; width:100%; overflow:hidden; padding-right:16px; ">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead>
+									<tr height="40px">
+										<td width="10%">번호</td>	
+										<td width="22%">품종중분류</td>
+										<td width="20%">품목코드</td>
+										<td width="37%">품목명</td>
+										<td width="11%">선택
+											<input type="checkbox" name="all_check_flag" class="normal" onclick="allCheck();"
+												style="text-align:center; border-width:0; "></input>
+										</td>
+									</tr> 
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td></tr>	
+					<tr><td valign="top1">
+						<div id="rightDisplay" class="ns_scroll" style="border:0; width:100%; overflow-y:scroll;">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="right_tbody">
+								#foreach( $tr in $md_04100_crossDockMst_list_02 )
+									<tr id="right_tr" height="22px" onMouseOver="bgRightOver(this); " onMouseOut="bgRightOut(this); ">
+										## 번호
+										<td width="10%" align="center" style="background-color:${search_bgcolor}; ">
+											<a id="divRightRowNo">$velocityCount</a>
+										</td>
+										## 품종중분류
+										<td width="22%" align="center">
+											<a id="divRightCdName">&nbsp;$tr.get(0)</a>
+											<input type="hidden" name="rightCdName" value="$tr.get(0)">
+										</td>
+										## 품목코드
+										<td width="20%" align="center">
+											<a id="divRightItemId">$tr.get(1)</a>
+											<input type="hidden" name="rightItemId" value="$tr.get(1)">
+										</td>
+										## 품목명
+										<td width="37%" align="left">
+											<a id="divRightItemName">&nbsp;$tr.get(2)</a>
+											<input type="hidden" name="rightItemName" value="$tr.get(2)">
+										</td>
+										## 선택
+										<td width="11%" align="center">
+											<input type="checkbox" name="right_check_flag" class="normal"
+												style="text-align:center; border-width:0; "></input>
+										</td>
+									</tr>
+								#end
+								</tbody>
+							</table> 
+						</div>
+					</td></tr></table>	
+					## END : 적용할 품목
+					</td></tr></table>
+					
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+						
+					<input type="hidden" name="_moon_service">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					<input type="hidden" name="_user_id" value="$!{_user_id}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 중계수송거점, 입고장, 품종 중분류를 선택하시고 조회를 클릭하시면  각각의 조건에 해당하는 데이타가 조회됩니다.";
+	helpStr += "<br>◈ 품종 중분류를 전체로 선택하시고 조회하시면 적용중인 품목만 조회됩니다.";
+	helpStr += "<br>◈ 품종 중분류를 세부 항목이 아닌 전체로 선택하시고 조회하시면 적용할 품목은 조회되지 않습니다.";
+	helpStr += "<br>◈ 품종 중분류를 선택 후 조회하시면, 적용중인 품목과 적용할 품목이 모두 조회됩니다.";
+	helpStr += "<br>◈ 적용중인 품목 리스트에서 원하시는 품목을 선택하시고 제외버튼을 누르시면 그 품목은 적용중인 품목에서 제외됩니다.";
+	helpStr += "<br>◈ 적용할 품목 리스트에서 원하시는 품목을 선택하시고 추가버튼을 누르시면 그 품목은 적용중인 품목에 추가됩니다.";
+	helpStr += "<br>◈ 원하시는 품목을 추가, 제외 후 저장 버튼을 누르시면 적용중인 품목 리스트가 저장됩니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+
+</script>

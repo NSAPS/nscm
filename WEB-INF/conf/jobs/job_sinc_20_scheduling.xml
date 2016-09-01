@@ -1,0 +1,1071 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+<!--
+=====================================================================================================
+	생산계획 >> 일간 생산계획
+=====================================================================================================
+--> 
+	
+	<!--
+	======================================================================
+		일간 생산계획 조회
+	======================================================================
+	-->
+	
+	<!-- 일간 생산 계획 조회 --> 
+	<job id="sc_11010_dailyProductionPlant_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >> 일간 생산계획 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>일간 생산계획 조회</title>
+		<authority>1</authority>		
+		<description>일간 생산계획 조회</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="combo_plant_list" datasource="t3sinc"/>
+			<query idref="combo_version_list" datasource="t3sinc"/>
+			<query idref="combo_won_list" datasource="t3sinc"/>		   
+			<query idref="combo_sales_cat1_list" datasource="t3sinc"/>
+			<query idref="combo_sales_cat2_list" datasource="t3sinc"/>
+			<query idref="combo_proc_list" datasource="t3sinc"/>	 	
+			<query idref="combo_cat01_list" datasource="t3sinc"/>
+			<query idref="grid_dates" datasource="t3sinc"/>															
+			<query idref="sc_11010_dailyProductionPlant_list" datasource="t3sinc"/>									
+		</queries>
+	</job> 	
+	
+	<!-- 일간 생산 계획 조회 : 상세정보 --> 
+	<job id="sc_11010_dailyProductionPlantDetailInfo_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >> 일간 생산계획 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>일간 생산계획 조회 : 상세정보</title>
+		<authority>1</authority>		
+		<description>iframe</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="sc_11010_dailyProductionPlantDetailInfo_list" datasource="t3sinc"/>										
+		</queries>
+	</job>
+	
+	<!-- 일간 생산계획 조회 : POPUP --> 
+	<job id="sc_11010_dailyProductionPlant_popup" job_type="single">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >> 일간 생산계획 조회</navigation>
+		<toolbars>0010</toolbars>
+		<title>일간 생산계획 조회</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="daily_analysis_popup_proc_list" datasource="t3sinc"/>
+			<query idref="sc_11010_dailyProductionPlant_popup" datasource="t3sinc"/>
+		</queries>
+	</job>
+		
+	<!--
+	======================================================================
+		유통가공품 생산계획 조회
+	======================================================================
+	-->
+	
+	<!-- 유통가공품 생산계획 조회 -->
+	<job id="sc_11050_dailyEtcPlan_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >> 유통가공품 생산계획 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>유통가공품 생산계획 조회</title>
+		<authority>1</authority>		
+		<description>유통가공품 생산계획 조회</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="etc_combo_version_list" datasource="t3sinc"/>
+			<query idref="etc_combo_plant_list" datasource="t3sinc"/>
+			<query idref="grid_dates" datasource="t3sinc"/>															
+			<query idref="sc_11050_dailyEtcPlan_list" datasource="t3sinc"/>									
+		</queries>
+	</job>
+	
+	<!-- 유통가공품 생산계획 조회 : 참조정보 --> 
+	<job id="sc_11050_dailyEtcPlanReferenceInfo_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >> 유통가공품 생산계획 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>유통가공품 생산계획 조회 : 참조정보</title>
+		<authority>1</authority>		
+		<description>iframe</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="grid_dates" datasource="t3sinc"/>
+			<query idref="sc_11050_dailyEtcPlanReferenceInfo_list" datasource="t3sinc"/>										
+		</queries>
+	</job>
+	
+	<!--
+	======================================================================
+		생산계획 대비 생산실적 조회
+	======================================================================
+	-->
+	
+	<!-- 생산계획 대비 생산실적 조회 -->
+	<job id="sc_11040_planVsActualResult_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >> 생산계획 대비 생산실적 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>생산계획 대비 생산실적 조회</title>
+		<authority>1</authority>		
+		<description>생산계획 대비 생산실적 조회</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="combo_plant_list" datasource="t3sinc"/>
+			<query idref="grid_dates" datasource="t3sinc"/>															
+			<query idref="sc_11040_planVsActualResult_list" datasource="t3sinc"/>									
+		</queries>
+	</job>
+	
+	<!--
+	======================================================================
+		제품별 생산계획 대비 생산실적 조회
+	======================================================================
+	-->
+	
+	<!-- 제품별 생산계획 대비 생산실적 조회 -->
+	<job id="sc_11040_planVsActualResultByItem_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >> 제품별 생산계획 대비 생산실적 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>제품별 생산계획 대비 생산실적 조회</title>
+		<authority>1</authority>		
+		<description>제품별 생산계획 대비 생산실적 조회</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="combo_plant_list" datasource="t3sinc"/>
+			<query idref="grid_dates" datasource="t3sinc"/>															
+			<query idref="sc_11040_planVsActualResultByItem_list" datasource="t3sinc"/>									
+		</queries>
+	</job>
+	
+<!--
+=====================================================================================================
+	생산계획 >> 일간 반제품 생산계획
+=====================================================================================================
+-->
+	
+	<!--
+	======================================================================
+		일간 반제품 생산계획 조회
+	======================================================================
+	-->
+	
+	<!-- 일간 반제품 생산계획 조회 --> 
+	<job id="sc_12010_dailySemifinishedProductionPlant_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >> 일간 반제품 생산계획 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>일간 반제품 생산계획 조회</title>
+		<authority>1</authority>		
+		<description>일간 반제품 생산계획 조회</description>		
+		<request_type>list</request_type>
+		<queries>			
+			<query idref="semi_combo_version_list" datasource="t3sinc"/>
+			<query idref="semi_combo_plant_list" datasource="t3sinc"/>
+			<query idref="combo_won_list" datasource="t3sinc"/>
+			<query idref="combo_proc_list" datasource="t3sinc"/>
+			<query idref="semi_combo_type" datasource="t3sinc"/>
+			<query idref="grid_dates" datasource="t3sinc"/>																									
+			<query idref="sc_12010_dailySemifinishedProductionPlant_list" datasource="t3sinc"/>									
+		</queries>
+	</job> 	
+	
+	<!-- 일간 반제품 생산계획 조회 : 이고계획 조회 --> 
+	<job id="sc_12010_dailySemifinishedProductionPlantTransPlan_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >> 일간 생산계획 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>일간 반제품 생산계획 조회 : ERP Stock</title>
+		<authority>1</authority>		
+		<description>iframe</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="grid_dates" datasource="t3sinc"/>				
+			<query idref="sc_12010_dailySemifinishedProductionPlantTransPlan_list" datasource="t3sinc"/>										
+		</queries>
+	</job>
+	
+	<!-- 일간 반제품 생산계획 조회 : POPUP --> 
+	<job id="sc_12010_dailySemifinishedProductionPlant_popup" job_type="single">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >> 일간 반제품 생산계획 분석</navigation>
+		<toolbars>0010</toolbars>
+		<title>일간 반제품 생산계획 분석</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="sc_12010_dailySemifinishedProductionPlant_popup" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+<!--
+=====================================================================================================
+	생산계획 >> 일간 공장할당 계획
+=====================================================================================================
+--> 
+	
+	<!--
+	======================================================================
+		일간 공장할당계획 조회
+	======================================================================
+	-->
+	
+	<!-- 계획 결과 조회  --> 
+	<job id="sc_10010_dailyPlantAllocationPlan_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >> 일간 공장할당계획 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>일간 공장할당계획 조회</title>
+		<authority>1</authority>		
+		<description>일간 공장할당계획 조회</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="plant_alloc_combo_version_list" datasource="t3sinc"/>
+			<query idref="plant_alloc_combo_plant_list" datasource="t3sinc"/>
+			<query idref="combo_sales_cat1_list" datasource="t3sinc"/>
+			<query idref="grid_dates" datasource="t3sinc"/>	
+			<query idref="plant_alloc_combo_sales_cat2_list" datasource="t3sinc"/>				
+			<query idref="combo_cat01_list" datasource="t3sinc"/>			
+			<query idref="sc_10010_dailyPlantAllocationPlan_list" datasource="t3sinc"/>									
+		</queries>	
+	</job>
+	
+	<!--
+	======================================================================
+		일간 공장할당계획 분석
+	======================================================================
+	-->
+	
+	<!-- 일간 공장할당계획 분석  --> 
+	<job id="sc_10030_dailyPlantAllocationPlanAnalysis_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 일간 공장할당계획 분석</navigation>
+		<toolbars>0000</toolbars>
+		<title>일간 공장할당계획 분석</title>
+		<authority>1</authority>		
+		<description>일간 공장할당계획 분석</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="plant_alloc_combo_version_list" datasource="t3sinc"/>
+			<!--query idref="plant_alloc_combo_plant_list" datasource="t3sinc"/-->
+			<query idref="combo_plant_list" datasource="t3sinc"/>
+			<query idref="plant_alloc_combo_sales_cat2_list" datasource="t3sinc"/>
+			<query idref="combo_sales_cat1_list" datasource="t3sinc"/>										
+			<query idref="combo_cat01_list" datasource="t3sinc"/>
+			<query idref="grid_dates" datasource="t3sinc"/>	
+			<query idref="sc_10030_dailyPlantAllocationPlanAnalysis_list" datasource="t3sinc"/>									
+		</queries>	
+	</job>
+	
+	<!-- 일간 공장할당계획 분석 : POPUP --> 
+	<job id="sc_10030_dailyPlantAllocationPlanAnalysis_popup" job_type="single">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 일간 공장할당계획 분석</navigation>
+		<toolbars>0010</toolbars>
+		<title>일간 공장할당계획 분석</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="plant_alloc_analysis_combo_plant_list" datasource="t3sinc"/>
+			<query idref="sc_10030_dailyPlantAllocationPlanAnalysis_popup" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 일간 공장할당계획 분석 : POPUPP : 저장 -->  
+	<job id="sc_10030_dailyPlantAllocationPlanAnalysis_popup_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_10030_dailyPlantAllocationPlanAnalysis_popup_save"/>		
+		<sub_job id="sc_10030_dailyPlantAllocationPlanAnalysis_popup"/>
+		<permission_desc>일간 공장할당계획 분석:POPUPP - 저장</permission_desc>
+	</job>
+	<job id="sc_10030_dailyPlantAllocationPlanAnalysis_popup_save" job_type="single" check_permission="no">			
+		<request_type>insert</request_type>
+		<queries>
+			<!-- 01. PLANT_ALLOC_PLAN 테이블에서 선택된 버전 전체 데이터 PLANT_ALLOC_PLAN_TEMP 테이블로 INSERT -->
+			<!-- 02. 변경된 항목을 PLANT_ALLOC_PLAN_TEMP 테이블에 UPDATE -->			
+			<query idref="sc_10030_dailyPlantAllocationPlanAnalysis_popup_save_01" datasource="t3sinc"/>
+			<query idref="sc_10030_dailyPlantAllocationPlanAnalysis_popup_save_02" datasource="t3sinc"/>									
+		</queries>	
+	</job>
+
+<!--
+=====================================================================================================
+	생산계획 >> 계획정책
+=====================================================================================================
+--> 
+	
+	<!--
+	======================================================================
+		공장할당정책
+	======================================================================
+	-->
+	
+	<!-- 공장할당정책 조회 --> 
+	<job id="sc_03030_plantAllocationPolicy_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>기준정보 >> 생산계획 >> 공장할당정책</navigation>
+		<toolbars>0010</toolbars>
+		<title>공장할당정책</title>
+		<authority>1</authority>		
+		<description>공장할당정책</description>		
+		<request_type>list</request_type>
+		<queries>			
+			<query idref="plant_alloc_policy_combo_sales_cat2_list" datasource="t3sinc"/>
+			<!--<query idref="plant_alloc_policy_combo_item_list" datasource="t3sinc"/>-->					
+			<query idref="sc_03030_plantAllocationPolicy_list_01" datasource="t3sinc"/>
+			<query idref="sc_03030_plantAllocationPolicy_list_02" datasource="t3sinc"/>
+			<query idref="sc_03030_plantAllocationPolicy_list_03" datasource="t3sinc"/>
+			<query idref="sc_03030_plantAllocationPolicyItem_list" datasource="t3sinc"/>									
+		</queries>	
+	</job>	
+	
+	<!-- 공장할당정책 조회: 저장 --> 
+	<job id="sc_03030_plantAllocationPolicy_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_03030_plantAllocationPolicy_list_save"/>		
+		<sub_job id="sc_03030_plantAllocationPolicy_list"/>
+		<permission_desc>공장할당정책-저장</permission_desc>
+	</job>
+	<job id="sc_03030_plantAllocationPolicy_list_save" job_type="single" check_permission="no">				
+		<request_type>insert</request_type>
+		<queries>			
+			<query idref="sc_03030_plantAllocationPolicy_list_save_01" datasource="t3sinc"/>
+			<query idref="sc_03030_plantAllocationPolicy_list_save_02" datasource="t3sinc"/>
+			<query idref="sc_03030_plantAllocationPolicy_list_save_03" datasource="t3sinc"/>
+			<query idref="sc_03030_plantAllocationPolicy_list_save_04" datasource="t3sinc"/>									
+		</queries>	
+	</job>	
+	
+	<!-- 공장할당정책 : 제품별 공장할당 정보 조회 : POPUP --> 
+	<job id="sc_03030_plantAllocationPolicy_popup" job_type="single">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>기준정보 >> 생산계획 >> 공장할당정책</navigation>
+		<toolbars>0000</toolbars>
+		<title>제품별 공장할당계획 정보</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>			
+			<query idref="sc_03030_plantAllocationPolicyItem_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 공장할당정책 : 제품별 공장할당 정보 조회 : POPUP : 저장 -->  
+	<job id="sc_03030_plantAllocationPolicy_popup_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_03030_plantAllocationPolicy_popup_save"/>		
+		<sub_job id="sc_03030_plantAllocationPolicy_popup"/>
+		<permission_desc>공장할당정책-저장</permission_desc>
+	</job>
+	<job id="sc_03030_plantAllocationPolicy_popup_save" job_type="single" check_permission="no">			
+		<request_type>insert</request_type>
+		<queries>			
+			<query idref="sc_03030_plantAllocationPolicy_popup_save" datasource="t3sinc"/>									
+		</queries>	
+	</job>
+	
+	<!--
+	======================================================================
+		품목-생산라인 선호도 관리
+	======================================================================
+	-->
+	
+	<!-- 품목-생산라인 선호도 조회 --> 
+	<job id="sc_03050_itemPreference_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>기준정보 >> 생산계획 >> 품목-생산라인 선호도 관리</navigation>
+		<toolbars>0011</toolbars>
+		<title>품목-생산라인 선호도 관리</title>
+		<authority>1</authority>		
+		<description>품목-생산라인 선호도 관리</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="combo_plant_list" datasource="t3sinc"/>
+			<query idref="line_priority_list" datasource="t3sinc"/>
+			<query idref="sc_03050_itemPreference_list" datasource="t3sinc"/>									
+		</queries>	
+	</job>
+	
+	<!-- 품목-생산라인 선호도 : 저장 -->  
+	<job id="sc_03050_itemPreference_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_03050_itemPreference_list_save"/>		
+		<sub_job id="sc_03050_itemPreference_list"/>
+		<permission_desc>품목-생산라인 선호도 관리-저장</permission_desc>
+	</job>
+	<job id="sc_03050_itemPreference_list_save" job_type="single" check_permission="no">			
+		<request_type>insert</request_type>
+		<queries>
+			<!-- 01. 화면에 있는 DATA DELETE -->
+			<!-- 02. 화면에 있는 DATA INSERT -->			
+			<query idref="sc_03050_itemPreference_list_save_01" datasource="t3sinc"/>
+			<query idref="sc_03050_itemPreference_list_save_02" datasource="t3sinc"/>									
+		</queries>	
+	</job>
+	
+	<!-- 품목-생산라인 선호도 : 삭제 -->  
+	<job id="sc_03050_itemPreference_list_del_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_03050_itemPreference_list_del"/>		
+		<sub_job id="sc_03050_itemPreference_list"/>
+		<permission_desc>품목-생산라인 선호도 관리-삭제</permission_desc>
+	</job>
+	<job id="sc_03050_itemPreference_list_del" job_type="single" check_permission="no">			
+		<request_type>insert</request_type>
+		<queries>
+			<!-- 01. 화면에 있는 DATA DELETE -->						
+			<query idref="sc_03050_itemPreference_list_save_01" datasource="t3sinc"/>
+		</queries>	
+	</job>
+	
+	<!--
+	======================================================================
+		생산라인-품목 투입 우선순위
+	======================================================================
+	-->
+	
+	<!-- 생산라인-품목 투입 우선순위 조회 --> 
+	<job id="sc_03060_itemLineSeqPreference_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>기준정보 >> 생산계획 >> 생산라인-품목 투입 우선순위 관리</navigation>
+		<toolbars>0011</toolbars>
+		<title>생산라인-품목 투입 우선순위 관리</title>
+		<authority>1</authority>		
+		<description>생산라인-품목 투입 우선순위 관리</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="combo_plant_list" datasource="t3sinc"/>
+			<query idref="combo_won_list" datasource="t3sinc"/>
+			<query idref="combo_line_list" datasource="t3sinc"/>
+			<query idref="sc_03060_itemLineSeqPreference_list" datasource="t3sinc"/>									
+		</queries>	
+	</job>
+	
+	<!-- 생산라인-품목 투입 우선순위 : 저장 -->  
+	<job id="sc_03060_itemLineSeqPreference_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_03060_itemLineSeqPreference_list_save"/>		
+		<sub_job id="sc_03060_itemLineSeqPreference_list"/>
+		<permission_desc>생산라인-품목 투입 우선순위-저장</permission_desc>
+	</job>
+	<job id="sc_03060_itemLineSeqPreference_list_save" job_type="single" check_permission="no">			
+		<request_type>insert</request_type>
+		<queries>
+			<!-- 01. 화면에 있는 DATA DELETE -->
+			<!-- 02. 화면에 있는 DATA INSERT -->			
+			<query idref="sc_03060_itemLineSeqPreference_list_save_01" datasource="t3sinc"/>
+			<query idref="sc_03060_itemLineSeqPreference_list_save_02" datasource="t3sinc"/>									
+		</queries>	
+	</job>
+	
+	<!-- 생산라인-품목 투입 우선순위 : 삭제 -->  
+	<job id="sc_03060_itemLineSeqPreference_list_del_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_03060_itemLineSeqPreference_list_del"/>		
+		<sub_job id="sc_03060_itemLineSeqPreference_list"/>
+		<permission_desc>생산라인-품목 투입 우선순위-삭제</permission_desc>
+	</job>
+	<job id="sc_03060_itemLineSeqPreference_list_del" job_type="single" check_permission="no">			
+		<request_type>insert</request_type>
+		<queries>
+			<!-- 01. 화면에 있는 DATA DELETE -->						
+			<query idref="sc_03060_itemLineSeqPreference_list_save_01" datasource="t3sinc"/>
+		</queries>	
+	</job>
+
+<!--
+=====================================================================================================
+	생산계획 >> 제약조건
+=====================================================================================================
+--> 
+	
+	<!--
+	======================================================================
+		멀티포장 동시제약
+	======================================================================
+	-->
+	
+	<!-- 멀티포장 동시제약 --> 	
+	<job id="sc_02010_simultaneousOperationConstraint_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>기준정보 >> 생산계획 >> 멀티포장 동시제약</navigation>
+		<toolbars>0011</toolbars>
+		<title>멀티포장 동시제약</title>
+		<authority>1</authority>		
+		<description>멀티포장 동시제약</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="sim_oper_combo_plant_list" datasource="t3sinc"/>			
+			<query idref="sim_oper_combo_line_list" datasource="t3sinc"/> 			
+			<query idref="sim_oper_combo_item_list" datasource="t3sinc"/>
+			<query idref="sim_oper_combo_excl_proc_list" datasource="t3sinc"/>
+			<query idref="sim_oper_combo_mc_list" datasource="t3sinc"/>		
+			<query idref="sc_02010_simultaneousOperationConstraint_list" datasource="t3sinc"/>									
+		</queries>	
+	</job>
+	
+	<!-- 멀티포장 동시제약: 저장-->	
+	<job id="sc_02010_simultaneousOperationConstraint_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_02010_simultaneousOperationConstraint_list_save"/>		
+		<sub_job id="sc_02010_simultaneousOperationConstraint_list"/>
+		<permission_desc>공장할당정책-저장</permission_desc>
+	</job>
+	<job id="sc_02010_simultaneousOperationConstraint_list_save" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>
+			<!-- 01. 검색된 조건의 데이터를 DB에서 모두 삭제 -->
+			<!-- 02. 화면에 있는 데이터를 모두 INSERT -->
+			<query idref="sc_02010_simultaneousOperationConstraint_list_save_01" datasource="t3sinc"/>			
+			<query idref="sc_02010_simultaneousOperationConstraint_list_save_02" datasource="t3sinc"/>									
+		</queries>
+	</job>
+	
+	<!-- 멀티포장 동시제약: 삭제 -->	
+	<job id="sc_02010_simultaneousOperationConstraint_list_del_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_02010_simultaneousOperationConstraint_list_del"/>		
+		<sub_job id="sc_02010_simultaneousOperationConstraint_list"/>
+		<permission_desc>공장할당정책-삭제</permission_desc>
+	</job>
+	<job id="sc_02010_simultaneousOperationConstraint_list_del" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="sc_02010_simultaneousOperationConstraint_list_del" datasource="t3sinc"/>									
+		</queries>
+	</job>
+
+<!--
+=====================================================================================================
+	생산계획 >> 월간 생산계획
+=====================================================================================================
+--> 
+	
+	<!--
+	======================================================================
+		공장별 월간 생산계획 조회
+	======================================================================
+	-->	
+	
+	<!-- 공장별 월간 생산계획 조회 -->
+	<job id="sc_06010_monthlyProductionPlanByPlant_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >> 공장별 월간 공장할당계획 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>공장별 월간 공장할당계획 조회</title>
+		<authority>1</authority>		
+		<description>공장별 월간 공장할당계획 조회</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="combo_plant_list" datasource="t3sinc"/>
+			<query idref="monthly_plant_alloc_combo_version_list" datasource="t3sinc"/>
+			<query idref="month_combo_sales_cat1_list" datasource="t3sinc"/>
+			<query idref="grid_months" datasource="t3sinc"/>							
+			<query idref="sc_06010_monthlyProductionPlanByPlant_list" datasource="t3sinc"/>									
+		</queries>	
+	</job>	
+	
+	<!--
+	======================================================================
+		대분류별 월간 생산계획 조회
+	======================================================================
+	-->	
+	
+	<!-- 대분류별 월간 생산계획 조회 -->
+	<job id="sc_06020_monthlyProductionPlanByItem_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >> 대분류별 월간 공장할당계획 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>대분류별 월간 공장할당계획 조회</title>
+		<authority>1</authority>		
+		<description>대분류별 월간 공장할당계획 조회</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="combo_plant_list" datasource="t3sinc"/>
+			<query idref="monthly_plant_alloc_combo_version_list" datasource="t3sinc"/>
+			<query idref="month_combo_sales_cat1_list" datasource="t3sinc"/>
+			<query idref="grid_months" datasource="t3sinc"/>							
+			<query idref="sc_06020_monthlyProductionPlanByItem_list" datasource="t3sinc"/>									
+		</queries>	
+	</job>
+	
+<!--
+=====================================================================================================
+	생산계획 >> 기준정보
+=====================================================================================================
+--> 
+	
+	<!--
+	======================================================================
+		조 운영 캘린더 관리
+	======================================================================
+	-->
+	
+	<!-- 조 운영 캘린더 관리 조회 --> 
+	<job id="sc_01050_shiftOperationCalendar_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>기준정보 >> 생산계획 >> 조 운영 캘린더 관리</navigation>
+		<toolbars>0010</toolbars>
+		<title>조 운영 캘린더 관리</title>
+		<authority>1</authority>		
+		<description>조 운영 캘린더 관리</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="create_button_able_check" datasource="t3sinc"/>
+			<query idref="combo_plant_list" datasource="t3sinc"/>
+			<query idref="combo_won_list" datasource="t3sinc"/>
+			<query idref="shift_oper_cal_combo_line_list" datasource="t3sinc"/>
+			<query idref="shif_oper_cal_workty_list" datasource="t3sinc"/>
+			<query idref="shift_oper_cal_header_dates" datasource="t3sinc"/>																	
+			<query idref="sc_01050_shiftOperationCalendar_list" datasource="t3sinc"/>									
+		</queries>
+	</job>
+	
+	<!-- 조 운영 캘린더 관리: 저장-->	
+	<job id="sc_01050_shiftOperationCalendar_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_01050_shiftOperationCalendar_list_save"/>		
+		<sub_job id="sc_01050_shiftOperationCalendar_list"/>
+		<permission_desc>조 운영 캘린더 관리-저장</permission_desc>
+	</job>
+	<job id="sc_01050_shiftOperationCalendar_list_save" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="sc_01050_shiftOperationCalendar_list_save_01" datasource="t3sinc"/>
+			<query idref="sc_01050_shiftOperationCalendar_list_save_02" datasource="t3sinc"/>
+			<!--조 운영 캘린더 변경시 work_diary_adj의 데이터를 변경하기 위해  -->
+			<!--1. 조운영 캘린더 에서 변경된 내용을 work_diary_adj에서 delete  -->
+			<!--2. 변경된 데이터를 work_diary_adj에 insert  -->
+			<query idref="work_diary_adj_del" datasource="t3sinc"/>
+			<query idref="work_diary_adj_save" datasource="t3sinc"/>
+			<!--조 운영 캘린더 변경시 V_WORK_DIARY_IDX의 데이터를 변경하기 위해  -->
+			<!--1. V_WORK_DIARY_IDX delete  -->
+			<!--2. V_WORK_DIARY_IDX2 데이터를 V_WORK_DIARY_IDX에 insert  -->
+			<query idref="v_work_diary_idx_del" datasource="t3sinc"/>
+			<query idref="v_work_diary_idx_save" datasource="t3sinc"/>
+		</queries>
+	</job>
+		
+	<!-- 조 운영 캘린더 관리: 생성 -->	
+	<job id="sc_01050_shiftOperationCalendar_list_create_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_01050_shiftOperationCalendar_list_create"/>		
+		<sub_job id="sc_01050_shiftOperationCalendar_list"/>
+		<permission_desc>조 운영 캘린더 관리-생성</permission_desc>
+	</job>
+	<job id="sc_01050_shiftOperationCalendar_list_create" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>
+			<!-- 기본 패턴으로 work dairy data 생성 : 프로시저 호출 -->
+			<query idref="sc_01050_shiftOperationCalendar_list_create" datasource="t3sinc"/>	
+			<!-- work_diary_adj에 data insert -->
+			<query idref="insert_work_diary_adj_new_data" datasource="t3sinc"/>			
+		</queries>
+	</job>
+	
+	<!-- 조 운영 캘린더 관리: 교대조 변경(음료 공장 1교대에서 2교대로) -->	
+	<job id="sc_01050_shiftOperationCalendar_list_change_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_01050_shiftOperationCalendar_list_change"/>		
+		<sub_job id="sc_01050_shiftOperationCalendar_list"/> 
+		<permission_desc>조 운영 캘린더 관리-변경</permission_desc>
+	</job>
+	<job id="sc_01050_shiftOperationCalendar_list_change" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>
+			<!-- 음료공장 교대조 변경 : 프로시저 호출 -->
+			<query idref="sc_01050_shiftOperationCalendar_list_change" datasource="t3sinc"/>
+			<!--조 운영 캘린더 변경시 work_diary_adj의 데이터를 변경하기 위해  -->
+			<!--1. 조운영 캘린더 에서 변경된 내용을 work_diary_adj에서 delete  -->
+			<!--2. 변경된 데이터를 work_diary_adj에 insert  -->
+			<query idref="work_diary_adj_del" datasource="t3sinc"/>
+			<query idref="work_diary_adj_save" datasource="t3sinc"/>
+			<!--조 운영 캘린더 변경시 V_WORK_DIARY_IDX의 데이터를 변경하기 위해  -->
+			<!--1. V_WORK_DIARY_IDX delete  -->
+			<!--2. V_WORK_DIARY_IDX2 데이터를 V_WORK_DIARY_IDX에 insert  -->
+			<query idref="v_work_diary_idx_del" datasource="t3sinc"/>
+			<query idref="v_work_diary_idx_save" datasource="t3sinc"/>			
+		</queries>
+	</job>
+	
+	<!-- 조운영 캘린더 : 시간 조정 : POPUP --> 
+	<job id="sc_01050_shiftOperationCalendar_popup" job_type="single">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>기준정보 >> 생산계획 >> 조 운영 캘린더 관리</navigation>
+		<toolbars>0000</toolbars>
+		<title>시간 조정</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>	
+			<query idref="combo_plant_list" datasource="t3sinc"/>
+			<query idref="combo_won_list" datasource="t3sinc"/>
+			<query idref="shift_oper_cal_combo_line_list" datasource="t3sinc"/>
+			<query idref="shift_oper_cal_header_dates" datasource="t3sinc"/>		
+			<query idref="sc_01050_shiftOperationCalendar_popup" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 조 운영 캘린더 :시간 조정 : POPUP : 저장-->	
+	<job id="sc_01050_shiftOperationCalendar_popup_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_01050_shiftOperationCalendar_popup_save"/>		
+		<sub_job id="sc_01050_shiftOperationCalendar_popup"/>
+		<permission_desc>조 운영 캘린더 : POPUP -저장</permission_desc>
+	</job>
+	<job id="sc_01050_shiftOperationCalendar_popup_save" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="sc_01050_shiftOperationCalendar_popup_save_01" datasource="t3sinc"/>			
+		</queries>
+	</job>
+<!--
+=====================================================================================================
+	생산계획 >> 주문정보
+=====================================================================================================
+--> 
+	
+	<!--
+	======================================================================
+		주문 정보 조회
+	======================================================================
+	-->
+	
+	<!--주문 정보 조회 --> 
+	<job id="sc_14010_order_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >> 주문 정보 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>주문 정보 조회</title>
+		<authority>1</authority>		
+		<description>주문 정보 조회</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="order_combo_if_date_list" datasource="t3sinc"/>
+			<query idref="combo_cat01_list" datasource="t3sinc"/>	
+			<query idref="item_type_list" datasource="t3sinc"/>	
+			<query idref="order_combo_prod_req_date_list" datasource="t3sinc"/>																			
+			<query idref="sc_14010_order_list" datasource="t3sinc"/>									
+		</queries>
+	</job>
+	
+<!--
+=====================================================================================================
+	생산계획 >> 계획분석
+=====================================================================================================
+--> 
+	
+	<!--
+	======================================================================
+		완/반제품/자재 재고조회
+	======================================================================
+	-->
+	
+	<!--완/반제품/자재 재고조회--> 
+	<job id="sc_15010_stockInfo_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >> 완/반제품/자재 재고 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>완/반제품/자재 재고 조회</title>
+		<authority>1</authority>		
+		<description>완/반제품/자재 재고 조회</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="stockInofo_combo_if_date_list" datasource="t3sinc"/>
+			<query idref="combo_plant_list" datasource="t3sinc"/>
+			<query idref="sc_15010_stockInfo_list" datasource="t3sinc"/>									
+		</queries>
+	</job>	
+	
+<!--
+=====================================================================================================
+	생산계획 >> 분석정보 >> 결과검증 
+=====================================================================================================
+--> 
+
+	<!-- 
+	=======================
+		공장할당결과 검증 
+	=======================
+	-->
+		
+	<!--공장할당결과 검증  조회--> 
+	<job id="sc_05220_plantAllocCheck_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >> 공장할당결과 검증</navigation>
+		<toolbars>0000</toolbars>
+		<title>공장할당결과 검증</title>
+		<authority>1</authority>		
+		<description>공장할당결과 검증</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="plant_alloc_chk_date_list" datasource="t3sinc"/>
+			<query idref="plant_alloc_chk_month_list" datasource="t3sinc"/>				
+			<query idref="plant_alloc_chk_version_list" datasource="t3sinc"/>
+			<query idref="combo_sales_cat1_list" datasource="t3sinc"/>
+			<query idref="combo_sales_cat2_list" datasource="t3sinc"/>
+			<query idref="combo_cat01_list" datasource="t3sinc"/>
+			<query idref="sc_05220_plantAllocCheck_list" datasource="t3sinc"/>									
+		</queries>
+	</job>
+	
+	<!--  
+	=============================
+		라인별 생산계획결과 검증 
+	=============================
+	-->
+		
+	<!--라인별 생산계획결과 검증  조회--> 
+	<job id="sc_05230_productionPlanCheckByLine_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >> 라인별 생산계획결과 검증</navigation>
+		<toolbars>0000</toolbars>
+		<title>라인별 생산계획결과 검증</title>
+		<authority>1</authority>		
+		<description>라인별 생산계획결과 검증</description>		
+		<request_type>list</request_type>
+		<queries>			
+			<query idref="combo_plant_list" datasource="t3sinc"/>
+			<query idref="combo_line_list" datasource="t3sinc"/>
+			<query idref="prod_plan_chk_version_list" datasource="t3sinc"/>			
+			<query idref="combo_sales_cat1_list" datasource="t3sinc"/>
+			<query idref="combo_sales_cat2_list" datasource="t3sinc"/>				 	
+			<query idref="combo_cat01_list" datasource="t3sinc"/>
+			<query idref="grid_dates" datasource="t3sinc"/>
+			<query idref="sc_05230_productionPlanCheckByLine_list" datasource="t3sinc"/>									
+		</queries>
+	</job>
+	
+	<!-- 
+	============================
+		작업장별 생산계획결과 검증 
+	============================
+	-->
+		
+	<!-- 작업장별 생산계획결과 검증  조회 --> 
+	<job id="sc_05250_schCapaRateCheck_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >> 작업장별 생산계획결과 검증</navigation>
+		<toolbars>0000</toolbars>
+		<title>작업장별 생산계획결과 검증</title>
+		<authority>1</authority>		
+		<description>작업장별 생산계획결과 검증</description>		
+		<request_type>list</request_type>
+		<queries>			
+			<query idref="combo_plant_list" datasource="t3sinc"/>
+			<query idref="combo_line_list" datasource="t3sinc"/>
+			<query idref="sch_capa_rate_combo_proc_list" datasource="t3sinc"/>
+			<query idref="prod_plan_chk_version_list" datasource="t3sinc"/>			
+			<query idref="combo_sales_cat1_list" datasource="t3sinc"/>
+			<query idref="combo_sales_cat2_list" datasource="t3sinc"/>				 	
+			<query idref="combo_cat01_list" datasource="t3sinc"/>
+			<query idref="grid_dates" datasource="t3sinc"/>
+			<query idref="sc_05250_schCapaRateCheck_list" datasource="t3sinc"/>									
+		</queries>
+	</job>
+	
+	<!--  
+	=============================
+		주(일)간 계획 결과 검증 
+	=============================
+	-->
+		
+	<!--주(일)간 계획 결과 검증--> 
+	<job id="sc_02170_dailyPlanResultCheck_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >> 주(일)간 계획 결과 검증</navigation>
+		<toolbars>0000</toolbars>
+		<title>주(일)간 계획 결과 검증</title>
+		<authority>1</authority>		
+		<description>주(일)간 계획 결과 검증</description>		
+		<request_type>list</request_type>
+		<queries>			
+			<query idref="sc_02170_dailyPlanResultCheck_list" datasource="t3sinc"/>									
+		</queries>
+	</job>
+	
+	<!-- 주(일)간 계획 결과 검증 : 상세정보 --> 
+	<job id="sc_02170_dailyPlanResultCheckDetail_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >> 주(일)간 계획 결과 검증</navigation>
+		<toolbars>0000</toolbars>
+		<title>주(일)간 계획 결과 검증 : 상세정보</title>
+		<authority>1</authority>		
+		<description>iframe</description>		
+		<request_type>list</request_type>
+		<queries>
+			<!-- 공장할당 결과-->
+			<query idref="plant_alloc_result_list" datasource="t3sinc"/>	
+			<!-- 생산계획 결과-->
+			<query idref="daily_production_plan_result_list" datasource="t3sinc"/>
+			<!-- 반제품 생산계획 결과-->
+			<query idref="daily_semifinished_production_plan_result_list" datasource="t3sinc"/>
+			<!-- 공급할당량-->
+			<query idref="alloc_plan_result_list" datasource="t3sinc"/>
+			<!-- 수송계획-->
+			<query idref="trans_plan_result_list" datasource="t3sinc"/>										
+		</queries>
+	</job>
+	
+	<!-- 주(일)간 계획 결과 검증 : RUN DATE 조회 : POPUP --> 
+	<job id="sc_02170_dailyPlanResultCheck_popup" job_type="single">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >> 주(일)간 계획 결과 검증</navigation>
+		<toolbars>0000</toolbars>
+		<title>RUN DATE 조회</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>			
+			<query idref="sc_02170_dailyPlanResultCheck_popup" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	
+<!--
+=====================================================================================================
+	기준정보 >> 생산계획 
+=====================================================================================================
+--> 
+
+	<!-- 
+	===============================
+		생산계획 미 반영 작업장
+	===============================
+	-->
+		
+	<!--생산계획 미 반영 작업장  조회--> 
+	<job id="md_05140_schedulingNotUseProc_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>기준정보 >> 생산계획 >> 생산계획 미 반영 작업장</navigation>
+		<toolbars>0010</toolbars>
+		<title>생산계획 미 반영 작업장</title>
+		<authority>1</authority>		
+		<description>생산계획 미 반영 작업장</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="combo_plant_list" datasource="t3sinc"/>
+			<query idref="combo_line_list" datasource="t3sinc"/>
+			<query idref="combo_division_list" datasource="t3sinc"/>
+			<query idref="md_05140_schedulingNotUseProc_list" datasource="t3sinc"/>									
+		</queries>
+	</job>
+	
+	<!-- 생산계획 미 반영 작업장: 저장-->	
+	<job id="md_05140_schedulingNotUseProc_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_05140_schedulingNotUseProc_list_save"/>		
+		<sub_job id="md_05140_schedulingNotUseProc_list"/>
+		<permission_desc>생산계획 미 반영 작업장-저장</permission_desc>
+	</job>
+	<job id="md_05140_schedulingNotUseProc_list_save" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>
+			<!-- 01. 데이터 INSERT-->
+			<query idref="md_05140_schedulingNotUseProc_list_save_02" datasource="t3sinc"/>			
+		</queries>
+	</job>
+
+	
+	<!-- 
+	===============================
+		공장할당 실적 비율
+	===============================
+	-->
+	
+	<!--공장할당 실적 비율  조회--> 
+	<job id="md_05150_plantAllocActualResultRate_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>기준정보 >> 생산계획 >> 공장할당 실적 비율 관리</navigation>
+		<toolbars>0011</toolbars>
+		<title>공장할당 실적 비율 관리</title>
+		<authority>1</authority>		
+		<description>공장할당 실적 비율 관리</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="combo_sales_cat1_list" datasource="t3sinc"/>
+			<query idref="combo_sales_cat2_list" datasource="t3sinc"/>
+			<query idref="combo_cat01_list" datasource="t3sinc"/>
+			<query idref="md_05150_plantAllocActualResultRate_list" datasource="t3sinc"/>									
+		</queries>
+	</job>
+	
+	<!-- 공장할당 실적 비율: 저장-->	
+	<job id="md_05150_plantAllocActualResultRate_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_05150_plantAllocActualResultRate_list_save"/>		
+		<sub_job id="md_05150_plantAllocActualResultRate_list"/>
+		<permission_desc>공장할당 실적 비율-저장</permission_desc>
+	</job>
+	<job id="md_05150_plantAllocActualResultRate_list_save" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>
+			<!-- 01. 화면에 있는 데이터 모두 삭제 -->
+			<query idref="md_05150_plantAllocActualResultRate_list_save_01" datasource="t3sinc"/>
+			<!-- 02. 화면에 있는 데이터 모두 INSERT-->
+			<query idref="md_05150_plantAllocActualResultRate_list_save_02" datasource="t3sinc"/>			
+		</queries>
+	</job>
+	
+	<!-- 공장할당 실적 비율: 삭제-->	
+	<job id="md_05150_plantAllocActualResultRate_list_del_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_05150_plantAllocActualResultRate_list_del"/>		
+		<sub_job id="md_05150_plantAllocActualResultRate_list"/>
+		<permission_desc>공장할당 실적 비율-삭제</permission_desc>
+	</job>
+	<job id="md_05150_plantAllocActualResultRate_list_del" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="md_05150_plantAllocActualResultRate_list_del" datasource="t3sinc"/>			
+		</queries>
+	</job>
+		
+	<!-- 
+	===============================
+		WORKING DAY 캘린더
+	===============================
+	-->	
+	
+	<!--WORKING DAY 캘린더  조회--> 
+	<job id="md_05160_calendarHoliday_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>기준정보 >> 생산계획 >> WORKING DAY 캘린더</navigation>
+		<toolbars>0000</toolbars>
+		<title>WORKING DAY 캘린더</title>
+		<authority>1</authority>		
+		<description>WORKING DAY 캘린더</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="md_05160_calendarHoliday_list" datasource="t3sinc"/>									
+		</queries>
+	</job>
+
+<!--
+=====================================================================================================
+	생산계획 >> 분석정보 
+=====================================================================================================
+--> 
+
+	<!-- 
+	===============================
+		공장별 생산계획 대비 실적 조회
+	===============================
+	-->
+		
+	<!--공장별 생산계획 대비 실적 조회-->
+	<job id="sc_02190_planVsActualResultByPlant_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >> 공장별 생산계획 대비 실적 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>공장별 생산계획 대비 실적 조회</title>
+		<authority>1</authority>		
+		<description>공장별 생산계획 대비 실적 조회</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="sc_02190_planVsActualResultByPlant_list" datasource="t3sinc"/>									
+		</queries>
+	</job>		
+		
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</jobs>	

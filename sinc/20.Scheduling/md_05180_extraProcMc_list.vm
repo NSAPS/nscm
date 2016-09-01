@@ -1,0 +1,355 @@
+############################################################
+## 프로그램ID : md_05180_extraProcMc_list.vm
+## 프로그램명 : 설비정보 관리 (조회)
+## 개발자  : 허준성
+## 개발일자 : 2008-11-27 목요일
+##
+##관련 job file : job_sinc_20_scheduling_04.xml
+##
+##관련 query file : query_sinc_20_scheduling_04.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2008-11-27  허준성           md_05180_extraProcMc_list.vm 개발
+##
+##
+############################################################
+
+## 비정상적 접근 방지  
+#loginCheck()
+## 화면 resizing 을 위한 size 변수    
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('150', '175')" )    
+
+## 코드 중복 체크를 위해 dwr 선언
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						#button("search")
+						#toolbar_nscm($_moon_toolbar "md_05180_extraProcMc_reg" "" "md_05180_extraProcMc_list_save_comp" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table id="search_menu" style="background-color:#f2f2f2; display:block; " border="0" width="100%" cellpading="0" cellspacing="0" >
+            				<tr>								
+            					<td width="10%" align="right">공장 :</td> 
+            					<td width="40%" align="left"> 
+									<select name="selected_plant" style="width:100px; " onChange="displayLineList(this); ">
+										<option value="">선택</option>
+									#foreach( $condition in $combo_plant_list )  
+										<option value="$condition.get(0)" #if($!{selected_plant} == "$condition.get(0)") selected #else #end >$condition.get(1)</option>											
+									#end
+   									</select>  
+            					</td> 
+            					<td width="10%" align="right">라인 :</td>
+            					<td width="40%" align="left"> 
+									<a id="divComboLine"> 
+										<select name="selected_line"  style="width:185px; ">
+											<option value="">전체</option>
+										</select>
+									</a>
+            					</td>
+							</tr>
+							<tr> 
+								<td width="10%" align="right">작업장 :</td>
+            					<td width="40%" align="left">  
+									<a id="divComboProc">  
+										<select name="selected_proc"  style="width:185px; ">
+											<option value="">전체</option>
+										</select>
+									</a>
+            					</td>
+								<td width="10%" align="right">제품 :</td> 
+            					<td width="40%" align="left">  
+									<input name="item_id" class="normal" style="width:65px; " onChange="getItemName(this); "
+										onkeypress="enterCheck('${_moon_service}'); " value="$!{item_id}"> 
+									<input name="item_name" class="normal" style="width:170px; " readonly
+										onkeypress="enterCheck('${_moon_service}'); " value="$!{item_name}"><img
+										name="imgItem" src="sinc/template/basic/skin/nongshim/images/common/icon_search.gif"
+										align="absmiddle" border="0" style="cursor:pointer;" value="$!{item_name}"
+										onClick="openItemSearchPop('item_id', '450', '300');">
+								</td>
+            				</tr>        				
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="46"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+								<img src="/nscm/sinc/template/basic/skin/nongshim/images/common/dot_sub6.gif" width="16" height="13">Total :
+								<span id="areaTot" class="f_color_o b">$!{_moon_service_count}</span>
+							</td> 
+						</tr>
+					</table>
+					#set( $leftLine1 = 30)   ## 번호
+					#set( $leftLine2 = 30)   ## 삭제
+					#set( $leftLine3 = 80)   ## 제품코드
+					#set( $leftLine4 = 230)  ## 제품명
+					#set( $leftLine5 = 60)   ## Type
+					#set( $leftWidth = $leftLine1 + $leftLine2 + $leftLine3 + $leftLine4 + $leftLine5 )
+					<table id="tbMain" border="0" width="100%" cellpadding="0" cellspacing="0" ><tr><td>
+						<div id="topLeft" style="height:40px; width:$!{leftWidth}; overflow:hidden; ">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead>
+									<tr height="40px"> 
+										<td width="$!{leftLine1}px">번호</td>
+										<td width="$!{leftLine2}px">삭제</td>
+										<td width="$!{leftLine3}px">제품코드</td>
+										<td width="$!{leftLine4}px">제품명</td>	
+										<td width="$!{leftLine5}px">Type</td>	
+									</tr> 
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td>  
+					<td> 
+						#set( $rightLine1 = 100)   ## 라인
+						#set( $rightLine2 = 180)   ## 작업장
+						#set( $rightLine3 = 130)   ## MC_KIND
+						#set( $rightLine4 = 60)    ## MC_QTY
+						#set( $rightWidth = $rightLine1 + $rightLine2 + $rightLine3 + $rightLine4) 
+						<div id="topLine" style="height:40px; width:626px;overflow:hidden;"> 
+							<table width="$!{rightWidth}" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead> 
+									<tr height="40px">	
+										<td width="$!{rightLine1}px">라인</td>
+										<td width="$!{rightLine2}px">작업장</td>
+										<td width="$!{rightLine3}px">MC KIND</td>
+										<td width="$!{rightLine4}px" class="right">MC<br>QTY</td>								
+									</tr>									
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td></tr>	
+					<tr><td valign="top">
+						<div id="leftDisplay" style="width:$!{leftWidth}; overflow:hidden; ">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="left_tbody"> ## 30/70/230
+								## 공장코드 (0) 제품코드 (1)  제품명 (2)  제품타입 (3) 
+                                ## 라인코드 (4)  라인명 (5)  작업장코드 (6)작업장명 (7)   
+                                ## MC_KIND  (8) MC_KIND명(9)  수량 (10) 
+								#if("${md_05180_extraProcMc_list.size()}" == "0")
+									<tr><td align="3"></td></tr>
+								#end
+								#foreach( $tr in $md_05180_extraProcMc_list )
+									<tr id="left_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+										## 번호
+										<td width="$!{leftLine1}px" align="center" style="background-color:${search_bgcolor}; ">
+											<a id="divRowNo">$velocityCount</a>
+										</td>		
+										## 삭제
+										<td width="$!{leftLine2}px" align="center">
+											<input name="btnDelRow" type="button" value="X" class="button1_1"
+												style="width:17px; text-align:center; font-weight:bold; " onClick="delRow(this); "
+												onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'">
+										</td>
+										## 품목 코드  
+										<td width="$!{leftLine3}px">  
+											<input type="text" name="v_item_id" class="normal" value="$tr.get(1)" 
+												style="height:100%; width:100%; border:0px; text-align:center;" readonly >
+											<input type="hidden" name="plant_id" value="$tr.get(0)">
+										</td>
+										## 품목 명 
+										<td width="$!{leftLine4}px">
+											<input type="text" name="v_item_name" class="normal" value="$tr.get(2)" 
+												style="height:100%; width:100%; border:0px; padding-left:5px; text-align:left;" readonly >
+										</td>	
+										## 제품 타입
+										<td width="$!{leftLine5}px">
+											<input type="text" name="item_type" class="normal" value="$tr.get(3)" 
+												style="height:100%; width:100%; border:0px; padding-left:5px; text-align:left;" readonly >
+										</td>
+									</tr>
+								#end
+								</tbody> 
+							</table> 
+						</div> 
+					</td>  
+					<td valign="top"> 
+						<div id="mainDisplay" class="ns_scroll" style="border:0; width:645px; overflow-y:scroll; overflow-x:scroll; " onscroll="scrollX(); scrollY(); ">
+							<table width="$!{rightWidth}" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="main_tbody"> 
+								## 공장코드 (0) 제품코드 (1)  제품명 (2)  제품타입 (3) 
+                                ## 라인코드 (4)  라인명 (5)  작업장코드 (6)작업장명 (7)   
+                                ## MC_KIND  (8) MC_KIND명(9)  수량 (10)
+								#if("${md_05180_extraProcMc_list.size()}" == "0")
+									<tr><td align="7"></td></tr>
+								#end
+								#foreach( $tr in $md_05180_extraProcMc_list )
+									<tr id="main_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+										##라인명 , 라인ID
+										<td width="$!{rightLine1}px"> 
+											<input type="text" name="line_name" class="normal" value="$tr.get(5)" 
+												style="height:100%; width:100%; border:0px; padding-left:5px; text-align:left;" readonly >
+											<input type="hidden" name="line_id" value="$tr.get(4)">
+										</td>
+										## 작업장명, 작업장ID
+										<td width="$!{rightLine2}px">
+											<input type="text" name="proc_name" class="normal" value="$tr.get(7)" 
+												style="height:100%; width:100%; border:0px; padding-left:5px; text-align:left;" readonly >
+											<input type="hidden" name="proc_id" value="$tr.get(6)">
+										</td>
+										## MC_KIND명, MC_KIND
+										<td width="$!{rightLine3}px" align="left" onClick="setEditMode(this); ">
+											<a id="divMcKind">&nbsp;$tr.get(9)</a><select 
+												name="mc_kind" style="width:$!{rightLine3}px; display:none; " onFocusOut="setViewMode(this); ">
+        										##<option value="">선택</option>
+        									#foreach( $sel in $mc_kind_in_code_mst )
+        										<option value="${sel.get(0)}" 
+        											#if( "${tr.get(8)}" == "${sel.get(0)}" ) selected #end)>${sel.get(1)}</option>
+        									#end
+        									</select>
+										</td>		
+										## MC_QTY
+										<td width="$!{rightLine4}px" class="right">
+											<input type="text" name="mc_qty" class="normal" size="10" value="$tr.get(10)"
+												style="height:100%; width:100%; padding-right:5px; text-align:right;" >
+										</td>
+									</tr>
+								#end
+								</tbody>
+							</table>
+						</div>
+					</td></tr></table>
+					
+					<table border="0" width="100%" cellpadding="0" cellspacing="0" height="5px"><tr><td></td></tr></table>
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+						
+					<input type="hidden" name="_moon_service">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+																				
+				</div>
+			</div> 
+		</td>
+	</tr>
+</table> 
+ 
+<script>
+	 
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력 
+	var helpStr = "◈ 상단의 조회 조건을 선택하고 상단 우측의 조회 버튼을 클릭하면 설비정보에 대한 리스트가  조회됩니다.";		
+	helpStr += "<br>◈ 삭제를 클릭하면, 해당 행의 데이터는 삭제됩니다.";
+	helpStr += "<br>◈ 수정할 수 있는 필드는 MC KIND와 MC QTY 입니다.";
+	helpStr += "<br>◈ 제품은  제품코드로만 검색 가능하고, Like 조회가 가능합니다.";
+	helpStr += "<br>◈ 상단 우측의 등록 버튼을 클릭하면 새로운 설비정보를 등록할 수 있는 페이지로 이동합니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+
+	// MC_KIND
+	var selStrMcKind = "<select name=\"mc_kind\" style=\"width:$!{rightLine3}px; display:none; \" onFocusOut=\"setViewMode(this); \">";
+    #foreach( $sel in $mc_kind_in_code_mst )
+    	selStrMcKind += "<option value=\"${sel.get(0)}\" ";
+        #if( "${tr.get(8)}" == "${sel.get(0)}" ) 
+			selStrMcKind += "selected"; 
+		#end
+		selStrMcKind += ">${sel.get(1)}</option>";
+	#end
+	selStrMcKind += "</select>";
+	
+	// combo box:공장(serarch)선택시  라인(search) 채움
+	function displayLineList(obj){	 
+		var div_line = "<select name=\"selected_line\" style=\"width:185px; \" onChange=\"displayProcList(this); \"> "; 
+		div_line += "<option  value=\"\">전체</option> ";   
+	#foreach( $condition in $combo_line_list )
+		if (obj.value == "$condition.get(0)" ) { 
+			div_line += "<option value=\"$condition.get(2)\"";
+				if("$condition.get(2)" == "$!{selected_line}")
+					div_line += " selected ";
+			div_line += ">$condition.get(3)</option>";  
+		}
+	#end 
+		div_line += "</select>"; 
+		divComboLine.innerHTML = div_line;
+	}	 
+	displayLineList(document.frm.selected_plant);
+	 
+	// combo box:라인(serarch)선택시 작업장(search) 채움
+	function displayProcList(obj){
+		var div_proc = "<select name=\"selected_proc\" style=\"width:185px; \" > "; 
+		div_proc += "<option  value=\"\">전체</option> ";   
+	#foreach( $condition in $sch_capa_rate_combo_proc_list )
+		if ( document.frm.selected_plant.value == "$condition.get(0)" && obj.value == "$condition.get(1)" ) { 
+			div_proc += "<option value=\"$condition.get(2)\"";
+				if("$condition.get(2)" == "$!{selected_proc}")
+					div_proc += " selected "; 
+			div_proc += ">$condition.get(3)</option>"; 
+		}
+	#end 
+		div_proc += "</select>";  
+		divComboProc.innerHTML = div_proc;
+	}
+	displayProcList(document.frm.selected_line);
+													
+	// 작업장(grid) 리스트 채움
+	function doChangeGridLine(obj, plantId, procId, rowIdx){
+		if(!obj || !obj.value) return;		
+						
+		var div_proc = "<select name=\"proc_id\" onKeyDown=\"moveNextBox(this); \" ";
+		div_proc += "style=\"width:100%; padding-left:5px \" tabindex=\"6\" >";
+		//div_proc += "<option value=\"\">선택</option>";
+	#foreach( $condition in $sch_capa_rate_combo_proc_list )
+		if( plantId == $condition.get(0) && obj.value == "$condition.get(1)"){
+			div_proc += "<option value=\"$condition.get(2)\" ";
+				if("$condition.get(2)" == procId)
+					div_proc += " selected ";
+			div_proc += ">$condition.get(3)</option>";
+		}
+	#end
+		div_proc += "</select>";
+		if(divProcSelect[rowIdx]){
+			divProcSelect[rowIdx].innerHTML = div_proc;			
+		}
+		else{
+			divProcSelect.innerHTML = div_proc;			
+		}		
+		//alert(plantId + ","+ procId+ ","+ rowIdx);
+	}	
+	
+</script>

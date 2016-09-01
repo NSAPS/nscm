@@ -1,0 +1,163 @@
+
+#set($project = $request.getContextPath())
+#parse("/sinc/template/basic/skin/${_moon_skin}/skin.vm")
+
+#if( "$!{_moon_service}" == "" )
+	#set( $err_service = "${_user_service}" )
+#else
+	#set( $err_service = "${_moon_service}" )
+#end
+#set( $tmp = $connectionLogs.insertLogsErr("${_user_id}", "${err_service}", "$request.getRemoteAddr()", "${_moon_exception_message}", "${_moon_exception_detail}") )
+
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=EUC-KR">
+<style> 
+.cap1 {filter='progid:DXImageTransform.Microsoft.Gradient(GradientType=1, StartColorStr=${gradient_start}, EndColorStr=${gradient_middle})';font-family: ${font_family}; font-size: ${font_size_up}pt; color:#FFFFFF; border:0 solid #000000;height:22px;} 
+.cap2 {filter='progid:DXImageTransform.Microsoft.Gradient(GradientType=1, StartColorStr=${gradient_middle}, EndColorStr=${gradient_end})';font-family: 굴림; font-size: ${font_size_up}pt; color:#FFFFFF; border:0 solid #000000;height:22px;} 
+.button1_1 {
+	filter='progid:DXImageTransform.Microsoft.Gradient(GradientType=0, StartColorStr=#FFFFFF, EndColorStr=${toolbar_btn2_bgcolor})';
+	font-family: ${font_family};   font-size: ${font_size_dw}pt; 
+	border:1px solid;  border-color:ButtonHighlight ButtonShadow ButtonShadow ButtonHighlight; 
+	height:18px;} 	
+.button1_2 {
+	filter='progid:DXImageTransform.Microsoft.Gradient(GradientType=0, StartColorStr=#FFFFFF, EndColorStr=${gradient_start})';
+	font-family: ${font_family}; 	font-size: ${font_size_dw}pt; 
+	border:1px solid; border-color: ButtonHighlight ButtonShadow ButtonShadow ButtonHighlight; 
+	height:18px;
+} 	
+.button2_1{
+	font-size: ${font_size}pt;
+	border: 1px solid;
+	border-color:	ButtonHighlight ButtonShadow
+				ButtonShadow ButtonHighlight;
+	background:	${toolbar_btn_bgcolor};		
+}
+.button2_2{
+	font-size: ${font_size}pt;
+	border: 1px solid;
+	border-color:	#000000 #000000
+				#000000 #000000;
+	background:	${toolbar_btn2_bgcolor};		
+}
+.button2_3{
+	color: gray;
+	font-size: ${font_size}pt;
+	border: 1px solid;
+	border-color:	#787878 #C7C7C7
+				#C7C7C7 #787878;
+	background:	${toolbar_btn_bgcolor};		
+}
+</style> 
+
+<link type="text/css" rel="stylesheet" href="$!{project}/sinc/template/basic/skin/${_moon_skin}/skin.css" />
+<link type="text/css" rel="stylesheet" href="$!{project}/sinc/template/basic/script/grid/styles/classic/grid.css" />
+<link type="text/css" rel="stylesheet" href="$!{project}/sinc/template/basic/skin/style.css" />
+
+<script type="text/javascript" src="$!{project}/sinc/template/extension/script/tabpane.js"></script>
+<script type="text/javascript" src="$!{project}/sinc/template/extension/script/sortabletable.js"></script>
+<script type="text/javascript" src="$!{project}/sinc/template/extension/script/sortTable.js"></script>
+<script type="text/javascript" src="$!{project}/sinc/template/extension/script/util.js"></script>
+<script type="text/javascript" src="$!{project}/sinc/template/extension/script/action.js"></script>
+<script type="text/javascript" src="$!{project}${_moon_path}/script/${_moon_target}.js"></script>
+<script type="text/javascript" src="$!{project}/sinc/template/extension/script/grid/lib/grid.js"></script>
+
+<!-- calendar stylesheet -->
+<!--<link rel="stylesheet" type="text/css" media="all" href="/sinc/template/basic/script/jscalendar/calendar-system.css" title="win2k-cold-1" />-->
+<link rel="stylesheet" type="text/css" media="all" href="$!{project}/sinc/template/basic/skin/${_moon_skin}/calendar.css" title="calendar" />
+<!--style type="text/css">@import url($!{project}/sinc/template/basic/script/jscalendar/calendar-win2k-1.css);</style-->
+<!-- main calendar program -->
+<script type="text/javascript" src="$!{project}/sinc/template/basic/script/jscalendar/calendar.js"></script>
+
+<!-- language for the calendar -->
+<!--script type="text/javascript" src="$!{project}/sinc/template/basic/script/jscalendar/lang/calendar-ko.js"></script-->
+<script type="text/javascript" src="$!{project}/sinc/template/basic/script/jscalendar/lang/calendar-ko.js"></script>
+
+<!-- the following script defines the Calendar.setup helper function, which makes  adding a calendar a matter of 1 or 2 lines of code. -->
+<script type="text/javascript" src="$!{project}/sinc/template/basic/script/jscalendar/calendar-setup.js"></script>
+
+</head>
+
+<script languagu="javascript">
+	if("${_moon_skin}" == "" || "${_moon_skin}" == "null" || "${_moon_skin}" == "NULL" || "${_moon_skin}" == null){
+		alert("SESSION 이 끊어졌습니다. 창을 닫고 다시 로그인하세요.");
+		top.window.close();
+	}
+	else if("${_moon_exception_message}" == "FAIL to pass a PERMISSION CHECK"){
+		alert("요청하신 작업에 권한이 없습니다.\n자세한 사항은 관리자에게 문의하시기 바랍니다.");
+		window.history.go(-1);
+	}
+</script>
+
+<body bgcolor="${body_bgcolor}" leftmargin="0" rightmargin="0" topmargin="0">
+
+<table height="100%" cellspacing=0 cellpadding=0 width="100%" border="0">
+  	<tr>
+		<td><img height=2 src="${project}/sinc/template/extension/images/common/left_top.gif" width=2></td>
+		<td width="100%" background="${project}/sinc/template/extension/images/common/top_top.gif"></td>
+		<td><img height=2 src="${project}/sinc/template/extension/images/common/top_right.gif" width=3></td>
+	</tr>
+  	<tr>
+		<td><img height=22 src="${project}/sinc/template/extension/images/common/left_border.gif" width=2></td>
+		<td>
+			<table border="0" cellpadding="0" cellspacing="0" width="100%">
+				<tr>
+					<td class="cap1" width="60%">
+						&nbsp;<img src="${project}/sinc/template/extension/images/common/home.gif" align="absmiddle">&nbsp;
+						Error at ${err_service}</td>
+					<td class="cap2" width="20%">&nbsp;</td>
+					<td bgcolor="${body_bgcolor}" width="20%">&nbsp;</td>
+				</tr>
+			</table>
+		</td>
+		<td><img height=22 src="${project}/sinc/template/extension/images/common/right_border.gif" width=3></td>
+	</tr>
+  	<tr>
+		<td width=2 background="${project}/sinc/template/extension/images/common/left_border.gif" height=1></td>
+		<td width="100%" background="${project}/sinc/template/extension/images/common/grey.gif"></td>
+		<td width=3 background="${project}/sinc/template/extension/images/common/right_border.gif" height=1></td>
+	</tr>
+  	<tr>
+		<td background="${project}/sinc/template/extension/images/common/left_border.gif" height="100%"></td>
+
+		<td valign=top align=middle bgcolor="${main_bgcolor}">
+			<form method="post" name="frm">
+			<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+				<!-- <<KSY 2005.01.11 -->
+				<tr>
+					<td height="*" valign="middle" align="center">
+					 <img src="sinc/template/basic/images/common/error.jpg">
+					</td>
+				</tr>
+				<!-- KSY 2005.01.11>> -->
+				
+			</table>
+			</form>
+        </td>
+		<td width=3 background="${project}/sinc/template/extension/images/common/right_border.gif" height="100%"></td>
+	</tr>
+  	<tr>
+		<td><img height=3 src="${project}/sinc/template/extension/images/common/left_bottom.gif" width=2></td>
+		<td width="100%" background="${project}/sinc/template/extension/images/common/bottom_bottom.gif"></td>
+		<td><img height=3 src="${project}/sinc/template/extension/images/common/bottom_right.gif" width=3></td>
+	</tr>
+</table>
+
+<!-- <<KSY 2005.01.11 -->
+ -------------------------------------------------------------------------------------------------------------------- <br>
+ERROR DETAIL. <br>
+[${_moon_exception_detail}] <br>
+ -------------------------------------------------------------------------------------------------------------------- <br>
+
+<font size="1">
+	${_moon_exception} <br>
+	-------------------------------------------------------------------------------------------------------------------- <br>
+	#foreach( $tr in $connectionLogs.getExceptionList(${_moon_exception}) )
+		$tr <br>
+	#end
+</font>
+-------------------------------------------------------------------------------------------------------------------- <br>
+<!-- KSY 2005.01.11>> -->
+
+</body>
+</html>

@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>	
+
+<!--
+=====================================================================================================
+	생산계획 >> 월간 생산계획
+=====================================================================================================
+-->
+    <!--
+    =======================
+	  공통
+	=======================
+	-->
+	
+	<!-- 월간 완제품 생산계획 버전 리스트 --> 
+	<query id="monthlyProductionPlan_version_list">
+	
+		-- 월간 완제품 생산 계획 버전
+        SELECT  EB.PLANT_ID, PV.VERSION, PV.SEQ, PV.STATUS
+	      FROM  PLAN_VERSION_LOG PV, ENGN_BAT_MST EB
+	     WHERE  PV.MADE_TYPE != 'DE'
+	       AND  EB.MADE_TYPE != 'DE'
+	       AND  PV.PERIOD_TYPE = 'MONTHLY'
+	       AND  PV.PERIOD_TYPE = EB.PERIOD_TYPE 
+	       AND  PV.CAT_ID = EB.CAT_ID
+	       AND  PV.SUB_CAT = EB.SUB_CAT
+	       AND  UPPER(PV.CAT_ID) LIKE UPPER('PS%')
+	       AND  PV.SEQ IS NOT NULL                      
+	     GROUP  BY EB.PLANT_ID, PV.VERSION, PV.SEQ, PV.STATUS
+	     ORDER  BY EB.PLANT_ID, PV.VERSION DESC, PV.SEQ DESC 
+		       				
+	</query>
+	
+	<!-- 월간 반제품 생산계획 버전 리스트 --> 
+	<query id="monthlySemifinishedProductionPlan_version_list">
+	
+	    -- 월간 반제품 생산 계획 버전
+		SELECT  PVL.VERSION, PVL.SEQ, PVL.STATUS
+		  FROM  (
+		          SELECT  PV.VERSION, PV.SEQ, ROWNUM NUM, PV.STATUS
+		            FROM  PLAN_VERSION_LOG PV
+		           WHERE  PV.MADE_TYPE != 'DE'
+		             AND  PV.PERIOD_TYPE = 'MONTHLY'
+		             AND  PV.CAT_ID = 'SS'
+		             AND  PV.VERSION IS NOT NULL
+		             AND  PV.SEQ IS NOT NULL
+		           ORDER  BY PV.VERSION DESC, PV.SEQ DESC
+		        ) PVL
+		 WHERE  PVL.NUM &lt;= 20
+	</query>
+	
+	<!-- 월간 반제품 PLANT LIST --> 
+	<query id="monthly_semi_combo_plant_list">
+	
+	    -- 월간 반제품 생산 PLANT LIST
+		SELECT  DISTINCT MP.VERSION, MP.SEQ, MP.PLANT_ID, HR.HID_NAME
+          FROM  MONTHLY_PLAN MP, HRCHY HR,
+                (
+                 SELECT  PV.VERSION, PV.SEQ, ROWNUM NUM
+                   FROM  PLAN_VERSION_LOG PV
+                  WHERE  PV.MADE_TYPE != 'DE'
+                    AND  PV.PERIOD_TYPE = 'MONTHLY'
+                    AND  PV.CAT_ID = 'SS'
+                    AND  PV.VERSION IS NOT NULL
+                    AND  PV.SEQ IS NOT NULL
+               ) PVL 
+           WHERE  MP.PLANT_ID = HR.HTYPE
+             AND  MP.MADE_TYPE != 'DE'
+             AND  HR.MADE_TYPE != 'DE'
+             AND  HR.LVL_TYPE = '공장'
+             AND  MP.VERSION = PVL.VERSION
+             AND  MP.SEQ = PVL.SEQ
+           ORDER  BY MP.VERSION DESC
+	</query>
+    
+    <!-- 월간 반제품 PLANT LIST --> 
+	<query id="run_date_in_plan_version_log">
+	
+    	SELECT  TO_CHAR(PV.RUN_DATE,'YYYY-MM-DD') RUN_DATE
+		  FROM  (
+		        SELECT  DISTINCT PV.RUN_DATE
+		          FROM  PLAN_VERSION_LOG PV
+		         WHERE  PV.PERIOD_TYPE = 'DAILY'
+		         ORDER  BY RUN_DATE DESC
+		        ) PV
+		 WHERE  ROWNUM &lt;= 10
+ 	</query>
+	<!-- 
+	=======================
+	  월간 완제품 생산계획 분석
+	=======================
+	-->
+	
+	<!-- 1. 월간 완제품 생산계획 분석 : GRID HEADER --> 
+	<query id="monthlyProductionPlanAnalysis_list_header">
+	
+		#if("$!{start_month}" == "") <!-- 시작월 정보가 없는 경우 -->
+			SELECT  TO_CHAR(SYSDATE,'YYYY/MM') M01,
+			        TO_CHAR(ADD_MONTHS(SYSDATE,1),'YYYY/MM') M02,
+			        TO_CHAR(ADD_MONTHS(SYSDATE,2),'YYYY/MM') M03,
+			        TO_CHAR(ADD_MONTHS(SYSDATE,3),'YYYY/MM') M04,
+			        TO_CHAR(ADD_MONTHS(SYSDATE,4),'YYYY/MM') M05,
+			        TO_CHAR(ADD_MONTHS(SYSDATE,5),'YYYY/MM') M06
+			  FROM  DUAL
+		#else
+			SELECT  TO_CHAR(TO_DATE('$!{start_month}','YYYY-MM'),'YYYY/MM') M01,
+			        TO_CHAR(ADD_MONTHS(TO_DATE('$!{start_month}','YYYY-MM'),1),'YYYY/MM') M02,
+			        TO_CHAR(ADD_MONTHS(TO_DATE('$!{start_month}','YYYY-MM'),2),'YYYY/MM') M03,
+			        TO_CHAR(ADD_MONTHS(TO_DATE('$!{start_month}','YYYY-MM'),3),'YYYY/MM') M04,
+			        TO_CHAR(ADD_MONTHS(TO_DATE('$!{start_month}','YYYY-MM'),4),'YYYY/MM') M05,
+			        TO_CHAR(ADD_MONTHS(TO_DATE('$!{start_month}','YYYY-MM'),5),'YYYY/MM') M06
+			  FROM  DUAL
+		#end
+      				
+	</query>
+	
+	<!-- 2. 월간 완제품 생산계획 분석 : 조회 --> 
+	<query id="sc_01030_monthlyProductionPlanAnalysis_list">
+	    SELECT  MPN.PLANT_NAME, MPN.TEAM_NAME, MPN.LINE_NAME, 
+		        MPN.ITEM_ID, MPN.ITEM_NAME, MPN.SPEC,
+		        (MPN.M01 + MPN.M02 + MPN.M03 + MPN.M04 + MPN.M05 + MPN.M06) ROW_SUM,
+		        MPN.M01, MPN.M02, MPN.M03, MPN.M04, MPN.M05, MPN.M06
+		  FROM  (
+				SELECT  MON.PLANT_NAME, MON.TEAM_NAME, MON.LINE_NAME, 
+				        MON.ITEM_ID, MON.ITEM_NAME, MON.SPEC,
+				        SUM(DECODE(TO_CHAR(TO_DATE(MON.YYYYMMDD,'YYYY-MM-DD'),'YYYY-MM'),'$!{start_month}',#if("$!{checked_uom}" == "box") MON.QTY #else MON.QTY*MON.DETAIL_QTY #end, 0)) M01,
+				        SUM(DECODE(TO_CHAR(TO_DATE(MON.YYYYMMDD,'YYYY-MM-DD'),'YYYY-MM'), TO_CHAR(ADD_MONTHS(TO_DATE('$!{start_month}','YYYY-MM'),1),'YYYY-MM'),#if("$!{checked_uom}" == "box") MON.QTY #else MON.QTY*MON.DETAIL_QTY #end,0)) M02,
+				        SUM(DECODE(TO_CHAR(TO_DATE(MON.YYYYMMDD,'YYYY-MM-DD'),'YYYY-MM'), TO_CHAR(ADD_MONTHS(TO_DATE('$!{start_month}','YYYY-MM'),2),'YYYY-MM'),#if("$!{checked_uom}" == "box") MON.QTY #else MON.QTY*MON.DETAIL_QTY #end,0)) M03,
+				        SUM(DECODE(TO_CHAR(TO_DATE(MON.YYYYMMDD,'YYYY-MM-DD'),'YYYY-MM'), TO_CHAR(ADD_MONTHS(TO_DATE('$!{start_month}','YYYY-MM'),3),'YYYY-MM'),#if("$!{checked_uom}" == "box") MON.QTY #else MON.QTY*MON.DETAIL_QTY #end,0)) M04,
+				        SUM(DECODE(TO_CHAR(TO_DATE(MON.YYYYMMDD,'YYYY-MM-DD'),'YYYY-MM'), TO_CHAR(ADD_MONTHS(TO_DATE('$!{start_month}','YYYY-MM'),4),'YYYY-MM'),#if("$!{checked_uom}" == "box") MON.QTY #else MON.QTY*MON.DETAIL_QTY #end,0)) M05,
+				        SUM(DECODE(TO_CHAR(TO_DATE(MON.YYYYMMDD,'YYYY-MM-DD'),'YYYY-MM'), TO_CHAR(ADD_MONTHS(TO_DATE('$!{start_month}','YYYY-MM'),5),'YYYY-MM'),#if("$!{checked_uom}" == "box") MON.QTY #else MON.QTY*MON.DETAIL_QTY #end,0)) M06
+				  FROM  (
+				        SELECT  MP.YYYYMMDD, HR.PLANT_NAME, HR.TEAM_NAME, HR.LINE_NAME, 
+				                MP.LINE_ID, MP.ITEM_ID, IM.ITEM_NAME, IM.SPEC, MP.QTY , NVL(IM.QTY,1) DETAIL_QTY 
+				          FROM  MONTHLY_PLAN MP, ITEM_MST IM,
+				                (
+				                SELECT  DISTINCT V.PLANT_ID, V.PLANT_NAME, V.TEAM_ID, 
+				                        V.TEAM_NAME, V.LINE_ID, V.LINE_NAME 
+				                  FROM  V_HRCHY_PROC V
+				                ) HR
+				         WHERE  MP.VERSION = '$!{version}'
+				           AND  MP.SEQ = '$!{seq}'
+				           AND  TO_CHAR(TO_DATE(MP.YYYYMMDD,'YYYY-MM-DD'),'YYYY-MM')  BETWEEN '$!{start_month}' AND TO_CHAR(ADD_MONTHS(TO_DATE('$!{start_month}','YYYY-MM'),5),'YYYY-MM')
+				           AND  HR.PLANT_ID = '$!{selected_plant}'--공장
+				           AND  MP.PLANT_ID = HR.PLANT_ID
+				           AND  MP.LINE_ID = HR.LINE_ID
+				           AND  MP.ITEM_ID = IM.ITEM_ID
+				         #if("$!{checked_multi}" == "visual")
+                           AND  IM.MULTI_FLAG = 'V'
+			           #elseif("$!{checked_multi}" == "multi")
+                           AND  IM.MULTI_FLAG = 'M'
+			           #elseif("$!{checked_multi}" == "normal")
+                           AND  IM.MULTI_FLAG IS NULL
+                 #else
+			           #end
+			               [AND  HR.TEAM_ID = '${selected_won}']--원가부문
+			               [AND  IM.SALES_CAT01 = '${selected_hr_type1}'] --SALES_CAT1
+			               [AND  IM.SALES_CAT02 = '${selected_hr_type}'] --SALES_CAT2
+			               [AND  IM.CAT01 = '${selected_cat01}'] -- 품종특성 
+			             ) MON
+				  GROUP  BY MON.PLANT_NAME, MON.TEAM_NAME, MON.LINE_NAME, MON.ITEM_ID, MON.ITEM_NAME, MON.SPEC, MON.DETAIL_QTY
+				 ) MPN
+		 ORDER  BY MPN.TEAM_NAME, MPN.LINE_NAME, MPN.ITEM_ID
+	</query>
+	
+	
+	<!-- 
+	=======================
+	  월간 반제품 생산계획 분석
+	=======================
+	-->
+	<!--  1.월간 반제품 생산계획 분석 : 조회 -->
+	<query id="sc_01050_monthlySemifinishedProductPlanAnalysis_list">
+	    SELECT  MPN.PLANT_NAME, MPN.TEAM_NAME, MPN.LINE_NAME, 
+                MPN.ITEM_ID, MPN.ITEM_NAME, MPN.SPEC, MPN.DETAIL_QTY,
+                (MPN.M01 + MPN.M02 + MPN.M03 + MPN.M04 + MPN.M05 + MPN.M06) ROW_SUM,
+                MPN.M01, MPN.M02, MPN.M03, MPN.M04, MPN.M05, MPN.M06
+          FROM  (
+                SELECT  MON.PLANT_NAME, MON.TEAM_NAME, MON.LINE_NAME, 
+                        MON.ITEM_ID, MON.ITEM_NAME, MON.SPEC, MON.DETAIL_QTY,
+                        SUM(DECODE(TO_CHAR(TO_DATE(MON.YYYYMMDD,'YYYY-MM-DD'),'YYYY-MM'),'$!{start_month}', MON.QTY , 0)) M01,
+                        SUM(DECODE(TO_CHAR(TO_DATE(MON.YYYYMMDD,'YYYY-MM-DD'),'YYYY-MM'), TO_CHAR(ADD_MONTHS(TO_DATE('$!{start_month}','YYYY-MM'),1),'YYYY-MM'), MON.QTY ,0)) M02,
+                        SUM(DECODE(TO_CHAR(TO_DATE(MON.YYYYMMDD,'YYYY-MM-DD'),'YYYY-MM'), TO_CHAR(ADD_MONTHS(TO_DATE('$!{start_month}','YYYY-MM'),2),'YYYY-MM'), MON.QTY ,0)) M03,
+                        SUM(DECODE(TO_CHAR(TO_DATE(MON.YYYYMMDD,'YYYY-MM-DD'),'YYYY-MM'), TO_CHAR(ADD_MONTHS(TO_DATE('$!{start_month}','YYYY-MM'),3),'YYYY-MM'), MON.QTY ,0)) M04,
+                        SUM(DECODE(TO_CHAR(TO_DATE(MON.YYYYMMDD,'YYYY-MM-DD'),'YYYY-MM'), TO_CHAR(ADD_MONTHS(TO_DATE('$!{start_month}','YYYY-MM'),4),'YYYY-MM'), MON.QTY ,0)) M05,
+                        SUM(DECODE(TO_CHAR(TO_DATE(MON.YYYYMMDD,'YYYY-MM-DD'),'YYYY-MM'), TO_CHAR(ADD_MONTHS(TO_DATE('$!{start_month}','YYYY-MM'),5),'YYYY-MM'), MON.QTY ,0)) M06
+                  FROM  (
+                        SELECT  MP.YYYYMMDD, HR.PLANT_NAME, HR.TEAM_NAME, HR.LINE_NAME, 
+                                MP.LINE_ID, MP.ITEM_ID, IM.ITEM_NAME, IM.SPEC, MP.QTY , IM.QTY DETAIL_QTY 
+                          FROM  MONTHLY_PLAN MP, ITEM_MST IM,
+                                (
+                                SELECT  DISTINCT V.PLANT_ID, V.PLANT_NAME, V.TEAM_ID, 
+                                        V.TEAM_NAME, V.LINE_ID, V.LINE_NAME 
+                                  FROM  V_HRCHY_PROC V
+                                ) HR
+                         WHERE  MP.VERSION = '$!{version}'
+                           AND  MP.SEQ = '$!{seq}'
+                           AND  TO_CHAR(TO_DATE(MP.YYYYMMDD,'YYYY-MM-DD'),'YYYY-MM')  BETWEEN '$!{start_month}' AND TO_CHAR(ADD_MONTHS(TO_DATE('$!{start_month}','YYYY-MM'),5),'YYYY-MM')
+                           [AND  HR.PLANT_ID = '${selected_plant}']--공장
+                           AND  MP.PLANT_ID = HR.PLANT_ID
+                           AND  MP.LINE_ID = HR.LINE_ID
+                           AND  MP.ITEM_ID = IM.ITEM_ID                                    
+                           [AND  HR.TEAM_ID = '${selected_won}']--원가부문
+                           [AND  IM.CAT02 = '${selected_type}']--반제품종류
+                         ) MON
+                  GROUP  BY MON.PLANT_NAME, MON.TEAM_NAME, MON.LINE_NAME, MON.ITEM_ID, MON.ITEM_NAME, MON.SPEC, MON.DETAIL_QTY
+                 ) MPN
+         ORDER  BY MPN.TEAM_NAME, MPN.LINE_NAME, MPN.ITEM_ID
+	</query>
+	
+<!--
+=====================================================================================================
+	생산계획 >> 분석정보
+=====================================================================================================
+-->
+	<!-- 
+	=======================
+	  Demand대비 주일간결과 검증(품목기준)
+	=======================
+	-->
+	<!--  1.Demand대비 주일간결과 검증 : 조회 -->
+	<query id="sc_02170_dailySchResultVsDemandByItem_list_01" paging="true">
+	
+		SELECT  D.ITEM_ID, D.ITEM_NAME, D.DEMAND_QTY, D.ALLOC_QTY, D.TRANS_QTY, 
+		        D.PLANT_NAME, D.PLANT_ALLOC_QTY, D.FERT_PROD_QTY, IM.QTY, D.HALB_ITEM_ID, 
+		        D.HALB_ITEM_NAME,
+		        (CASE WHEN SUBSTR(D.HALB_ITEM_ID,0,2) = '71'
+		             THEN D.FERT_PROD_QTY * IM.QTY
+		             ELSE NULL
+		        END) CAL_SUM, 
+		        D.HALB_REQ_QTY, D.QTY_UOM, TO_CHAR(D.MADE_DTTM, 'YYYY-MM-DD HH24:MI')
+		  FROM  DEMAND_PLAN_CHECK D, ITEM_MST IM
+		 WHERE  D.ITEM_ID = IM.ITEM_ID
+		   [AND  D.PLANT_ID = '${selected_plant}']
+		   [AND  D.ITEM_ID LIKE '%'||'${item_id}'||'%']
+		   [AND  D.ITEM_NAME LIKE '%'||'${item_name}'||'%']
+		  ORDER BY D.RUN_DATE DESC, D.ITEM_ID, D.PLANT_NAME
+		
+	</query>
+	
+	<!--  2.생산계획(완제품) 대비 생산계획(반제품) : 조회 -->
+	<query id="sc_02170_dailySchResultVsDemandByItem_list_02">
+		
+		SELECT  S.ITEM_ID, S.ITEM_NAME, S.PROD_PER_HALB_QTY, S.SEMI_REQ_QTY, S.PLANT_NAME, 
+		        S.MIN_LOT_SIZE, S.HALB_PROD_QTY, S.QTY_UOM
+		  FROM  SEMIREQ_HALB_PLAN_CHECK S, DUAL B
+		 ORDER  BY S.ITEM_ID
+		 
+	</query>
+	
+	<!--  3.Demand대비 주일간결과 검증 : 프로시저 호출 -->
+	<query id="sc_02170_dailySchResultVsDemandByItem_list_create" paging="true">
+		CALL SP_BA_QTYCHK_01('BATCH', TO_DATE('$!{run_date}','YYYY-MM-DD'), 1, 1, 'NA', SYSDATE)
+	</query>
+<!--
+=====================================================================================================
+ 끝  
+=====================================================================================================
+--> 
+
+</queries>

@@ -1,0 +1,3443 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>
+
+<!--
+=====================================================================================================
+	수송계획 >> 운영정보
+=====================================================================================================
+-->
+	
+	<!--
+	======================================================================
+		공통 쿼리
+	======================================================================
+	-->
+	
+	<!-- 수송계획 계획주기 리스트 -->
+	<query id="dailyTransportPlan_period_type_list">
+			
+			SELECT 	CM.CD, CM.CD_NAME
+			  FROM 	CODE_MST CM
+			 WHERE 	CM.CD_GRP = 'PERIOD_TYPE'
+			   AND 	CM.MADE_TYPE != 'DE'
+			 ORDER 	BY CM.CAT01
+			
+	</query>
+	
+	<!-- 수송계획 버전 리스트 -->
+	<!-- CAT_ID = 'RP' : 일간 보충/수송 -->
+	<query id="dailyTransportPlan_version_list">
+			
+			SELECT 	VL.VERSION, VL.SEQ, VL.PERIOD_TYPE, VL.PERIOD_NAME, VL.STATUS
+			  FROM 	(
+						SELECT 	VL.VERSION, VL.SEQ, PT.CD PERIOD_TYPE, PT.CD_NAME PERIOD_NAME, VL.STATUS
+						  FROM 	PLAN_VERSION_LOG VL
+								, (
+									SELECT CM.CD, CM.CD_NAME
+									  FROM CODE_MST CM
+									 WHERE CM.CD_GRP = 'PERIOD_TYPE'
+									   AND CM.MADE_TYPE != 'DE'
+								) PT
+						 WHERE 	VL.CAT_ID = 'RP' 		-- 보충/수송
+						   AND 	VL.MADE_TYPE != 'DE' 	-- 삭제 필드가 아닌 데이터만 조회
+						   AND 	VL.VERSION IS NOT NULL 	-- 버전-SEQ 가 NULL 이 아닌 것만 조회
+						   AND 	VL.SEQ IS NOT NULL
+						   AND 	VL.PERIOD_TYPE = PT.CD
+						 ORDER 	BY VL.VERSION DESC, VL.SEQ DESC
+					) VL
+			 WHERE 	101 > ROWNUM
+			 ORDER 	BY VL.VERSION DESC, VL.SEQ DESC
+			
+	</query>
+	
+	<!-- 출고물량조회및 조정 UI 버전 리스트 -->
+	<!-- CAT_ID = 'RP' : 일간 보충/수송 -->
+	<query id="outOrderAdjDailyTransportPlan_version_list">
+			
+			SELECT 	VL.VERSION, VL.SEQ, VL.PERIOD_TYPE, VL.PERIOD_NAME, VL.STATUS
+			  FROM 	(
+						SELECT 	VL.VERSION, VL.SEQ, PT.CD PERIOD_TYPE, PT.CD_NAME PERIOD_NAME, VL.STATUS
+						  FROM 	PLAN_VERSION_LOG VL
+								, (
+									SELECT CM.CD, CM.CD_NAME
+									  FROM CODE_MST CM
+									 WHERE CM.CD_GRP = 'PERIOD_TYPE'
+									   AND CM.MADE_TYPE != 'DE'
+								) PT
+						 WHERE 	VL.CAT_ID = 'RP' 		-- 보충/수송
+						   AND 	VL.MADE_TYPE != 'DE' 	-- 삭제 필드가 아닌 데이터만 조회
+						   AND 	VL.VERSION IS NOT NULL 	-- 버전-SEQ 가 NULL 이 아닌 것만 조회
+						   AND 	VL.SEQ IS NOT NULL
+						   AND 	VL.PERIOD_TYPE = PT.CD
+						 UNION  ALL
+                         SELECT TO_CHAR(SYSDATE,'YYYYMMDD')||'.00.00' VERSION,
+                                2 SEQ,
+                                'DAILY' PERIOD_TYPE,
+                                '일간'  PERIOD_NAME,
+                                '99'    STATUS
+                           FROM DUAL
+                         ORDER BY 1 DESC, 2 DESC
+					) VL
+			 WHERE 	101 > ROWNUM
+			 ORDER 	BY VL.VERSION DESC, VL.SEQ DESC
+			
+	</query>
+	
+	<!-- 입고장 리스트 -->
+	<!-- ID & NAME -->
+	<query id="dc_id_and_name_list">
+			
+			SELECT 	DM.DC_ID, DM.DC_SHORT_NAME
+			  FROM 	DC_MST DM
+					, ( SELECT 'TMP' TMP FROM DUAL ) TP <!-- 비정상멈춤 현상 방지 TMP 테이블 조인 -->
+			 WHERE 	DM.MADE_TYPE != 'DE' -- 삭제 필드가 아닌 데이터만 조회
+			 ORDER 	BY DM.DC_ID
+			
+	</query>
+	
+	<!-- 수송구분 리스트 -->
+	<query id="trans_class_list">
+			
+			SELECT 	CM.CD, CM.CD_NAME
+			  FROM 	CODE_MST CM
+			 --WHERE 	CM.CD_GRP = 'TRANS_CLASS'
+			 WHERE 	CM.CD_GRP = 'PLAN_TYPE'
+			   AND 	CM.MADE_TYPE != 'DE' -- 삭제 필드가 아닌 데이터만 조회
+			 ORDER 	BY CM.CAT01
+			
+	</query>
+	
+	<!-- CODE_MST : 카테고리가 REPL_SMY_RPT인 리스트 -->
+	<query id="code_mst_gubun_list">
+			
+			SELECT  CM.CD, CM.CD_NAME 
+			  FROM  CODE_MST CM
+             WHERE  CM.CD_GRP = 'REPL_SMY_RPT'
+			
+	</query>
+	
+	<!-- 입고장 리스트 -->
+	<!-- ID & NAME -->
+	<query id="dc_id_and_short_name_list">
+			
+			SELECT 	DM.DC_ID, DM.DC_SHORT_NAME
+			  FROM 	DC_MST DM
+					, ( SELECT 'TMP' TMP FROM DUAL ) TP <!-- 비정상멈춤 현상 방지 TMP 테이블 조인 -->
+			 WHERE 	DM.MADE_TYPE != 'DE' -- 삭제 필드가 아닌 데이터만 조회
+			 ORDER 	BY DM.DC_ID
+			
+	</query>
+	
+	<!-- 출고장 리스트  -->
+	<query id="src_loc_and_short_name_list">
+		
+        SELECT  DM.DC_ID, DM.DC_SHORT_NAME
+          FROM  DC_MST DM
+         WHERE  DM.DC_ID IN(8510, 8620) 
+            OR  DM.CDC_FLAG = 'Y'           AND	DM.DC_LOC_TYPE != '사외'	</query>
+
+	<!-- 상품 재고 보충계획 생성화면 (신규)출고장 리스트  -->
+	<query id="cdc_rdc_list">
+		
+        <!--SELECT  DM.DC_ID, DM.DC_SHORT_NAME
+          FROM  DC_MST DM
+         WHERE  DM.DC_ID IN(8510, 8620) 
+            OR  DM.CDC_FLAG = 'Y' OR	DM.RDC_FLAG = 'Y'
+           AND	DM.DC_LOC_TYPE = '사내'-->
+           
+		SELECT	DM.DC_ID, 
+				DM.DC_SHORT_NAME
+		FROM	DC_MST DM
+		WHERE	DM.DC_ID NOT IN('1811','1816','1825','1826','1841','1842','1843','7101','7501','8000','8121',
+								'8511','8512','8513','8514','8515','8516','8517','8518','8901','8902','8903',
+								'8904','8905','8906','8908','8910','8911','8912','8913','8914','8915',
+								'8916','8917','8920','8921','8922','8925','8928','8926','8927','8930','8932','8931') 
+		OR		DM.CDC_FLAG = 'Y'	 
+		AND		DM.RDC_FLAG = 'Y'
+		AND		DM.DC_LOC_TYPE = '사내'   
+           
+	</query>
+	
+	<!-- 수기전표 대량등록  -->
+	<query id="cdc_rdc_list2">		
+     
+           
+		SELECT	DM.DC_ID, 
+				DM.DC_SHORT_NAME
+		FROM	DC_MST DM
+		WHERE	DM.DC_ID IN ('1811','1813')
+		  
+           
+	</query>
+	
+	
+	<!--
+	======================================================================
+		수송계획조회 및 조정
+	======================================================================
+	-->
+	
+	<!-- 수송계획조회 및 조정 -->
+	<query id="rp_01010_dailyTransportPlan_list" paging="false">
+			-- 수송계획조회 및 조정
+			SELECT  ED.RTE, 			-- 0
+			        ED.TRANS_DATE, 		-- 1
+			        ED.SRC_LOC,			-- 2 
+			        ED.DC_SHORT_NAME,	-- 3
+			        --ED.DC_NAME, 
+			        ED.TRUCK_SEQ, 		-- 4
+			        ED.ITEM_ID, 		-- 5
+			        ED.ITEM_NAME,		-- 6
+			        ED.BASE_STK_PLT,    -- 7
+			        ED.BASE_STK_QTY,	-- 8
+			        ED.ADD_STK_PLT, 	-- 9
+			        ED.ADD_STK_QTY,		-- 10
+			        ED.PROD_PLT, 		-- 11
+			        ED.PROD_QTY,		-- 12
+			        ROUND((SUM(ED.BASE_STK_PLT+ED.ADD_STK_PLT+ED.PROD_PLT) 
+			            OVER (PARTITION BY ED.RTE, ED.TRANS_DATE, ED.SRC_LOC, ED.TRUCK_SEQ 
+			                 ORDER BY ED.RTE, ED.TRANS_DATE, ED.SRC_LOC, ED.TRUCK_SEQ, ED.ITEM_ID RANGE UNBOUNDED PRECEDING
+			        )),2) CUM_PLT,		-- 13
+			        ROUND((SUM(ED.BASE_STK_QTY+ED.ADD_STK_QTY+ED.PROD_QTY) 
+			            OVER (PARTITION BY ED.RTE, ED.TRANS_DATE, ED.SRC_LOC, ED.TRUCK_SEQ
+			                  ORDER BY ED.RTE, ED.TRANS_DATE, ED.SRC_LOC, ED.TRUCK_SEQ, ED.ITEM_ID RANGE UNBOUNDED PRECEDING
+			        )),2) CUM_BOX,		-- 14
+			        ED.BOX_PER_PALET,	-- 15
+			        ED.PLAN_TYPE		-- 16
+			   FROM (
+					-- 자사 생산제품 : ITYPE = 'FERT'
+					-- 자사 생산제품인 경우 ITEM_DTL 에서 BOX_PER_PALET 을 참조
+					-- RTE구분 수송일자 출고장 출고장명 차량순번 제품코드 제품명
+					-- 기본재고상차PLT 기본재고상차BOX 추가재고상차PLT 추가재고상차BOX 생산상차PLT 생산상차BOX 누적상차집계PLT 누적상차집계BOX BOX_PER_PALET
+					SELECT 	DECODE(TP.ROUTE_ID, NULL, NULL, 'R') RTE -- ROUTE_ID 데이터가 있으면 'R' 없으면 NULL
+							, TO_CHAR(TP.TRANS_DATE, 'YYYY-MM-DD') TRANS_DATE
+							, TP.SRC_LOC, DM.DC_NAME, DM.DC_SHORT_NAME
+							, TO_NUMBER(TP.TRUCK_SEQ) TRUCK_SEQ, IM.ITEM_ID, IM.ITEM_NAME
+							, ROUND(TP.BASE_STK_PLT, 2) BASE_STK_PLT, TP.BASE_STK_QTY
+							, ROUND(TP.ADD_STK_PLT, 2) ADD_STK_PLT, TP.ADD_STK_QTY
+							, ROUND(TP.PROD_PLT, 2) PROD_PLT, TP.PROD_QTY
+							, NULL CUM_PLT, NULL CUM_BOX
+							, DECODE(NVL(ID.BOX_PER_PALET, 100), 0, 100, NVL(ID.BOX_PER_PALET, 100)) BOX_PER_PALET
+							, TP.PLAN_TYPE
+					  FROM 	TRANS_PLAN TP, ITEM_MST IM, ITEM_DTL ID, DC_MST DM
+					 WHERE 	TP.ITEM_ID = IM.ITEM_ID
+					   AND 	IM.ITYPE = ID.ITYPE
+					   AND 	IM.ITEM_ID = ID.ITEM_ID
+					   AND 	TP.SRC_LOC = DM.DC_ID
+					   AND 	ID.PLANT_ID = DM.PLANT_ID
+					   AND 	TP.MADE_TYPE != 'DE'
+					   AND 	IM.MADE_TYPE != 'DE'
+					   AND 	ID.MADE_TYPE != 'DE'
+					   AND 	DM.MADE_TYPE != 'DE'
+					   AND 	TP.VERSION = '$!{version}' AND TP.SEQ = '$!{seq}'
+					   AND 	TP.TGT_LOC = '$!{tgt_loc}'
+					   [AND 	TP.PLAN_TYPE = '${plan_type}']
+					   AND 	IM.ITYPE = 'FERT' -- 자사 생산 제품
+					   AND 	NVL(TRIM(ID.BOX_PER_PALET), 0) != 0
+						#if( "$!{trans_start}" == "" )
+					   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') 
+					   		BETWEEN TO_CHAR(SYSDATE, 'YYYYMMDD') AND TO_CHAR(SYSDATE+1, 'YYYYMMDD')
+						#else
+					   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') 
+					   		BETWEEN REPLACE(REPLACE('$!{trans_start}', '-', ''), '/', '') AND REPLACE(REPLACE('$!{trans_end}', '-', ''), '/', '')
+						#end
+					--
+					UNION ALL
+					-- 자사 생산제품 : ITYPE = 'FERT'
+					-- 자사 생산제품 중 ITEM_DTL 에서 BOX_PER_PALET 을 참조할 수 없는 경우 ITEM_MST 에서 BOX_PER_PALET 을 참조
+					-- RTE구분 수송일자 출고장 출고장명 차량순번 제품코드 제품명
+					-- 기본재고상차PLT 기본재고상차BOX 추가재고상차PLT 추가재고상차BOX 생산상차PLT 생산상차BOX 누적상차집계PLT 누적상차집계BOX BOX_PER_PALET
+					SELECT 	DECODE(TP.ROUTE_ID, NULL, NULL, 'R') RTE -- ROUTE_ID 데이터가 있으면 'R' 없으면 NULL
+							, TO_CHAR(TP.TRANS_DATE, 'YYYY-MM-DD') TRANS_DATE
+							, TP.SRC_LOC, DM.DC_NAME, DM.DC_SHORT_NAME
+							, TO_NUMBER(TP.TRUCK_SEQ) TRUCK_SEQ, IM.ITEM_ID, IM.ITEM_NAME
+							, ROUND(TP.BASE_STK_PLT, 2) BASE_STK_PLT, TP.BASE_STK_QTY
+							, ROUND(TP.ADD_STK_PLT, 2) ADD_STK_PLT, TP.ADD_STK_QTY
+							, ROUND(TP.PROD_PLT, 2) PROD_PLT, TP.PROD_QTY
+							, NULL CUM_PLT, NULL CUM_BOX
+							, DECODE(NVL(IM.BOX_PER_PALET, 100), 0, 100, NVL(IM.BOX_PER_PALET, 100)) BOX_PER_PALET
+							, TP.PLAN_TYPE
+					  FROM 	TRANS_PLAN TP, ITEM_MST IM, DC_MST DM
+					 WHERE 	TP.ITEM_ID = IM.ITEM_ID
+					   AND 	TP.SRC_LOC = DM.DC_ID
+					   AND 	TP.MADE_TYPE != 'DE'
+					   AND 	IM.MADE_TYPE != 'DE'
+					   AND 	DM.MADE_TYPE != 'DE'
+					   AND 	TP.VERSION = '$!{version}' AND TP.SEQ = '$!{seq}'
+					   AND 	TP.TGT_LOC = '$!{tgt_loc}'
+					   [AND 	TP.PLAN_TYPE = '${plan_type}']
+					   AND 	IM.ITYPE = 'FERT' -- 자사 생산제품이 아닌 제품
+					   AND 	IM.ITEM_ID NOT IN (
+								SELECT 	ID.ITEM_ID
+								  FROM 	ITEM_DTL ID, DC_MST DI
+								 WHERE 	ID.PLANT_ID = DI.PLANT_ID
+								   AND 	DI.DC_ID = TP.SRC_LOC
+								   AND 	ID.ITYPE = 'FERT' -- 자사 생산제품
+								   AND 	ID.MADE_TYPE != 'DE'
+								   AND 	DI.MADE_TYPE != 'DE'
+								   AND 	NVL(TRIM(ID.BOX_PER_PALET), 0) != 0
+							)
+						#if( "$!{trans_start}" == "" )
+					   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') 
+					   		BETWEEN TO_CHAR(SYSDATE, 'YYYYMMDD') AND TO_CHAR(SYSDATE+1, 'YYYYMMDD')
+						#else
+					   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') 
+					   		BETWEEN REPLACE(REPLACE('$!{trans_start}', '-', ''), '/', '') AND REPLACE(REPLACE('$!{trans_end}', '-', ''), '/', '')
+						#end
+		            --
+					UNION ALL
+					-- 자사 생산제품이 아닌 제품 : ITYPE = HAWA
+		            -- 자사 생산제품이 아닌 경우 ITEM_MST 에서 BOX_PER_PALET 을 참조
+					-- RTE구분 수송일자 출고장 출고장명 차량순번 제품코드 제품명
+					-- 기본재고상차PLT 기본재고상차BOX 추가재고상차PLT 추가재고상차BOX 생산상차PLT 생산상차BOX 누적상차집계PLT 누적상차집계BOX BOX_PER_PALET
+					SELECT 	DECODE(TP.ROUTE_ID, NULL, NULL, 'R') RTE -- ROUTE_ID 데이터가 있으면 'R' 없으면 NULL
+							, TO_CHAR(TP.TRANS_DATE, 'YYYY-MM-DD') TRANS_DATE
+							, TP.SRC_LOC, DM.DC_NAME, DM.DC_SHORT_NAME
+							, TO_NUMBER(TP.TRUCK_SEQ) TRUCK_SEQ, IM.ITEM_ID, IM.ITEM_NAME
+							, ROUND(TP.BASE_STK_PLT, 2) BASE_STK_PLT, TP.BASE_STK_QTY
+							, ROUND(TP.ADD_STK_PLT, 2) ADD_STK_PLT, TP.ADD_STK_QTY
+							, ROUND(TP.PROD_PLT, 2) PROD_PLT, TP.PROD_QTY
+							, NULL CUM_PLT, NULL CUM_BOX
+							, DECODE(NVL(IM.BOX_PER_PALET, 100), 0, 100, NVL(IM.BOX_PER_PALET, 100)) BOX_PER_PALET
+							, TP.PLAN_TYPE
+					  FROM 	TRANS_PLAN TP, ITEM_MST IM, DC_MST DM
+					 WHERE 	TP.ITEM_ID = IM.ITEM_ID
+					   AND 	TP.SRC_LOC = DM.DC_ID
+					   AND 	TP.MADE_TYPE != 'DE'
+					   AND 	IM.MADE_TYPE != 'DE'
+					   AND 	DM.MADE_TYPE != 'DE'
+					   AND 	TP.VERSION = '$!{version}' AND TP.SEQ = '$!{seq}'
+					   AND 	TP.TGT_LOC = '$!{tgt_loc}'
+					   [AND 	TP.PLAN_TYPE = '${plan_type}']
+					   AND 	IM.ITYPE = 'HAWA' -- 자사 생산제품이 아닌 제품
+						#if( "$!{trans_start}" == "" )
+					   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') 
+					   		BETWEEN TO_CHAR(SYSDATE, 'YYYYMMDD') AND TO_CHAR(SYSDATE+1, 'YYYYMMDD')
+						#else
+					   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') 
+					   		BETWEEN REPLACE(REPLACE('$!{trans_start}', '-', ''), '/', '') AND REPLACE(REPLACE('$!{trans_end}', '-', ''), '/', '')
+						#end
+					-----------------------------------------------------------------
+						ORDER 	BY 1, 2, 3, 4, 5, 6
+				) ED
+		   UNION ALL
+	   		SELECT  '' RTE, 
+			        '합 계' TRANS_DATE, 
+			        '' SRC_LOC, 
+			        '' DC_NAME, 
+			        NULL TRUCK_SEQ, 
+			        '' ITEM_ID, 
+			        '' ITEM_NAME,
+			        NVL(SUM(ED.BASE_STK_PLT),0) BASE_STK_PLT, 
+			        NVL(SUM(ED.BASE_STK_QTY),0) BASE_STK_QTY,
+			        NVL(SUM(ED.ADD_STK_PLT),0)  ADD_STK_PLT,
+			        NVL(SUM(ED.ADD_STK_QTY),0)  ADD_STK_QTY,
+			        NVL(SUM(ED.PROD_PLT),0)     PROD_PLT,
+			        NVL(SUM(ED.PROD_QTY),0)     PROD_QTY,
+			        NVL((SUM(ED.BASE_STK_PLT) + SUM(ED.ADD_STK_PLT) + SUM(ED.PROD_PLT)),0) CUM_PLT,
+			        NVL((SUM(ED.BASE_STK_QTY) + SUM(ED.ADD_STK_QTY) + SUM(ED.PROD_QTY)),0) CUM_QTY,
+			        NULL BOX_PER_PALET,
+			        NULL PLAN_TYPE
+			  FROM  (
+					-- 자사 생산제품 : ITYPE = 'FERT'
+					-- 자사 생산제품인 경우 ITEM_DTL 에서 BOX_PER_PALET 을 참조
+					-- RTE구분 수송일자 출고장 출고장명 차량순번 제품코드 제품명
+					-- 기본재고상차PLT 기본재고상차BOX 추가재고상차PLT 추가재고상차BOX 생산상차PLT 생산상차BOX 누적상차집계PLT 누적상차집계BOX BOX_PER_PALET
+					SELECT 	DECODE(TP.ROUTE_ID, NULL, NULL, 'R') RTE -- ROUTE_ID 데이터가 있으면 'R' 없으면 NULL
+							, TO_CHAR(TP.TRANS_DATE, 'YYYY-MM-DD') TRANS_DATE
+							, TP.SRC_LOC, DM.DC_NAME, TO_NUMBER(TP.TRUCK_SEQ) TRUCK_SEQ, IM.ITEM_ID, IM.ITEM_NAME
+							, ROUND(TP.BASE_STK_PLT, 2) BASE_STK_PLT, TP.BASE_STK_QTY
+							, ROUND(TP.ADD_STK_PLT, 2) ADD_STK_PLT, TP.ADD_STK_QTY
+							, ROUND(TP.PROD_PLT, 2) PROD_PLT, TP.PROD_QTY
+							, NULL CUM_PLT, NULL CUM_BOX
+							, NVL(ID.BOX_PER_PALET, 100) BOX_PER_PALET
+							, TP.PLAN_TYPE
+					  FROM 	TRANS_PLAN TP, ITEM_MST IM, ITEM_DTL ID, DC_MST DM
+					 WHERE 	TP.ITEM_ID = IM.ITEM_ID
+					   AND 	IM.ITYPE = ID.ITYPE
+					   AND 	IM.ITEM_ID = ID.ITEM_ID
+					   AND 	TP.SRC_LOC = DM.DC_ID
+					   AND 	ID.PLANT_ID = DM.PLANT_ID
+					   AND 	TP.MADE_TYPE != 'DE'
+					   AND 	IM.MADE_TYPE != 'DE'
+					   AND 	ID.MADE_TYPE != 'DE'
+					   AND 	DM.MADE_TYPE != 'DE'
+					   AND 	TP.VERSION = '$!{version}' AND TP.SEQ = '$!{seq}'
+					   AND 	TP.TGT_LOC = '$!{tgt_loc}'
+					   [AND 	TP.PLAN_TYPE = '${plan_type}']
+					   AND 	IM.ITYPE = 'FERT' -- 자사 생산 제품
+					   AND 	NVL(TRIM(ID.BOX_PER_PALET), 0) != 0
+						#if( "$!{trans_start}" == "" )
+					   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') 
+					   		BETWEEN TO_CHAR(SYSDATE, 'YYYYMMDD') AND TO_CHAR(SYSDATE+1, 'YYYYMMDD')
+						#else
+					   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') 
+					   		BETWEEN REPLACE(REPLACE('$!{trans_start}', '-', ''), '/', '') AND REPLACE(REPLACE('$!{trans_end}', '-', ''), '/', '')
+						#end
+					--
+					UNION ALL
+					-- 자사 생산제품 : ITYPE = 'FERT'
+					-- 자사 생산제품 중 ITEM_DTL 에서 BOX_PER_PALET 을 참조할 수 없는 경우 ITEM_MST 에서 BOX_PER_PALET 을 참조
+					-- RTE구분 수송일자 출고장 출고장명 차량순번 제품코드 제품명
+					-- 기본재고상차PLT 기본재고상차BOX 추가재고상차PLT 추가재고상차BOX 생산상차PLT 생산상차BOX 누적상차집계PLT 누적상차집계BOX BOX_PER_PALET
+					SELECT 	DECODE(TP.ROUTE_ID, NULL, NULL, 'R') RTE -- ROUTE_ID 데이터가 있으면 'R' 없으면 NULL
+							, TO_CHAR(TP.TRANS_DATE, 'YYYY-MM-DD') TRANS_DATE
+							, TP.SRC_LOC, DM.DC_NAME, TO_NUMBER(TP.TRUCK_SEQ) TRUCK_SEQ, IM.ITEM_ID, IM.ITEM_NAME
+							, ROUND(TP.BASE_STK_PLT, 2) BASE_STK_PLT, TP.BASE_STK_QTY
+							, ROUND(TP.ADD_STK_PLT, 2) ADD_STK_PLT, TP.ADD_STK_QTY
+							, ROUND(TP.PROD_PLT, 2) PROD_PLT, TP.PROD_QTY
+							, NULL CUM_PLT, NULL CUM_BOX
+							, NVL(IM.BOX_PER_PALET, 100) BOX_PER_PALET
+							, TP.PLAN_TYPE
+					  FROM 	TRANS_PLAN TP, ITEM_MST IM, DC_MST DM
+					 WHERE 	TP.ITEM_ID = IM.ITEM_ID
+					   AND 	TP.SRC_LOC = DM.DC_ID
+					   AND 	TP.MADE_TYPE != 'DE'
+					   AND 	IM.MADE_TYPE != 'DE'
+					   AND 	DM.MADE_TYPE != 'DE'
+					   AND 	TP.VERSION = '$!{version}' AND TP.SEQ = '$!{seq}'
+					   AND 	TP.TGT_LOC = '$!{tgt_loc}'
+					   [AND 	TP.PLAN_TYPE = '${plan_type}']
+					   AND 	IM.ITYPE = 'FERT' -- 자사 생산제품이 아닌 제품
+					   AND 	IM.ITEM_ID NOT IN (
+								SELECT 	ID.ITEM_ID
+								  FROM 	ITEM_DTL ID, DC_MST DI
+								 WHERE 	ID.PLANT_ID = DI.PLANT_ID
+								   AND 	DI.DC_ID = TP.SRC_LOC
+								   AND 	ID.ITYPE = 'FERT' -- 자사 생산제품
+								   AND 	ID.MADE_TYPE != 'DE'
+								   AND 	DI.MADE_TYPE != 'DE'
+								   AND 	NVL(TRIM(ID.BOX_PER_PALET), 0) != 0
+							)
+						#if( "$!{trans_start}" == "" )
+					   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') 
+					   		BETWEEN TO_CHAR(SYSDATE, 'YYYYMMDD') AND TO_CHAR(SYSDATE+1, 'YYYYMMDD')
+						#else
+					   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') 
+					   		BETWEEN REPLACE(REPLACE('$!{trans_start}', '-', ''), '/', '') AND REPLACE(REPLACE('$!{trans_end}', '-', ''), '/', '')
+						#end
+		            --
+					UNION ALL
+					-- 자사 생산제품이 아닌 제품 : ITYPE = HAWA
+		            -- 자사 생산제품이 아닌 경우 ITEM_MST 에서 BOX_PER_PALET 을 참조
+					-- RTE구분 수송일자 출고장 출고장명 차량순번 제품코드 제품명
+					-- 기본재고상차PLT 기본재고상차BOX 추가재고상차PLT 추가재고상차BOX 생산상차PLT 생산상차BOX 누적상차집계PLT 누적상차집계BOX BOX_PER_PALET
+					SELECT 	DECODE(TP.ROUTE_ID, NULL, NULL, 'R') RTE -- ROUTE_ID 데이터가 있으면 'R' 없으면 NULL
+							, TO_CHAR(TP.TRANS_DATE, 'YYYY-MM-DD') TRANS_DATE
+							, TP.SRC_LOC, DM.DC_NAME, TO_NUMBER(TP.TRUCK_SEQ) TRUCK_SEQ, IM.ITEM_ID, IM.ITEM_NAME
+							, ROUND(TP.BASE_STK_PLT, 2) BASE_STK_PLT, TP.BASE_STK_QTY
+							, ROUND(TP.ADD_STK_PLT, 2) ADD_STK_PLT, TP.ADD_STK_QTY
+							, ROUND(TP.PROD_PLT, 2) PROD_PLT, TP.PROD_QTY
+							, NULL CUM_PLT, NULL CUM_BOX
+							, NVL(IM.BOX_PER_PALET, 100) BOX_PER_PALET
+							, TP.PLAN_TYPE
+					  FROM 	TRANS_PLAN TP, ITEM_MST IM, DC_MST DM
+					 WHERE 	TP.ITEM_ID = IM.ITEM_ID
+					   AND 	TP.SRC_LOC = DM.DC_ID
+					   AND 	TP.MADE_TYPE != 'DE'
+					   AND 	IM.MADE_TYPE != 'DE'
+					   AND 	DM.MADE_TYPE != 'DE'
+					   AND 	TP.VERSION = '$!{version}' AND TP.SEQ = '$!{seq}'
+					   AND 	TP.TGT_LOC = '$!{tgt_loc}'
+					   [AND 	TP.PLAN_TYPE = '${plan_type}']
+					   AND 	IM.ITYPE = 'HAWA' -- 자사 생산제품이 아닌 제품
+						#if( "$!{trans_start}" == "" )
+					   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') 
+					   		BETWEEN TO_CHAR(SYSDATE, 'YYYYMMDD') AND TO_CHAR(SYSDATE+1, 'YYYYMMDD')
+						#else
+					   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') 
+					   		BETWEEN REPLACE(REPLACE('$!{trans_start}', '-', ''), '/', '') AND REPLACE(REPLACE('$!{trans_end}', '-', ''), '/', '')
+						#end
+			) ED
+		#if( "$!{sort_type}" == "Y" )
+		  ORDER 	BY 1, 3, 2, 4, 5, 6
+		#else
+		  ORDER 	BY 1, 2, 3, 4, 5, 6
+		#end
+			
+	</query>
+	
+	<!-- 수송계획조회 및 조정 : 최대CAPA -->
+	<!-- 해당 입고장의 DC기준정보 테이블(DC_MST)의 보관능력1(KEEPING_CAPA1) -->
+	<query id="rp_01010_dailyTransportPlan_list_capa">
+			
+			SELECT 	DM.KEEPING_CAPA1
+			  FROM 	DC_MST DM
+			 WHERE 	DM.MADE_TYPE != 'DE' -- 삭제 필드가 아닌 데이터만 조회
+			   AND 	DM.DC_ID = '$!{tgt_loc}'
+			
+	</query>
+	
+	<!-- 수송계획조회 및 조정 : 예상재고 -->
+	<!-- 해당 입고장의 수송일자(MIN) 예상 마감재고 -->
+	<query id="rp_01010_dailyTransportPlan_list_stock">
+			SELECT 	ROUND(SUM(SP.STOCK_QTY)) STOCK_QTY
+			  FROM 	STOCK_PLAN SP
+			 WHERE 	SP.MADE_TYPE != 'DE'
+			   AND 	SP.VERSION = '$!{version}' AND SP.SEQ = '$!{seq}'
+			   AND 	SP.LOC_ID = '$!{tgt_loc}'
+			   AND 	SP.STOCK_DATE = (
+						SELECT 	MIN(TP.TRANS_DATE) TRANS_DATE
+						  FROM 	TRANS_PLAN TP
+						 WHERE 	TP.MADE_TYPE != 'DE'
+						   AND 	TP.VERSION = '$!{version}' AND TP.SEQ = '$!{seq}'
+						   AND 	TP.TGT_LOC = '$!{tgt_loc}'
+						   [AND 	TP.PLAN_TYPE = '${plan_type}']
+					)
+			
+	</query>
+	
+	<!-- 수송계획조회 및 조정 : 판매 -->
+	<query id="rp_01010_dailyTransportPlanSalesInfo_list_org">
+			SELECT  /*+INDEX(IM ITEM_MST_PK)*/
+					IM.ITEM_ID, IM.ITEM_NAME
+					, SUM(BS.BS_STK)+SUM(BS.D00_SLP) BS_STK -- 당일재고
+					, SUM(BS.D00_SLP) D00_SLP -- 예상판매
+					, SUM(BS.D00_STK) D00_STK -- 예상재고
+					, SUM(BS.D01_SLP) D01_SLP -- 익일판매
+					, SUM(BS.D01_STK) D01_STK -- 익일재고
+					, DECODE(SUM(BS.AVG_SLR), 0, 0, SUM(BS.D00_STK) / SUM(BS.AVG_SLR)) NUM_STK -- 재고일수 : 예상재고/3주평균판매실적
+					, SUM(BS.MON_SLP) MON_SLP -- 월판매계획
+					, SUM(BS.MON_SLR) MON_SLR -- 월판매누계
+					, DECODE(SUM(BS.MON_SLP), 0, 0, SUM(BS.MON_SLR)*100/SUM(BS.MON_SLP)) SRATE -- 달성율 : 월판매누계 / 월판매계획
+			  FROM 	(
+						-- 재고
+						SELECT 	SP.ITEM_ID
+								, SUM(CASE WHEN TO_CHAR(SP.STOCK_DATE, 'YYYYMMDD') 
+												= TO_CHAR(SYSDATE-1, 'YYYYMMDD')
+								--				= TO_CHAR(TO_DATE(REPLACE(REPLACE('$!{trans_date}', '-', ''), '/', ''), 'YYYYMMDD')-1, 'YYYYMMDD') 
+										   THEN SP.STOCK_QTY ELSE 0 
+								END) BS_STK -- 당일재고(전일 기말재고)
+								, SUM(CASE WHEN TO_CHAR(SP.STOCK_DATE, 'YYYYMMDD') 
+												= TO_CHAR(SYSDATE,'YYYYMMDD')
+								--				= REPLACE(REPLACE('$!{trans_date}', '-', ''), '/', '') 
+										   THEN SP.STOCK_QTY ELSE 0 
+								END) D00_STK -- 예상재고(당일예상재고)
+								, SUM(CASE WHEN TO_CHAR(SP.STOCK_DATE, 'YYYYMMDD') 
+												= TO_CHAR(SYSDATE+1, 'YYYYMMDD')
+								--				= TO_CHAR(TO_DATE(REPLACE(REPLACE('$!{trans_date}', '-', ''), '/', ''), 'YYYYMMDD')+1, 'YYYYMMDD') 
+										   THEN SP.STOCK_QTY ELSE 0 
+								END) D01_STK -- 익일재고(익일 기말재고)
+								, 0 D00_SLP, 0 D01_SLP, 0 MON_SLP, 0 MON_SLR, 0 AVG_SLR
+						  FROM 	STOCK_PLAN SP
+						 WHERE 	SP.VERSION = '$!{version}'
+						   AND 	SP.SEQ = '$!{seq}'
+						   AND 	LOC_ID = '$!{tgt_loc}'
+						   AND 	TO_CHAR(SP.STOCK_DATE, 'YYYYMMDD') BETWEEN 
+						   		TO_CHAR(SYSDATE-1, 'YYYYMMDD') AND 
+								TO_CHAR(SYSDATE+1, 'YYYYMMDD')
+							--	TO_CHAR(TO_DATE(REPLACE(REPLACE('$!{trans_date}', '-', ''), '/', ''), 'YYYYMMDD')-1, 'YYYYMMDD') AND 
+							--	TO_CHAR(TO_DATE(REPLACE(REPLACE('$!{trans_date}', '-', ''), '/', ''), 'YYYYMMDD')+1, 'YYYYMMDD')
+						   AND 	SP.MADE_TYPE != 'DE'
+						 GROUP 	BY SP.ITEM_ID
+						--
+						UNION ALL
+						-- 판매계획 : 수송일자, 수송일자익일, 수송일자 해당월
+                        -- 판매계획 : PLAN_VERSION_LOG.ORDER_FLAG = 'N' 인 경우만 차일 참조
+                        SELECT   NP.ITEM_ID
+                                 , 0 BS_STK, 0 D00_STK, 0 D01_STK
+                                 , 0 D00_SLP -- 예상판매(수송일자)
+                                 , SUM(NP.NORMAL_QTY+NP.PROM_QTY+NP.SUPT_QTY+NP.SAMP_QTY) D01_SLP -- 익일판매(익일)
+                                 , 0 MON_SLP -- 월판매계획
+                                 , 0 MON_SLR, 0 AVG_SLR
+                          FROM   NFOS_SALES_PLAN_WEEKLY NP
+                                 , (
+                                 	   SELECT   NP.YYYY, NP.VERSION
+                                 	     FROM   (
+			                                       SELECT   NP.YYYY, NP.VERSION, NP.SEQ
+			                                         FROM   NFOS_SALES_PLAN_WEEKLY NP
+			                                        ORDER   BY NP.YYYY DESC, NP.VERSION DESC, NP.SEQ DESC
+			                                    ) NP
+			                            WHERE   ROWNUM = 1
+			                     ) MX,
+								 (
+								SELECT	YYYYMMDD,
+										RANK() OVER (ORDER BY CAL_DATE)	IDX
+								FROM	CAL_MST
+								WHERE	TRIM(HOLIDAY_FLAG)	IS NULL
+								AND		CAL_DATE	>= TRUNC(SYSDATE)
+								)	CM
+                         WHERE   NP.DELIV_LOC = '$!{tgt_loc}'
+                           AND   NP.YYYYMMDD = CM.YYYYMMDD
+						   AND	CM.IDX = '2' -- 익일
+                           AND   NP.YYYY = MX.YYYY
+                           AND   NP.VERSION = MX.VERSION
+                           AND   NP.SEQ = MX.SEQ
+                           AND   EXISTS (
+                                     SELECT VL.ORDER_FLAG
+                                       FROM PLAN_VERSION_LOG VL
+                                      WHERE VL.VERSION = '$!{version}'
+                                        AND VL.SEQ = '$!{seq}'
+                                        AND VL.CAT_ID = 'RP'
+                                        AND VL.ORDER_FLAG = 'N'
+                                 )
+                         GROUP BY NP.ITEM_ID
+						--
+                        UNION ALL
+                        -- 주문 : PLAN_VERSION_LOG.ORDER_FLAG = 'Y' 인 경우만 차일 참조
+                        SELECT   NF.ITEM_ID
+                                 , 0 BS_STK, 0 D00_STK, 0 D01_STK
+                                 , SUM(DECODE(CM.IDX,'1',NF.QTY)) D00_SLP, -- 예상판매(수송일자)
+                                 , SUM(DECODE(CM.IDX,'2',NF.QTY)) D01_SLP -- 익일판매(익일)
+                                 , 0 MON_SLP -- 월판매계획
+                                 , 0 MON_SLR, 0 AVG_SLR
+                          FROM	NFOS_ORDER NF,
+                                (
+								SELECT VL.ORDER_FLAG
+								FROM PLAN_VERSION_LOG VL
+								WHERE VL.VERSION = '$!{version}'
+								AND VL.SEQ = '$!{seq}'
+								AND VL.CAT_ID = 'RP'
+                                )	VL,
+								(
+								SELECT	CAL_DATE,
+										RANK() OVER (ORDER BY CAL_DATE)	IDX
+								FROM	CAL_MST
+								WHERE	TRIM(HOLIDAY_FLAG)	IS NULL
+								AND		CAL_DATE	>= TRUNC(SYSDATE)
+								)	CM
+                         WHERE   NF.IF_DTTM = TRUNC(SYSDATE)
+                           AND   NF.LOC_ID = '$!{tgt_loc}'
+                           --AND   VL.ORDER_FLAG = 'Y'
+                           AND   NF.DUE_DATE = CM.CAL_DATE
+                        GROUP BY NF.ITEM_ID
+						--
+                        UNION ALL
+                        -- 월판매계획
+                        SELECT   NP.ITEM_ID
+                                 , 0 BS_STK, 0 D00_STK, 0 D01_STK
+                                 , 0 D00_SLP -- 예상판매(수송일자)
+                                 , 0 D01_SLP -- 익일판매(익일)
+                                 , SUM(NP.NORMAL_QTY+NP.PROM_QTY+NP.SUPT_QTY+NP.SAMP_QTY) MON_SLP -- 월판매계획
+                                 , 0 MON_SLR, 0 AVG_SLR
+                          FROM   NFOS_SALES_PLAN_WEEKLY NP
+                                 , (
+                                 	   SELECT   NP.YYYY, NP.VERSION, NP.SEQ
+                                 	     FROM   (
+			                                       SELECT   NP.YYYY, NP.VERSION, NP.SEQ
+			                                         FROM   NFOS_SALES_PLAN_WEEKLY NP
+			                                        ORDER   BY NP.YYYY DESC, NP.VERSION DESC, NP.SEQ DESC
+			                                    ) NP
+			                            WHERE   ROWNUM = 1
+			                     ) MX
+                         WHERE   NP.DELIV_LOC = '$!{tgt_loc}'
+                           AND   SUBSTR(NP.YYYYMMDD, 1, 6) = TO_CHAR(SYSDATE,'YYYYMM')
+                           AND   NP.YYYY = MX.YYYY
+                           AND   NP.VERSION = MX.VERSION
+                           AND   NP.SEQ = MX.SEQ
+                           AND   NP.MADE_TYPE != 'DE'
+                         GROUP BY NP.ITEM_ID
+						UNION ALL
+						-- 판매실적 : 월판매실적, 3주평균 판매실적
+						SELECT 	SA.ITEM_ID
+								, 0 BS_STK, 0 D00_STK, 0 D01_STK, 0 D00_SLP, 0 D01_SLP, 0 MON_SLP
+								, SUM(CASE WHEN TO_CHAR(SA.SALE_DATE, 'YYYYMM') 
+												= TO_CHAR(SYSDATE,'YYYYMM')
+						--						= SUBSTR(REPLACE(REPLACE('$!{trans_date}', '-', ''), '/', ''), 1, 6)
+										   THEN SA.QTY ELSE 0
+								END) MON_SLR -- 월판매실적
+								, SUM(CASE WHEN TO_CHAR(SA.SALE_DATE, 'YYYYMMDD') BETWEEN
+												TO_CHAR(SYSDATE-22, 'YYYYMMDD') AND TO_CHAR(SYSDATE-1, 'YYYYMMDD')
+										   THEN SA.QTY ELSE 0 
+								END)/18 AVG_SLR -- 3주평균
+						  FROM 	SALES_ACT_RECENT SA
+						 WHERE 	0=0
+						   AND 	( 	TO_CHAR(SA.SALE_DATE, 'YYYYMM') = TO_CHAR(SYSDATE,'YYYYMM')
+								 OR TO_CHAR(SA.SALE_DATE, 'YYYYMMDD') BETWEEN TO_CHAR(SYSDATE-22, 'YYYYMMDD') AND TO_CHAR(SYSDATE-1, 'YYYYMMDD') -- 3주
+								)
+						--   AND 	( 	TO_CHAR(SA.SALE_DATE, 'YYYYMM') = SUBSTR(REPLACE(REPLACE('$!{trans_date}', '-', ''), '/', ''), 1, 6)
+						--		 OR TO_CHAR(SA.SALE_DATE, 'YYYYMMDD') BETWEEN TO_CHAR(SYSDATE-22, 'YYYYMMDD') AND TO_CHAR(SYSDATE-1, 'YYYYMMDD') -- 3주
+						--		)
+						   AND  SA.DELIV_LOC = '$!{tgt_loc}'
+						   AND 	SA.MADE_TYPE != 'DE'
+						 GROUP 	BY SA.ITEM_ID
+					) BS
+					, ITEM_MST IM
+			 WHERE 	BS.ITEM_ID = IM.ITEM_ID
+			   AND 	IM.MADE_TYPE != 'DE'
+			 GROUP 	BY IM.ITEM_ID, IM.ITEM_NAME
+			 ORDER 	BY DECODE(IM.ITEM_ID,'$!{item_id}',1,9), IM.ITEM_ID
+			
+	</query>
+	
+	<!-- 수송계획조회 및 조정 : 판매 -->
+	<query id="rp_01010_dailyTransportPlanSalesInfo_list">
+			SELECT  /*+INDEX(IM ITEM_MST_PK)*/
+					IM.ITEM_ID, IM.ITEM_NAME
+					, SUM(BS.BS_STK)+SUM(BS.D00_SLP) BS_STK -- 당일재고
+					, SUM(BS.D00_SLP) D00_SLP -- 예상판매
+					, SUM(BS.D00_STK) D00_STK -- 예상재고
+					, SUM(BS.D01_SLP) D01_SLP -- 익일판매
+					, SUM(BS.D01_STK) D01_STK -- 익일재고
+					, SUM(BS.ITP_QTY) ITP_QTY -- 익일수송확정
+					, SUM(BS.TP_QTY) TP_QTY   -- 익일수송계획
+					, DECODE(SUM(BS.AVG_SLR), 0, 0, SUM(BS.D00_STK) / SUM(BS.AVG_SLR)) NUM_STK -- 재고일수 : 예상재고/3주평균판매실적
+					, SUM(BS.MON_SLP) MON_SLP -- 월판매계획
+					, SUM(BS.MON_SLR) MON_SLR -- 월판매누계
+					, SUM(BS.AVG_SLR) -- 3주평균판매실적
+					--, ROUND(DECODE(SUM(BS.MON_SLP), 0, 0, SUM(BS.MON_SLR)/SUM(BS.MON_SLP))*100) SRATE -- 달성율 : 월판매누계 / 월판매계획
+					, SUM(BS.SAFETY_STOCK) SAFETY_STOCK -- 안전재고
+			  FROM 	(
+						-- 재고
+						SELECT 	SP.ITEM_ID
+								, SUM(CASE WHEN TO_CHAR(SP.STOCK_DATE, 'YYYYMMDD') 
+												= TO_CHAR(SYSDATE-1, 'YYYYMMDD')
+								--				= TO_CHAR(TO_DATE(REPLACE(REPLACE('$!{trans_date}', '-', ''), '/', ''), 'YYYYMMDD')-1, 'YYYYMMDD') 
+										   THEN SP.STOCK_QTY ELSE 0 
+								END) BS_STK -- 당일재고(전일 기말재고)
+								, SUM(CASE WHEN TO_CHAR(SP.STOCK_DATE, 'YYYYMMDD') 
+												= TO_CHAR(SYSDATE,'YYYYMMDD')
+								--				= REPLACE(REPLACE('$!{trans_date}', '-', ''), '/', '') 
+										   THEN SP.STOCK_QTY ELSE 0 
+								END) D00_STK -- 예상재고(당일예상재고)
+								, SUM(CASE WHEN TO_CHAR(SP.STOCK_DATE, 'YYYYMMDD') 
+												= TO_CHAR(SYSDATE+1, 'YYYYMMDD')
+								--				= TO_CHAR(TO_DATE(REPLACE(REPLACE('$!{trans_date}', '-', ''), '/', ''), 'YYYYMMDD')+1, 'YYYYMMDD') 
+										   THEN SP.STOCK_QTY ELSE 0 
+								END) D01_STK -- 익일재고(익일 기말재고)
+								, 0 D00_SLP, 0 D01_SLP, 0 MON_SLP, 0 MON_SLR, 0 AVG_SLR, 0 ITP_QTY, 0 TP_QTY, 0 SAFETY_STOCK
+						  FROM 	STOCK_PLAN SP
+						 WHERE 	SP.VERSION = '$!{version}'
+						   AND 	SP.SEQ = '$!{seq}'
+						   AND 	LOC_ID = '$!{tgt_loc}'
+						   AND 	TO_CHAR(SP.STOCK_DATE, 'YYYYMMDD') BETWEEN 
+						   		TO_CHAR(SYSDATE-1, 'YYYYMMDD') AND 
+								TO_CHAR(SYSDATE+1, 'YYYYMMDD')
+							--	TO_CHAR(TO_DATE(REPLACE(REPLACE('$!{trans_date}', '-', ''), '/', ''), 'YYYYMMDD')-1, 'YYYYMMDD') AND 
+							--	TO_CHAR(TO_DATE(REPLACE(REPLACE('$!{trans_date}', '-', ''), '/', ''), 'YYYYMMDD')+1, 'YYYYMMDD')
+						   AND 	SP.MADE_TYPE != 'DE'
+						   AND  SP.ITEM_ID = '$!{item_id}'
+						 GROUP 	BY SP.ITEM_ID
+						--
+						UNION ALL
+						-- 판매계획 : 수송일자, 수송일자익일, 수송일자 해당월
+                        -- 판매계획 : PLAN_VERSION_LOG.ORDER_FLAG = 'N' 인 경우만 차일 참조
+                        SELECT   NP.ITEM_ID,
+                                 0 BS_STK, 0 D00_STK, 0 D01_STK, 0 D00_SLP, -- 예상판매(수송일자)
+                                 SUM(DECODE(CM.IDX,'2',NP.NORMAL_QTY+NP.PROM_QTY+NP.SUPT_QTY+NP.SAMP_QTY))	D01_SLP, -- 익일판매(익일)
+                                 0	MON_SLP, -- 월판매계획
+                                 0 MON_SLR, 0 AVG_SLR, 0 ITP_QTY, 0 TP_QTY, 0 SAFETY_STOCK
+                          FROM   NFOS_SALES_PLAN_WEEKLY NP
+			                     , (
+                                     SELECT MAX(VL.ORDER_FLAG) ORDER_FLAG
+                                       FROM PLAN_VERSION_LOG VL
+                                      WHERE VL.VERSION = '$!{version}'
+                                        AND VL.SEQ = '$!{seq}'
+                                        AND VL.CAT_ID = 'RP'
+                                 ) VL,
+								 (
+								SELECT	YYYYMMDD,
+										RANK() OVER (ORDER BY CAL_DATE)	IDX
+								FROM	CAL_MST
+								WHERE	TRIM(HOLIDAY_FLAG)	IS NULL
+								AND		CAL_DATE	>= TRUNC(SYSDATE)
+								)	CM
+                         WHERE   NP.DELIV_LOC = '$!{tgt_loc}'
+                           AND   NP.YYYYMMDD = CM.YYYYMMDD
+                           AND   NP.YYYY = '$!{sale_yyyy}'
+                           AND   NP.VERSION = '$!{sale_version}'
+                           AND   NP.SEQ = '$!{sale_seq}'
+                           AND  NP.ITEM_ID = '$!{item_id}'
+						   AND   VL.ORDER_FLAG = 'N'
+                           AND   NP.YYYYMMDD = CM.YYYYMMDD
+						   GROUP BY NP.ITEM_ID
+						--
+                        UNION ALL
+                        -- 익일주문 : PLAN_VERSION_LOG.ORDER_FLAG = 'Y' 인 경우만 차일 참조
+                        SELECT   NF.ITEM_ID
+                                 , 0 BS_STK, 0 D00_STK, 0 D01_STK,
+                                 SUM(DECODE(CM.IDX,'1',NF.QTY))	D00_SLP, -- 예상판매(수송일자)
+                                 SUM(DECODE(VL.ORDER_FLAG,'Y',DECODE(CM.IDX,'2',NF.QTY))) D01_SLP, -- 익일판매(익일)
+                                 0 MON_SLP, -- 월판매계획
+                                 0 MON_SLR, 0 AVG_SLR, 0 ITP_QTY, 0 TP_QTY, 0 SAFETY_STOCK
+                          FROM	NFOS_ORDER NF,
+                          		(
+								 SELECT VL.ORDER_FLAG
+								   FROM PLAN_VERSION_LOG VL
+								  WHERE VL.VERSION = '$!{version}'
+									AND VL.SEQ = '$!{seq}'
+									AND VL.CAT_ID = 'RP'
+                                ) VL,
+								(
+								SELECT	CAL_DATE,
+										RANK() OVER (ORDER BY CAL_DATE)	IDX
+								FROM	CAL_MST
+								WHERE	TRIM(HOLIDAY_FLAG)	IS NULL
+								AND		CAL_DATE	>= TRUNC(SYSDATE)
+								)	CM
+                         WHERE	NF.IF_DTTM = TRUNC(SYSDATE)
+                           AND	NF.LOC_ID = '$!{tgt_loc}'
+                           AND	NF.DUE_DATE = CM.CAL_DATE
+						   AND	NF.ITEM_ID = '$!{item_id}'
+                         GROUP BY NF.ITEM_ID	
+                        --
+						UNION ALL
+						-- 판매실적 : 월판매실적, 3주평균 판매실적
+						SELECT 	SA.ITEM_ID
+								, 0 BS_STK, 0 D00_STK, 0 D01_STK, 0 D00_SLP, 0 D01_SLP, 0 MON_SLP
+								, SUM(CASE WHEN TO_CHAR(SA.SALE_DATE, 'YYYYMM') 
+												= TO_CHAR(SYSDATE,'YYYYMM')
+						--						= SUBSTR(REPLACE(REPLACE('$!{trans_date}', '-', ''), '/', ''), 1, 6)
+										   THEN SA.QTY ELSE 0
+								END) MON_SLR -- 월판매실적
+								, SUM(CASE WHEN TO_CHAR(SA.SALE_DATE, 'YYYYMMDD') BETWEEN
+												TO_CHAR(SYSDATE-22, 'YYYYMMDD') AND TO_CHAR(SYSDATE-1, 'YYYYMMDD')
+										   THEN SA.QTY ELSE 0 
+								END)/18 AVG_SLR -- 3주평균
+								, 0 ITP_QTY, 0 TP_QTY, 0 SAFETY_STOCK
+						  FROM 	SALES_ACT_RECENT SA
+						 WHERE 	0=0
+						   AND 	( 	TO_CHAR(SA.SALE_DATE, 'YYYYMM') = TO_CHAR(SYSDATE,'YYYYMM')
+								 OR TO_CHAR(SA.SALE_DATE, 'YYYYMMDD') BETWEEN TO_CHAR(SYSDATE-22, 'YYYYMMDD') AND TO_CHAR(SYSDATE-1, 'YYYYMMDD') -- 3주
+								)
+						--   AND 	( 	TO_CHAR(SA.SALE_DATE, 'YYYYMM') = SUBSTR(REPLACE(REPLACE('$!{trans_date}', '-', ''), '/', ''), 1, 6)
+						--		 OR TO_CHAR(SA.SALE_DATE, 'YYYYMMDD') BETWEEN TO_CHAR(SYSDATE-22, 'YYYYMMDD') AND TO_CHAR(SYSDATE-1, 'YYYYMMDD') -- 3주
+						--		)
+						   AND  SA.DELIV_LOC = '$!{tgt_loc}'
+						   AND 	SA.MADE_TYPE != 'DE'
+						   AND  SA.ITEM_ID = '$!{item_id}'
+						 GROUP 	BY SA.ITEM_ID
+                        --
+						UNION ALL
+						-------------------------------------------TEST----------------------------------
+						-- 익일수송 : 전표발행
+						SELECT 	TP.ITEM_ID
+								, 0 BS_STK, 0 D00_STK, 0 D01_STK, 0 D00_SLP, 0 D01_SLP, 0 MON_SLP, 0 MON_SLR, 0 AVG_SLR
+								--, SUM(TP.QTY) ITP_QTY, 
+                                ,SUM(
+                                CASE
+                                    WHEN TRANS_STATE = '01' OR TRANS_STATE = '02' THEN QTY
+                                    ELSE    CHGO_QTY
+                                END
+                                )   ITP_QTY,
+                                0 TP_QTY, 0 SAFETY_STOCK
+						  FROM 	IF_TRANS_PLAN TP
+						 WHERE 	TP.TGT_LOC = '$!{tgt_loc}'
+						   AND  TP.ITEM_ID = '$!{item_id}'
+						   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') = TO_CHAR(SYSDATE+1, 'YYYYMMDD')
+						 GROUP 	BY TP.ITEM_ID, TP.TRANS_STATE						
+						---------------------------------------------------------------------------------
+						---------------------------------원본---------------------------------------------
+						-- 익일수송 : 전표발행
+--						SELECT 	TP.ITEM_ID
+--								, 0 BS_STK, 0 D00_STK, 0 D01_STK, 0 D00_SLP, 0 D01_SLP, 0 MON_SLP, 0 MON_SLR, 0 AVG_SLR
+--								, SUM(TP.QTY) ITP_QTY, 0 TP_QTY, 0 SAFETY_STOCK
+--						  FROM 	IF_TRANS_PLAN TP
+--						 WHERE 	TP.TGT_LOC = '$!{tgt_loc}'
+--						   AND  TP.ITEM_ID = '$!{item_id}'
+--						   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') = TO_CHAR(SYSDATE+1, 'YYYYMMDD')
+--						 GROUP 	BY TP.ITEM_ID
+						 --------------------------------------------------------------------------------
+                        --
+						UNION ALL
+						-- 익일수송 : 현 계획버전
+						SELECT 	TP.ITEM_ID
+								, 0 BS_STK, 0 D00_STK, 0 D01_STK, 0 D00_SLP, 0 D01_SLP, 0 MON_SLP, 0 MON_SLR, 0 AVG_SLR
+								, 0 ITP_QTY
+								, SUM(TP.BASE_STK_QTY + TP.ADD_STK_QTY + TP.PROD_QTY) TP_QTY
+								, 0 SAFETY_STOCK
+						  FROM 	TRANS_PLAN TP
+						 WHERE 	TP.VERSION = '$!{version}'
+						   AND 	TP.SEQ = '$!{seq}'
+						   AND 	TP.TGT_LOC = '$!{tgt_loc}'
+						   AND  TP.ITEM_ID = '$!{item_id}'
+						   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') = TO_CHAR(SYSDATE+1, 'YYYYMMDD')
+						 GROUP 	BY TP.ITEM_ID
+						--
+                        UNION ALL
+    		       		-- 안전재고
+    			        SELECT 	PY.ITEM_ID
+								, 0 BS_STK, 0 D00_STK, 0 D01_STK, 0 D00_SLP, 0 D01_SLP, 0 MON_SLP, 0 MON_SLR, 0 AVG_SLR
+								, 0 ITP_QTY, 0 TP_QTY
+    			        	   	, CASE WHEN TO_CHAR(SYSDATE, 'YYYYMMDD')
+    			        	   	  		    BETWEEN NVL(PY.START_DATE, '00000000') AND NVL(PY.END_DATE, '00000000')
+    			        	           THEN SUM(PY.SAFETY_STOCK+PY.CAMP_STOC+PY.SAVE_STOC)
+    			        	           ELSE SUM(PY.SAFETY_STOCK+PY.CAMP_STOC)
+    			        	   	END SAFETY_STOCK
+    			          FROM 	STOCK_POLICY_QTY PY,
+    			               	(
+    				               	SELECT MAX(WORK_DATE) WORK_DATE
+    				                  FROM STOCK_POLICY_QTY
+    				                 WHERE LOC_TYPE = 'DC'
+    			               	) MV
+    			         WHERE 	PY.WORK_DATE = MV.WORK_DATE
+    			           AND 	PY.ITEM_ID = '$!{item_id}'
+                           AND 	PY.LOC_ID = '$!{tgt_loc}'
+    			         GROUP 	BY PY.WORK_DATE, PY.LOC_ID, PY.ITEM_ID, NVL(PY.START_DATE, '00000000'), NVL(PY.END_DATE, '00000000')
+					) BS
+					, ITEM_MST IM
+			 WHERE 	BS.ITEM_ID = IM.ITEM_ID
+			   AND 	IM.MADE_TYPE != 'DE'
+			 GROUP 	BY IM.ITEM_ID, IM.ITEM_NAME
+			 ORDER 	BY DECODE(IM.ITEM_ID,'$!{item_id}',1,9), IM.ITEM_ID
+			
+	</query>
+	
+	<!-- 수송계획조회 및 조정 : 예상재고 -->
+	<query id="rp_01010_dailyTransportPlanStockInfo_list">
+			SELECT 	IM.ITEM_ID, IM.ITEM_NAME
+					--, DECODE(SUM(BS.CRESULT), 0, 0, SUM(BS.STOCK_QTY)/SUM(BS.CRESULT)) NUM_STK -- 재고일수 : 공장잔량/1주일평균출고실적
+					, DECODE(SUM(BS.CRESULT), 0, 0, SUM(BS.D00_STK)/SUM(BS.CRESULT)) NUM_STK -- 재고일수 : TGT재고/3주일평균판매실적
+					, SUM(BS.STOCK_QTY) STOCK_QTY -- 공장잔량 : 수송일자 마감재고
+			  FROM 	(
+						-- 공장 재고
+						SELECT 	SP.ITEM_ID, SUM(SP.STOCK_QTY) STOCK_QTY, 0 D00_STK, 0 CRESULT
+						  FROM 	STOCK_PLAN SP
+						 WHERE 	SP.VERSION = '$!{version}'
+						   AND 	SP.SEQ = '$!{seq}'
+						   AND 	LOC_ID = '$!{src_loc}'
+						   AND 	TO_CHAR(SP.STOCK_DATE, 'YYYYMMDD') = TO_CHAR(SYSDATE,'YYYYMMDD')
+						   AND 	SP.MADE_TYPE != 'DE'
+						 GROUP 	BY SP.ITEM_ID
+						--
+						UNION ALL
+						-- TGT 재고
+						SELECT 	SP.ITEM_ID, 0 STOCK_QTY
+								, SUM(CASE WHEN TO_CHAR(SP.STOCK_DATE, 'YYYYMMDD') = TO_CHAR(SYSDATE,'YYYYMMDD') 
+										   THEN SP.STOCK_QTY ELSE 0 
+								END) D00_STK -- 예상재고(당일예상재고)
+								, 0 CRESULT
+						  FROM 	STOCK_PLAN SP
+						 WHERE 	SP.VERSION = '$!{version}'
+						   AND 	SP.SEQ = '$!{seq}'
+						   AND 	LOC_ID = '$!{tgt_loc}'
+						   AND 	TO_CHAR(SP.STOCK_DATE, 'YYYYMMDD') BETWEEN 
+						   		TO_CHAR(SYSDATE-1, 'YYYYMMDD') AND TO_CHAR(SYSDATE+1, 'YYYYMMDD')
+						   AND 	SP.MADE_TYPE != 'DE'
+						 GROUP 	BY SP.ITEM_ID
+						--
+						UNION ALL
+						-- 판매실적 : 월판매실적, 3주평균 판매실적
+						SELECT 	SA.ITEM_ID, 0 STOCK_QTY, 0 D00_STK
+								, SUM(CASE WHEN TO_CHAR(SA.SALE_DATE, 'YYYYMMDD') BETWEEN
+												TO_CHAR(SYSDATE-22, 'YYYYMMDD') AND TO_CHAR(SYSDATE-1, 'YYYYMMDD')
+										   THEN SA.QTY ELSE 0 
+								END)/18 CRESULT -- 3주평균
+						  FROM 	SALES_ACT_RECENT SA
+						 WHERE 	0=0
+						   AND 	TO_CHAR(SA.SALE_DATE, 'YYYYMMDD') 
+						        BETWEEN TO_CHAR(SYSDATE-22, 'YYYYMMDD') AND TO_CHAR(SYSDATE-1, 'YYYYMMDD') -- 3주
+						   AND  SA.DELIV_LOC = '$!{tgt_loc}'
+						   AND 	SA.MADE_TYPE != 'DE'
+						 GROUP 	BY SA.ITEM_ID
+						/*
+						-- 1주일 평균 출고실적
+						-- WMS 수송출고실적
+						SELECT 	OT.ITEM_ID, 0 STOCK_QTY
+								, F_EATOBOX(OT.INPUT_UNIT_UOM, OT.ITEM_ID, SUM(OT.DELV_QTY))/6 CRESULT -- 7일 SUM 이지만 일요일을 고려하여 6으로 나눔
+		                  FROM	(
+		                        SELECT	EO.BRAND_DATE,
+		                                TO_CHAR(MAX(EO.SEND_DATE),'YYYYMMDD')	DELV_DATE,
+		                                SUBSTR(MAX(EO.CENTER_CD),5,4)	SRC_LOC,
+		                                SUBSTR(MAX(EO.DELIVERY_CD),5,4)	TGT_LOC,
+		                                MAX(EO.ITEM_CD)	ITEM_ID,
+		                                MAX(EO.INPUT_UNIT_UOM)	INPUT_UNIT_UOM,
+		                                MAX(EO.CONFIRM_QTY)	DELV_QTY,
+		                                EO.BRAND_NO, EO.BRAND_LINE_NO
+		                          FROM	EDISOUTORDER EO
+		                         WHERE	EO.ERROR_DIV		=	'3'
+		                           AND	EO.INOUT_CD		LIKE	'ZM%'
+		                         GROUP	BY EO.BRAND_DATE, EO.BRAND_NO, EO.BRAND_LINE_NO
+		                        HAVING	MAX(EO.CONFIRM_QTY)	!=	0
+                                   AND 	TO_CHAR(MAX(EO.SEND_DATE),'YYYYMMDD') 
+                                   		BETWEEN TO_CHAR(SYSDATE-7, 'YYYYMMDD') AND TO_CHAR(SYSDATE-1, 'YYYYMMDD')
+		                        )	OT
+		                 WHERE 	OT.SRC_LOC = '$!{src_loc}'
+		                 GROUP 	BY OT.INPUT_UNIT_UOM, OT.ITEM_ID
+		                */
+					) BS
+					, ITEM_MST IM
+			 WHERE 	BS.ITEM_ID = IM.ITEM_ID
+			   AND  IM.ITYPE IN ('FERT', 'HAWA')
+			   AND  IM.CAT03 LIKE 'P%'
+			   AND  IM.ITEM_STATUS = 'ST'
+			 GROUP 	BY IM.ITEM_ID, IM.ITEM_NAME
+			 ORDER 	BY DECODE(IM.ITEM_ID,'$!{item_id}',1,9), IM.ITEM_ID
+			
+	</query>
+	
+	<!-- 수송계획조회 및 조정 : 생산계획 -->
+	<query id="rp_01010_dailyTransportPlanSchPlan_pop">
+	
+			SELECT 	PT.PLANT_NAME, PT.DC_ID
+					, SUM(BS.STOCK) AVAIL -- 출고가능 : 예상재고
+					, SUM(BS.TQTY) TRANS -- 출고확정 : 수송계획
+					, SUM(BS.STOCK)-SUM(BS.TQTY) STOCK -- 출고후잔량  : 출고가능-출고확정
+					, SUM(BS.D01) D01
+					, SUM(BS.D02SH1) D02SH1, SUM(BS.D02SH3) D02SH3, SUM(BS.D02SH5) D02SH5
+					, SUM(BS.D03SH1) D03SH1, SUM(BS.D03SH3) D03SH3, SUM(BS.D03SH5) D03SH5
+					, SUM(BS.D04SH1) D04SH1, SUM(BS.D04SH3) D04SH3, SUM(BS.D04SH5) D04SH5
+					, SUM(BS.D05SH1) D05SH1, SUM(BS.D05SH3) D05SH3, SUM(BS.D05SH5) D05SH5
+					, SUM(BS.D06SH1) D06SH1, SUM(BS.D06SH3) D06SH3, SUM(BS.D06SH5) D06SH5
+					, SUM(BS.D07SH1) D07SH1, SUM(BS.D07SH3) D07SH3, SUM(BS.D07SH5) D07SH5 -- 생산계획
+					, IM.ITEM_ID, IM.ITEM_NAME
+			  FROM 	(
+						-- 재고 : 수송일 전일 기말재고
+						SELECT 	SP.ITEM_ID, DM.PLANT_ID
+								, 0 D01
+								, 0 D02SH1, 0 D02SH3, 0 D02SH5
+								, 0 D03SH1, 0 D03SH3, 0 D03SH5
+								, 0 D04SH1, 0 D04SH3, 0 D04SH5
+								, 0 D05SH1, 0 D05SH3, 0 D05SH5
+								, 0 D06SH1, 0 D06SH3, 0 D06SH5
+								, 0 D07SH1, 0 D07SH3, 0 D07SH5
+								, 0 TQTY
+								, SUM(SP.STOCK_QTY) STOCK
+						  FROM 	STOCK_PLAN SP, DC_MST DM
+						 WHERE 	SP.LOC_ID = DM.DC_ID
+						   AND 	SP.VERSION = '$!{version}' AND SP.SEQ = '$!{seq}' AND SP.ITEM_ID = '$!{item_id}'
+						   --AND 	SP.STOCK_DATE = TO_CHAR(TO_DATE(REPLACE(REPLACE('$!{trans_date}', '-', ''), '/', ''), 'YYYYMMDD')-1, 'YYYYMMDD')
+						   AND 	SP.STOCK_DATE = TO_CHAR(SYSDATE-1, 'YYYY-MM-DD')
+						   AND 	SP.MADE_TYPE != 'DE'
+						 GROUP BY SP.ITEM_ID, DM.PLANT_ID	
+						 ----------------------------------		  
+						UNION ALL
+						-- 수송계획
+						SELECT 	TP.ITEM_ID, DM.PLANT_ID
+								, 0 D01
+								, 0 D02SH1, 0 D02SH3, 0 D02SH5
+								, 0 D03SH1, 0 D03SH3, 0 D03SH5
+								, 0 D04SH1, 0 D04SH3, 0 D04SH5
+								, 0 D05SH1, 0 D05SH3, 0 D05SH5
+								, 0 D06SH1, 0 D06SH3, 0 D06SH5
+								, 0 D07SH1, 0 D07SH3, 0 D07SH5
+								, SUM(TP.BASE_STK_QTY+TP.ADD_STK_QTY+TP.PROD_QTY) TQTY
+								, 0 STOCK
+						  FROM 	TRANS_PLAN TP, DC_MST DM
+						 WHERE 	TP.SRC_LOC = DM.DC_ID
+						   AND 	TP.VERSION = '$!{version}' AND TP.SEQ = '$!{seq}' AND TP.ITEM_ID = '$!{item_id}'
+						   --AND 	TP.TRANS_DATE = REPLACE(REPLACE('$!{trans_date}', '-', ''), '/', '')
+						   AND	TP.TRANS_DATE = TO_CHAR(SYSDATE, 'YYYY-MM-DD')
+						   AND 	TP.MADE_TYPE != 'DE'
+						 GROUP BY TP.ITEM_ID, DM.PLANT_ID
+------------------------------------------------------------
+-------------------------------------- 수송계획 수립 이후 생성된 수기오더 -------------------------------------
+                        UNION ALL
+                        -- 수송계획 수립 이후 생성된 수기오더
+                        SELECT     TP.ITEM_ID, DM.PLANT_ID
+                                , 0 D01
+                                , 0 D02SH1, 0 D02SH3, 0 D02SH5
+                                , 0 D03SH1, 0 D03SH3, 0 D03SH5
+                                , 0 D04SH1, 0 D04SH3, 0 D04SH5
+                               , 0 D05SH1, 0 D05SH3, 0 D05SH5
+                                , 0 D06SH1, 0 D06SH3, 0 D06SH5
+                                , 0 D07SH1, 0 D07SH3, 0 D07SH5
+                               ,SUM(
+	                                CASE
+	                                    WHEN TP.TRANS_STATE = '01' OR TP.TRANS_STATE = '02' THEN TP.QTY
+	                                    ELSE TP.CHGO_QTY
+	                                END
+                                )   TQTY
+                                , 0 STOCK
+                         FROM     IF_TRANS_PLAN TP, DC_MST DM
+                         WHERE     TP.SRC_LOC = DM.DC_ID
+                           AND     TP.VERSION = '20000000.01.01' AND TP.ITEM_ID = '$!{item_id}'
+                           AND     TP.TRANS_DATE = TO_CHAR(SYSDATE, 'YYYY-MM-DD')
+                           --AND  TRUCK_SEQ &lt; '5500'
+                           --   수송계획 수립 이전 발행 전표는 무시
+                           AND    TO_CHAR(TP.MADE_DTTM, 'YYYYMMDDHH24MI')  > REPLACE('$!{version}', '.', '')
+                           AND     TP.MADE_TYPE != 'DE'
+                         GROUP BY TP.ITEM_ID, DM.PLANT_ID
+---------------------------------- 해상 수송계획버전에서 입고 예정량  --------------------------
+						UNION ALL
+                        -- 변경일 2009.10.29 : 권용찬
+                        -- 전일 발행한 수송계획 중 당일 수송계획 수립이후 삭제된 품목 -> 당일 출고가능량(STOCK)에 (+)
+                        SELECT     TP.ITEM_ID, DM.PLANT_ID
+                                , 0 D01
+                                , 0 D02SH1, 0 D02SH3, 0 D02SH5
+                                , 0 D03SH1, 0 D03SH3, 0 D03SH5
+                                , 0 D04SH1, 0 D04SH3, 0 D04SH5
+                               , 0 D05SH1, 0 D05SH3, 0 D05SH5
+                                , 0 D06SH1, 0 D06SH3, 0 D06SH5
+                                , 0 D07SH1, 0 D07SH3, 0 D07SH5
+                                , 0 TQTY
+                               ,SUM(
+                                    CASE
+                                        WHEN TP.TRANS_STATE = '01' THEN TP.CHGO_QTY 
+                                        ELSE TP.QTY-TP.CHGO_QTY
+                                    END 
+                                )   STOCK
+                         FROM IF_TRANS_PLAN TP, DC_MST DM
+                         WHERE  TP.SRC_LOC = DM.DC_ID
+                         AND    TRANS_DATE = TO_CHAR(SYSDATE, 'YYYY-MM-DD')
+                         --전일 수송 계획중 출고 시간이 계획 수립 이후 
+                         AND    TP.ITEM_ID = '$!{item_id}'
+                         AND    TO_CHAR(TP.CHGO_DTTM, 'YYYYMMDDHH24MI')  > REPLACE('$!{version}', '.', '')
+                         AND    TP.QTY-TP.CHGO_QTY > 0
+                         GROUP BY TP.ITEM_ID, DM.PLANT_ID
+------------------------------------------------------------
+						UNION ALL
+						-- 생산계획 : 확정 맥스 버전
+						SELECT 	DS.ITEM_ID, DS.PLANT_ID
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '5' -- 첫날은 야간만 표시
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D01
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+1, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '1' -- 조간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D02SH1
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+1, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '3' -- 주간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D02SH3
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+1, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '5' -- 야간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D02SH5
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+2, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '1' -- 조간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D03SH1
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+2, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '3' -- 주간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D03SH3
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+2, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '5' -- 야간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D03SH5
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+3, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '1' -- 조간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D04SH1
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+3, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '3' -- 주간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D04SH3
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+3, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '5' -- 야간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D04SH5
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+4, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '1' -- 조간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D05SH1
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+4, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '3' -- 주간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D05SH3
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+4, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '5' -- 야간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D05SH5
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+5, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '1' -- 조간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D06SH1
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+5, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '3' -- 주간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D06SH3
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+5, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '5' -- 야간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D06SH5
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+6, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '1' -- 조간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D07SH1
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+6, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '3' -- 주간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D07SH3
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+6, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '5' -- 야간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D07SH5
+								, 0 TQTY, 0 STOCK
+						  FROM 	DAILY_SCH_PLAN_SHIFT DS
+								, (
+								   --
+                                    SELECT VL.CAT_ID, VL.PLANT_ID, VL.VERSION, VL.SEQ, VL.START_DATE, VL.END_DATE, VL.RNK
+                                      FROM (
+                                            SELECT VL.CAT_ID, SC.PLANT_ID, VL.VERSION, VL.SEQ, VL.START_DATE, VL.END_DATE
+                                                   , (RANK() OVER (PARTITION BY SC.PLANT_ID ORDER BY VL.VERSION DESC)) RNK 
+                                              FROM PLAN_VERSION_LOG VL
+                                                   , (
+                                                           SELECT BM.SUB_CAT, BM.PLANT_ID, BM.PERIOD_TYPE
+                                                          FROM ENGN_BAT_MST BM
+                                                         WHERE BM.PERIOD_TYPE = 'DAILY'
+                                                           AND BM.CAT_ID = 'PS'
+                                                   ) SC
+                                             WHERE VL.PERIOD_TYPE = 'DAILY'
+                                               AND VL.CAT_ID = 'PS'
+                                               AND TO_NUMBER(VL.STATUS) &gt;= 23
+                                               AND VL.PERIOD_TYPE = SC.PERIOD_TYPE
+                                               AND VL.SUB_CAT = SC.SUB_CAT
+                                           ) VL
+                                     WHERE VL.RNK = 1
+                                    --
+								) VI
+								, (
+										SELECT   LP.PLANT_ID, LP.ITEM_ID, LP.PROC_ID, LP.PROD_VER
+		  								FROM     V_LAST_PROC_PRODVER LP
+								) LP
+						 WHERE 	DS.CAT_ID = 'PS' -- 완제품생산계획
+						   AND 	DS.PLANT_ID = VI.PLANT_ID AND DS.VERSION = VI.VERSION AND DS.SEQ = 1
+                           AND  DS.PROD_DATES BETWEEN TO_CHAR(VI.START_DATE, 'YYYYMMDD') AND TO_CHAR(VI.END_DATE, 'YYYYMMDD')
+						   AND 	DS.ITEM_ID = '$!{item_id}'
+						   --AND 	DS.PROD_DATES BETWEEN REPLACE(REPLACE('$!{trans_date}', '-', ''), '/', '') AND
+							--	TO_CHAR(TO_DATE(REPLACE(REPLACE('$!{trans_date}', '-', ''), '/', ''), 'YYYYMMDD')+6, 'YYYYMMDD')
+						   AND 	DS.PROD_DATES BETWEEN TO_CHAR(SYSDATE, 'YYYYMMDD') AND TO_CHAR(SYSDATE+6, 'YYYYMMDD')
+						   AND 	DS.MADE_TYPE != 'DE'
+						   AND	DS.PLANT_ID   =  LP.PLANT_ID
+						   AND	DS.ITEM_ID	  =  LP.ITEM_ID
+						   AND  DS.PROC_ID	  =  LP.PROC_ID
+                         GROUP BY DS.ITEM_ID, DS.PLANT_ID
+                       --
+						UNION ALL
+						-- 생산계획 : 직전 버전
+						SELECT 	DS.ITEM_ID, DS.PLANT_ID
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '5' -- 첫날은 야간만 표시
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D01
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+1, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '1' -- 조간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D02SH1
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+1, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '3' -- 주간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D02SH3
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+1, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '5' -- 야간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D02SH5
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+2, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '1' -- 조간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D03SH1
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+2, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '3' -- 주간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D03SH3
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+2, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '5' -- 야간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D03SH5
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+3, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '1' -- 조간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D04SH1
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+3, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '3' -- 주간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D04SH3
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+3, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '5' -- 야간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D04SH5
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+4, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '1' -- 조간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D05SH1
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+4, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '3' -- 주간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D05SH3
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+4, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '5' -- 야간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D05SH5
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+5, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '1' -- 조간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D06SH1
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+5, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '3' -- 주간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D06SH3
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+5, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '5' -- 야간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D06SH5
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+6, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '1' -- 조간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D07SH1
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+6, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '3' -- 주간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D07SH3
+								, SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(SYSDATE+6, 'YYYYMMDD') 
+												AND DS.SHIFT_TYPE = '5' -- 야간
+										   THEN DS.SHIFT_QTY ELSE 0 
+								END) D07SH5
+								, 0 TQTY, 0 STOCK
+						  FROM 	DAILY_SCH_PLAN_SHIFT DS
+								, (
+								   --
+								   SELECT VL.CAT_ID, VL.PLANT_ID
+                                           , MAX(CASE WHEN VL.RNK = 2 THEN VL.VERSION ELSE NULL END) VERSION
+                                           , MAX(CASE WHEN VL.RNK = 2 THEN VL.SEQ ELSE NULL END) SEQ
+                                           , MAX(CASE WHEN VL.RNK = 2 THEN VL.START_DATE ELSE NULL END) START_DATE
+                                           --중요!! 계획종료는 다음버젼 시작일에서 하루를 빼야한다!!! 2009.10.31 남웅용
+                                           , MAX(CASE WHEN VL.RNK = 1 THEN VL.START_DATE ELSE NULL END)-1 END_DATE
+                                      FROM (
+                                            SELECT VL.CAT_ID, SC.PLANT_ID, VL.VERSION, VL.SEQ, VL.START_DATE, VL.END_DATE
+                                                   , (RANK() OVER (PARTITION BY SC.PLANT_ID ORDER BY VL.VERSION DESC)) RNK 
+                                              FROM PLAN_VERSION_LOG VL
+                                                   , (
+                                                           SELECT BM.SUB_CAT, BM.PLANT_ID, BM.PERIOD_TYPE
+                                                          FROM ENGN_BAT_MST BM
+                                                         WHERE BM.PERIOD_TYPE = 'DAILY'
+                                                           AND BM.CAT_ID = 'PS'
+                                                   ) SC
+                                             WHERE VL.PERIOD_TYPE = 'DAILY'
+                                               AND VL.CAT_ID = 'PS'
+                                               AND TO_NUMBER(VL.STATUS) &gt;= 23
+                                               AND VL.PERIOD_TYPE = SC.PERIOD_TYPE
+                                               AND VL.SUB_CAT = SC.SUB_CAT
+                                           ) VL
+                                     WHERE VL.RNK &lt;= 2
+                                     GROUP BY VL.CAT_ID, VL.PLANT_ID
+								   --
+								) VI
+								, (
+										SELECT   LP.PLANT_ID, LP.ITEM_ID, LP.PROC_ID, LP.PROD_VER
+		  								FROM     V_LAST_PROC_PRODVER LP
+								) LP
+						 WHERE 	DS.CAT_ID = 'PS' -- 완제품생산계획
+						   AND 	DS.PLANT_ID = VI.PLANT_ID AND DS.VERSION = VI.VERSION AND DS.SEQ = 1
+                           AND  DS.PROD_DATES BETWEEN TO_CHAR(VI.START_DATE, 'YYYYMMDD') AND TO_CHAR(VI.END_DATE, 'YYYYMMDD')
+						   AND 	DS.ITEM_ID = '$!{item_id}'
+						   --AND 	DS.PROD_DATES BETWEEN REPLACE(REPLACE('$!{trans_date}', '-', ''), '/', '') AND
+							--	TO_CHAR(TO_DATE(REPLACE(REPLACE('$!{trans_date}', '-', ''), '/', ''), 'YYYYMMDD')+6, 'YYYYMMDD')
+						   AND 	DS.PROD_DATES BETWEEN TO_CHAR(SYSDATE, 'YYYYMMDD') AND TO_CHAR(SYSDATE+6, 'YYYYMMDD')
+						   AND 	DS.MADE_TYPE != 'DE'
+						   AND	DS.PLANT_ID   =  LP.PLANT_ID
+						   AND	DS.ITEM_ID	  =  LP.ITEM_ID
+						   AND  DS.PROC_ID	  =  LP.PROC_ID
+                         GROUP BY DS.ITEM_ID, DS.PLANT_ID
+					) BS
+					, (
+                        SELECT     HR.HID PLANT_ID, HR.HID_NAME PLANT_NAME, DM.DC_ID
+                          FROM     HRCHY HR,
+                                   DC_MST DM
+                         WHERE     HR.LVL_TYPE = '공장'
+                           AND     HR.MADE_TYPE != 'DE'     
+                           AND     HR.HID = DM.PLANT_ID
+                         UNION	ALL
+                        SELECT		'7500' PLANT_ID, '포승물류' PLANT_NAME, '7500' DC_ID
+                          FROM		DUAL
+					) PT
+					, ITEM_MST IM
+			 WHERE 	BS.PLANT_ID = PT.PLANT_ID
+			   AND 	BS.ITEM_ID = IM.ITEM_ID
+			   AND 	IM.MADE_TYPE != 'DE'
+			 GROUP 	BY IM.ITEM_ID, IM.ITEM_NAME, PT.PLANT_ID, PT.PLANT_NAME, PT.DC_ID
+			 HAVING SUM(BS.STOCK) + SUM(BS.TQTY) + SUM(BS.STOCK)-SUM(BS.TQTY) + SUM(BS.D01) 
+		            + SUM(BS.D02SH1) + SUM(BS.D02SH3) + SUM(BS.D02SH5) + SUM(BS.D03SH1) + SUM(BS.D03SH3) + SUM(BS.D03SH5) 
+		            + SUM(BS.D04SH1) + SUM(BS.D04SH3) + SUM(BS.D04SH5) + SUM(BS.D05SH1) + SUM(BS.D05SH3) + SUM(BS.D05SH5) 
+		            + SUM(BS.D06SH1) + SUM(BS.D06SH3) + SUM(BS.D06SH5) + SUM(BS.D07SH1) + SUM(BS.D07SH3) + SUM(BS.D07SH5)  !=  0
+			 ORDER 	BY PT.PLANT_ID
+			
+	</query>
+	<!-- 수송계획조회 및 조정 : 생산계획 : 날짜 헤더 리스트 -->
+	<query id="dailyTransportPlanSchPlan_dateList">
+			
+			SELECT 	TO_CHAR(TRANS_DATE, 'MM/DD') D01
+					, TO_CHAR(TRANS_DATE+1, 'MM/DD') D02
+					, TO_CHAR(TRANS_DATE+2, 'MM/DD') D03
+					, TO_CHAR(TRANS_DATE+3, 'MM/DD') D04
+					, TO_CHAR(TRANS_DATE+4, 'MM/DD') D05
+					, TO_CHAR(TRANS_DATE+5, 'MM/DD') D06
+					, TO_CHAR(TRANS_DATE+6, 'MM/DD') D07
+			  FROM 	(
+						--SELECT 	TO_DATE(REPLACE(REPLACE('$!{trans_date}', '-', ''), '/', ''), 'YYYYMMDD') TRANS_DATE
+						SELECT 	SYSDATE TRANS_DATE
+						  FROM 	DUAL
+			  		)
+			
+	</query>
+	
+	<!-- 수송계획조회 및 조정 : SRC_LOC, ITEM_ID 로부터 BOX_PER_PALET 가져오기 -->
+	<query id="rp_01010_dailyTransportPlanSalesInfo_search_box_per_palet">
+			
+			-- 자사 생산제품인 경우 ITEM_DTL 에서 BOX_PER_PALET 을 참조
+			-- 단, ITEM_DTL.BOX_PER_PALET != 0
+			SELECT 	DECODE(NVL(ID.BOX_PER_PALET, 100), 0, 100, NVL(ID.BOX_PER_PALET, 100)) BOX_PER_PALET
+			  FROM 	ITEM_DTL ID, DC_MST DM
+			 WHERE 	ID.ITEM_ID = '$!{item_id}'
+			   AND 	ID.PLANT_ID = DM.PLANT_ID
+			   AND 	DM.DC_ID = '$!{dc_id}'
+			   AND 	ID.MADE_TYPE != 'DE'
+			   AND 	DM.MADE_TYPE != 'DE'
+			   AND 	ID.ITYPE = 'FERT' -- 자사 생산제품
+			   AND 	NVL(ID.BOX_PER_PALET, 0) != 0
+			UNION ALL
+			-- 자사 생산제품이지만 ITEM_DTL.BOX_PER_PALET = 0 인 경우
+			-- ITEM_MST 에서 BOX_PER_PALET 을 참조
+			SELECT 	DECODE(NVL(IM.BOX_PER_PALET, 100), 0, 100, NVL(IM.BOX_PER_PALET, 100)) BOX_PER_PALET
+			  FROM 	ITEM_MST IM
+			 WHERE 	IM.ITEM_ID = '$!{item_id}'
+			   AND 	IM.ITYPE = 'FERT' -- 자사 생산제품
+			   AND 	IM.MADE_TYPE != 'DE'
+			   AND 	IM.ITEM_ID NOT IN (
+						SELECT 	ID.ITEM_ID
+						  FROM 	ITEM_DTL ID, DC_MST DM
+						 WHERE 	ID.ITEM_ID = '$!{item_id}'
+						   AND 	ID.PLANT_ID = DM.PLANT_ID
+						   AND 	DM.DC_ID = '$!{dc_id}'
+						   AND 	ID.MADE_TYPE != 'DE'
+						   AND 	DM.MADE_TYPE != 'DE'
+						   AND 	ID.ITYPE = 'FERT' -- 자사 생산제품
+						   AND 	NVL(ID.BOX_PER_PALET, 0) != 0
+					)
+			UNION ALL
+            -- 자사 생산제품이 아닌 경우 ITEM_MST 에서 BOX_PER_PALET 을 참조
+            SELECT 	DECODE(NVL(IM.BOX_PER_PALET, 100), 0, 100, NVL(IM.BOX_PER_PALET, 100)) BOX_PER_PALET
+			  FROM 	ITEM_MST IM
+			 WHERE 	IM.ITEM_ID = '$!{item_id}'
+			   AND 	IM.MADE_TYPE != 'DE'
+               AND     IM.ITYPE in('HAWA', 'NEWB') -- 자사 생산제품이 아닌 제품
+	</query>
+	
+	<!-- 수송계획조회 및 조정 : ITEM_ID 직접입력한 값에대해 조회 -->
+	<query id="rp_01010_dailyTransportPlanSalesInfo_search_item_id">
+			
+			-- 자사 생산제품인 경우 ITEM_DTL 에서 BOX_PER_PALET 을 참조
+			-- 단, ITEM_DTL.BOX_PER_PALET != 0
+			SELECT 	IM.ITEM_ID, IM.ITEM_NAME, 
+			        DECODE(NVL(ID.BOX_PER_PALET, 100), 0, 100, NVL(ID.BOX_PER_PALET, 100)) BOX_PER_PALET
+			  FROM 	ITEM_MST IM, ITEM_DTL ID, DC_MST DM
+			 WHERE 	IM.ITEM_ID || IM.ITEM_NAME LIKE '%'||'$!{input_value}'||'%'
+			   AND 	IM.ITEM_ID = ID.ITEM_ID
+			   AND 	ID.PLANT_ID = DM.PLANT_ID
+			   AND 	DM.DC_ID = '$!{dc_id}'
+			   AND 	IM.MADE_TYPE != 'DE'
+			   AND 	ID.MADE_TYPE != 'DE'
+			   AND 	DM.MADE_TYPE != 'DE'
+			   AND 	IM.ITYPE = 'FERT' -- 자사 생산제품
+			   AND 	NVL(ID.BOX_PER_PALET, 0) != 0
+			UNION ALL
+			-- 자사 생산제품이지만 ITEM_DTL.BOX_PER_PALET = 0 인 경우
+			-- ITEM_MST 에서 BOX_PER_PALET 을 참조
+			SELECT 	IM.ITEM_ID, IM.ITEM_NAME, 
+					DECODE(NVL(IM.BOX_PER_PALET, 100), 0, 100, NVL(IM.BOX_PER_PALET, 100)) BOX_PER_PALET
+			  FROM 	ITEM_MST IM
+			 WHERE 	IM.ITEM_ID = '$!{input_value}'
+			   AND 	IM.ITYPE = 'FERT' -- 자사 생산제품
+			   AND 	IM.MADE_TYPE != 'DE'
+			   AND 	IM.ITEM_ID NOT IN (
+						SELECT 	ID.ITEM_ID
+						  FROM 	ITEM_DTL ID, DC_MST DM
+						 WHERE 	ID.ITEM_ID = '$!{input_value}'
+						   AND 	ID.PLANT_ID = DM.PLANT_ID
+						   AND 	DM.DC_ID = '$!{dc_id}'
+						   AND 	ID.MADE_TYPE != 'DE'
+						   AND 	DM.MADE_TYPE != 'DE'
+						   AND 	ID.ITYPE = 'FERT' -- 자사 생산제품
+						   AND 	NVL(ID.BOX_PER_PALET, 0) != 0
+					)
+            UNION ALL
+            -- 자사 생산제품이 아닌 경우 ITEM_MST 에서 BOX_PER_PALET 을 참조
+			SELECT 	IM.ITEM_ID, IM.ITEM_NAME, 
+			        DECODE(NVL(IM.BOX_PER_PALET, 100), 0, 100, NVL(IM.BOX_PER_PALET, 100)) BOX_PER_PALET
+			  FROM 	ITEM_MST IM
+			 WHERE 	IM.ITEM_ID || IM.ITEM_NAME LIKE '%'||'$!{input_value}'||'%'
+			   AND 	IM.MADE_TYPE != 'DE'
+               AND     IM.ITYPE in('HAWA', 'NEWB') -- 자사 생산제품이 아닌 제품
+			
+	</query>
+	
+	<!-- 수송계획조회 및 조정 : 저장 -->
+	<!-- 1. TRANS_PLAN UPDATE -->
+	<query id="rp_01010_dailyTransportPlan_list_save_01" fix="version seq tgt_loc plan_type _user_id"
+		   iterator="trans_date old_date src_loc truck_seq item_id item_name base_stk_plt base_stk_box add_stk_plt add_stk_box prod_plt prod_box">
+			
+			UPDATE 	TRANS_PLAN
+			   SET 	BASE_STK_QTY = NVL(TO_NUMBER(REPLACE('$!{base_stk_box}', ',', '')), 0)
+			   		, BASE_STK_PLT = NVL(TO_NUMBER(REPLACE('$!{base_stk_plt}', ',', '')), 0)
+			   		, ADD_STK_QTY = NVL(TO_NUMBER(REPLACE('$!{add_stk_box}', ',', '')), 0)
+			   		, ADD_STK_PLT = NVL(TO_NUMBER(REPLACE('$!{add_stk_plt}', ',', '')), 0)
+			   		, PROD_QTY = NVL(TO_NUMBER(REPLACE('$!{prod_box}', ',', '')), 0)
+			   		, PROD_PLT = NVL(TO_NUMBER(REPLACE('$!{prod_plt}', ',', '')), 0)
+			   		-- UPDATE : UP, NO MODIFY : NO, INSERT : AD, DELETE : NULL
+			   		, MOD_FLAG = (
+			   				CASE 
+			   					WHEN 	NVL(BASE_STK_QTY, 0) = NVL(TO_NUMBER(REPLACE('$!{base_stk_box}', ',', '')), 0)
+			   						AND NVL(ADD_STK_QTY, 0) = NVL(TO_NUMBER(REPLACE('$!{add_stk_box}', ',', '')), 0)
+			   						AND NVL(PROD_QTY, 0) = NVL(TO_NUMBER(REPLACE('$!{prod_box}', ',', '')), 0)
+			   					THEN 	'NO'
+			   					ELSE 	'UP'
+			   				END
+			   			)
+			   		, MOD_QTY = ( NVL(TO_NUMBER(REPLACE('$!{base_stk_box}', ',', '')), 0)
+			   						+ NVL(TO_NUMBER(REPLACE('$!{add_stk_box}', ',', '')), 0)
+			   						+ NVL(TO_NUMBER(REPLACE('$!{prod_box}', ',', '')), 0)
+			   						- NVL(BASE_STK_QTY, 0) - NVL(ADD_STK_QTY, 0) - NVL(PROD_QTY, 0) )
+			   		, MADE_TYPE = (
+			   				CASE 
+			   					WHEN 	NVL(BASE_STK_QTY, 0) = NVL(TO_NUMBER(REPLACE('$!{base_stk_box}', ',', '')), 0)
+			   						AND NVL(ADD_STK_QTY, 0) = NVL(TO_NUMBER(REPLACE('$!{add_stk_box}', ',', '')), 0)
+			   						AND NVL(PROD_QTY, 0) = NVL(TO_NUMBER(REPLACE('$!{prod_box}', ',', '')), 0)
+			   					THEN 	MADE_TYPE
+			   					ELSE 	'UP'
+			   				END
+			   			)
+			   		, MADE_DTTM = (
+			   				CASE 
+			   					WHEN 	NVL(BASE_STK_QTY, 0) = NVL(TO_NUMBER(REPLACE('$!{base_stk_box}', ',', '')), 0)
+			   						AND NVL(ADD_STK_QTY, 0) = NVL(TO_NUMBER(REPLACE('$!{add_stk_box}', ',', '')), 0)
+			   						AND NVL(PROD_QTY, 0) = NVL(TO_NUMBER(REPLACE('$!{prod_box}', ',', '')), 0)
+			   					THEN 	MADE_DTTM
+			   					ELSE 	SYSDATE
+			   				END
+			   			)
+			   		, MADE_BY = (
+			   				CASE 
+			   					WHEN 	NVL(BASE_STK_QTY, 0) = NVL(TO_NUMBER(REPLACE('$!{base_stk_box}', ',', '')), 0)
+			   						AND NVL(ADD_STK_QTY, 0) = NVL(TO_NUMBER(REPLACE('$!{add_stk_box}', ',', '')), 0)
+			   						AND NVL(PROD_QTY, 0) = NVL(TO_NUMBER(REPLACE('$!{prod_box}', ',', '')), 0)
+			   					THEN 	MADE_BY
+			   					ELSE 	'$!{_user_id}'
+			   				END
+			   			)
+			 WHERE 	VERSION 	= '$!{version}'
+			   AND 	SEQ 		= '$!{seq}'
+ 			   [AND 	PLAN_TYPE 	= '${plan_type}']
+ 			   AND 	TRANS_DATE 	= '$!{trans_date}'
+ 			   AND 	TGT_LOC 	= '$!{tgt_loc}'
+ 			   AND 	SRC_LOC 	= '$!{src_loc}'
+ 			   AND 	TRUCK_SEQ 	= '$!{truck_seq}'
+ 			   AND 	ITEM_ID 	= '$!{item_id}'
+ 			   --AND  '$!{trans_date}' = '$!{old_date}' --날짜가 수정되지 않은것만 update(날짜 수정된것은 삭제하기 위해서)
+			   AND 	EXISTS (
+			 			SELECT 	VERSION
+			 			  FROM 	TRANS_PLAN TI
+			 			 WHERE 	TI.VERSION 		= '$!{version}'
+			 			   AND 	TI.SEQ 			= '$!{seq}'
+			 			   [AND 	TI.PLAN_TYPE 	= '${plan_type}']
+			 			   AND 	TI.TRANS_DATE 	= '$!{trans_date}'
+			 			   AND 	TI.TGT_LOC 		= '$!{tgt_loc}'
+			 			   AND 	TI.SRC_LOC 		= '$!{src_loc}'
+			 			   AND 	TI.TRUCK_SEQ 	= '$!{truck_seq}'
+			 			   AND 	TI.ITEM_ID 		= '$!{item_id}'
+			 		)
+			
+	</query>
+	
+	<!-- 2. TRANS_PLAN INSERT : 날짜이외의 값이 수정된 경우 -->
+	<query id="rp_01010_dailyTransportPlan_list_save_02" fix="version seq tgt_loc _user_id"
+		   iterator="trans_date src_loc truck_seq item_id item_name base_stk_plt base_stk_box add_stk_plt add_stk_box prod_plt prod_box old_date">
+			
+			-- 날짜이외의 값이 수정된 경우..
+			INSERT 	INTO TRANS_PLAN
+					( VERSION, SEQ, PLAN_TYPE, TRANS_DATE, TGT_LOC, SRC_LOC, TRUCK_SEQ, ITEM_ID
+						, ROUTE_ID, DESCRIPTION, BASE_STK_QTY, BASE_STK_PLT, ADD_STK_QTY, ADD_STK_PLT, PROD_QTY, PROD_PLT
+						, MOD_FLAG, MOD_QTY, MADE_TYPE, MADE_DTTM, MADE_BY )
+			SELECT 	'$!{version}' AS VERSION
+					, '$!{seq}' AS SEQ
+					, (
+					   -- ORDER_FLAG가 'Y' 이면 긴급수송 적용, 'N'이면 일반수송만 적용
+					   SELECT DECODE((SELECT  DECODE(ORDER_FLAG,'Y',TO_CHAR(START_DATE,'YYYY-MM-DD'),'') START_DATE --계획수립 시작일(긴급수송일)
+                                        FROM  PLAN_VERSION_LOG
+                                       WHERE  PERIOD_TYPE	= 'DAILY'
+                                       	 AND  VERSION = '$!{version}' AND SEQ = '$!{seq}'
+                                         AND  CAT_ID = 'RP' AND SUB_CAT = 'RP'), 
+                                     '$!{trans_date}', -- UI에서 선택된 수송일자
+                                     (SELECT  CD       -- 같은경우, 긴급수송 : ZM6
+                                        FROM  CODE_MST
+                                       WHERE  CD_GRP='PLAN_TYPE'
+                                         AND  CD_NAME = '긴급수송'),
+                                     (SELECT  CD       -- 다른경우, 일반수송 : ZM1
+                                        FROM  CODE_MST 
+                                       WHERE  CD_GRP='PLAN_TYPE'
+                                         AND  CD_NAME = '일반수송')) PLAN_TYPE
+                         FROM DUAL
+			          ) AS PLAN_TYPE
+					, '$!{trans_date}' AS TRANS_DATE
+					, '$!{tgt_loc}' AS TGT_LOC
+					, '$!{src_loc}' AS SRC_LOC
+					, '$!{truck_seq}' AS TRUCK_SEQ
+					, '$!{item_id}' AS ITEM_ID
+					, '' AS ROUTE_ID
+					, '' AS DESCRIPTION
+					, NVL(TO_NUMBER(REPLACE('$!{base_stk_box}', ',', '')), 0) AS BASE_STK_QTY
+			   		, NVL(TO_NUMBER(REPLACE('$!{base_stk_plt}', ',', '')), 0) AS BASE_STK_PLT
+			   		, NVL(TO_NUMBER(REPLACE('$!{add_stk_box}', ',', '')), 0) AS ADD_STK_QTY
+			   		, NVL(TO_NUMBER(REPLACE('$!{add_stk_plt}', ',', '')), 0) AS ADD_STK_PLT
+			   		, NVL(TO_NUMBER(REPLACE('$!{prod_box}', ',', '')), 0) AS PROD_QTY
+			   		, NVL(TO_NUMBER(REPLACE('$!{prod_plt}', ',', '')), 0) AS PROD_PLT
+			   		-- UPDATE : UP, NO MODIFY : NO, INSERT : AD, DELETE : NULL
+			   		, 'AD' AS MOD_FLAG
+			   		, ( NVL(TO_NUMBER(REPLACE('$!{base_stk_box}', ',', '')), 0)
+			   			+ NVL(TO_NUMBER(REPLACE('$!{add_stk_box}', ',', '')), 0)
+			   			+ NVL(TO_NUMBER(REPLACE('$!{prod_box}', ',', '')), 0) ) AS MOD_QTY
+			   		, 'AD' AS MADE_TYPE
+			   		, SYSDATE AS MADE_DTTM
+			   		, '$!{_user_id}' AS MADE_BY
+			  FROM 	DUAL
+			 WHERE 	NOT EXISTS (
+			 			SELECT 	VERSION
+			 			  FROM 	TRANS_PLAN TI
+			 			 WHERE 	TI.VERSION 		= '$!{version}' 
+			 			   AND 	TI.SEQ 			= '$!{seq}'
+			 			   AND 	TI.PLAN_TYPE 	= (
+			 			   						  -- ORDER_FLAG가 'Y' 이면 긴급수송 적용, 'N'이면 일반수송만 적용
+												   SELECT DECODE((SELECT  DECODE(ORDER_FLAG,'Y',TO_CHAR(START_DATE,'YYYY-MM-DD'),'') START_DATE --계획수립 시작일(긴급수송일)
+							                                        FROM  PLAN_VERSION_LOG
+							                                       WHERE  PERIOD_TYPE	= 'DAILY'
+                                       	 							 AND  VERSION = '$!{version}' AND SEQ = '$!{seq}'
+							                                         AND  CAT_ID = 'RP' AND SUB_CAT = 'RP'), 
+							                                     '$!{trans_date}', -- UI에서 선택된 수송일자
+							                                     (SELECT  CD       -- 같은경우, 긴급수송 : ZM6
+							                                        FROM  CODE_MST
+							                                       WHERE  CD_GRP='PLAN_TYPE'
+							                                         AND  CD_NAME = '긴급수송'),
+							                                     (SELECT  CD       -- 다른경우, 일반수송 : ZM1
+							                                        FROM  CODE_MST 
+							                                       WHERE  CD_GRP='PLAN_TYPE'
+							                                         AND  CD_NAME = '일반수송')) PLAN_TYPE
+							                         FROM DUAL
+										          )
+			 			   AND 	TI.TRANS_DATE 	= '$!{trans_date}'
+			 			   AND 	TI.TGT_LOC 		= '$!{tgt_loc}'
+			 			   AND 	TI.SRC_LOC 		= '$!{src_loc}'
+			 			   AND 	TI.TRUCK_SEQ 	= '$!{truck_seq}'
+			 			   AND 	TI.ITEM_ID 		= '$!{item_id}'
+			 		)
+			
+	</query>
+	
+	<!-- 3. TRANS_PLAN INSERT : 날짜가 겹치는 경우-->
+	<query id="rp_01010_dailyTransportPlan_list_save_03_org" fix="version seq tgt_loc plan_type _user_id"
+		   iterator="trans_date old_date src_loc truck_seq item_id item_name base_stk_plt base_stk_box add_stk_plt add_stk_box prod_plt prod_box">
+			
+			-- 날짜가 겹치는 경우..
+			INSERT 	INTO TRANS_PLAN
+					( VERSION, SEQ, PLAN_TYPE, TRANS_DATE, TGT_LOC, SRC_LOC, TRUCK_SEQ, ITEM_ID
+						, ROUTE_ID, DESCRIPTION, BASE_STK_QTY, BASE_STK_PLT, ADD_STK_QTY, ADD_STK_PLT, PROD_QTY, PROD_PLT
+						, MOD_FLAG, MOD_QTY, MADE_TYPE, MADE_DTTM, MADE_BY )
+			SELECT 	'$!{version}' AS VERSION
+					, '$!{seq}' AS SEQ
+					, (
+					   -- ORDER_FLAG가 'Y' 이면 긴급수송 적용, 'N'이면 일반수송만 적용
+					   SELECT DECODE((SELECT  DECODE(ORDER_FLAG,'Y',TO_CHAR(START_DATE,'YYYY-MM-DD'),'') START_DATE --계획수립 시작일(긴급수송일)
+                                        FROM  PLAN_VERSION_LOG
+                                       WHERE  PERIOD_TYPE	= 'DAILY'
+                                       	 AND  VERSION = '$!{version}' AND SEQ = '$!{seq}'
+                                         AND  CAT_ID = 'RP' AND SUB_CAT = 'RP'), 
+                                     '$!{trans_date}', -- UI에서 선택된 수송일자
+                                     (SELECT  CD       -- 같은경우, 긴급수송 : ZM6
+                                        FROM  CODE_MST
+                                       WHERE  CD_GRP='PLAN_TYPE'
+                                         AND  CD_NAME = '긴급수송'),
+                                     (SELECT  CD       -- 다른경우, 일반수송 : ZM1
+                                        FROM  CODE_MST 
+                                       WHERE  CD_GRP='PLAN_TYPE'
+                                         AND  CD_NAME = '일반수송')) PLAN_TYPE
+                         FROM DUAL
+			          ) AS PLAN_TYPE
+					, '$!{trans_date}' AS TRANS_DATE
+					, '$!{tgt_loc}' AS TGT_LOC
+					, '$!{src_loc}' AS SRC_LOC
+					, (
+   				        -- 입고장, 출고장, 수송일자가 중복되면, MAX TRUCK_SEQ에 1을 더해서 UPDATE함.
+	   				  	SELECT  TO_CHAR(NVL(MAX(TO_NUMBER(TP.TRUCK_SEQ)),0)+1) SEQ
+						  FROM  TRANS_PLAN TP
+						 WHERE  TP.VERSION = '$!{version}'
+						   AND  TP.SEQ = '$!{seq}'
+						   AND  TP.SRC_LOC = '$!{src_loc}'
+						   AND  TP.TGT_LOC = '$!{tgt_loc}'
+						   AND  TP.TRANS_DATE = TO_DATE('$!{trans_date}','YYYY-MM-DD') 
+   				  		) AS TRUCK_SEQ
+					, '$!{item_id}' AS ITEM_ID
+					, '' AS ROUTE_ID
+					, '' AS DESCRIPTION
+					, NVL(TO_NUMBER(REPLACE('$!{base_stk_box}', ',', '')), 0) AS BASE_STK_QTY
+			   		, NVL(TO_NUMBER(REPLACE('$!{base_stk_plt}', ',', '')), 0) AS BASE_STK_PLT
+			   		, NVL(TO_NUMBER(REPLACE('$!{add_stk_box}', ',', '')), 0) AS ADD_STK_QTY
+			   		, NVL(TO_NUMBER(REPLACE('$!{add_stk_plt}', ',', '')), 0) AS ADD_STK_PLT
+			   		, NVL(TO_NUMBER(REPLACE('$!{prod_box}', ',', '')), 0) AS PROD_QTY
+			   		, NVL(TO_NUMBER(REPLACE('$!{prod_plt}', ',', '')), 0) AS PROD_PLT
+			   		-- UPDATE : UP, NO MODIFY : NO, INSERT : AD, DELETE : NULL
+			   		, 'AD' AS MOD_FLAG
+			   		, ( NVL(TO_NUMBER(REPLACE('$!{base_stk_box}', ',', '')), 0)
+			   			+ NVL(TO_NUMBER(REPLACE('$!{add_stk_box}', ',', '')), 0)
+			   			+ NVL(TO_NUMBER(REPLACE('$!{prod_box}', ',', '')), 0) ) AS MOD_QTY
+			   		, 'AD' AS MADE_TYPE
+			   		, SYSDATE AS MADE_DTTM
+			   		, '$!{_user_id}' AS MADE_BY
+			  FROM 	DUAL
+			 WHERE  EXISTS (
+			 			SELECT 	VERSION
+			 			  FROM 	TRANS_PLAN TI
+			 			 WHERE 	TI.VERSION 		= '$!{version}' 
+			 			   AND 	TI.SEQ 			= '$!{seq}'
+			 			   AND 	TI.PLAN_TYPE 	= (
+			 			   						   -- ORDER_FLAG가 'Y' 이면 긴급수송 적용, 'N'이면 일반수송만 적용
+												   SELECT DECODE((SELECT  DECODE(ORDER_FLAG,'Y',TO_CHAR(START_DATE,'YYYY-MM-DD'),'') START_DATE --계획수립 시작일(긴급수송일)
+							                                        FROM  PLAN_VERSION_LOG
+							                                       WHERE  PERIOD_TYPE	= 'DAILY'
+                                       	 							 AND  VERSION = '$!{version}' AND SEQ = '$!{seq}'
+							                                         AND  CAT_ID = 'RP' AND SUB_CAT = 'RP'), 
+							                                     '$!{trans_date}', -- UI에서 선택된 수송일자
+							                                     (SELECT  CD       -- 같은경우, 긴급수송 : ZM6
+							                                        FROM  CODE_MST
+							                                       WHERE  CD_GRP='PLAN_TYPE'
+							                                         AND  CD_NAME = '긴급수송'),
+							                                     (SELECT  CD       -- 다른경우, 일반수송 : ZM1
+							                                        FROM  CODE_MST 
+							                                       WHERE  CD_GRP='PLAN_TYPE'
+							                                         AND  CD_NAME = '일반수송')) PLAN_TYPE
+							                         FROM DUAL
+										          )
+			 			   AND 	TI.TRANS_DATE 	= '$!{trans_date}'
+			 			   AND 	TI.TGT_LOC 		= '$!{tgt_loc}'
+			 			   AND 	TI.SRC_LOC 		= '$!{src_loc}'
+			 			   AND 	TI.TRUCK_SEQ 	= '$!{truck_seq}'
+			 			   AND 	TI.ITEM_ID 		= '$!{item_id}'
+			 			   AND  TI.MOD_FLAG     != 'AD'
+			 			   AND  ('$!{old_date}' IS NULL OR '$!{trans_date}' != '$!{old_date}')
+			 		)
+			
+	</query>
+	
+	<!-- 4. STOCK_PLAN UPDATE : 입고장기준 -->
+	<query id="rp_01010_dailyTransportPlan_list_save_04">
+			
+			-- 1. UPDATABLE JOIN VIEW 사용
+			-- 2. 날짜가 변경되어서 여러번 다른 값으로 STOCK 수량에 UPDATE 되지 않도록 수정
+			-- 3. 날짜 별로 변경된 수량을 SUM해서 한번에 STOCK 수량에 UPDATE 함.
+			UPDATE /*+ bypass_ujvc*/
+			        (
+			        SELECT SP.STOCK_QTY OLD_QTY, ED.NEW_QTY
+                      FROM 
+                           ( -- UPDATE 할 STOCK 정보
+                            SELECT SP.VERSION, SP.SEQ, SP.LOC_ID, SP.ITEM_ID, SP.STOCK_DATE, SP.STOCK_QTY
+			                  FROM STOCK_PLAN SP
+			                 WHERE SP.VERSION = '$!{version}' AND SP.SEQ = TO_NUMBER('$!{seq}')
+			                   AND SP.LOC_ID  = '$!{tgt_loc}' 
+			                   AND SP.MADE_TYPE != 'DE'
+                           ) SP,
+                           ( -- 변경된 수량을 반영한 STOCK 정보
+					        SELECT  SP.VERSION, SP.SEQ, SP.LOC_ID, SP.ITEM_ID, SP.STOCK_DATE, SP.STOCK_QTY OLD_QTY,
+					                SP.STOCK_QTY + SUM(CASE WHEN  TP.MOD_FLAG IS NULL
+		                                                    THEN  -TP.SUM_QTY
+		                                                    ELSE  TP.MOD_QTY
+		                                               END) NEW_QTY 
+					          FROM (
+					                SELECT SP.VERSION, SP.SEQ, SP.LOC_ID, SP.ITEM_ID, SP.STOCK_DATE, SP.STOCK_QTY
+					                  FROM STOCK_PLAN SP
+					                 WHERE SP.VERSION = '$!{version}' AND SP.SEQ = TO_NUMBER('$!{seq}')
+					                   AND SP.LOC_ID  = '$!{tgt_loc}' 
+					                   AND SP.MADE_TYPE != 'DE'
+					               ) SP,
+					               (
+					                SELECT TP.VERSION, TP.SEQ, TP.TRANS_DATE, TP.TGT_LOC, TP.SRC_LOC, ITEM_ID, 
+					                       SUM(TP.BASE_STK_QTY + TP.ADD_STK_QTY + TP.PROD_QTY) SUM_QTY, -- 화면에 뿌려지는 데이타.
+					                       MOD_FLAG, SUM(MOD_QTY) MOD_QTY, PLAN_TYPE
+					                  FROM TRANS_PLAN TP
+					                 WHERE TP.VERSION = '$!{version}' AND TP.SEQ = TO_NUMBER('$!{seq}')
+					                   AND TP.TGT_LOC = '$!{tgt_loc}' 
+					                   [AND TP.PLAN_TYPE = '${plan_type}']
+					                   AND TP.TRANS_DATE BETWEEN TO_DATE('$!{trans_start}','YYYY-MM-DD') 
+					                                         AND TO_DATE('$!{trans_end}','YYYY-MM-DD')
+					                   AND TP.MADE_TYPE != 'DE'
+					                 GROUP BY TP.VERSION, TP.SEQ, TP.TRANS_DATE, TP.TGT_LOC, TP.SRC_LOC, ITEM_ID, MOD_FLAG, PLAN_TYPE
+					                 UNION
+					                SELECT TP.VERSION, TP.SEQ, TP.TRANS_DATE, TP.TGT_LOC, TP.SRC_LOC, ITEM_ID, 
+					                       SUM(TP.BASE_STK_QTY + TP.ADD_STK_QTY + TP.PROD_QTY) SUM_QTY, -- 날짜가 수정된 데이타.
+					                       MOD_FLAG, SUM(MOD_QTY) MOD_QTY, PLAN_TYPE
+					                  FROM TRANS_PLAN TP
+					                 WHERE TP.VERSION = '$!{version}' AND TP.SEQ = TO_NUMBER('$!{seq}')
+					                   AND TP.TGT_LOC = '$!{tgt_loc}' 
+					                   [AND TP.PLAN_TYPE = '${plan_type}']
+					                   AND TP.MADE_TYPE != 'DE'
+					                   AND TP.MOD_FLAG IS NOT NULL
+					                 GROUP BY TP.VERSION, TP.SEQ, TP.TRANS_DATE, TP.TGT_LOC, TP.SRC_LOC, ITEM_ID, MOD_FLAG, PLAN_TYPE
+					               ) TP
+					         WHERE SP.VERSION = TP.VERSION
+					           AND SP.SEQ = TP.SEQ
+					           AND SP.ITEM_ID = TP.ITEM_ID
+					           AND SP.LOC_ID = TP.TGT_LOC
+					           AND SP.STOCK_DATE > TP.TRANS_DATE
+					         GROUP BY SP.VERSION, SP.SEQ, SP.LOC_ID, SP.ITEM_ID, SP.STOCK_DATE, SP.STOCK_QTY
+			               ) ED
+			         WHERE SP.VERSION = ED.VERSION
+                       AND SP.SEQ = ED.SEQ
+                       AND SP.ITEM_ID = ED.ITEM_ID
+                       AND SP.LOC_ID = ED.LOC_ID
+                       AND SP.STOCK_DATE = ED.STOCK_DATE
+			        )
+			   SET  OLD_QTY = NEW_QTY
+			
+	</query>
+	
+	<!-- 5. STOCK_PLAN UPDATE : 출고장기준 -->
+	<query id="rp_01010_dailyTransportPlan_list_save_05">
+			
+			-- 1. UPDATABLE JOIN VIEW 사용
+			-- 2. 날짜가 변경되어서 여러번 다른 값으로 STOCK 수량에 UPDATE 되지 않도록 수정
+			-- 3. 날짜 별로 변경된 수량을 SUM해서 한번에 STOCK 수량에 UPDATE 함.
+			UPDATE /*+ bypass_ujvc*/
+			        (
+			        SELECT SP.STOCK_QTY OLD_QTY, ED.NEW_QTY
+                      FROM 
+                           ( -- UPDATE 할 STOCK 정보
+                            SELECT /*+INDEX(SP STOCK_PLAN_PK)*/SP.VERSION, SP.SEQ, SP.LOC_ID, SP.ITEM_ID, SP.STOCK_DATE, SP.STOCK_QTY
+					          FROM STOCK_PLAN SP
+					         WHERE SP.VERSION = '$!{version}' AND SP.SEQ = TO_NUMBER('$!{seq}')
+			                   AND SP.MADE_TYPE != 'DE'
+                           ) SP,
+                           (
+					        SELECT SP.VERSION, SP.SEQ, SP.LOC_ID, SP.ITEM_ID, SP.STOCK_DATE, SP.STOCK_QTY OLD_QTY, 
+					               SP.STOCK_QTY + SUM(CASE WHEN  TP.MOD_FLAG IS NULL
+		                                                    THEN  TP.SUM_QTY
+		                                                    ELSE  -TP.MOD_QTY
+		                                               END) NEW_QTY  
+					          FROM (
+					                SELECT /*+INDEX(SP STOCK_PLAN_PK)*/SP.VERSION, SP.SEQ, SP.LOC_ID, SP.ITEM_ID, SP.STOCK_DATE, SP.STOCK_QTY
+					                  FROM STOCK_PLAN SP
+					                 WHERE SP.VERSION = '$!{version}' AND SP.SEQ = TO_NUMBER('$!{seq}')
+					                   AND SP.MADE_TYPE != 'DE'
+					               ) SP,
+					               (
+					                SELECT TP.VERSION, TP.SEQ, TP.TRANS_DATE, TP.TGT_LOC, TP.SRC_LOC, ITEM_ID, 
+					                       SUM(TP.BASE_STK_QTY + TP.ADD_STK_QTY + TP.PROD_QTY) SUM_QTY, -- 화면에 뿌려지는 데이타.
+					                       MOD_FLAG, SUM(MOD_QTY) MOD_QTY, PLAN_TYPE
+					                  FROM TRANS_PLAN TP
+					                 WHERE TP.VERSION = '$!{version}' AND TP.SEQ = TO_NUMBER('$!{seq}')
+					                   AND TP.TGT_LOC = '$!{tgt_loc}' 
+					                   [AND TP.PLAN_TYPE = '${plan_type}']
+					                   AND TP.TRANS_DATE BETWEEN TO_DATE('$!{trans_start}','YYYY-MM-DD') 
+					                                         AND TO_DATE('$!{trans_end}','YYYY-MM-DD')
+					                   AND TP.MADE_TYPE != 'DE'
+					                 GROUP BY TP.VERSION, TP.SEQ, TP.TRANS_DATE, TP.TGT_LOC, TP.SRC_LOC, ITEM_ID, MOD_FLAG, PLAN_TYPE
+					                 UNION
+					                SELECT TP.VERSION, TP.SEQ, TP.TRANS_DATE, TP.TGT_LOC, TP.SRC_LOC, ITEM_ID, 
+					                       SUM(TP.BASE_STK_QTY + TP.ADD_STK_QTY + TP.PROD_QTY) SUM_QTY, -- 날짜가 수정된 데이타.
+					                       MOD_FLAG, SUM(MOD_QTY) MOD_QTY, PLAN_TYPE
+					                  FROM TRANS_PLAN TP
+					                 WHERE TP.VERSION = '$!{version}' AND TP.SEQ = TO_NUMBER('$!{seq}')
+					                   AND TP.TGT_LOC = '$!{tgt_loc}' 
+					                   [AND TP.PLAN_TYPE = '${plan_type}']
+					                   AND TP.MADE_TYPE != 'DE'
+					                   AND TP.MOD_FLAG IS NOT NULL
+					                 GROUP BY TP.VERSION, TP.SEQ, TP.TRANS_DATE, TP.TGT_LOC, TP.SRC_LOC, ITEM_ID, MOD_FLAG, PLAN_TYPE
+					               ) TP
+					         WHERE SP.VERSION = TP.VERSION
+					           AND SP.SEQ = TP.SEQ
+					           AND SP.ITEM_ID = TP.ITEM_ID
+					           AND SP.LOC_ID = TP.SRC_LOC
+					           AND SP.STOCK_DATE >= TP.TRANS_DATE	-- 출고장은 금일 발송되므로.
+					         GROUP BY SP.VERSION, SP.SEQ, SP.LOC_ID, SP.ITEM_ID, SP.STOCK_DATE, SP.STOCK_QTY
+			               ) ED
+			         WHERE SP.VERSION = ED.VERSION
+                       AND SP.SEQ = ED.SEQ
+                       AND SP.ITEM_ID = ED.ITEM_ID
+                       AND SP.LOC_ID = ED.LOC_ID
+                       AND SP.STOCK_DATE = ED.STOCK_DATE
+			        )
+			   SET  OLD_QTY = NEW_QTY
+			
+	</query>
+	
+	<!-- 6. TRANS_PLAN DELETE -->
+	<!-- MOD_FLAG 가 비어있는 데이터 삭제 -->
+	<query id="rp_01010_dailyTransportPlan_list_save_06">
+			
+			DELETE 	TRANS_PLAN TP
+			 WHERE 	TP.VERSION 		= '$!{version}'
+			   AND 	TP.SEQ 			= '$!{seq}'
+ 			   [AND 	TP.PLAN_TYPE 	= '${plan_type}']
+ 			   AND 	TP.TGT_LOC 		= '$!{tgt_loc}'
+ 			   AND 	TP.MOD_FLAG IS NULL
+			   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') 
+			   		BETWEEN REPLACE(REPLACE('$!{trans_start}', '-', ''), '/', '') AND REPLACE(REPLACE('$!{trans_end}', '-', ''), '/', '')
+			
+	</query>
+	
+	<!-- 7. TRANS_PLAN FLAG INIT -->
+	<!-- MOD_FLAG, MOD_QTY 초기화 -->
+	<query id="rp_01010_dailyTransportPlan_list_save_07">
+			
+			UPDATE 	TRANS_PLAN TP
+			   SET 	TP.MOD_FLAG 	= NULL
+			   		, TP.MOD_QTY 	= NULL
+			 WHERE 	TP.VERSION 		= '$!{version}'
+			   AND 	TP.SEQ 			= '$!{seq}'
+ 			   [AND 	TP.PLAN_TYPE 	= '${plan_type}']
+ 			   AND 	TP.TGT_LOC 		= '$!{tgt_loc}'
+			   --AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') 
+			   --		BETWEEN REPLACE(REPLACE('$!{trans_start}', '-', ''), '/', '') AND REPLACE(REPLACE('$!{trans_end}', '-', ''), '/', '')
+			
+	</query>
+	
+	<!--
+	======================================================================
+		수송 지시서 발행
+	======================================================================
+	-->
+	
+	<!-- 수송 지시서 조회 및 발행 -->
+	<query id="rp_01090_transBillPublishment_list" paging="false">
+		
+		<!-- 처음 페이지를 로드하는 경우, 버전이 없으면 최신 버전 조회 -->
+		#if( "$!{version}" == "" )
+			SELECT 	TP.PLAN_TYPE, CM.CD_NAME, TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') TRANS_DATE
+					, TP.TGT_LOC, TM.DC_SHORT_NAME TGT_NAME, TP.SRC_LOC, SM.DC_SHORT_NAME SRC_NAME
+					, TP.TRUCK_SEQ, TP.ROUTE_ID, TP.ITEM_ID, IM.ITEM_NAME
+					, (NVL(TP.BASE_STK_QTY, 0) + NVL(TP.ADD_STK_QTY, 0) + NVL(TP.PROD_QTY, 0)) QTY
+					, SUM(NVL(TP.BASE_STK_PLT, 0) + NVL(TP.ADD_STK_PLT, 0) + NVL(TP.PROD_PLT, 0))
+                      OVER (PARTITION BY TP.PLAN_TYPE, CM.CD_NAME, TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD')
+                      					 , TP.TGT_LOC, TP.SRC_LOC, TP.TRUCK_SEQ, TP.ROUTE_ID
+                      		    ORDER BY TP.BRAND_NO, TP.BRAND_LINE_NO, TP.PLAN_TYPE, TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD')
+                      		    		 , TP.TGT_LOC, TP.SRC_LOC, TP.TRUCK_SEQ, TP.ROUTE_ID, TP.ITEM_ID
+                    ) PLT_CUM
+                    , DECODE(
+						SUM(1)
+	                    	OVER (PARTITION BY TP.PLAN_TYPE, CM.CD_NAME, TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD')
+	                    					   , TP.TGT_LOC, TP.SRC_LOC, TP.TRUCK_SEQ, TP.ROUTE_ID
+	                    			  ORDER BY TP.BRAND_NO, TP.BRAND_LINE_NO, TP.PLAN_TYPE, TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD')
+	                    			  		   , TP.TGT_LOC, TP.SRC_LOC, TP.TRUCK_SEQ, TP.ROUTE_ID, TP.ITEM_ID)
+	                    , SUM(1)
+                      		OVER (PARTITION BY TP.PLAN_TYPE, CM.CD_NAME, TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD')
+                      						   , TP.TGT_LOC, TP.SRC_LOC, TP.TRUCK_SEQ, TP.ROUTE_ID)
+                      	, 'SUMPLT'
+                      	, ''
+                    ) SUMFLAG	
+					, TP.BRAND_NO, TP.BRAND_LINE_NO
+			  FROM 	TRANS_PLAN TP
+					, ( 	SELECT DISTINCT CM.CD, CM.CD_NAME 
+							  FROM CODE_MST CM 
+							 WHERE CM.CD_GRP = 'PLAN_TYPE' AND CM.MADE_TYPE != 'DE' ) CM
+					, ( 	SELECT DISTINCT IM.ITEM_ID, IM.ITEM_NAME 
+							  FROM ITEM_MST IM 
+							 WHERE IM.MADE_TYPE != 'DE' ) IM
+					, ( 	SELECT DISTINCT DM.DC_ID, DM.DC_NAME, DM.DC_SHORT_NAME
+							  FROM DC_MST DM 
+							 WHERE DM.MADE_TYPE != 'DE' ) TM 						-- TARGET MASTER(입고장)
+					, ( 	SELECT DISTINCT DM.DC_ID, DM.DC_NAME, DM.DC_SHORT_NAME
+							  FROM DC_MST DM 
+							 WHERE DM.MADE_TYPE != 'DE' ) SM 						-- SOURCE MASTER(출고장)
+					, (		SELECT VL.VERSION, MAX(VL.SEQ) SEQ
+							  FROM PLAN_VERSION_LOG VL
+									, ( SELECT MAX(VL.VERSION) VERSION
+										  FROM PLAN_VERSION_LOG VL
+										 WHERE VL.CAT_ID = 'RP' ) MV -- MAX VERSION
+							 WHERE VL.VERSION = MV.VERSION
+							 GROUP BY VL.VERSION ) MV -- MAX VERSION
+			 WHERE 	TP.PLAN_TYPE = CM.CD
+			   AND 	TP.ITEM_ID = IM.ITEM_ID
+			   AND 	TP.TGT_LOC = TM.DC_ID AND TP.SRC_LOC = SM.DC_ID
+			   AND 	TP.VERSION = MV.VERSION AND TP.SEQ = MV.SEQ
+			   AND 	TP.MADE_TYPE != 'DE'
+			   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') BETWEEN
+			   		TO_CHAR(SYSDATE, 'YYYYMMDD') AND TO_CHAR(SYSDATE, 'YYYYMMDD')
+			   [AND TP.TRUCK_SEQ = '${truck_seq}']
+			 ORDER 	BY 	TP.BRAND_NO, TP.BRAND_LINE_NO, TP.PLAN_TYPE, TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD')
+						, TP.TGT_LOC, TP.SRC_LOC, TP.TRUCK_SEQ, TP.ROUTE_ID, TP.ITEM_ID
+		#else
+			SELECT 	TP.PLAN_TYPE, CM.CD_NAME, TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') TRANS_DATE
+					, TP.TGT_LOC, TM.DC_SHORT_NAME TGT_NAME, TP.SRC_LOC, SM.DC_SHORT_NAME SRC_NAME
+					, TP.TRUCK_SEQ, TP.ROUTE_ID, TP.ITEM_ID, IM.ITEM_NAME
+					, (NVL(TP.BASE_STK_QTY, 0) + NVL(TP.ADD_STK_QTY, 0) + NVL(TP.PROD_QTY, 0)) QTY
+					, SUM(NVL(TP.BASE_STK_PLT, 0) + NVL(TP.ADD_STK_PLT, 0) + NVL(TP.PROD_PLT, 0))
+                      OVER (PARTITION BY TP.PLAN_TYPE, CM.CD_NAME, TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD')
+                      					 , TP.TGT_LOC, TP.SRC_LOC, TP.TRUCK_SEQ, TP.ROUTE_ID
+                      		    ORDER BY TP.BRAND_NO, TP.BRAND_LINE_NO, TP.PLAN_TYPE, TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD')
+                      		    		 , TP.TGT_LOC, TP.SRC_LOC, TP.TRUCK_SEQ, TP.ROUTE_ID, TP.ITEM_ID) PLT_CUM
+                    , DECODE(
+						SUM(1)
+	                    	OVER (PARTITION BY TP.PLAN_TYPE, CM.CD_NAME, TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD')
+	                    					   , TP.TGT_LOC, TP.SRC_LOC, TP.TRUCK_SEQ, TP.ROUTE_ID
+	                    			  ORDER BY TP.BRAND_NO, TP.BRAND_LINE_NO, TP.PLAN_TYPE, TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD')
+	                    					   , TP.TGT_LOC, TP.SRC_LOC, TP.TRUCK_SEQ, TP.ROUTE_ID, TP.ITEM_ID)
+	                    , SUM(1)
+                      		OVER (PARTITION BY TP.PLAN_TYPE, CM.CD_NAME, TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD')
+                      						   , TP.TGT_LOC, TP.SRC_LOC, TP.TRUCK_SEQ, TP.ROUTE_ID)
+                      	, 'SUMPLT'
+                      	, ''
+                    ) SUMFLAG
+					, TP.BRAND_NO, TP.BRAND_LINE_NO
+			  FROM 	TRANS_PLAN TP
+					, ( 	SELECT DISTINCT CM.CD, CM.CD_NAME 
+							  FROM CODE_MST CM 
+							 WHERE CM.CD_GRP = 'PLAN_TYPE' AND CM.MADE_TYPE != 'DE' ) CM
+					, ( 	SELECT DISTINCT IM.ITEM_ID, IM.ITEM_NAME 
+							  FROM ITEM_MST IM 
+							 WHERE IM.MADE_TYPE != 'DE' ) IM
+					, ( 	SELECT DISTINCT DM.DC_ID, DM.DC_NAME, DM.DC_SHORT_NAME
+							  FROM DC_MST DM 
+							 WHERE DM.MADE_TYPE != 'DE' ) TM 						-- TARGET MASTER(입고장)
+					, ( 	SELECT DISTINCT DM.DC_ID, DM.DC_NAME, DM.DC_SHORT_NAME
+							  FROM DC_MST DM 
+							 WHERE DM.MADE_TYPE != 'DE' ) SM 						-- SOURCE MASTER(출고장)
+			 WHERE 	TP.PLAN_TYPE = CM.CD
+			   AND 	TP.ITEM_ID = IM.ITEM_ID
+			   [AND IM.ITEM_ID LIKE '%'||'${item_id}'||'%']
+		   	   [AND IM.ITEM_NAME LIKE '%'||'${item_name}'||'%']
+		   	   [AND	TP.TGT_LOC = '${tgt_loc_sel}']
+		   	   [AND TP.SRC_LOC = '${src_loc_sel}']
+			   AND 	TP.TGT_LOC = TM.DC_ID AND TP.SRC_LOC = SM.DC_ID
+			   AND 	TP.MADE_TYPE != 'DE'
+			   AND 	TP.VERSION = '$!{version}' AND TP.SEQ = TO_NUMBER('$!{seq}')
+			   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') BETWEEN
+			   		REPLACE(REPLACE('$!{trans_start}', '-', ''), '/', '') AND REPLACE(REPLACE('$!{trans_end}', '-', ''), '/', '')
+			   [AND TP.TRUCK_SEQ = '${truck_seq}']
+			 ORDER 	BY 	TP.BRAND_NO, TP.BRAND_LINE_NO, TP.PLAN_TYPE, TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD')
+						, TP.TGT_LOC, TP.SRC_LOC, TP.TRUCK_SEQ, TP.ROUTE_ID, TP.ITEM_ID
+		#end
+			
+	</query>
+	
+	<!-- 수송 지시서 발행 -->
+	<!-- 수송 지시서 발행 UPDATE -->
+	<query id="rp_01090_transBillPublishment_list_save_01">
+		CALL SP_RP_98_CREATE_BRAND_NO( 'CRE_DATA', SYSDATE, 1, 1, 'NA', SYSDATE, '$!{version}', '$!{seq}', '$!{trans_start}', '$!{trans_end}', '$!{src_loc_sel}', '$!{tgt_loc_sel}', '$!{truck_seq}')
+	</query>
+	
+	<query id="rp_01090_transBillPublishment_list_save_01_org">
+			
+			UPDATE 	TRANS_PLAN TP
+			   SET 	TP.BRAND_NO = (
+						SELECT 	'87'||LPAD(BS.CNT, 8, '0') BRAND_NO
+						  FROM 	(
+								SELECT 	TP.PLAN_TYPE, TP.TRANS_DATE, TP.TGT_LOC, TP.SRC_LOC, TP.TRUCK_SEQ, TP.ROUTE_ID, TP.ITEM_ID
+										, TP.CNT+MS.MAX_NO CNT
+										, SUM(1) OVER ( PARTITION BY TP.CNT
+														ORDER BY TP.CNT, TP.PLAN_TYPE, TP.TRANS_DATE, TP.TGT_LOC, TP.SRC_LOC, TP.TRUCK_SEQ, TP.ROUTE_ID, TP.ITEM_ID
+										) CNT_NO
+								  FROM 	(
+										SELECT 	TP.PLAN_TYPE, TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') TRANS_DATE
+												, TP.TGT_LOC, TP.SRC_LOC, TP.TRUCK_SEQ, TP.ROUTE_ID, TP.ITEM_ID
+												, RT.CNT
+										FROM 	TRANS_PLAN TP
+												, (
+												    SELECT 	TP.ROUTE_ID
+												    		, SUM(1) OVER ( ORDER BY TP.ROUTE_ID ) CNT
+												      FROM 	TRANS_PLAN TP
+												     WHERE 	TP.MADE_TYPE != 'DE'
+												       AND 	TP.VERSION = '$!{version}' AND TP.SEQ = TO_NUMBER('$!{seq}')
+												       AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') BETWEEN
+												            REPLACE(REPLACE('$!{trans_start}', '-', ''), '/', '') AND REPLACE(REPLACE('$!{trans_end}', '-', ''), '/', '')
+												       AND 	TP.ROUTE_ID IS NOT NULL
+												     GROUP 	BY TP.ROUTE_ID
+												) RT
+										 WHERE 	TP.ROUTE_ID = RT.ROUTE_ID
+										   AND 	TP.MADE_TYPE != 'DE'
+										   AND 	TP.VERSION = '$!{version}' AND TP.SEQ = TO_NUMBER('$!{seq}')
+										   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') BETWEEN
+										    	REPLACE(REPLACE('$!{trans_start}', '-', ''), '/', '') AND REPLACE(REPLACE('$!{trans_end}', '-', ''), '/', '')
+										UNION ALL
+										SELECT 	TP.PLAN_TYPE, TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') TRANS_DATE
+												, TP.TGT_LOC, TP.SRC_LOC, TP.TRUCK_SEQ, TP.ROUTE_ID, TP.ITEM_ID, CT.CNT
+										  FROM 	TRANS_PLAN TP
+												, (
+													SELECT 	TP.PLAN_TYPE, TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') TRANS_DATE, TP.TGT_LOC, TP.SRC_LOC, TP.TRUCK_SEQ
+															, (SUM(1) OVER (ORDER BY TP.PLAN_TYPE, TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD'), TP.TGT_LOC, TP.SRC_LOC, TP.TRUCK_SEQ))+RC.CNT CNT
+													  FROM 	TRANS_PLAN TP
+															, (
+																SELECT 	COUNT(TP.ROUTE_ID) CNT
+																FROM 	(
+																			SELECT 	TP.ROUTE_ID
+																			  FROM 	TRANS_PLAN TP
+																			 WHERE 	TP.MADE_TYPE != 'DE'
+																			   AND 	TP.VERSION = '$!{version}' AND TP.SEQ = TO_NUMBER('$!{seq}')
+																			   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') BETWEEN 
+																			   		REPLACE(REPLACE('$!{trans_start}', '-', ''), '/', '') AND 
+																			   		REPLACE(REPLACE('$!{trans_end}', '-', ''), '/', '')
+																			   AND 	TP.ROUTE_ID IS NOT NULL
+																			   AND 	TP.BRAND_NO IS NULL AND TP.BRAND_LINE_NO IS NULL
+																			 GROUP 	BY TP.ROUTE_ID
+															   			) TP
+															) RC
+													 WHERE 	TP.MADE_TYPE != 'DE'
+													   AND 	TP.VERSION = '$!{version}' AND TP.SEQ = TO_NUMBER('$!{seq}')
+													   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') BETWEEN 
+													   		REPLACE(REPLACE('$!{trans_start}', '-', ''), '/', '') AND 
+													   		REPLACE(REPLACE('$!{trans_end}', '-', ''), '/', '')
+													   AND 	TP.ROUTE_ID IS NULL
+													   AND 	TP.BRAND_NO IS NULL AND TP.BRAND_LINE_NO IS NULL
+													GROUP BY TP.PLAN_TYPE, TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD'), TP.TGT_LOC, TP.SRC_LOC, TP.TRUCK_SEQ, RC.CNT
+												) CT
+										 WHERE 	TP.MADE_TYPE != 'DE'
+										   AND 	TP.VERSION = '$!{version}' AND TP.SEQ = TO_NUMBER('$!{seq}')
+										   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') BETWEEN 
+										   		REPLACE(REPLACE('$!{trans_start}', '-', ''), '/', '') AND REPLACE(REPLACE('$!{trans_end}', '-', ''), '/', '')
+										   AND 	TP.PLAN_TYPE = CT.PLAN_TYPE
+										   AND 	TP.TGT_LOC = CT.TGT_LOC
+										   AND 	TP.SRC_LOC = CT.SRC_LOC
+										   AND 	TP.TRUCK_SEQ = CT.TRUCK_SEQ
+										   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') = CT.TRANS_DATE
+										   AND 	TP.ROUTE_ID IS NULL
+										   AND 	TP.BRAND_NO IS NULL AND TP.BRAND_LINE_NO IS NULL
+									) TP
+									, (
+										SELECT 	NVL(MAX(TO_NUMBER(SUBSTR(TP.BRAND_NO, 3, 10))), 0) MAX_NO
+										  FROM 	IF_TRANS_PLAN TP
+										 WHERE 	TP.MADE_TYPE != 'DE'
+										<!-- 조건에 관계 없이 MAX 전표번호 선택
+										   AND 	TP.VERSION = '$!{version}' AND TP.SEQ = TO_NUMBER('$!{seq}')
+										   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') BETWEEN 
+										   		REPLACE(REPLACE('$!{trans_start}', '-', ''), '/', '') AND REPLACE(REPLACE('$!{trans_end}', '-', ''), '/', '')
+										   AND 	TP.ROUTE_ID IS NULL
+										-->
+									) MS -- MAX SEQ
+						) BS
+						 WHERE 	BS.PLAN_TYPE = TP.PLAN_TYPE AND BS.TRANS_DATE = TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD')
+						   AND 	BS.TGT_LOC = TP.TGT_LOC AND BS.SRC_LOC = TP.SRC_LOC AND BS.TRUCK_SEQ = TP.TRUCK_SEQ AND BS.ITEM_ID = TP.ITEM_ID
+					)
+					-------------------------------------------------------------------------------------------------------------------------------------------------
+					, TP.BRAND_LINE_NO = (
+						SELECT LPAD(BS.CNT_NO*10, 5, '0') BRAND_LINE_NO
+						  FROM 	(
+								SELECT 	TP.PLAN_TYPE, TP.TRANS_DATE, TP.TGT_LOC, TP.SRC_LOC, TP.TRUCK_SEQ, TP.ROUTE_ID, TP.ITEM_ID
+										, TP.CNT+MS.MAX_NO CNT
+										, SUM(1) OVER ( PARTITION BY TP.CNT
+														ORDER BY TP.CNT, TP.PLAN_TYPE, TP.TRANS_DATE, TP.TGT_LOC, TP.SRC_LOC, TP.TRUCK_SEQ, TP.ROUTE_ID, TP.ITEM_ID
+										) CNT_NO
+								  FROM 	(
+										SELECT 	TP.PLAN_TYPE, TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') TRANS_DATE
+												, TP.TGT_LOC, TP.SRC_LOC, TP.TRUCK_SEQ, TP.ROUTE_ID, TP.ITEM_ID
+												, RT.CNT
+										FROM 	TRANS_PLAN TP
+												, (
+												    SELECT 	TP.ROUTE_ID
+												    		, SUM(1) OVER ( ORDER BY TP.ROUTE_ID ) CNT
+												      FROM 	TRANS_PLAN TP
+												     WHERE 	TP.MADE_TYPE != 'DE'
+												       AND 	TP.VERSION = '$!{version}' AND TP.SEQ = TO_NUMBER('$!{seq}')
+												       AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') BETWEEN
+												            REPLACE(REPLACE('$!{trans_start}', '-', ''), '/', '') AND REPLACE(REPLACE('$!{trans_end}', '-', ''), '/', '')
+												       AND 	TP.ROUTE_ID IS NOT NULL
+												     GROUP 	BY TP.ROUTE_ID
+												) RT
+										 WHERE 	TP.ROUTE_ID = RT.ROUTE_ID
+										   AND 	TP.MADE_TYPE != 'DE'
+										   AND 	TP.VERSION = '$!{version}' AND TP.SEQ = TO_NUMBER('$!{seq}')
+										   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') BETWEEN
+										    	REPLACE(REPLACE('$!{trans_start}', '-', ''), '/', '') AND REPLACE(REPLACE('$!{trans_end}', '-', ''), '/', '')
+										UNION ALL
+										SELECT 	TP.PLAN_TYPE, TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') TRANS_DATE
+												, TP.TGT_LOC, TP.SRC_LOC, TP.TRUCK_SEQ, TP.ROUTE_ID, TP.ITEM_ID, CT.CNT
+										  FROM 	TRANS_PLAN TP
+												, (
+													SELECT 	TP.PLAN_TYPE, TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') TRANS_DATE, TP.TGT_LOC, TP.SRC_LOC, TP.TRUCK_SEQ
+															, (SUM(1) OVER (ORDER BY TP.PLAN_TYPE, TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD'), TP.TGT_LOC, TP.SRC_LOC, TP.TRUCK_SEQ))+RC.CNT CNT
+													  FROM 	TRANS_PLAN TP
+															, (
+																SELECT 	COUNT(TP.ROUTE_ID) CNT
+																FROM 	(
+																			SELECT 	TP.ROUTE_ID
+																			  FROM 	TRANS_PLAN TP
+																			 WHERE 	TP.MADE_TYPE != 'DE'
+																			   AND 	TP.VERSION = '$!{version}' AND TP.SEQ = TO_NUMBER('$!{seq}')
+																			   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') BETWEEN 
+																			   		REPLACE(REPLACE('$!{trans_start}', '-', ''), '/', '') AND 
+																			   		REPLACE(REPLACE('$!{trans_end}', '-', ''), '/', '')
+																			   AND 	TP.ROUTE_ID IS NOT NULL
+																			   AND 	TP.BRAND_NO IS NULL AND TP.BRAND_LINE_NO IS NULL
+																			 GROUP 	BY TP.ROUTE_ID
+															   			) TP
+															) RC
+													 WHERE 	TP.MADE_TYPE != 'DE'
+													   AND 	TP.VERSION = '$!{version}' AND TP.SEQ = TO_NUMBER('$!{seq}')
+													   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') BETWEEN 
+													   		REPLACE(REPLACE('$!{trans_start}', '-', ''), '/', '') AND 
+													   		REPLACE(REPLACE('$!{trans_end}', '-', ''), '/', '')
+													   AND 	TP.ROUTE_ID IS NULL
+													   AND 	TP.BRAND_NO IS NULL AND TP.BRAND_LINE_NO IS NULL
+													GROUP BY TP.PLAN_TYPE, TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD'), TP.TGT_LOC, TP.SRC_LOC, TP.TRUCK_SEQ, RC.CNT
+												) CT
+										 WHERE 	TP.MADE_TYPE != 'DE'
+										   AND 	TP.VERSION = '$!{version}' AND TP.SEQ = TO_NUMBER('$!{seq}')
+										   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') BETWEEN 
+										   		REPLACE(REPLACE('$!{trans_start}', '-', ''), '/', '') AND REPLACE(REPLACE('$!{trans_end}', '-', ''), '/', '')
+										   AND 	TP.PLAN_TYPE = CT.PLAN_TYPE
+										   AND 	TP.TGT_LOC = CT.TGT_LOC
+										   AND 	TP.SRC_LOC = CT.SRC_LOC
+										   AND 	TP.TRUCK_SEQ = CT.TRUCK_SEQ
+										   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') = CT.TRANS_DATE
+										   AND 	TP.ROUTE_ID IS NULL
+										   AND 	TP.BRAND_NO IS NULL AND TP.BRAND_LINE_NO IS NULL
+									) TP
+									, (
+										SELECT 	NVL(MAX(TO_NUMBER(SUBSTR(TP.BRAND_NO, 3, 10))), 0) MAX_NO
+										  FROM 	IF_TRANS_PLAN TP
+										 WHERE 	TP.MADE_TYPE != 'DE'
+										<!-- 조건에 관계 없이 MAX 전표번호 선택
+										   AND 	TP.VERSION = '$!{version}' AND TP.SEQ = TO_NUMBER('$!{seq}')
+										   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') BETWEEN 
+										   		REPLACE(REPLACE('$!{trans_start}', '-', ''), '/', '') AND REPLACE(REPLACE('$!{trans_end}', '-', ''), '/', '')
+										   AND 	TP.ROUTE_ID IS NULL
+										-->
+									) MS -- MAX SEQ
+						) BS
+						 WHERE 	BS.PLAN_TYPE = TP.PLAN_TYPE AND BS.TRANS_DATE = TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD')
+						   AND 	BS.TGT_LOC = TP.TGT_LOC AND BS.SRC_LOC = TP.SRC_LOC AND BS.TRUCK_SEQ = TP.TRUCK_SEQ AND BS.ITEM_ID = TP.ITEM_ID
+					)
+			 WHERE 	TP.MADE_TYPE != 'DE'
+			   AND 	TP.VERSION = '$!{version}' AND TP.SEQ = TO_NUMBER('$!{seq}')
+			   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') BETWEEN 
+			   		REPLACE(REPLACE('$!{trans_start}', '-', ''), '/', '') AND REPLACE(REPLACE('$!{trans_end}', '-', ''), '/', '')
+			   AND 	TP.BRAND_NO IS NULL -- 전표발행이 안된 데이터만 전표번호 생성
+			   AND 	TP.BRAND_LINE_NO IS NULL -- 전표발행이 안된 데이터만 전표번호 생성
+			
+	</query>
+	
+	<!-- 수송 지시서 발행 -->
+	<!-- 수송 지시서 발행 전 SP 호출 : SP_IF_NFOS_09 -->
+	<query id="rp_01090_transBillPublishment_list_save_02">
+			
+			CALL SP_IF_NFOS_09( 'CRE_DATA', SYSDATE, 1, 1, 'NA', SYSDATE )
+			
+	</query>
+	
+	<!-- 수송 지시서 발행 -->
+	<!-- 수송계획 IF TABLE INSERT -->
+	<query id="rp_01090_transBillPublishment_list_save_03">
+			
+			INSERT INTO IF_TRANS_PLAN(
+							VERSION, SEQ, TRANS_DATE, TGT_LOC, SRC_LOC, TRUCK_SEQ, ITEM_ID, ROUTE_ID, BRAND_NO, BRAND_LINE_NO, QTY, QTY_UOM
+							, PLAN_TYPE, IF_FLAG, IF_DATE, IF_TIME, IF_MSGS, IF_UNAME, MADE_TYPE, MADE_DTTM, MADE_BY
+						)
+			SELECT 	TP.VERSION, TP.SEQ, TP.TRANS_DATE, TP.TGT_LOC, TP.SRC_LOC, TP.TRUCK_SEQ
+					, TP.ITEM_ID, TP.ROUTE_ID, TP.BRAND_NO, TP.BRAND_LINE_NO
+					, TP.BASE_STK_QTY + TP.ADD_STK_QTY + TP.PROD_QTY QTY
+					, 'BOX' QTY_UOM, TP.PLAN_TYPE
+					, NULL IF_FLAG, NULL IF_DATE, NULL IF_TIME, NULL IF_MSGS, NULL IF_UNAME
+					, 'AD' MADE_TYPE, SYSDATE MADE_DTTM, '' MADE_BY
+			  FROM 	TRANS_PLAN TP
+			 WHERE 	TP.VERSION = '$!{version}' AND TP.SEQ = TO_NUMBER('$!{seq}')
+			   AND 	TO_CHAR(TP.TRANS_DATE, 'YYYYMMDD') BETWEEN
+			   		REPLACE(REPLACE('$!{trans_start}', '/', ''), '-', '') AND REPLACE(REPLACE('$!{trans_end}', '/', ''), '-', '')
+			   AND 	NOT EXISTS(
+						SELECT 	IP.VERSION
+						  FROM 	IF_TRANS_PLAN IP
+						 WHERE 	IP.VERSION = TP.VERSION AND IP.SEQ = TP.SEQ
+						   AND 	IP.TRANS_DATE = TP.TRANS_DATE AND IP.TGT_LOC = TP.TGT_LOC AND IP.SRC_LOC = TP.SRC_LOC
+						   AND 	IP.TRUCK_SEQ = TP.TRUCK_SEQ AND IP.ITEM_ID = TP.ITEM_ID
+					)
+			
+	</query>
+	
+	<!-- 수송 지시서 발행 -->
+	<!-- 수송계획 IF TABLE INSERT -->
+	<query id="rp_01090_transBillPublishment_list_save_04">
+			
+			UPDATE 	PLAN_VERSION_LOG VL
+			   SET 	VL.STATUS = (
+			   			SELECT CM.CD 
+						  FROM CODE_MST CM
+						 WHERE CM.CD_GRP    = 'STATUS'
+						   AND CM.CD_NAME   = 'ERP 전송 완료'
+						   AND CM.MADE_TYPE != 'DE'
+			   		)
+			 WHERE 	( VL.VERSION, VL.SEQ, VL.CAT_ID, VL.MADE_DTTM ) = (
+			   			SELECT LI.VERSION, LI.SEQ, LI.CAT_ID, MAX(LI.MADE_DTTM) MADE_DTTM
+			   			  FROM PLAN_VERSION_LOG LI
+			   			 WHERE LI.MADE_TYPE != 'DE'
+			   			   AND LI.VERSION 	= '$!{version}'
+						   AND LI.SEQ 		= TO_NUMBER('$!{seq}')
+						   AND LI.CAT_ID 	= 'RP'
+						 GROUP BY LI.VERSION, LI.SEQ, LI.CAT_ID
+					)
+			
+	</query>
+	
+	
+	<!-- 수송 지시서 발행 -->
+	<!-- 발행되지 않은 전표수 확인 -->
+	<query id="brand_no_count_of_transBillPublishment">
+			
+			#if("$!{version}" == "")
+				SELECT      COUNT(TP.TRANS_DATE)
+				FROM        TRANS_PLAN TP,
+				            (
+				            SELECT      VL.VERSION, MAX(VL.SEQ) SEQ
+				            FROM        PLAN_VERSION_LOG VL, 
+				                        (SELECT     MAX(VL.VERSION) VERSION
+				                        FROM       PLAN_VERSION_LOG VL
+				                        WHERE      VL.PERIOD_TYPE = 'DAILY'
+				                        AND        VL.CAT_ID = 'RP' ) MV -- MAX VERSION
+				            WHERE       VL.VERSION = MV.VERSION
+				            AND         VL.PERIOD_TYPE = 'DAILY'
+				            AND         VL.CAT_ID = 'RP'
+				            GROUP       BY VL.VERSION     
+				            ) MV
+				WHERE       TP.VERSION      =       MV.VERSION
+				AND         TP.SEQ          =       MV.SEQ
+				AND         TP.TRANS_DATE   BETWEEN     TO_DATE(TO_CHAR(SYSDATE,'YYYY-MM-DD'),'YYYY-MM-DD')
+				                            AND         TO_DATE(TO_CHAR(SYSDATE,'YYYY-MM-DD'),'YYYY-MM-DD')
+				AND         TP.BRAND_NO     IS  NULL
+			#else
+				SELECT      COUNT(TP.TRANS_DATE)
+				FROM        TRANS_PLAN TP
+				WHERE       TP.VERSION      =       '$!{version}'
+				AND         TP.SEQ          =       '$!{seq}'
+				AND         TP.TRANS_DATE   BETWEEN     TO_DATE('$!{trans_start}','YYYY-MM-DD')
+				                            AND         TO_DATE('$!{trans_end}','YYYY-MM-DD')
+				[AND        TP.SRC_LOC      =       '${src_loc_sel}']
+				[AND        TP.TGT_LOC      =       '${tgt_loc_sel}']
+				AND         TP.BRAND_NO     IS  NULL
+			#end
+			
+	</query>
+	
+	<!-- 수송지시서 발행 버전 리스트 -->
+	<!-- CAT_ID = 'RP' : 일간 보충/수송 -->
+	<query id="dailyTransportPlan_version_list_brand_no">
+			
+			
+			SELECT 	VL.VERSION, VL.SEQ, VL.PERIOD_TYPE, VL.PERIOD_NAME, VL.STATUS
+			  FROM 	(
+						SELECT 	VL.VERSION, VL.SEQ, PT.CD PERIOD_TYPE, PT.CD_NAME PERIOD_NAME, VL.STATUS
+						  FROM 	PLAN_VERSION_LOG VL
+								, (
+									SELECT CM.CD, CM.CD_NAME
+									  FROM CODE_MST CM
+									 WHERE CM.CD_GRP = 'PERIOD_TYPE'
+									   AND CM.MADE_TYPE != 'DE'
+								) PT
+						 WHERE 	VL.CAT_ID = 'RP' 		-- 보충/수송
+						   AND 	VL.MADE_TYPE != 'DE' 	-- 삭제 필드가 아닌 데이터만 조회
+						   AND 	VL.VERSION IS NOT NULL 	-- 버전-SEQ 가 NULL 이 아닌 것만 조회
+						   AND 	VL.SEQ IS NOT NULL
+						   AND 	VL.PERIOD_TYPE = PT.CD
+						 ORDER 	BY VL.VERSION DESC, VL.SEQ DESC
+					) VL
+			 WHERE 	101 > ROWNUM
+			    OR  VL.VERSION = '20000101.00.00'  -- 수기등록 버전.
+			 ORDER 	BY VL.VERSION DESC, VL.SEQ DESC
+			
+	</query>
+	
+	
+	<!--
+	======================================================================
+		출고물량조회 및 조정
+	======================================================================
+	-->
+	
+	<!-- 출고물량조회 및 조정 : 조회 -->
+	<query id="rp_01120_outOrderAdjust_list" paging="false">
+			/*  1. 각 입고장, 출고장별  쿼리 */
+			SELECT      TO_CHAR(AC.MON_QTY, '999,999,999')                   	"전월실적",
+			            DI.DC_ID                    							"입고사업장ID", 
+			            DI.DC_NAME                  							"입고사업장", 
+			            --DI.ITEM_ID                							"품목", 
+			            --DI.ITEM_NAME              							"품목명", 
+			            TO_CHAR(NVL(ST.QTY,0), '999,999,999')         			"재고", -- 재고+생산계획
+			            TO_CHAR(DW.SALE_CUM_QTY, '999,999,999')             	"판매누계",
+			            TO_CHAR(OD.ORD_QTY1, '999,999,999')	                	"판매오더",
+			            TO_CHAR(DW.WEEK1_QTY, '999,999,999')	                "1주평균판매",
+			            TO_CHAR(DW.WEEK3_QTY, '999,999,999')	                "3주평균판매",
+			            TO_CHAR(DECODE((NVL(TI.TR_IN_QTY,0) + NVL(SC.PROD_QTY,0) + NVL(MS.QTY,0)),0,NULL,
+			            (NVL(TI.TR_IN_QTY,0) + NVL(SC.PROD_QTY,0) + NVL(MS.QTY,0))), '999,999,999')	"입고예정", -- 수송입고계획+구매예정
+			            TO_CHAR(OU.TR_OUT_QTY, '999,999,999')	                "출고예정", -- 수송출고계획
+			            --NM.QTY 					                    		"물류타계정",
+			            TO_CHAR((NVL(ST.QTY, 0) + NVL(SC.PROD_QTY,0) 
+			                            + NVL(TI.TR_IN_QTY,0) 
+			                            - NVL(OU.TR_OUT_QTY,0) 
+			                            - NVL(OD.ORD_QTY1,0) 
+			                            + NVL(MS.QTY, 0)), '999,999,999')     	"예상재고",
+			            ROUND(DECODE(NVL(DW.WEEK1_QTY, 0), 0, 0, 
+			                        (NVL(ST.QTY, 0) + NVL(SC.PROD_QTY,0) 
+			                                        + NVL(TI.TR_IN_QTY,0) 
+			                                        - NVL(OU.TR_OUT_QTY,0) 
+			                                        -  NVL(OD.ORD_QTY1,0) 
+			                                        + NVL(MS.QTY, 0))/DW.WEEK1_QTY))    "재고일수",
+			            TO_CHAR(SP.SALES_QTY2, '999,999,999')          			"익일판매계획",
+			            SA.SAFETY_STOCK             							"안전재고",
+			            TO_CHAR(DECODE(AD.REP_QTY,0,NULL,AD.REP_QTY) , '999,999,999')	                 	"보충요구량",
+			            NVL(TP.TRANS_PLAN_PLT,0)								"공급량PLT", 
+			            NVL(TP.TRANS_PLAN_QTY,0)           					 	"공급량BOX",
+			            TP.SRC_LOC                  					 		"출고사업장ID",
+			            TP.SRC_LOC_NAME             					 		"출고사업장",
+			            TO_CHAR(SN.STOCK_QTY, '999,999,999')		            "예상재고2",
+			            DI.MIN_PICK_QTY									 		"최소수송단위",
+			            TO_CHAR(AC.BEFORE_SALE_QTY, '999,999,999')              "전일판매",
+			            (CASE WHEN DI.CDC_FLAG = 'Y'
+                              THEN 10
+                              WHEN DI.CDC_FLAG = 'N'
+                              THEN 20
+                              ELSE 90
+                         END) CRDC_FLAG,
+                         TO_CHAR(DECODE(SP.SALES_QTY1, 0, NULL, SP.SALES_QTY1), '999,999,999')					"당일판매계획",
+                         TO_CHAR(DECODE(OD.ORD_QTY2, 0, NULL, OD.ORD_QTY2), '999,999,999')					"익일주문계획",
+                         DW.STOCK_TERM											"재고기간"
+			FROM        (/* 물류경로별 ITEM_ID 목록 추출 */
+			            SELECT      DISTINCT DI.TGT_LOC DC_ID, DC_NAME, 
+			                        DI.PROD_ID ITEM_ID, IM.ITEM_NAME, TU.MIN_PICK_QTY,
+			                        DC.CDC_FLAG, DC.RDC_FLAG
+			            FROM        MAP_PROD_DCPATH DI,
+			                        (SELECT     DC_ID, DC_SHORT_NAME DC_NAME, CDC_FLAG, RDC_FLAG
+			                         FROM       DC_MST
+			                        ) DC,
+			                        (SELECT     ITEM_ID, ITEM_NAME, ITEM_STATUS
+			                         FROM       ITEM_MST
+			                         WHERE      ITEM_ID = '$!{item_id}'
+			                        ) IM, TRANS_UNIT TU
+			            WHERE       DI.TGT_LOC = DC.DC_ID
+			            AND         DI.PROD_ID = IM.ITEM_ID
+			            AND         DI.TGT_LOC = TU.RDC_ID(+)
+			            AND         DI.PROD_ID = TU.ITEM_ID(+)
+			            AND         IM.ITEM_STATUS  = 'ST'
+			            ) DI,
+                        ---------------------------------재고 기간 적용-------------------------------
+                        (/* 판매계획 : 수송계획 수립일 기준 */
+                        --  1 주평균 3 주평균, 재고 기간 
+                        SELECT      DW.ITEM_ID, DW.DC_ID, DW.BASE_STOCK, 
+                        			DW.SALES_MEAN_3WEEK 	WEEK3_QTY, 
+                        			DW.SALES_MEAN_1WEEK 	WEEK1_QTY, 
+                        			DW.SALES_PRE_CUM 		SALE_CUM_QTY, 
+                        			DW.STOCK_TERM
+                        FROM        DC_DATAWAREHOUSE DW
+                        WHERE       DW.CNFM_DATE	= TO_CHAR(TO_DATE('$!{trans_start}','YYYY-MM-DD'), 'YYYYMMDD')
+                        AND         DW.ITEM_ID		= '$!{item_id}'
+                        ) DW,
+			            (
+			            /* 판매실적 */
+			            SELECT      AC.DELIV_LOC DC_ID, AC.ITEM_ID
+			                        , SUM(DECODE(TO_CHAR(AC.SALE_DATE, 'YYYYMM')
+			                        , TO_CHAR(ADD_MONTHS(TO_DATE('$!{trans_start}','YYYY-MM-DD'), -1), 'YYYYMM'), AC.QTY, 0)) MON_QTY
+			                        , ROUND(SUM(CASE WHEN TO_CHAR(AC.SALE_DATE, 'YYYYMMDD')                                                              
+                                                              = TO_CHAR(TO_DATE('$!{trans_start}','YYYY-MM-DD')-1, 'YYYYMMDD')
+                                                     THEN AC.QTY
+                                                     ELSE 0
+                                                     END))    BEFORE_SALE_QTY -- 전일 판매
+			                        , ROUND(SUM(CASE WHEN TO_CHAR(AC.SALE_DATE, 'YYYYMMDD')
+			                                                  BETWEEN   TO_CHAR(TO_DATE('$!{trans_start}','YYYY-MM-DD')-7, 'YYYYMMDD')
+			                                                  AND       TO_CHAR(TO_DATE('$!{trans_start}','YYYY-MM-DD')-1, 'YYYYMMDD')
+			                                         THEN AC.QTY
+			                                         ELSE 0
+			                                         END)/6)    WEEK1_QTY_org  --1주평균
+			                        , ROUND(SUM(CASE WHEN TO_CHAR(AC.SALE_DATE, 'YYYYMMDD')
+			                                                  BETWEEN   TO_CHAR(TO_DATE('$!{trans_start}','YYYY-MM-DD')-21, 'YYYYMMDD')
+			                                                  AND       TO_CHAR(TO_DATE('$!{trans_start}','YYYY-MM-DD')-1, 'YYYYMMDD')
+			                                         THEN AC.QTY
+			                                         ELSE 0
+			                                         END)/18)   WEEK3_QTY_org  --3주평균
+			                        , SUM(DECODE(TO_CHAR(AC.SALE_DATE, 'YYYYMM'), TO_CHAR(TO_DATE('$!{trans_start}','YYYY-MM-DD')-1, 'YYYYMM'), AC.QTY, 0)) SALE_CUM_QTY_org
+			            FROM        SALES_ACT_RECENT AC
+			            WHERE       AC.ITEM_ID = '$!{item_id}'
+			            AND         TO_CHAR(AC.SALE_DATE, 'YYYYMMDD') &lt;= REPLACE('$!{trans_start}', '-', '')
+			            GROUP       BY AC.DELIV_LOC, AC.ITEM_ID
+			            ) AC,
+			            (/* 전일마감 재고정보 추출 */
+			            SELECT      ST.IF_DTTM, ST.LOC_ID DC_ID, ST.ITEM_ID
+			                        , SUM(ST.QTY) QTY2, ST.QTY_UOM
+			                        , F_EATOBOX(ST.QTY_UOM, ST.ITEM_ID, SUM(ST.QTY)) QTY
+			            FROM        WMS_STOCK ST,
+			                        DC_MST DC
+			            WHERE       ST.LOC_TYPE = 'DC'      
+			            AND			ST.ITEM_ID = '$!{item_id}'  
+			            AND         ST.LOC_ID = DC.DC_ID
+			            AND         TO_CHAR(ST.USABLE_DATE, 'YYYY-MM-DD') = '$!{trans_start}'
+			            GROUP       BY ST.IF_DTTM, ST.LOC_ID, ST.ITEM_ID, ST.QTY_UOM
+			            ) ST,
+			            (/* 당일 조/주/야 생산계획 추출 */
+			            SELECT      SC.PLANT_ID, SC.VERSION, DC.DC_ID, DC.DC_NAME, SC.ITEM_ID, 
+			                        SUM(DECODE(SC.SHIFT_TYPE, 1, SC.SHIFT_QTY, 0)) SHIFT1_QTY, 
+			                        SUM(DECODE(SC.SHIFT_TYPE, 3, SC.SHIFT_QTY, 0)) SHIFT3_QTY,
+			                        SUM(DECODE(SC.SHIFT_TYPE, 5, SC.SHIFT_QTY, 0)) SHIFT5_QTY,
+			                        SUM(SC.SHIFT_QTY) PROD_QTY2, SC.QTY_UOM,
+			                        SUM(DECODE(SC.SHIFT_TYPE, 1, SC.SHIFT_QTY, 0)) 
+			                        + SUM(DECODE(SC.SHIFT_TYPE, 3, SC.SHIFT_QTY, 0)) PROD_QTY
+			            FROM        DAILY_SCH_PLAN_SHIFT SC,
+			                        (SELECT DC_ID, DC_NAME, PLANT_ID
+			                         FROM   DC_MST
+			                         WHERE  PLANT_ID IS NOT NULL
+			                        ) DC
+			                        , V_LAST_PROC_PRODVER LP,
+			                        (
+			                        			                        SELECT    SC.PLANT_ID, MAX(VL.VERSION) VERSION
+								   FROM    PLAN_VERSION_LOG VL,
+								            (
+								            SELECT BM.SUB_CAT, BM.PLANT_ID, BM.PERIOD_TYPE
+								            FROM   ENGN_BAT_MST BM
+								            WHERE  BM.PERIOD_TYPE = 'DAILY'
+								            AND    BM.CAT_ID = 'PS'
+								            ) SC
+								   WHERE    VL.PERIOD_TYPE = SC.PERIOD_TYPE
+								   AND      VL.CAT_ID      = 'PS'
+								   AND      VL.SUB_CAT     = SC.SUB_CAT
+								   AND      TO_NUMBER(VL.STATUS) &gt;= 23
+								   /* 버젼일자는 조회기준일과 같거나 작다 */ 
+								   AND        VL.RUN_DATE        &lt; TRUNC(TO_DATE('$!{trans_start}') ,'D')
+								   GROUP BY SC.PLANT_ID
+			                       ) MV
+			            WHERE      CAT_ID        =  'PS'
+			            AND		   SC.ITEM_ID    =  '$!{item_id}'
+			            AND        SC.PLANT_ID   =  DC.PLANT_ID(+)
+			            AND        QTY_UOM       =  'BOX'
+			            AND        SC.VERSION    =  MV.VERSION
+			            AND        SC.PLANT_ID   =  MV.PLANT_ID
+			            --AND SC.SEQ          = ''
+			            AND        SC.PROD_DATES =  TO_CHAR(TO_DATE('$!{trans_start}','YYYY-MM-DD'), 'YYYYMMDD')
+			            AND        SC.PLANT_ID   =  LP.PLANT_ID
+			            AND        SC.ITEM_ID    =  LP.ITEM_ID
+			            AND        SC.PROC_ID    =  LP.PROC_ID
+			            AND        SC.PROD_VER   =  LP.PROD_VER
+			            GROUP      BY SC.PLANT_ID, SC.VERSION, DC.DC_ID, DC.DC_NAME, SC.ITEM_ID, SC.QTY_UOM
+			            ) SC,
+			            ---------------------------------실수송량 적용-------------------------------
+			            (/* 수송입고계획 */
+			            SELECT     TGT_LOC DC_ID, TRANS_DATE, ITEM_ID,
+	                                SUM(
+	                                CASE
+	                                    WHEN TRANS_STATE = '01' OR TRANS_STATE = '02' THEN QTY
+	                                    ELSE    CHGO_QTY
+	                                END
+	                                )   TR_IN_QTY
+			            FROM       IF_TRANS_PLAN TP
+			            WHERE      TRANS_DATE = TO_DATE('$!{trans_start}','YYYY-MM-DD')
+			            AND        TP.ITEM_ID = '$!{item_id}'
+			            AND		   TP.VERSION &lt;&gt; '$!{version}'
+			            -- ZM3 반품수송 재회
+                        AND         TP.PLAN_TYPE NOT IN ('ZM3')
+			            AND        NOT EXISTS (
+			                               SELECT   DM.DC_ID
+			                               FROM     DC_MST DM
+			                               WHERE    DM.CDC_FLAG != 'Y'
+			                               AND      DM.RDC_FLAG != 'Y'
+			                               AND      DM.DC_ID = TP.SRC_LOC
+			                       )
+			            AND        NOT EXISTS (
+			                               SELECT   DM.DC_ID
+			                               FROM     DC_MST DM
+			                               WHERE    DM.CDC_FLAG != 'Y'
+			                               AND      DM.RDC_FLAG != 'Y'
+			                               AND      DM.DC_ID = TP.TGT_LOC
+			                       )
+			            GROUP      BY TGT_LOC, TRANS_DATE, ITEM_ID       
+			            ) TI,
+			            ---------------------------------실수송량 적용-------------------------------
+			            (/* 판매계획 : 수송계획 수립일 기준 */
+			            SELECT      SP.YYYY, SP.VERSION, SP.DELIV_LOC DC_ID, SP.ITEM_ID,
+									SUM(DECODE(CM.IDX,'1',SP.NORMAL_QTY+SP.PROM_QTY+SP.SUPT_QTY+SP.SAMP_QTY)) SALES_QTY1,
+			                        SUM(DECODE(CM.IDX,'2',SP.NORMAL_QTY+SP.PROM_QTY+SP.SUPT_QTY+SP.SAMP_QTY)) SALES_QTY2
+			            FROM        NFOS_SALES_PLAN_WEEKLY SP,
+									(
+									SELECT	YYYYMMDD,
+											RANK() OVER (ORDER BY CAL_DATE)	IDX
+									FROM	CAL_MST
+									WHERE	TRIM(HOLIDAY_FLAG)	IS NULL
+									AND		CAL_DATE	>= TO_DATE('$!{trans_start}','YYYY-MM-DD')
+									)	CM
+			            WHERE       SP.YYYY    = '$!{sales_yyyy}'	
+			            AND         SP.VERSION = '$!{sales_version}'
+			            AND			SP.ITEM_ID = '$!{item_id}'
+			            AND			SP.YYYYMMDD	= CM.YYYYMMDD 
+			            GROUP       BY SP.YYYY, SP.VERSION, SP.DELIV_LOC, SP.ITEM_ID
+			            ) SP,
+			            ---------------------------------실수송량 적용-------------------------------
+			            (/* 수송출고계획 */
+			            SELECT      SRC_LOC DC_ID, TRANS_DATE, ITEM_ID,
+	                                SUM(
+	                                CASE
+	                                    WHEN TRANS_STATE = '01' OR TRANS_STATE = '02' THEN QTY
+	                                    ELSE    CHGO_QTY
+	                                END
+	                                )   TR_OUT_QTY
+			            FROM        IF_TRANS_PLAN TP
+			            WHERE       TRANS_DATE = TO_DATE('$!{trans_start}','YYYY-MM-DD') --TO_DATE(TO_CHAR(SYSDATE, 'YYYY-MM-DD'), 'YYYY-MM-DD')
+			            AND			TP.ITEM_ID = '$!{item_id}'
+			            AND		    TP.VERSION &lt;&gt; '$!{version}'
+			            -- ZM3 반품수송
+                        AND         TP.PLAN_TYPE NOT IN ('ZM3')
+			            AND         NOT EXISTS (
+			                               SELECT   DM.DC_ID
+			                               FROM     DC_MST DM
+			                               WHERE    DM.CDC_FLAG != 'Y'
+			                               AND      DM.RDC_FLAG != 'Y'
+			                               AND      DM.DC_ID = TP.SRC_LOC
+			                        )
+			            AND         NOT EXISTS (
+			                               SELECT   DM.DC_ID
+			                               FROM     DC_MST DM
+			                               WHERE    DM.CDC_FLAG != 'Y'
+			                               AND      DM.RDC_FLAG != 'Y'
+			                               AND      DM.DC_ID = TP.TGT_LOC
+			                        )
+			            GROUP       BY SRC_LOC, TRANS_DATE, ITEM_ID       
+			            ) OU,
+			            (/* NFOS 주문정보 */
+			            SELECT      OD.IF_DTTM, OD.LOC_ID DC_ID, OD.ITEM_ID,
+			            			SUM(DECODE(CM.IDX, '1', OD.QTY, 0)) ORD_QTY1,
+			                        SUM(DECODE(CM.IDX, '2', OD.QTY, 0)) ORD_QTY2
+			            FROM        NFOS_ORDER OD,
+									(
+									SELECT	YYYYMMDD,
+											RANK() OVER (ORDER BY CAL_DATE)	IDX
+									FROM	CAL_MST
+									WHERE	TRIM(HOLIDAY_FLAG)	IS NULL
+									AND		CAL_DATE	>= TO_DATE('$!{trans_start}','YYYY-MM-DD')
+									)	CM
+			            WHERE       OD.IF_DTTM = TO_DATE('$!{trans_start}', 'yyyy-mm-dd')
+			            AND			OD.ITEM_ID = '$!{item_id}'
+			            AND			OD.DUE_DATE	= TO_DATE(CM.YYYYMMDD,'YYYY-MM-DD')        
+			            GROUP       BY OD.IF_DTTM, OD.LOC_ID, OD.ITEM_ID
+			            ) OD,
+			            (/* 보충요구량 */
+			            -- 보충요구량 : 자기 CDC 에서 보충받는 물량에 대한 부분을 제외하기 위해
+			       		--            REPLENISHMENTPLAN 에서 ORIGIN 과 DESTINATION 이 같은 물량을 빼줌
+			            SELECT 	PP.VERSIONID, PP.DC_ID, PP.ITEM_ID
+			              		, SUM(PP.REP_QTY)-SUM(PP.REP_QTY2) REP_QTY
+                     	FROM (
+		                   		SELECT 	PP.VERSIONID, SUBSTR(PP.ITEMID, 4, 4) DC_ID, SUBSTR(PP.ITEMID, 9, 18) ITEM_ID
+		                                ,  SUM(PP.QTY)  REP_QTY, 0 REP_QTY2
+					            FROM 	SCM_RP.PRODUCTIONORDERPLAN PP
+					              		, ( 
+					              		-- 수송달력
+					              		SELECT	CAL_DATE,
+												RANK() OVER (ORDER BY CAL_DATE)	IDX
+										FROM	CAL_MST
+										WHERE	TRIM(HOLIDAY_FLAG)	IS NULL
+										AND		CAL_DATE	>= TO_DATE('$!{trans_start}','YYYY-MM-DD')
+									    ) AN
+					        	WHERE 	PP.VERSIONID = '$!{version}'
+					          	AND 	PP.DUEDATE = AN.CAL_DATE
+					          	AND 	SUBSTR(PP.ITEMID, 9, 18) = '$!{item_id}'
+					            AND		AN.IDX = 2 -- 영업일 다음날을 찾는다!
+					        	GROUP 	BY PP.VERSIONID, SUBSTR(PP.ITEMID, 4, 4), SUBSTR(PP.ITEMID, 9, 18)
+					       		UNION 	ALL
+		                   		SELECT 	RP.VERSIONID, SUBSTR(RP.PRODUCTDESC, 4, 4) DC_ID, SUBSTR(RP.PRODUCTDESC, 9, 18) ITEM_ID 
+					              		, 0 REP_QTY, SUM(RP.REPLENISHQTY) REP_QTY2
+					         	FROM 	SCM_RP.REPLENISHMENTPLAN RP
+					              		, ( -- 수송달력
+					              		SELECT	CAL_DATE,
+												RANK() OVER (ORDER BY CAL_DATE)	IDX
+										FROM	CAL_MST
+										WHERE	TRIM(HOLIDAY_FLAG)	IS NULL
+										AND		CAL_DATE	>= TO_DATE('$!{trans_start}','YYYY-MM-DD')
+										) AN
+					        	WHERE 	RP.VERSIONID = '$!{version}'
+					          	AND 	RP.REPLENISHDATE = AN.CAL_DATE
+					          	AND 	SUBSTR(RP.PRODUCTDESC, 9, 18) = '$!{item_id}'
+					          	AND     SUBSTR(RP.ORIGIN, 2) = SUBSTR(RP.DESTINATION, 2)
+					          	AND     SUBSTR(RP.PRODUCTDESC, 4, 4) = SUBSTR(RP.DESTINATION, 2)
+					          	AND		AN.IDX = 2 -- 영업일 다음날을 찾는다!
+					        	GROUP 	BY RP.VERSIONID, SUBSTR(RP.PRODUCTDESC, 4, 4), SUBSTR(RP.PRODUCTDESC, 9, 18)
+                          	) PP
+			        	GROUP 	BY PP.VERSIONID, PP.DC_ID, PP.ITEM_ID
+			            ) AD,
+			            (/* 수송계획 */
+			            SELECT      TP.VERSION, TP.TGT_LOC DC_ID, TP.ITEM_ID, TP.TRANS_DATE, TP.SRC_LOC, DC.DC_SHORT_NAME SRC_LOC_NAME
+			                        , SUM(NVL(TP.BASE_STK_QTY,0)+NVL(TP.ADD_STK_QTY,0)+NVL(TP.PROD_QTY,0)) TRANS_PLAN_QTY
+			                        , SUM(NVL(TP.BASE_STK_PLT,0)+NVL(TP.ADD_STK_PLT,0)+NVL(TP.PROD_PLT,0)) TRANS_PLAN_PLT
+			            FROM        TRANS_PLAN TP,
+			                        DC_MST DC
+			            WHERE       TP.VERSION      = '$!{version}'
+			            AND         TP.SEQ          = '$!{seq}' 
+			            AND			TP.ITEM_ID		= '$!{item_id}'
+			            AND         TP.TRANS_DATE   = TO_DATE('$!{trans_start}','YYYY-MM-DD')
+			            -- ZM3 반품수송
+                        AND         TP.PLAN_TYPE NOT IN ('ZM3')
+			            AND         TP.SRC_LOC      = DC.DC_ID(+)
+			            GROUP       BY TP.VERSION, TP.TGT_LOC, TP.ITEM_ID, TP.TRANS_DATE, TP.SRC_LOC, DC.DC_NAME, DC.DC_SHORT_NAME
+			            ) TP,
+			            (/* 안전재고 */
+			            SELECT      PY.WORK_DATE, PY.LOC_ID DC_ID, PY.ITEM_ID
+			                        , SUM(PY.SAFETY_STOCK+PY.CAMP_STOC+PY.SAVE_STOC) SAFETY_STOCK2
+			                        , CASE WHEN REPLACE('$!{trans_start}', '-', '') 
+			                                      BETWEEN NVL(PY.START_DATE, '00000000') AND NVL(PY.END_DATE, '00000000')
+			                               THEN SUM(PY.SAFETY_STOCK+PY.CAMP_STOC+PY.SAVE_STOC)
+			                               ELSE SUM(PY.SAFETY_STOCK+PY.CAMP_STOC)
+			                          END SAFETY_STOCK
+			            FROM        STOCK_POLICY_QTY PY,
+			                        (SELECT     MAX(WORK_DATE) WORK_DATE
+			                         FROM       STOCK_POLICY_QTY
+			                         WHERE      LOC_TYPE = 'DC'
+			                        ) MV
+			            WHERE       PY.WORK_DATE = MV.WORK_DATE
+			            AND			PY.ITEM_ID	 = '$!{item_id}'
+			            GROUP       BY PY.WORK_DATE, PY.LOC_ID, PY.ITEM_ID, NVL(PY.START_DATE, '00000000'), NVL(PY.END_DATE, '00000000')
+			            ) SA,
+			            ( -- 구매예정정보
+			            SELECT      SP.LOC_ID DC_ID, SP.ITEM_ID,
+			                        SUM(SP.QTY) QTY
+			            FROM        (
+			                        SELECT  DECODE(SP.LOC_ID, '8910', '7100', SP.LOC_ID) LOC_ID -- 태경농산(8910) 재고를 안양제품관리지점(7100) 재고로 변환
+			                                , SP.ITEM_ID, SP.AVAIL_DATE--, SP.QTY
+			                                , F_EATOBOX(SP.QTY_UOM, SP.ITEM_ID, SUM(SP.QTY)) QTY
+			                        FROM    MAT_STORE_PLAN SP
+			                        WHERE   SP.IF_DTTM = (
+                                                    SELECT MAX(IF_DTTM)
+                                                    FROM   MAT_STORE_PLAN
+                                                    )
+       							 	  AND 	SP.ITEM_ID = '$!{item_id}'
+			                        GROUP   BY DECODE(SP.LOC_ID, '8910', '7100', SP.LOC_ID)
+			                                          , SP.ITEM_ID, SP.AVAIL_DATE, SP.QTY_UOM
+			                        --
+									--	입고 완료분은 MAT_STORE_PLAN에서 제외되기 때문에 입고 완료 물량 추가
+									/*UNION	ALL
+									SELECT	DECODE(SUBSTR(CENTER_CD,5,4),'8910','7100',SUBSTR(CENTER_CD,5,4))	LOC_ID,
+											ITEM_CD	ITEM_ID,INOUT_DATE	AVAIL_DATE,
+											F_GETCONVBOX(ITEM_CD,'EA',SUM(INOUT_QTY))	QTY
+									FROM	(
+											SELECT	*
+											FROM	LS020NM
+											WHERE	INOUT_DATE	>=	TRUNC(SYSDATE)
+											AND		INOUT_CD	IN	(
+																	SELECT	CODE_CD
+																	FROM	CMCODE
+																	WHERE	CODE_GRP	=	'LDIV03'
+																	AND		SUB_CD		=	'E1'	--입고
+																	AND		CODE_CD		!=	'E11'	--생산입고
+																	)
+           									AND     ITEM_CD = '$!{item_id}'
+											UNION	ALL
+											SELECT	*
+											FROM	LS020NM_G
+											WHERE	INOUT_DATE	>=	TRUNC(SYSDATE)
+											AND		INOUT_CD	IN	(
+																	SELECT	CODE_CD
+																	FROM	CMCODE
+																	WHERE	CODE_GRP	=	'LDIV03'
+																	AND		SUB_CD		=	'E1'	--입고
+																	AND		CODE_CD		!=	'E11'	--생산입고
+																	)
+           									AND     ITEM_CD = '$!{item_id}'
+											UNION	ALL
+											SELECT	*
+											FROM	LS020NM_P
+											WHERE	INOUT_DATE	>=	TRUNC(SYSDATE)
+											AND		INOUT_CD	IN	(
+																	SELECT	CODE_CD
+																	FROM	CMCODE
+																	WHERE	CODE_GRP	=	'LDIV03'
+																	AND		SUB_CD		=	'E1'	--입고
+																	AND		CODE_CD		!=	'E11'	--생산입고
+																	)
+           									AND     ITEM_CD = '$!{item_id}'
+											)
+									GROUP	BY	SUBSTR(CENTER_CD,5,4),ITEM_CD,INOUT_DATE */
+			                        ) SP
+			            WHERE       TO_CHAR(SP.AVAIL_DATE, 'YYYYMMDD') = REPLACE('$!{trans_start}', '-', '')
+			            AND			SP.ITEM_ID = '$!{item_id}'
+			            GROUP       BY SP.LOC_ID, SP.ITEM_ID
+			            ) MS,
+			            (
+			            -- 재고계획
+			            SELECT      SP.VERSION, SP.LOC_ID DC_ID, SP.ITEM_ID, SP.STOCK_DATE
+			                        , SUM(SP.STOCK_QTY) STOCK_QTY
+			            FROM        STOCK_PLAN SP
+			            WHERE       SP.VERSION = '$!{version}'
+			            AND         SP.SEQ      = '$!{seq}' 
+			            AND			SP.ITEM_ID  = '$!{item_id}'
+			            AND         SP.STOCK_DATE = TO_DATE('$!{trans_start}','YYYY-MM-DD')+1
+			            GROUP       BY SP.VERSION, SP.LOC_ID, SP.ITEM_ID, SP.STOCK_DATE
+			            ) SN                      
+			WHERE       DI.DC_ID   = ST.DC_ID(+)
+			AND         DI.ITEM_ID = ST.ITEM_ID(+)    
+			AND         DI.DC_ID   = SC.DC_ID(+)
+			AND         DI.ITEM_ID = SC.ITEM_ID(+)
+			AND         DI.DC_ID   = TI.DC_ID(+)
+			AND         DI.ITEM_ID = TI.ITEM_ID(+)
+			AND         DI.DC_ID   = SP.DC_ID(+)
+			AND         DI.ITEM_ID = SP.ITEM_ID(+)
+			AND         DI.DC_ID   = OU.DC_ID(+)
+			AND         DI.ITEM_ID = OU.ITEM_ID(+)   
+			AND         DI.DC_ID   = OD.DC_ID(+)
+			AND         DI.ITEM_ID = OD.ITEM_ID(+)
+			AND         DI.DC_ID   = AD.DC_ID(+)
+			AND         DI.ITEM_ID = AD.ITEM_ID(+)          
+			AND         DI.DC_ID   = TP.DC_ID(+)
+			AND         DI.ITEM_ID = TP.ITEM_ID(+)
+			AND         DI.DC_ID   = SA.DC_ID(+)
+			AND         DI.ITEM_ID = SA.ITEM_ID(+)
+			AND         DI.DC_ID   = MS.DC_ID(+)
+			AND         DI.ITEM_ID = MS.ITEM_ID(+) 
+			AND         DI.DC_ID   = AC.DC_ID(+)
+			AND         DI.ITEM_ID = AC.ITEM_ID(+) 
+			AND         DI.DC_ID   = SN.DC_ID(+)
+			AND         DI.ITEM_ID = SN.ITEM_ID(+)
+			AND			DI.DC_ID   = DW.DC_ID(+)
+			AND			DI.ITEM_ID = DW.ITEM_ID(+)
+			UNION		ALL
+			/* 2. CDC, RDC, 전체 합계 */
+             SELECT     DISTINCT TO_CHAR(SUM(NVL(AC.MON_QTY,0)), '999,999,999')                       "전월실적",
+                        NULL                                                         "입고사업장ID", 
+                        DECODE(DI.CDC_FLAG, 'Y','CDC 합계', 'N', 'RDC 합계','전체 합계')                        "입고사업장", 
+                        --DI.ITEM_ID                                                    "품목", 
+                        --DI.ITEM_NAME                                                  "품목명", 
+                        TO_CHAR(SUM(NVL(ST.QTY,0)), '999,999,999')                     "재고", -- 재고+생산계획
+                        TO_CHAR(SUM(NVL(DW.SALE_CUM_QTY,0)), '999,999,999')                 "판매누계",
+                        TO_CHAR(SUM(NVL(OD.ORD_QTY1,0)), '999,999,999')                        "판매오더",
+                        TO_CHAR(SUM(NVL(DW.WEEK1_QTY,0)), '999,999,999')                    "1주평균판매",
+                        TO_CHAR(SUM(NVL(DW.WEEK3_QTY,0)), '999,999,999')                    "3주평균판매",
+                        TO_CHAR(SUM((NVL(TI.TR_IN_QTY,0) + NVL(SC.PROD_QTY,0) + NVL(MS.QTY,0))), '999,999,999')    "입고예정", -- 수송입고계획+구매예정
+                        TO_CHAR(SUM(NVL(OU.TR_OUT_QTY,0)), '999,999,999')                    "출고예정", -- 수송출고계획
+                        --NM.QTY                                                 "물류타계정",
+                        TO_CHAR(SUM((NVL(ST.QTY, 0) + NVL(SC.PROD_QTY,0) 
+                                        + NVL(TI.TR_IN_QTY,0) 
+                                        - NVL(OU.TR_OUT_QTY,0) 
+                                        - NVL(OD.ORD_QTY1,0) 
+                                        + NVL(MS.QTY, 0))), '999,999,999')         "예상재고",
+                        NULL													    "재고일수",
+                        TO_CHAR(SUM(NVL(SP.SALES_QTY2,0)), '999,999,999')          "익일판매계획",
+                        SUM(NVL(SA.SAFETY_STOCK,0))                                         "안전재고",
+                        TO_CHAR(SUM(NVL(AD.REP_QTY,0)), '999,999,999')                         "보충요구량",
+                        SUM(NVL(TP.TRANS_PLAN_PLT,0))                                "공급량PLT", 
+                        SUM(NVL(TP.TRANS_PLAN_QTY,0))                                    "공급량BOX",
+                        NULL                                                "출고사업장ID",
+                        NULL                                           "출고사업장",
+                        TO_CHAR(SUM(NVL(SN.STOCK_QTY,0)), '999,999,999')                    "예상재고2",
+                        NULL                                             "최소수송단위",
+                        TO_CHAR(SUM(NVL(AC.BEFORE_SALE_QTY,0)), '999,999,999')              "전일판매",
+                        (CASE WHEN DI.CDC_FLAG = 'Y'
+                              THEN 10
+                              WHEN DI.CDC_FLAG = 'N'
+                              THEN 20
+                              ELSE 1
+                         END) CRDC_FLAG,
+                         TO_CHAR(SUM(NVL(SP.SALES_QTY1,0)),'999,999,999')			"당일판매계획" ,
+                         TO_CHAR(SUM(NVL(OD.ORD_QTY2,0)),'999,999,999')				"익일주문계획",
+                         NULL												"재고기간"
+			FROM        (/* 물류경로별 ITEM_ID 목록 추출 */
+			            SELECT      DISTINCT DI.TGT_LOC DC_ID, DC_NAME, 
+			                        DI.PROD_ID ITEM_ID, IM.ITEM_NAME, TU.MIN_PICK_QTY,
+			                        DC.CDC_FLAG, DC.RDC_FLAG
+			            FROM        MAP_PROD_DCPATH DI,
+			                        (SELECT     DC_ID, DC_SHORT_NAME DC_NAME, CDC_FLAG, RDC_FLAG
+			                         FROM       DC_MST			                     
+			                        ) DC,
+			                        (SELECT     ITEM_ID, ITEM_NAME, ITEM_STATUS
+			                         FROM       ITEM_MST
+			                         WHERE      ITEM_ID = '$!{item_id}'
+			                        ) IM, TRANS_UNIT TU
+			            WHERE       DI.TGT_LOC = DC.DC_ID
+			            AND         DI.PROD_ID = IM.ITEM_ID
+			            AND         DI.TGT_LOC = TU.RDC_ID(+)
+			            AND         DI.PROD_ID = TU.ITEM_ID(+)
+			            AND         IM.ITEM_STATUS  = 'ST'
+			            ) DI,
+                        ---------------------------------재고 기간 적용-------------------------------
+                        (
+                        --  1 주평균 3 주평균, 재고 기간 
+                        SELECT      DW.ITEM_ID, DW.DC_ID, DW.BASE_STOCK, 
+                        			DW.SALES_MEAN_3WEEK 	WEEK3_QTY, 
+                        			DW.SALES_MEAN_1WEEK 	WEEK1_QTY,
+                        			DW.SALES_PRE_CUM 		SALE_CUM_QTY, 
+                        			DW.STOCK_TERM
+                        FROM        DC_DATAWAREHOUSE DW
+                        WHERE       DW.CNFM_DATE	= TO_CHAR(TO_DATE('$!{trans_start}','YYYY-MM-DD'), 'YYYYMMDD')
+                        AND         DW.ITEM_ID		= '$!{item_id}'
+                        ) DW,
+			            (
+			            /* 판매실적 */
+			            SELECT      AC.DELIV_LOC DC_ID, AC.ITEM_ID
+			                        , SUM(DECODE(TO_CHAR(AC.SALE_DATE, 'YYYYMM')
+			                        , TO_CHAR(ADD_MONTHS(TO_DATE('$!{trans_start}','YYYY-MM-DD'), -1), 'YYYYMM'), AC.QTY, 0)) MON_QTY
+			                        , ROUND(SUM(CASE WHEN TO_CHAR(AC.SALE_DATE, 'YYYYMMDD')                                                              
+                                                              = TO_CHAR(TO_DATE('$!{trans_start}','YYYY-MM-DD')-1, 'YYYYMMDD')
+                                                     THEN AC.QTY
+                                                     ELSE 0
+                                                     END))    BEFORE_SALE_QTY -- 전일 판매
+			                        , ROUND(SUM(CASE WHEN TO_CHAR(AC.SALE_DATE, 'YYYYMMDD')
+			                                                  BETWEEN   TO_CHAR(TO_DATE('$!{trans_start}','YYYY-MM-DD')-7, 'YYYYMMDD')
+			                                                  AND       TO_CHAR(TO_DATE('$!{trans_start}','YYYY-MM-DD')-1, 'YYYYMMDD')
+			                                         THEN AC.QTY
+			                                         ELSE 0
+			                                         END)/6)    WEEK1_QTY_org
+			                        , ROUND(SUM(CASE WHEN TO_CHAR(AC.SALE_DATE, 'YYYYMMDD')
+			                                                  BETWEEN   TO_CHAR(TO_DATE('$!{trans_start}','YYYY-MM-DD')-21, 'YYYYMMDD')
+			                                                  AND       TO_CHAR(TO_DATE('$!{trans_start}','YYYY-MM-DD')-1, 'YYYYMMDD')
+			                                         THEN AC.QTY
+			                                         ELSE 0
+			                                         END)/18)   WEEK3_QTY_org
+			                        , SUM(DECODE(TO_CHAR(AC.SALE_DATE, 'YYYYMM'), TO_CHAR(TO_DATE('$!{trans_start}','YYYY-MM-DD')-1, 'YYYYMM'), AC.QTY, 0)) SALE_CUM_QTY_org
+			            FROM        SALES_ACT_RECENT AC
+			            WHERE       AC.ITEM_ID = '$!{item_id}'
+			            AND         TO_CHAR(AC.SALE_DATE, 'YYYYMMDD') &lt;= REPLACE('$!{trans_start}', '-', '')
+			            GROUP       BY AC.DELIV_LOC, AC.ITEM_ID
+			            ) AC,
+			            (/* 전일마감 재고정보 추출 */
+			            SELECT      ST.IF_DTTM, ST.LOC_ID DC_ID, ST.ITEM_ID
+			                        , SUM(ST.QTY) QTY2, ST.QTY_UOM
+			                        , F_EATOBOX(ST.QTY_UOM, ST.ITEM_ID, SUM(ST.QTY)) QTY
+			            FROM        WMS_STOCK ST,
+			                        DC_MST DC
+			            WHERE       ST.LOC_TYPE = 'DC'      
+			            AND			ST.ITEM_ID = '$!{item_id}'  
+			            AND         ST.LOC_ID = DC.DC_ID
+			            AND         TO_CHAR(ST.USABLE_DATE, 'YYYY-MM-DD') = '$!{trans_start}'
+			            GROUP       BY ST.IF_DTTM, ST.LOC_ID, ST.ITEM_ID, ST.QTY_UOM
+			            ) ST,
+			            (/* 당일 조/주/야 생산계획 추출 */
+			            SELECT      SC.PLANT_ID, SC.VERSION, DC.DC_ID, DC.DC_NAME, SC.ITEM_ID, 
+			                        SUM(DECODE(SC.SHIFT_TYPE, 1, SC.SHIFT_QTY, 0)) SHIFT1_QTY, 
+			                        SUM(DECODE(SC.SHIFT_TYPE, 3, SC.SHIFT_QTY, 0)) SHIFT3_QTY,
+			                        SUM(DECODE(SC.SHIFT_TYPE, 5, SC.SHIFT_QTY, 0)) SHIFT5_QTY,
+			                        SUM(SC.SHIFT_QTY) PROD_QTY2, SC.QTY_UOM,
+			                        SUM(DECODE(SC.SHIFT_TYPE, 1, SC.SHIFT_QTY, 0)) 
+			                        + SUM(DECODE(SC.SHIFT_TYPE, 3, SC.SHIFT_QTY, 0)) PROD_QTY
+			            FROM        DAILY_SCH_PLAN_SHIFT SC,
+			                        (SELECT DC_ID, DC_NAME, PLANT_ID
+			                         FROM   DC_MST
+			                         WHERE  PLANT_ID IS NOT NULL
+			                        ) DC
+			                        , V_LAST_PROC_PRODVER LP,
+			                        (
+			                        			                        SELECT    SC.PLANT_ID, MAX(VL.VERSION) VERSION
+								   FROM    PLAN_VERSION_LOG VL,
+								            (
+								            SELECT BM.SUB_CAT, BM.PLANT_ID, BM.PERIOD_TYPE
+								            FROM   ENGN_BAT_MST BM
+								            WHERE  BM.PERIOD_TYPE = 'DAILY'
+								            AND    BM.CAT_ID = 'PS'
+								            ) SC
+								   WHERE    VL.PERIOD_TYPE = SC.PERIOD_TYPE
+								   AND      VL.CAT_ID      = 'PS'
+								   AND      VL.SUB_CAT     = SC.SUB_CAT
+								   AND      TO_NUMBER(VL.STATUS) &gt;= 23
+								   /* 버젼일자는 조회기준일과 같거나 작다 */ 
+								   AND        VL.RUN_DATE        &lt; TRUNC(TO_DATE('$!{trans_start}') ,'D')
+								   GROUP BY SC.PLANT_ID
+			                       ) MV
+			            WHERE      CAT_ID        =  'PS'
+			            AND		   SC.ITEM_ID    =  '$!{item_id}'
+			            AND        SC.PLANT_ID   =  DC.PLANT_ID(+)
+			            AND        QTY_UOM       =  'BOX'
+			            AND        SC.VERSION    =  MV.VERSION
+			            AND        SC.PLANT_ID   =  MV.PLANT_ID
+			            --AND SC.SEQ          = ''
+			            AND        SC.PROD_DATES =  TO_CHAR(TO_DATE('$!{trans_start}','YYYY-MM-DD'), 'YYYYMMDD')
+			            AND        SC.PLANT_ID   =  LP.PLANT_ID
+			            AND        SC.ITEM_ID    =  LP.ITEM_ID
+			            AND        SC.PROC_ID    =  LP.PROC_ID
+			            AND        SC.PROD_VER   =  LP.PROD_VER
+			            GROUP      BY SC.PLANT_ID, SC.VERSION, DC.DC_ID, DC.DC_NAME, SC.ITEM_ID, SC.QTY_UOM
+			            ) SC,
+			            ---------------------------------실수송량 적용-------------------------------
+			            (/* 수송입고계획 */
+			            SELECT     TGT_LOC DC_ID, TRANS_DATE, ITEM_ID,
+	                                SUM(
+	                                CASE
+	                                    WHEN TRANS_STATE = '01' OR TRANS_STATE = '02' THEN QTY
+	                                    ELSE    CHGO_QTY
+	                                END
+	                                )   TR_IN_QTY			            
+			            FROM       IF_TRANS_PLAN TP
+			            WHERE      TRANS_DATE = TO_DATE('$!{trans_start}','YYYY-MM-DD')
+			            AND        TP.ITEM_ID = '$!{item_id}'
+			            AND		   TP.VERSION &lt;&gt; '$!{version}'
+			            -- ZM3 반품수송
+                        AND         TP.PLAN_TYPE NOT IN ('ZM3')
+			            AND        NOT EXISTS (
+			                               SELECT   DM.DC_ID
+			                               FROM     DC_MST DM
+			                               WHERE    DM.CDC_FLAG != 'Y'
+			                               AND      DM.RDC_FLAG != 'Y'
+			                               AND      DM.DC_ID = TP.SRC_LOC
+			                       )
+			            AND        NOT EXISTS (
+			                               SELECT   DM.DC_ID
+			                               FROM     DC_MST DM
+			                               WHERE    DM.CDC_FLAG != 'Y'
+			                               AND      DM.RDC_FLAG != 'Y'
+			                               AND      DM.DC_ID = TP.TGT_LOC
+			                       )
+			            GROUP      BY TGT_LOC, TRANS_DATE, ITEM_ID       
+			            ) TI,	
+			            (
+			            SELECT      SP.YYYY, SP.VERSION, SP.DELIV_LOC DC_ID, SP.ITEM_ID,
+									SUM(DECODE(CM.IDX,'1',SP.NORMAL_QTY+SP.PROM_QTY+SP.SUPT_QTY+SP.SAMP_QTY)) SALES_QTY1,
+			                        SUM(DECODE(CM.IDX,'2',SP.NORMAL_QTY+SP.PROM_QTY+SP.SUPT_QTY+SP.SAMP_QTY)) SALES_QTY2
+			            FROM        NFOS_SALES_PLAN_WEEKLY SP,
+									(
+									SELECT	YYYYMMDD,
+											RANK() OVER (ORDER BY CAL_DATE)	IDX
+									FROM	CAL_MST
+									WHERE	TRIM(HOLIDAY_FLAG)	IS NULL
+									AND		CAL_DATE	>= TO_DATE('$!{trans_start}','YYYY-MM-DD')
+									)	CM
+			            WHERE       SP.YYYY    = '$!{sales_yyyy}'	
+			            AND         SP.VERSION = '$!{sales_version}'
+			            AND			SP.ITEM_ID = '$!{item_id}'
+			            AND			SP.YYYYMMDD	= CM.YYYYMMDD 
+			            GROUP       BY SP.YYYY, SP.VERSION, SP.DELIV_LOC, SP.ITEM_ID
+			            ) SP,
+			            (/* 수송출고계획 */
+			            SELECT      SRC_LOC DC_ID, TRANS_DATE, ITEM_ID,
+	                                SUM(
+	                                CASE
+	                                    WHEN TRANS_STATE = '01' OR TRANS_STATE = '02' THEN QTY
+	                                    ELSE    CHGO_QTY
+	                                END
+	                                )   TR_OUT_QTY	
+			            FROM        IF_TRANS_PLAN TP
+			            WHERE       TRANS_DATE = TO_DATE('$!{trans_start}','YYYY-MM-DD') --TO_DATE(TO_CHAR(SYSDATE, 'YYYY-MM-DD'), 'YYYY-MM-DD')
+			            AND			TP.ITEM_ID = '$!{item_id}'
+			            AND		    TP.VERSION &lt;&gt; '$!{version}'
+			            -- ZM3 반품수송
+                        AND         TP.PLAN_TYPE NOT IN ('ZM3')
+			            AND         NOT EXISTS (
+			                               SELECT   DM.DC_ID
+			                               FROM     DC_MST DM
+			                               WHERE    DM.CDC_FLAG != 'Y'
+			                               AND      DM.RDC_FLAG != 'Y'
+			                               AND      DM.DC_ID = TP.SRC_LOC
+			                        )
+			            AND         NOT EXISTS (
+			                               SELECT   DM.DC_ID
+			                               FROM     DC_MST DM
+			                               WHERE    DM.CDC_FLAG != 'Y'
+			                               AND      DM.RDC_FLAG != 'Y'
+			                               AND      DM.DC_ID = TP.TGT_LOC
+			                        )
+			            GROUP       BY SRC_LOC, TRANS_DATE, ITEM_ID       
+			            ) OU,
+			            (/* NFOS 주문정보 */
+			            SELECT      OD.IF_DTTM, OD.LOC_ID DC_ID, OD.ITEM_ID,
+			            			SUM(DECODE(CM.IDX, '1', OD.QTY, 0)) ORD_QTY1,
+			                        SUM(DECODE(CM.IDX, '2', OD.QTY, 0)) ORD_QTY2
+			            FROM        NFOS_ORDER OD,
+									(
+									SELECT	YYYYMMDD,
+											RANK() OVER (ORDER BY CAL_DATE)	IDX
+									FROM	CAL_MST
+									WHERE	TRIM(HOLIDAY_FLAG)	IS NULL
+									AND		CAL_DATE	>= TO_DATE('$!{trans_start}','YYYY-MM-DD')
+									)	CM
+			            WHERE       OD.IF_DTTM = TO_DATE('$!{trans_start}', 'yyyy-mm-dd')
+			            AND			OD.ITEM_ID = '$!{item_id}'
+			            AND			OD.DUE_DATE	= TO_DATE(CM.YYYYMMDD,'YYYY-MM-DD')        
+			            GROUP       BY OD.IF_DTTM, OD.LOC_ID, OD.ITEM_ID
+			            ) OD,
+			            (/* 보충요구량 */
+			            -- 보충요구량 : 자기 CDC 에서 보충받는 물량에 대한 부분을 제외하기 위해
+			       		--            REPLENISHMENTPLAN 에서 ORIGIN 과 DESTINATION 이 같은 물량을 빼줌
+			            SELECT 	PP.VERSIONID, PP.DC_ID, PP.ITEM_ID
+			              		, SUM(PP.REP_QTY)-SUM(PP.REP_QTY2) REP_QTY
+                     	FROM (
+		                   		SELECT 	PP.VERSIONID, SUBSTR(PP.ITEMID, 4, 4) DC_ID, SUBSTR(PP.ITEMID, 9, 18) ITEM_ID
+		                                ,  SUM(PP.QTY)  REP_QTY, 0 REP_QTY2
+					            FROM 	SCM_RP.PRODUCTIONORDERPLAN PP
+					              		, ( 
+					              		-- 수송달력
+					              		SELECT	CAL_DATE,
+												RANK() OVER (ORDER BY CAL_DATE)	IDX
+										FROM	CAL_MST
+										WHERE	TRIM(HOLIDAY_FLAG)	IS NULL
+										AND		CAL_DATE	>= TO_DATE('$!{trans_start}','YYYY-MM-DD')
+									    ) AN
+					        	WHERE 	PP.VERSIONID = '$!{version}'
+					          	AND 	PP.DUEDATE = AN.CAL_DATE
+					          	AND 	SUBSTR(PP.ITEMID, 9, 18) = '$!{item_id}'
+					            AND		AN.IDX = 2 -- 영업일 다음날을 찾는다!
+					        	GROUP 	BY PP.VERSIONID, SUBSTR(PP.ITEMID, 4, 4), SUBSTR(PP.ITEMID, 9, 18)
+					       		UNION 	ALL
+		                   		SELECT 	RP.VERSIONID, SUBSTR(RP.PRODUCTDESC, 4, 4) DC_ID, SUBSTR(RP.PRODUCTDESC, 9, 18) ITEM_ID 
+					              		, 0 REP_QTY, SUM(RP.REPLENISHQTY) REP_QTY2
+					         	FROM 	SCM_RP.REPLENISHMENTPLAN RP
+					              		, ( -- 수송달력
+					              		SELECT	CAL_DATE,
+												RANK() OVER (ORDER BY CAL_DATE)	IDX
+										FROM	CAL_MST
+										WHERE	TRIM(HOLIDAY_FLAG)	IS NULL
+										AND		CAL_DATE	>= TO_DATE('$!{trans_start}','YYYY-MM-DD')
+										) AN
+					        	WHERE 	RP.VERSIONID = '$!{version}'
+					          	AND 	RP.REPLENISHDATE = AN.CAL_DATE
+					          	AND 	SUBSTR(RP.PRODUCTDESC, 9, 18) = '$!{item_id}'
+					          	AND     SUBSTR(RP.ORIGIN, 2) = SUBSTR(RP.DESTINATION, 2)
+					          	AND     SUBSTR(RP.PRODUCTDESC, 4, 4) = SUBSTR(RP.DESTINATION, 2)
+					          	AND		AN.IDX = 2 -- 영업일 다음날을 찾는다!
+					        	GROUP 	BY RP.VERSIONID, SUBSTR(RP.PRODUCTDESC, 4, 4), SUBSTR(RP.PRODUCTDESC, 9, 18)
+                          	) PP
+			        	GROUP 	BY PP.VERSIONID, PP.DC_ID, PP.ITEM_ID
+			            ) AD,
+			            (/* 수송계획 */
+			            SELECT      TP.VERSION, TP.TGT_LOC DC_ID, TP.ITEM_ID, TP.TRANS_DATE
+			                        , SUM(NVL(TP.BASE_STK_QTY,0)+NVL(TP.ADD_STK_QTY,0)+NVL(TP.PROD_QTY,0)) TRANS_PLAN_QTY
+			                        , SUM(NVL(TP.BASE_STK_PLT,0)+NVL(TP.ADD_STK_PLT,0)+NVL(TP.PROD_PLT,0)) TRANS_PLAN_PLT
+			            FROM        TRANS_PLAN TP,
+			                        DC_MST DC
+			            WHERE       TP.VERSION      = '$!{version}'
+			            AND         TP.SEQ          = '$!{seq}' 
+			            AND			TP.ITEM_ID		= '$!{item_id}'
+			            AND         TP.TRANS_DATE   = TO_DATE('$!{trans_start}','YYYY-MM-DD')
+			            -- ZM3 반품수송 재회
+                        AND         TP.PLAN_TYPE NOT IN ('ZM3')
+			            AND         TP.SRC_LOC      = DC.DC_ID(+)
+			            GROUP       BY TP.VERSION, TP.TGT_LOC, TP.ITEM_ID, TP.TRANS_DATE
+			            ) TP,
+			            (/* 안전재고 */
+			            SELECT      PY.WORK_DATE, PY.LOC_ID DC_ID, PY.ITEM_ID
+			                        , SUM(PY.SAFETY_STOCK+PY.CAMP_STOC+PY.SAVE_STOC) SAFETY_STOCK2
+			                        , CASE WHEN REPLACE('$!{trans_start}', '-', '') 
+			                                      BETWEEN NVL(PY.START_DATE, '00000000') AND NVL(PY.END_DATE, '00000000')
+			                               THEN SUM(PY.SAFETY_STOCK+PY.CAMP_STOC+PY.SAVE_STOC)
+			                               ELSE SUM(PY.SAFETY_STOCK+PY.CAMP_STOC)
+			                          END SAFETY_STOCK
+			            FROM        STOCK_POLICY_QTY PY,
+			                        (SELECT     MAX(WORK_DATE) WORK_DATE
+			                         FROM       STOCK_POLICY_QTY
+			                         WHERE      LOC_TYPE = 'DC'
+			                        ) MV
+			            WHERE       PY.WORK_DATE = MV.WORK_DATE
+			            AND			PY.ITEM_ID	 = '$!{item_id}'
+			            GROUP       BY PY.WORK_DATE, PY.LOC_ID, PY.ITEM_ID, NVL(PY.START_DATE, '00000000'), NVL(PY.END_DATE, '00000000')
+			            ) SA,
+			            ( -- 구매예정정보
+			            SELECT      SP.LOC_ID DC_ID, SP.ITEM_ID,
+			                        SUM(SP.QTY) QTY
+			            FROM        (
+			                        SELECT  DECODE(SP.LOC_ID, '8910', '7100', SP.LOC_ID) LOC_ID -- 태경농산(8910) 재고를 안양제품관리지점(7100) 재고로 변환
+			                                , SP.ITEM_ID, SP.AVAIL_DATE--, SP.QTY
+			                                , F_EATOBOX(SP.QTY_UOM, SP.ITEM_ID, SUM(SP.QTY)) QTY
+			                        FROM    MAT_STORE_PLAN SP
+			                        WHERE   SP.IF_DTTM = (
+                                                    SELECT MAX(IF_DTTM)
+                                                    FROM   MAT_STORE_PLAN
+                                                    )
+       							 	  AND 	SP.ITEM_ID = '$!{item_id}'
+			                        GROUP   BY DECODE(SP.LOC_ID, '8910', '7100', SP.LOC_ID)
+			                                          , SP.ITEM_ID, SP.AVAIL_DATE, SP.QTY_UOM
+			                        --
+									--	입고 완료분은 MAT_STORE_PLAN에서 제외되기 때문에 입고 완료 물량 추가
+									/*UNION	ALL
+									SELECT	DECODE(SUBSTR(CENTER_CD,5,4),'8910','7100',SUBSTR(CENTER_CD,5,4))	LOC_ID,
+											ITEM_CD	ITEM_ID,INOUT_DATE	AVAIL_DATE,
+											F_GETCONVBOX(ITEM_CD,'EA',SUM(INOUT_QTY))	QTY
+									FROM	(
+											SELECT	*
+											FROM	LS020NM
+											WHERE	INOUT_DATE	>=	TRUNC(SYSDATE)
+											AND		INOUT_CD	IN	(
+																	SELECT	CODE_CD
+																	FROM	CMCODE
+																	WHERE	CODE_GRP	=	'LDIV03'
+																	AND		SUB_CD		=	'E1'	--입고
+																	AND		CODE_CD		!=	'E11'	--생산입고
+																	)
+           									AND     ITEM_CD = '$!{item_id}'
+											UNION	ALL
+											SELECT	*
+											FROM	LS020NM_G
+											WHERE	INOUT_DATE	>=	TRUNC(SYSDATE)
+											AND		INOUT_CD	IN	(
+																	SELECT	CODE_CD
+																	FROM	CMCODE
+																	WHERE	CODE_GRP	=	'LDIV03'
+																	AND		SUB_CD		=	'E1'	--입고
+																	AND		CODE_CD		!=	'E11'	--생산입고
+																	)
+           									AND     ITEM_CD = '$!{item_id}'
+											UNION	ALL
+											SELECT	*
+											FROM	LS020NM_P
+											WHERE	INOUT_DATE	>=	TRUNC(SYSDATE)
+											AND		INOUT_CD	IN	(
+																	SELECT	CODE_CD
+																	FROM	CMCODE
+																	WHERE	CODE_GRP	=	'LDIV03'
+																	AND		SUB_CD		=	'E1'	--입고
+																	AND		CODE_CD		!=	'E11'	--생산입고
+																	)
+           									AND     ITEM_CD = '$!{item_id}'
+											)
+									GROUP	BY	SUBSTR(CENTER_CD,5,4),ITEM_CD,INOUT_DATE */
+			                        ) SP
+			            WHERE       TO_CHAR(SP.AVAIL_DATE, 'YYYYMMDD') = REPLACE('$!{trans_start}', '-', '')
+			            AND			SP.ITEM_ID = '$!{item_id}'
+			            GROUP       BY SP.LOC_ID, SP.ITEM_ID
+			            ) MS,
+			            (
+			            -- 재고계획
+			            SELECT      SP.VERSION, SP.LOC_ID DC_ID, SP.ITEM_ID, SP.STOCK_DATE
+			                        , SUM(SP.STOCK_QTY) STOCK_QTY
+			            FROM        STOCK_PLAN SP
+			            WHERE       SP.VERSION = '$!{version}'
+			            AND         SP.SEQ      = '$!{seq}' 
+			            AND			SP.ITEM_ID  = '$!{item_id}'
+			            AND         SP.STOCK_DATE = TO_DATE('$!{trans_start}','YYYY-MM-DD')+1
+			            GROUP       BY SP.VERSION, SP.LOC_ID, SP.ITEM_ID, SP.STOCK_DATE
+			            ) SN 			            
+			WHERE       DI.DC_ID   = ST.DC_ID(+)
+			AND         DI.ITEM_ID = ST.ITEM_ID(+)    
+			AND         DI.DC_ID   = SC.DC_ID(+)
+			AND         DI.ITEM_ID = SC.ITEM_ID(+)
+			AND         DI.DC_ID   = TI.DC_ID(+)
+			AND         DI.ITEM_ID = TI.ITEM_ID(+)
+			AND         DI.DC_ID   = SP.DC_ID(+)
+			AND         DI.ITEM_ID = SP.ITEM_ID(+)
+			AND         DI.DC_ID   = OU.DC_ID(+)
+			AND         DI.ITEM_ID = OU.ITEM_ID(+)   
+			AND         DI.DC_ID   = OD.DC_ID(+)
+			AND         DI.ITEM_ID = OD.ITEM_ID(+)
+			AND         DI.DC_ID   = AD.DC_ID(+)
+			AND         DI.ITEM_ID = AD.ITEM_ID(+)          
+			AND         DI.DC_ID   = TP.DC_ID(+)
+			AND         DI.ITEM_ID = TP.ITEM_ID(+)
+			AND         DI.DC_ID   = SA.DC_ID(+)
+			AND         DI.ITEM_ID = SA.ITEM_ID(+)
+			AND         DI.DC_ID   = MS.DC_ID(+)
+			AND         DI.ITEM_ID = MS.ITEM_ID(+) 
+			AND         DI.DC_ID   = AC.DC_ID(+)
+			AND         DI.ITEM_ID = AC.ITEM_ID(+) 
+			AND         DI.DC_ID   = SN.DC_ID(+)
+			AND         DI.ITEM_ID = SN.ITEM_ID(+)
+			AND			DI.DC_ID   = DW.DC_ID(+)			 
+			AND			DI.ITEM_ID = DW.ITEM_ID(+)
+			GROUP   	BY CUBE(CDC_FLAG)
+			ORDER       BY 23, 2
+	</query>
+	
+	<!-- 출고물량조회 및 조정 : 저장 -->
+	<!-- 1. TRANS_PLAN DELETE -->
+	<query id="rp_01120_outOrderAdjust_list_save_01" fix="version seq item_id trans_start _user_id"
+		   iterator="plan_update_flag tgt_loc old_src_loc">
+		/* SRC_LOC, PLT_QTY, BOX_QTY가 수정된 경우(기존값 삭제) */
+		/* PLAN_TYPE, TRUCK_SEQ는 무시함. */
+		DELETE  TRANS_PLAN
+		WHERE   '$!{plan_update_flag}' IS NOT NULL  -- NULL이면 수정되지 않은 경우, Y이면 값이 수정된 경우.
+		AND     VERSION = '$!{version}'
+		AND     SEQ     = '$!{seq}'
+		AND     TRANS_DATE = TO_DATE('$!{trans_start}','YYYY-MM-DD')
+		AND     TGT_LOC    = '$!{tgt_loc}'  
+		AND     SRC_LOC    = '$!{old_src_loc}'      -- 기존값을 삭제하기 위해서, 기존 출고장 코드를 사용. NULL이면 자동 필터링됨.
+		AND     ITEM_ID    = '$!{item_id}'
+	</query>
+	
+	<!-- 2. TRANS_PLAN INSERT -->
+	<query id="rp_01120_outOrderAdjust_list_save_02" fix="version seq item_id item_name trans_start _user_id"
+		   iterator="plan_update_flag tgt_loc src_loc box_qty plt_qty">
+		/* SRC_LOC, PLT_QTY, BOX_QTY가 수정된 경우(수정된값 입력)*/
+		INSERT  INTO TRANS_PLAN
+		        (VERSION, SEQ, PLAN_TYPE, TRANS_DATE, 
+		         TGT_LOC, SRC_LOC, TRUCK_SEQ, ITEM_ID, DESCRIPTION,
+		         BASE_STK_QTY, BASE_STK_PLT, ADD_STK_QTY, ADD_STK_PLT,
+		         PROD_QTY, PROD_PLT, MADE_TYPE, MADE_DTTM, MADE_BY)
+		SELECT  '$!{version}'       VERSION
+		        , '$!{seq}'           SEQ
+		        , (
+		          -- ORDER_FLAG가 'Y' 이면 긴급수송 적용, 'N'이면 일반수송만 적용
+		          SELECT  DECODE((SELECT  DECODE(ORDER_FLAG,'Y',TO_CHAR(START_DATE,'YYYY-MM-DD'),'') START_DATE --계획수립 시작일(긴급수송일)
+		                          FROM    PLAN_VERSION_LOG
+		                          WHERE   PERIOD_TYPE	= 'DAILY'
+                                  AND  VERSION = '$!{version}' AND SEQ = '$!{seq}'
+		                          AND     CAT_ID = 'RP' AND SUB_CAT = 'RP'), 
+		                          '$!{trans_start}', -- UI에서 선택된 수송일자
+		                         (SELECT  CD       -- 같은경우, 긴급수송 : ZM6
+		                          FROM    CODE_MST
+		                          WHERE   CD_GRP='PLAN_TYPE'
+		                          AND     CD_NAME = '긴급수송'),
+		                         (SELECT  CD       -- 다른경우, 일반수송 : ZM1
+		                          FROM    CODE_MST 
+		                          WHERE   CD_GRP='PLAN_TYPE'
+		                          AND     CD_NAME = '일반수송')) PLAN_TYPE
+		          FROM    DUAL
+		          ) AS PLAN_TYPE
+		        , '$!{trans_start}'   TRANS_DATE
+		        , '$!{tgt_loc}'       TGT_LOC
+		        , '$!{src_loc}'       SRC_LOC		-- 수정된 출고장 코드
+		        , (
+		          -- 입고장, 출고장, 수송일자가 중복되면, MAX TRUCK_SEQ에 1을 더해서 UPDATE함.
+		          SELECT  TO_CHAR(NVL(MAX(TO_NUMBER(TP.TRUCK_SEQ)),0)+1) SEQ
+		          FROM    TRANS_PLAN TP
+		          WHERE   TP.VERSION = '$!{version}'
+		          AND     TP.SEQ = '$!{seq}'
+		          AND     TP.SRC_LOC = '$!{src_loc}'    -- NULL 이면 안됨.
+		          AND     TP.TGT_LOC = '$!{tgt_loc}'
+		          AND     TP.TRANS_DATE = TO_DATE('$!{trans_start}','YYYY-MM-DD') 
+		          ) AS TRUCK_SEQ
+		        , '$!{item_id}'     ITEM_ID
+		        , '$!{item_name}'   DESCRIPTION
+		        , NVL(TO_NUMBER(REPLACE('$!{box_qty}', ',', '')), 0)  BASE_STK_QTY
+		        , NVL(TO_NUMBER(REPLACE('$!{plt_qty}', ',', '')), 0)  BASE_STK_PLT
+		        , 0                 ADD_STK_QTY
+		        , 0                 ADD_STK_PLT
+		        , 0                 PROD_QTY
+		        , 0                 PROD_PLT
+		        , 'AD'              MADE_TYPE
+		        , SYSDATE           MADE_DTTM
+		        , '$!{_user_id}'    MADE_BY
+		FROM    DUAL
+		WHERE   '$!{plan_update_flag}' IS NOT NULL  -- NULL이면 수정되지 않은 경우, Y이면 값이 수정된 경우.
+		AND     '$!{src_loc}'          IS NOT NULL  -- NULL이면 값이 없는 상태임.
+		AND     NVL(TO_NUMBER(REPLACE('$!{box_qty}', ',', '')), 0) &lt;&gt; 0 -- 0 이면 이미 삭제된 데이타 이므로 입력하지 않아도됨.
+	</query>
+	
+	<!-- 3. STOCK_PLAN UPDATE : 출고장기준 : 기존값 -->
+	<query id="rp_01120_outOrderAdjust_list_save_03" fix="version seq item_id trans_start _user_id"
+		   iterator="plan_update_flag old_src_loc old_box_qty">
+		/* 수정되기전 값으로 STOCK_PLAN 반영 (출고장 기준) */
+		/* 기존 수송계획이 삭제되므로 출고장에 기존 수량을 더해야함.(old_box_qty) */
+		UPDATE  STOCK_PLAN
+		SET     STOCK_QTY = NVL(STOCK_QTY,0) + NVL(TO_NUMBER(REPLACE('$!{old_box_qty}', ',', '')), 0)
+		WHERE   '$!{plan_update_flag}' IS NOT NULL  -- NULL이면 수정되지 않은 경우, Y이면 값이 수정된 경우.
+		AND     VERSION =   '$!{version}'
+		AND     SEQ     =   '$!{seq}'
+		AND     LOC_ID  =   '$!{old_src_loc}'
+		AND     ITEM_ID =   '$!{item_id}'
+		AND     STOCK_DATE >= TO_DATE('$!{trans_start}','YYYY-MM-DD') --출고장은 금일 발송
+	</query>
+	
+	<!-- 4. STOCK_PLAN UPDATE : 출고장기준 : 수정값 -->
+	<query id="rp_01120_outOrderAdjust_list_save_04" fix="version seq item_id trans_start _user_id"
+		   iterator="plan_update_flag src_loc box_qty">
+		/* 수정된 후의 값으로 STOCK_PLAN 반영(출고장 기준) */
+		/* 새로운 수송계획이 추가되었으므로 출고장에 새로운 수량을 빼야함 (box_qty) */
+		UPDATE  STOCK_PLAN
+		SET     STOCK_QTY = NVL(STOCK_QTY,0) - NVL(TO_NUMBER(REPLACE('$!{box_qty}', ',', '')), 0)
+		WHERE   '$!{plan_update_flag}' IS NOT NULL  -- NULL이면 수정되지 않은 경우, Y이면 값이 수정된 경우.
+		AND     VERSION =   '$!{version}'
+		AND     SEQ     =   '$!{seq}'
+		AND     LOC_ID  =   '$!{src_loc}'
+		AND     ITEM_ID =   '$!{item_id}'
+		AND     STOCK_DATE >= TO_DATE('$!{trans_start}','YYYY-MM-DD') -- 출고장은 금일 발송
+	</query>
+	
+	<!-- 5. STOCK_PLAN UPDATE : 입고장기준 : 기존값, 수정값 -->
+	<query id="rp_01120_outOrderAdjust_list_save_05" fix="version seq item_id trans_start _user_id"
+		   iterator="plan_update_flag tgt_loc box_qty old_box_qty">
+		/* 수정되기전 값과 수정된 후의 값으로 STOCK_PLAN 반영 (입고장 기준) */
+		/* 기존 수송계획 값은  입고장에 빼고(old_box_qty), 새로운 계획 수량은 더해줌. */
+		UPDATE  STOCK_PLAN
+		SET     STOCK_QTY = NVL(STOCK_QTY,0) - NVL(TO_NUMBER(REPLACE('$!{old_box_qty}', ',', '')), 0)
+		                                     + NVL(TO_NUMBER(REPLACE('$!{box_qty}', ',', '')), 0)
+		WHERE   '$!{plan_update_flag}' IS NOT NULL  -- NULL이면 수정되지 않은 경우, Y이면 값이 수정된 경우.
+		AND     VERSION =   '$!{version}'
+		AND     SEQ     =   '$!{seq}'
+		AND     LOC_ID  =   '$!{tgt_loc}'
+		AND     ITEM_ID =   '$!{item_id}'
+		AND     STOCK_DATE > TO_DATE('$!{trans_start}','YYYY-MM-DD')
+	</query>
+	
+	<!-- 6. TRANS_UNIT UPDATE -->
+	<query id="rp_01120_outOrderAdjust_list_save_06" fix="item_id _user_id"
+		   iterator="unit_update_flag tgt_loc min_trans_qty">
+		/* TRANS_UNIT 반영, 존재하면 UPDATE */
+		UPDATE  TRANS_UNIT
+		SET     MIN_PICK_QTY    =   TO_NUMBER('$!{min_trans_qty}'),
+				MADE_TYPE		=	'UP',
+				MADE_DTTM		=	SYSDATE,
+				MADE_BY			=	'$!{_user_id}'
+		WHERE   '$!{unit_update_flag}' IS NOT NULL  -- 수송 최소 수량이 변경된 경우..
+		AND     RDC_ID          =   '$!{tgt_loc}'
+		AND     ITEM_ID         =   '$!{item_id}'
+		AND     EXISTS  (
+		            SELECT  RDC_ID
+		            FROM    TRANS_UNIT
+		            WHERE   RDC_ID  =   '$!{tgt_loc}'
+		            AND     ITEM_ID =   '$!{item_id}'
+		        )
+	</query>
+	
+	<!-- 7. TRANS_UNIT INSERT -->
+	<query id="rp_01120_outOrderAdjust_list_save_07" fix="item_id _user_id"
+		   iterator="unit_update_flag tgt_loc min_trans_qty">
+		/* TRANS_UNIT 반영, 존재하지 않으면 INSERT */
+		INSERT  INTO TRANS_UNIT
+		        ( RDC_ID, ITEM_ID, MIN_PICK_QTY, MADE_TYPE, MADE_DTTM, MADE_BY )
+		SELECT  '$!{tgt_loc}'       RDC_ID,
+		        '$!{item_id}'       ITEM_ID,
+		        TO_NUMBER('$!{min_trans_qty}')       MIN_PICK_QTY,
+		        'AD'                MADE_TYPE,
+		        SYSDATE             MADE_DTTM,
+		        '$!{_user_id}'      MADE_BY
+		FROM    DUAL
+		WHERE   '$!{unit_update_flag}' IS NOT NULL  -- 수송 최소 수량이 변경된 경우..
+		AND		NOT EXISTS(
+		           SELECT ITEM_ID
+		           FROM   TRANS_UNIT
+		           WHERE  RDC_ID   = '$!{tgt_loc}'
+		           AND    ITEM_ID  = '$!{item_id}'
+		        )
+	</query>
+	
+	<!-- 8. STOCK_POLICY_QTY UPDATE -->
+	<query id="rp_01120_outOrderAdjust_list_save_08" fix="item_id _user_id"
+		   iterator="safe_update_flag tgt_loc safe_qty old_safe_qty">
+		UPDATE  STOCK_POLICY_QTY
+		SET     CAMP_STOC   =   (-- ( 수정된 안전재고 - 기존 안전재고 +  기존 임시재고 = 수정된 임시재고 )
+		                        SELECT  NVL(TO_NUMBER(REPLACE('$!{safe_qty}', ',', '')),0) 
+		                                -   NVL(TO_NUMBER(REPLACE('$!{old_safe_qty}', ',', '')),0) 
+		                                +   NVL(PY.CAMP_STOC,0)        
+		                        FROM    STOCK_POLICY_QTY PY,
+		                                (SELECT     MAX(WORK_DATE) WORK_DATE
+		                                 FROM       STOCK_POLICY_QTY
+		                                 WHERE      LOC_TYPE = 'DC'
+		                                ) MV
+		                        WHERE   PY.WORK_DATE = MV.WORK_DATE
+		                        AND     PY.ITEM_ID     = '$!{item_id}'
+		                        AND     PY.LOC_ID      = '$!{tgt_loc}'
+		                        ),
+		        MADE_TYPE		=	'UP',
+				MADE_DTTM		=	SYSDATE,
+				MADE_BY			=	'$!{_user_id}'
+		WHERE   '$!{safe_update_flag}' IS NOT NULL
+		AND     WORK_DATE   =   (SELECT     MAX(WORK_DATE) WORK_DATE
+		                         FROM       STOCK_POLICY_QTY
+		                         WHERE      LOC_TYPE = 'DC'
+		                        )
+		AND     ITEM_ID     =   '$!{item_id}'
+		AND     LOC_ID      =   '$!{tgt_loc}'
+	</query>
+	
+	<!-- 출고물량조회 및 조정 : 차기버전 계획반영(생성) -->
+	<!-- 1. TRANS_PLAN DELETE -->
+	<query id="rp_01120_outOrderAdjust_list_create_01">
+		/* 차기버전 계획이 존재하면 삭제, 차기버전 : 오늘날짜.00.00 (EX. 20081024.00.00) */
+		DELETE  TRANS_PLAN
+		WHERE   VERSION = (SELECT TO_CHAR(SYSDATE,'YYYYMMDD')||'.00.00' VERSION FROM DUAL)
+		AND     SEQ     = '2'
+		AND		ITEM_ID = '$!{item_id}'
+	</query>
+	
+	<!-- 2. TRANS_PLAN INSERT -->
+	<query id="rp_01120_outOrderAdjust_list_create_02" fix="item_id item_name trans_start _user_id"
+		   iterator="src_loc tgt_loc box_qty plt_qty">
+		/* PLT, BOX 수량이 있는 것만 새로 추가. */
+        INSERT  INTO TRANS_PLAN
+                (VERSION, SEQ, PLAN_TYPE, TRANS_DATE, 
+                 TGT_LOC, SRC_LOC, TRUCK_SEQ, ITEM_ID, DESCRIPTION,
+                 BASE_STK_QTY, BASE_STK_PLT, ADD_STK_QTY, ADD_STK_PLT,
+                 PROD_QTY, PROD_PLT, MADE_TYPE, MADE_DTTM, MADE_BY)
+        SELECT  MV.VERSION
+                ,MV.SEQ
+                , (SELECT  CD       -- 다른경우, 일반수송 : ZM1
+                   FROM    CODE_MST 
+                   WHERE   CD_GRP='PLAN_TYPE'
+                   AND     CD_NAME = '일반수송'
+                   ) PLAN_TYPE
+                , '$!{trans_start}'   TRANS_DATE
+                , '$!{tgt_loc}'       TGT_LOC
+                , '$!{src_loc}'       SRC_LOC        -- 수정된 출고장 코드
+                , (
+                  -- 입고장, 출고장, 수송일자가 중복되면, MAX TRUCK_SEQ에 1을 더해서 UPDATE함.
+                  SELECT  TO_CHAR(NVL(MAX(TO_NUMBER(TP.TRUCK_SEQ)),0)+1) SEQ
+                  FROM    TRANS_PLAN TP,
+                          (SELECT    TO_CHAR(SYSDATE,'YYYYMMDD')||'.00.00' VERSION, '2' SEQ 
+                           FROM      DUAL 
+                          ) MV
+                  WHERE   TP.VERSION = MV.VERSION
+                  AND     TP.SEQ = MV.SEQ
+                  AND     TP.SRC_LOC = '$!{src_loc}'    -- NULL 이면 안됨.
+                  AND     TP.TGT_LOC = '$!{tgt_loc}'
+                  AND     TP.TRANS_DATE = TO_DATE('$!{trans_start}','YYYY-MM-DD') 
+                  ) AS TRUCK_SEQ
+                , '$!{item_id}'     ITEM_ID
+                , '$!{item_name}'   DESCRIPTION
+                , NVL(TO_NUMBER(REPLACE('$!{box_qty}', ',', '')), 0)  BASE_STK_QTY
+                , NVL(TO_NUMBER(REPLACE('$!{plt_qty}', ',', '')), 0)  BASE_STK_PLT
+                , 0                 ADD_STK_QTY
+                , 0                 ADD_STK_PLT
+                , 0                 PROD_QTY
+                , 0                 PROD_PLT
+                , 'AD'              MADE_TYPE
+                , SYSDATE           MADE_DTTM
+                , '$!{_user_id}'    MADE_BY
+        FROM    DUAL,
+                (SELECT    TO_CHAR(SYSDATE,'YYYYMMDD')||'.00.00' VERSION, '2' SEQ 
+                 FROM      DUAL 
+                ) MV
+        WHERE   '$!{src_loc}'          IS NOT NULL  -- NULL이면 값이 없는 상태임.
+        AND     NVL(TO_NUMBER(REPLACE('$!{box_qty}', ',', '')), 0) &lt;&gt; 0 -- 0 이면 이미 삭제된 데이타 이므로 입력하지 않아도됨.
+	</query>
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</queries>

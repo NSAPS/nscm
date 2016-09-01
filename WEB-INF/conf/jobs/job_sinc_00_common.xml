@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+<!--
+=====================================================================================================
+	공통 POPUP
+=====================================================================================================
+-->
+	
+	<!--
+	======================================================================
+		CODE SEARCH POPUP
+	======================================================================
+	-->
+	
+	<!-- CODE SEARCH POPUP : PAGING -->
+	<!-- 코드 검색 일반 : 코드-코드명 --> 
+	<job id="code_search_popup" job_type="single">
+		<path>/sinc/00.common</path>
+		<navigation>코드 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>코드 조회</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="code_search_popup" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- ITEM SEARCH POPUP : PAGING --> 
+	<job id="item_search_popup" job_type="single">
+		<path>/sinc/00.common</path>
+		<navigation>제품 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>제품 조회</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="item_type_list" datasource="t3sinc"/> <!-- 품목 타입 구분 -->
+			<query idref="item_search_popup" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- ITEM SEARCH POPUP : PAGING : 수송계획조회 및 조정 화면 용 -->
+	<job id="item_search_popup_for_trans" job_type="single">
+		<path>/sinc/00.common</path>
+		<navigation>제품 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>제품 조회</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="item_type_list" datasource="t3sinc"/> <!-- 품목 타입 구분 -->
+			<query idref="item_search_popup_for_trans" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	
+	<!-- ITEM SEARCH POPUP : PAGING : 멀티포장 동시제약 화면 용 -->
+	<job id="item_search_popup_for_simul" job_type="single">
+		<path>/sinc/00.common</path>
+		<navigation>제품 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>제품 조회</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="plant_name_list" datasource="t3sinc"/> <!--공장 이름 리스트 -->			
+			<query idref="item_search_popup_for_simul" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- ITEM SEARCH POPUP : PAGING : 공장 할당 정책 화면 용 --><!-- 추가 -->
+	<job id="item_search_popup_for_plant_alloc" job_type="single">
+		<path>/sinc/00.common</path>
+		<navigation>코드 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>코드 조회</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="item_search_popup_for_plant_alloc" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- ITEM SEARCH POPUP : PAGING : 월간 생산 계획 조회 화면 용 --><!-- 추가 -->
+	<job id="item_search_popup_for_monthly" job_type="single">
+		<path>/sinc/00.common</path>
+		<navigation>코드 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>코드 조회</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="item_search_popup_for_monthly" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+<!--
+=====================================================================================================
+	LOG 저장 관련
+=====================================================================================================
+-->
+	
+	<!--
+	======================================================================
+		INSERT TYPE JOB ERROR 발생 시, service_id 표시를 위한 service_id 저장 
+	======================================================================
+	-->
+	
+	<!-- SET SERVICE ID -->
+	<job id="set_service_id" job_type="single" check_permission="no">
+		<path>/sinc/00.common</path>
+		<navigation>iframe</navigation>
+		<toolbars>0000</toolbars>
+		<title>SET SERVICE ID</title>
+		<authority>1</authority>		
+		<description>setServiceID</description>
+		<request_type>forward</request_type>
+	</job>
+
+<!--
+=====================================================================================================
+	컨트롤보드 기준정보 조회
+=====================================================================================================
+-->
+	
+	<!--
+	======================================================================
+		판매계획
+	======================================================================
+	-->
+	
+	<!-- 일간판매계획 조회 --> 
+	<job id="nfosSalesPlanWeekly_list" job_type="single">
+		<target>md_09010_nfosSalesPlanWeekly_list</target>
+		<path>/sinc/70.MasterData</path>
+		<navigation>일간판매계획 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>일간판매계획 조회</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="mon_plan_list" datasource="t3sinc"/>
+			<query idref="mon_plan_version_list" datasource="t3sinc"/>
+			<query idref="sale_loc_list" datasource="t3sinc"/>
+			<query idref="del_loc_list" datasource="t3sinc"/>	
+			<query idref="date_list" datasource="t3sinc"/>		
+			<query idref="md_09010_nfosSalesPlanWeekly_list" datasource="t3sinc"/> <!-- 페이징 기준위해  맨 아래 둘것 -->
+		</queries>
+	</job>
+	
+	<!-- 월간판매계획 조회 --> 
+	<job id="nfosSalesPlanMonthly_list" job_type="single">
+		<target>md_09020_nfosSalesPlanMonthly_list</target>
+		<path>/sinc/70.MasterData</path>
+		<navigation>월간판매계획 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>월간판매계획 조회</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="month_version_seq_list" datasource="t3sinc"/>
+			<query idref="month_sale_list" datasource="t3sinc"/>
+			<query idref="month_deliv_list" datasource="t3sinc"/>
+			<query idref="month_list" datasource="t3sinc"/>
+			<query idref="md_09020_nfosSalesPlanMonthly_list" datasource="t3sinc"/> <!-- 페이징 기준위해  맨 아래 둘것 -->			
+		</queries>
+	</job>
+	
+	
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</jobs>	

@@ -1,0 +1,231 @@
+############################################################
+## 프로그램ID      : ip_02090_hawastockSupportPlan_list.vm
+## 프로그램명      : 상품 재고 보충계획 생성화면 (신규)
+## 변경자            : 우종균
+## 개발일자        : 2012-11-26 수요일
+##
+## 관련 job file   : job_sinc_10_inventoryPlanning_03.xml
+## 관련 query file : query_sinc_10_inventoryPlanning_03.xml
+##        
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2011-11-23  우종균              Develop   
+##
+## CODE_MST   실행구분  : ACT_GUBN
+##			    변경사유  : LaticeGrid -> WiseGrid로 SourceCode 변경
+############################################################ 
+
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setGridAutoResize('150', '197')" )
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						#button("search")
+						#toolbar_nscm($_moon_toolbar "" "" "" "")
+						
+						##<input type="button" name="btnAlloc" value="  할당" onClick="GoAlloc();" class="btn_on_01" >						
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; " id="search_menu">
+							<tr>
+								<td width="100px" align="right">
+            						센터구분 :
+            					</td>
+            					<td width="50px" align="left">   
+									<select name="dc_id" >
+										<option value="">전체</option>
+									#foreach( $tr in $cdc_rdc_list)
+										<option value="${tr.get(0)}" 
+											#if( "$!{dc_id}" == "${tr.get(0)}" ) selected #end)>${tr.get(1)}</option>
+									#end
+									</select>
+            					</td>
+								
+								<td width="80px" align="right">
+            						담당별 :
+            					</td>
+								<td width="50px" align="right">									
+								<select name="scm_charge" > ## onChange="doChange2(this);" 
+										#foreach( $condition in $rp_01160_SCM_CHARGE_list )
+								<option value="$condition.get(0)" #if( "$!{_user_id}" == "$condition.get(0)" ) selected #end  >$condition.get(1)</option>
+										#end
+								</select>
+								</td>	
+								
+								<td width="80px" align="right">
+            						품종구분 :
+            					</td>  
+            					<td width="80px" align="left">
+									<select name="sales_cat_02" style="width:80px; ">
+										##<option value="99999999999">선택</option>
+										<option value="">전체</option>
+									#foreach( $tr in $ip_01040_cat02 ) 
+										<option value="${tr.get(0)}" 
+											#if( "$!{sales_cat_02}" == "${tr.get(0)}" ) selected #end)>${tr.get(1)}</option>
+									#end
+									</select>
+            					</td>															
+								<td width="80px" align="right">
+            						품 목 :
+            					</td>
+								<td>
+									<input name="item_id" class="normal" style="width:70px; " onChange="getItemName(this); "
+										onkeypress="enterCheck('${_moon_service}'); " value="$!{item_id}">
+									<input name="item_name" class="normal" readOnly style="width:230px; " value="$!{item_name}"><img
+										name="imgItem" src="sinc/template/basic/skin/nongshim/images/common/icon_search.gif"
+										align="absmiddle" border="0" style="cursor:pointer;"  
+										onClick="openCodeSearchPop('item_id', 'item_name', '400', '300'); ">
+								</td>
+								<td></td>
+							</tr>
+							<tr>
+								<td width="100px" align="right">
+            						발주량 산정기준 :
+            					</td>
+            					<td width="50px" align="left">   
+									<select name="in_mean_sell">
+            							<option value="01" #if( "$!{in_mean_sell}" == "01" ) selected #end >1주평균</option>
+            							<option value="02" #if( "$!{in_mean_sell}" == "02" ) selected #end >3주평균</option>
+            							<option value="03" #if( "$!{in_mean_sell}" == "03" ) selected #end >전월기준</option>
+            							<option value="03" #if( "$!{in_mean_sell}" == "04" ) selected #end >3개월 월평균</option>
+            						</select>
+									##&nbsp;
+								</td>		
+								<td width="80px" align="right">
+                                    	재고일수 :
+                                </td>  
+                                <td width="20px" align="left">
+                                	<input type="text" name="stock_day" size="20" class="normal" onKeyPress="enterCheck('$_moon_service'); " 
+                                	style="width:40px; padding-left:1px; " onBlur="strCheck(); " onClick="select(); " 
+                                	onChange="strCheck(this); " value="$commonUtil.replaceQuot($!{stock_day})">
+                                </td>
+								
+            					<td width="70px" align="right">
+            						D+:
+            					</td> 
+            					<td width="60px" align="left">
+									<select name="d_day">
+                              			<option value="1"  #if( "$!{d_day}" == "1") selected #end>1일</option>
+                              			<option value="2"  #if( "$!{d_day}" == "2") selected #end>2일</option>
+                              			<option value="3"  #if( "$!{d_day}" == "3") selected #end>3일</option>
+                              			<option value="4"  #if( "$!{d_day}" == "4") selected #end>4일</option>
+                              			<option value="5"  #if( "$!{d_day}" == "5") selected #end>5일</option>
+                              			<option value="6"  #if( "$!{d_day}" == "6") selected #end>6일</option>
+									</select>
+            					</td>
+								
+								<td width="80px" align="right">
+                                    	발주량 계산 :
+								</td>
+								<td>
+									<input type="radio" name="in_trans_unit"  style="border:10px; " value="box"checked="on" >BOX</intput>
+									<input type="radio" name="in_trans_unit"  style="border:10px; " value="pal" >PL</intput>									
+									&nbsp;&nbsp;
+									<input type="button" name="btnAlloc" value="예상발주량"  style="width:60px; text-align:right;"onClick="GoAlloc();" class="button1_1">
+								&nbsp;
+								C/D연산
+									<input name="chk_sel_20" type="checkbox" class="normal" style="background-color:#f2f2f2; border:0;" >
+									<input type="button" name="btnAlloc" value="CD계산"  style="width:60px; text-align:right;"onClick="CD_Cal();" class="button1_1">		
+								</td>
+								##<td align="left">
+									##<input type="button" name="btnAlloc" value="합계" onClick="Tot_Cal();" class="button1_1">
+								##</td>
+								##<td >
+									##<input type="button" name="btnAlloc" value="예상발주량"  style="width:60px; text-align:right;"onClick="GoAlloc();" class="button1_1">
+								##</td>
+											
+								##<td align="left">
+									##<input type="button" name="btnAlloc" value="발주량배정" onClick="GoAlloc2();" class="button1_1">
+								##</td>			
+
+								
+								##<td width="80px" align="left">
+									##재고버전
+        						
+        						##수송계획버젼
+        					##	<a id="divVersion"> 
+            						##<select name="plan_version" style="width:130px; " >
+            							##<option value="">선택</option>									
+            						##</select>		
+        						##</a>
+								##<input type="hidden" name="version" value="$!{version}">
+								##<input type="hidden" name="seq" value="$!{seq}">
+								##</td>
+							</tr>
+							
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="23"> ## search 조건 부분 높이 
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	
+	 <tr>
+        <td valign="top">
+        ## tab 좌측 여백
+        ##tabLeft()               
+            
+            <table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>                    
+
+            <table name="grid" width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+                <tr>
+                    <td align="left" width="100%" >
+                        <script>initWiseGrid("WiseGrid", "100%", "100%");</script>
+                    </td>
+				</tr>
+            </table> 
+            
+            <table height="5"><tr><td></td></tr></table>
+            <table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+                <input type="hidden" name="_moon_service" value="${_moon_service}">
+                <input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+                <input type="hidden" name="_user_id" value="$!{_user_id}">
+            </td></tr></table>
+            
+            </td></tr></table>
+            
+        </td>
+    </tr>
+</table>
+
+<script>
+    
+    // 화면 resize
+    $!{resizeFuncCallCode};
+    function window.onresize() { $!{resizeFuncCallCode}; }
+    
+    // 도움말 내용 입력
+    var helpStr = "◈ Job Change 시간 ";    
+    helpCont.innerHTML = helpStr;
+    hDynamicHeight = 0; 
+           
+</script> 
+					
+

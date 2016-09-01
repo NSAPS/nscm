@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="euc-kr"?>
+<jobs>
+
+<!--
+=====================================================================================================
+	게시판 
+=====================================================================================================
+-->
+	
+	<!-- 
+	=======================
+		게시판조회/작성
+	=======================
+	-->
+	
+	<!-- 게시판 리스트 조회 -->
+	<job id="moon_board_list" job_type="single" refresh="false">
+		<path>/sinc/00.board</path>
+		<navigation>게시판 >> 게시판</navigation>
+		<toolbars>1000</toolbars>
+		<title>게시판 조회</title>
+		<authority>1</authority>
+		<description>게시판 조회</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="moon_board_title"  	datasource="t3sinc"/>
+			<query idref="moon_board_list"  	datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 자유 게시판 리스트 조회 -->
+	<job id="moon_board_list_free_board" job_type="single" refresh="false">
+		<path>/sinc/00.board</path>
+		<target>moon_board_list</target>
+		<navigation>게시판 >> 자유게시판</navigation>
+		<toolbars>1000</toolbars>
+		<title>자유게시판 조회</title>
+		<authority>1</authority>		
+		<description>자유게시판 조회</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="moon_board_title"  	datasource="t3sinc"/>
+			<query idref="moon_board_list"  	datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 게시판 상세 조회 : 조회수 UPDATE 후 게시물 조회 -->
+	<job id="moon_board_detail_s" job_type="composite">
+		<sub_job id="moon_board_list_count"/>
+		<sub_job id="moon_board_detail_list"/>
+		<permission_desc>게시물 조회</permission_desc>
+	</job>
+	
+	<!-- 조회수 UPDATE -->
+	<job id="moon_board_list_count" job_type="single">
+		<request_type>insert</request_type>
+		<queries>                  
+			<query idref="moon_board_list_count" datasource="t3sinc"/>
+		</queries>                 
+	</job>
+	
+	<!-- 게시판 상세 조회 -->
+	<job id="moon_board_detail_list" job_type="single" refresh="true">
+		<path>/sinc/00.board</path>
+		<target>moon_board_detail</target>
+		<navigation>게시판 >> 게시판 >> 게시판 상세</navigation>
+		<toolbars>0011</toolbars>
+		<title>게시판 상세</title>
+		<authority>1</authority>		
+		<description>게시판 상세</description>		
+		<request_type>list</request_type>		
+		<queries>
+			<query idref="moon_board_detail" datasource="t3sinc"/>
+			<query idref="moon_board_memo_list" datasource="t3sinc"/>
+			<query idref="moon_board_file" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 게시판 메모(댓글) 등록 -->
+	<job id="moon_memo_register" job_type="composite">
+		<sub_job id="moon_board_memo_reg"/>
+		<sub_job id="moon_board_detail_list"/>
+		<permission_desc>게시판 메모(댓글)-저장</permission_desc>
+	</job>
+
+	<job id="moon_board_memo_reg" job_type="single">
+		<request_type>insert</request_type>
+		<queries>                  
+			<query idref="moon_memo_register" datasource="t3sinc"/>
+		</queries> 		
+	</job>
+	
+	<!-- 게시판 메모(댓글) 삭제 -->
+	<job id="moon_board_memo_del" job_type="composite">
+		<sub_job id="moon_board_memo_del_action"/>
+		<sub_job id="moon_board_detail_list"/>
+		<permission_desc>게시판 메모(댓글)-삭제</permission_desc>
+	</job>
+
+	<job id="moon_board_memo_del_action" job_type="single">
+		<request_type>insert</request_type>
+		<queries>                  
+			<query idref="moon_board_memo_del_action" datasource="t3sinc"/>
+		</queries> 		
+	</job>
+	
+	<!-- 게시판 첨부 파일 download -->
+	<job id="moon_board_file_download" job_type="composite">
+		<sub_job id = "moon_board_file_download_sub"/>
+		<sub_job id = "moon_board_download_count"/>
+		<permission_desc>게시판 첨부파일 다운로드</permission_desc>
+	</job>
+	
+	<job id="moon_board_file_download_sub" job_type="single">
+		<request_type>filedownload</request_type>
+		<queries>
+			<sequence idref="moon_board_file_download"  datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- DOWNLOAD COUNT UPDATE -->
+	<job id="moon_board_download_count" job_type="single">
+		<request_type>insert</request_type>
+		<queries>                  
+			<query idref="moon_board_download_count"  datasource="t3sinc"/>
+		</queries>                 
+	</job>
+	
+	<!-- 게시판 작성 -->
+	<job id="moon_board_write" job_type="single">
+		<path>/sinc/00.board</path>
+		<navigation>게시판 >> 게시판 >> 게시판 작성</navigation>
+		<toolbars>0100</toolbars>
+		<title>게시판 작성</title>
+		<authority>1</authority>		
+		<description>게시판 작성</description>		
+		<request_type>list</request_type>
+		<queries/>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+	</job>	
+	
+	<!-- 게시판 작성 : 저장 -->
+	<job id="moon_board_save" job_type="composite">
+		<sub_job id="moon_board_insert"/>
+		<sub_job id="moon_board_list"/>
+		<permission_desc>게시판 작성-저장</permission_desc>
+	</job>
+	
+	<!-- 자유 게시판 작성 : 저장 -->
+	<job id="moon_board_save_free_board" job_type="composite">
+		<sub_job id="moon_board_insert"/>
+		<sub_job id="moon_board_list_free_board"/>
+		<permission_desc>자유게시판 작성-저장</permission_desc>
+	</job>
+
+	<job id="moon_board_insert" job_type="single">
+		<request_type>upload_insert</request_type>
+		<queries> 
+			<query idref="moon_board_insert"  datasource="t3sinc"/>
+			<query idref="moon_board_insert2"  datasource="t3sinc"/>
+			<query idref="moon_board_file_insert"  datasource="t3sinc"/>
+		</queries>                 
+	</job>
+	
+	<!-- 게시판 수정 -->
+	<job id="moon_board_modify" job_type="single">
+		<path>/sinc/00.board</path>
+		<navigation>게시판 >> 게시판 >> 게시판 수정</navigation>
+		<toolbars>0100</toolbars>
+		<title>게시판 수정</title>
+		<authority>1</authority>		
+		<description>게시판 수정</description>		
+		<request_type>list</request_type>
+		<queries>                  
+			<query idref="moon_board_detail" datasource="t3sinc"/>
+		</queries> 
+	</job>
+	
+	<!-- 게시판 수정 : 저장 -->
+	<job id="moon_board_mod_save" job_type="composite">
+		<sub_job id="moon_board_modify_update"/>
+		<sub_job id="moon_board_detail_list"/>
+		<permission_desc>게시판 수정-저장</permission_desc>
+	</job>
+
+	<job id="moon_board_modify_update" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="moon_board_modify_update"  datasource="t3sinc"/>
+			<query idref="moon_board_modify_update2"  datasource="t3sinc"/>
+		</queries> 
+	</job>
+	
+	<!-- 게시판 수정 : 삭제 -->
+	<job id="moon_board_delete" job_type="composite">
+		<sub_job id="moon_board_delete_action"/>
+		<sub_job id="moon_board_list"/>
+		<permission_desc>게시판 수정-삭제</permission_desc>
+	</job>
+	
+	<!-- 자유 게시판 수정 : 삭제 -->
+	<job id="moon_board_delete_free_board" job_type="composite">
+		<sub_job id="moon_board_delete_action"/>
+		<sub_job id="moon_board_list_free_board"/>
+		<permission_desc>자유게시판 수정-삭제</permission_desc>
+	</job>
+	
+	<job id="moon_board_delete_action" job_type="single">
+		<request_type>insert</request_type>
+		<queries>                  
+			<query idref="moon_board_delete"  datasource="t3sinc"/>
+			<query idref="moon_board_delete_comment"  datasource="t3sinc"/>
+			<query idref="moon_board_delete_file"  datasource="t3sinc"/>
+		</queries> 
+	</job>
+	
+	<!-- 게시판 답글 작성 -->
+	<job id="moon_board_reply" job_type="single">
+		<path>/sinc/00.board</path>
+		<navigation>게시판 >> 게시판 >> 답글 작성</navigation>
+		<toolbars>0100</toolbars>
+		<title>답글 작성</title>
+		<authority>1</authority>		
+		<description>답글 작성</description>		
+		<request_type>list</request_type>
+		<queries>                  
+			<query idref="moon_board_detail"  datasource="t3sinc"/>
+		</queries> 
+	</job>
+	
+	<!-- 게시판 답글 작성 : 저장 -->
+	<job id="moon_board_reply_save" job_type="composite">
+		<sub_job id="moon_board_reply_save_action"/>
+		<sub_job id="moon_board_list"/>
+		<permission_desc>게시판 답글작성-저장</permission_desc>
+	</job>
+	
+	<!-- 자유 게시판 답글 작성 : 저장 -->
+	<job id="moon_board_reply_save_free_board" job_type="composite">
+		<sub_job id="moon_board_reply_save_action"/>
+		<sub_job id="moon_board_list_free_board"/>
+		<permission_desc>자유게시판 답글작성-저장</permission_desc>
+	</job>
+
+	<job id="moon_board_reply_save_action" job_type="single">
+		<!--<request_type>insert</request_type>-->
+		<request_type>upload_insert</request_type>
+		<queries>                  
+			<query idref="moon_board_reply_step_board"  datasource="t3sinc"/>
+			<query idref="moon_board_reply_step_comment"  datasource="t3sinc"/>
+			<query idref="moon_board_reply_step_file"  datasource="t3sinc"/>
+			<query idref="moon_board_reply_file_insert"  datasource="t3sinc"/>
+			<query idref="moon_board_reply_content"  datasource="t3sinc"/>
+			<query idref="moon_board_reply_content2"  datasource="t3sinc"/>
+		</queries> 		
+	</job>
+	
+	<!-- 
+	=======================
+		게시판 관리
+	=======================
+	-->
+	
+	<!-- 게시판 관리 -->
+	<job id="moon_board_admin" job_type="single" refresh="false" check_permission="yes">
+		<path>/sinc/00.board</path>
+		<navigation>게시판 >> 게시판 관리</navigation>
+		<toolbars>1001</toolbars>
+		<title>게시판 관리</title>
+		<authority>1</authority>		
+		<description>게시판 관리</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="moon_board_admin"  datasource="t3sinc"/>
+		</queries> 
+	</job>
+	
+	<!-- 게시판 생성 -->
+	<job id="moon_board_admin_create" job_type="single" check_permission="yes">
+		<path>/sinc/00.board</path>
+		<navigation>게시판 >> 게시판 관리 >> 생성</navigation>
+		<toolbars>0100</toolbars>
+		<title>게시판 생성</title>
+		<authority>1</authority>		
+		<description>게시판 생성</description>		
+		<request_type>list</request_type>
+		<queries>                  
+			<query idref="moon_board_admin_secu_group" datasource="t3sinc"/>
+		</queries> 
+	</job>
+	
+	<!-- 게시판 생성 : 저장 -->
+	<job id="moon_board_admin_save" job_type="composite" check_permission="yes">
+		<sub_job id="moon_board_admin_create_save"/>
+		<sub_job id="moon_board_admin"/>
+		<permission_desc>게시판 생성-저장</permission_desc>
+	</job>
+
+	<job id="moon_board_admin_create_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>                  
+			<query idref="moon_board_admin_create_save" datasource="t3sinc"/>
+			<query idref="moon_board_secu_save" 		datasource="t3sinc"/>
+		</queries> 		
+	</job>
+	
+	<!-- 게시판 관리 : 상세 -->
+	<job id="moon_board_admin_detail" job_type="single" check_permission="yes">
+		<path>/sinc/00.board</path>
+		<navigation>게시판 >> 게시판 관리 >> 상세</navigation>
+		<toolbars>0011</toolbars>
+		<title>게시판 상세관리</title>
+		<authority>1</authority>		
+		<description>상세</description>		
+		<request_type>list</request_type>
+		<queries>                  
+			<query idref="moon_board_admin_detail"  	datasource="t3sinc"/>
+			<query idref="moon_board_admin_secu_detail" datasource="t3sinc"/>
+		</queries> 
+	</job>
+	
+	<!-- 게시판 관리 : 수정 -->
+	<job id="moon_board_admin_modify" job_type="single" check_permission="yes">
+		<path>/sinc/00.board</path>
+		<navigation>게시판 >> 게시판 관리 >> 수정</navigation>
+		<toolbars>0100</toolbars>
+		<title>게시판 상세수정</title>
+		<authority>1</authority>		
+		<description>게시판 상세수정</description>		
+		<request_type>list</request_type>
+		<queries>                  
+			<query idref="moon_board_admin_detail"  	datasource="t3sinc"/>
+			<query idref="moon_board_admin_secu_detail" datasource="t3sinc"/>
+		</queries> 
+	</job>
+	
+	<!-- 게시판 관리 : 수정 : 저장 -->
+	<job id="moon_board_admin_modsave" job_type="composite" check_permission="yes">
+		<sub_job id="moon_board_admin_modify_save"/>
+		<sub_job id="moon_board_admin"/>
+		<permission_desc>게시판 상세수정-저장</permission_desc>
+	</job>
+	<job id="moon_board_admin_modify_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="moon_board_admin_modify_save"  	datasource="t3sinc"/>
+			<query idref="moon_board_admin_mod_secu_del" 	datasource="t3sinc"/>
+			<query idref="moon_board_admin_mod_secu_save" 	datasource="t3sinc"/>
+		</queries> 		
+	</job>
+	
+	<!-- 게시판 관리 : 수정 : 삭제 -->
+	<job id="moon_board_admin_delete" job_type="composite" check_permission="yes">
+		<sub_job id="moon_board_admin_del_action"/>
+		<sub_job id="moon_board_admin"/>
+		<permission_desc>게시판 상세수정-삭제</permission_desc>
+	</job>	
+	<job id="moon_board_admin_del_action" job_type="single">
+		<request_type>insert</request_type>
+		<queries>                  
+			<query idref="moon_board_admin_del_action"  	datasource="t3sinc"/>          
+			<query idref="moon_board_admin_board_del"  	datasource="t3sinc"/>          
+			<query idref="moon_board_admin_memo_del"  	datasource="t3sinc"/>
+			<query idref="moon_board_admin_secu_del"  	datasource="t3sinc"/>
+		</queries> 		
+	</job>
+	
+	
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+-->
+
+</jobs>
+	

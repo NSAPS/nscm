@@ -1,0 +1,159 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+##set( $resizeFuncCallCode = "setGridAutoResize('117', '177')" )      
+##set( $resizeFuncCallCode = "setGridAutoResize('117', '177')" ) 
+#set( $resizeFuncCallCode = "setTabAutoResize('117')" )
+ 
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">   
+	## 기능 버튼 영역  
+	<tr>
+		<td height="25" align="right" >
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+				<tr>					
+					<td align="right">
+						#button("search")
+						#toolbar($_moon_toolbar "" "" "" "")
+					</td>
+				</tr>
+			</table> 
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr >            					
+            					<td width="10%" align="center" class="td1">계획 유형</td> 
+            					<td width="10%">  
+									<select name="selected_plan_type" style="width:100px; " onChange="doChangePlanType(this); ">
+            							<option value="">선택</option> 
+									#foreach( $condition in $err_analy_plan_type )
+										<option value="$condition.get(0)" #if( "$condition.get(0)" == "$!{selected_plan_type}") selected #end >$condition.get(1)</option>
+									#end 
+   									</select>		  							
+   								</td>
+								<td width="10%" align="center" class="td1">계획 명</td>  
+            					<td width="20%">  
+									<a id="divPlanName">
+                						<select name="selected_plan_name" style="width:150px; " onChange=""> 				 						
+                							<option value="">전체</option>										
+                						</select>
+									</a>
+            					</td>
+								<td width="15%" align="center" class="td1">수요예측 오류</td>   
+            					<td width="35%">
+									<select name="selected_error_type" style="width:100px; " onChange="">  
+										<option value="">선택</option>
+									#foreach( $condition in $err_analy_error_type )
+										<option value="$condition.get(0)" #if( "$condition.get(0)" == "$!{selected_error_type}") selected #end >$condition.get(0)</option>
+									#end
+									</select> 
+									<select name="selected_operation_mark" style="width:50px; " onChange=""> 
+										<option value="">선택</option>
+										<option #if( "$selected_operation_mark" == "<") selected #end value="<"><</option>
+										<option #if( "$selected_operation_mark" == "<=") selected #end value="<="><=</option>
+										<option #if( "$selected_operation_mark" == ">") selected #end value=">">></option> 
+										<option #if( "$selected_operation_mark" == ">=") selected #end value=">=">>=</option>
+										<option #if( "$selected_operation_mark" == "=") selected #end value="=">=</option>				
+									</select>  
+									<input name="selected_error_value" type="text" size="5" class="normal" value="$!{selected_error_value}" onKeyPress="checkNum(this, 'BLANK_INT_UP'); ">
+            					</td>
+            				</tr>
+							<tr>
+								<td class="td1" colspan=2>
+									<input name="checked_forecast" type="checkbox" class="normal" onClick="togle_checkbox(this)"
+										#if($checked_forecast) value="$checked_forecast" #else value="N" #end> 수요예측 미생성 만 
+								</td>								
+								<td width="10%"></td>
+								<td width="20%"></td>
+								<td width="15%"></td>
+								<td width="35%"></td>
+							</tr>								
+            			</table>						
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td> 
+	</tr>
+	<input name="search_h" type="hidden" value="100"> ## search 조건 부분 높이 
+	<tr><td height="5"></td></tr>  
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					##상세조회 iframe
+                   	<table id="gridArea" border="0" width="100%" cellpadding="0" cellspacing="0" height="100%">
+                   		<tr> 
+                   			<td valign="top">  
+                   				<iframe name="gridDetailInfo" height="100%" width="100%" border="0" frameSpacing="0" frameBorder="0" 
+                   					src="service.do?_moon_service=fc_04030_errorAnalySearchResult_list&amp;_moon_perpage=100&amp;_moon_pagenumber=1" 
+                   					scrolling="no" class="iframe">
+                   				</iframe>
+                   			</td>			 				
+                   		</tr>
+                   	</table>
+					<table height="5"><tr><td></td></tr></table>
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+						##$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+						<input type="hidden" name="_moon_service" value="${_moon_service}">
+						<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+						<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					</td></tr></table>
+					
+					## waiting 표시영역
+					##waitingArea()
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+		
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력  
+	var helpStr = "실측치 평균을 기준점으로 자료들이 얼마나 퍼져 있는지를 재는 측도입니다. 두 가지 비교대상의 차이가 얼마나 큰지를 나타냅니다.<br>"; 
+	helpStr += "◈MSE(평균제곱예측오차) : 예측모델에 의한 예측치와 실측치 사이의 오차에 대한 제곱의 평균.<br>"; 
+	helpStr += "◈MAPE(평균절대백분위예측오차) : 예측모델에 의한 예측치와 실측치 사이의 오차 평균.<br>";
+	helpStr += "◈MAD(평균절대편차) : 예측모델에 의한 예측치와 실측치 사이의 편차에 절대값을 취한 것의 평균.<br>"; 
+	helpStr += "◈TS(추적지표) : 예측 추적.<br>"; 
+	//helpStr += "◈TS(추적지표) : 전망치 평균 유지 여부를 나타냅니다. 예측 모니터 역할.<br>"; 
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;	
+	
+	// combo box:계획 유형 선택시 계획명 리스트 채움 
+	function doChangePlanType(obj){
+		var div_plan_name = "<select name=\"selected_plan_name\" style=\"width:150px; \"> ";	
+		div_plan_name += "<option  value=\"\">전체</option> ";
+   	#foreach( $condition in $err_analy_plan_name)  
+		if ( obj.value == "$condition.get(2)" ) { 
+			div_plan_name += "<option value=\"$condition.get(0)\"";
+			if("$condition.get(0)" == "$!{selected_plan_name}")
+				div_plan_name += " selected ";
+			div_plan_name += ">$condition.get(1)</option>"; 
+		}
+	#end
+   		div_plan_name += "</select>"; 
+   		divPlanName.innerHTML = div_plan_name;				
+	}
+	doChangePlanType(document.frm.selected_plan_type);
+			
+</script> 

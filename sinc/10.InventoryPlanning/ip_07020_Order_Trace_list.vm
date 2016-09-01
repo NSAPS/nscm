@@ -1,0 +1,175 @@
+############################################################
+## 프로그램ID      : ip_07020_Order_Trace_list.vm
+## 프로그램명      : SCM주문추적조회
+## 개발자          : 남웅용
+## 개발일자        : 2009-10-13
+##
+## 관련 job file   : job_sinc_10_inventoryPlanning_04.xml
+## 관련 query file : query_sinc_10_inventoryPlanning_04.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2009-10-13  남웅용      create
+##
+############################################################
+
+
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setGridAutoResize('79', '130')" )
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/scheduling.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+## 등록/수정 화면 이동한 후, 본 화면으로 이동할 때 조회조건을 기억하기 위한 parameter
+<input type="hidden" name="cd_grp_pre" value="$!{cd_grp}">
+<input type="hidden" name="perpage_pre" value="${_moon_perpage}">
+<input type="hidden" name="pagenumber_pre" value="$!{_moon_pagenumber}">
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+    ## 기능 버튼 영역
+    <tr>
+        <td height="25" align="right">
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+                <tr>
+                    <td align="right">
+                        #button("search")
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>    
+    ## 조회 영역
+    <tr>
+        <td width="100%" valign="top">
+            <table border="0" width="100%" cellpading="0" cellspacing="0">
+                <tr height="2">
+                    <td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+                </tr>
+                <tr>
+                    <td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+                    <td width="100%">
+                        <table border="0" width="100%" cellpading="0" cellspacing="0" id="search_menu" style="background-color:#f2f2f2; display:block; ">
+                            <tr>            
+								<td width="35%" align="left"> 
+    								조회기간 :&nbsp;
+									#date_sole_no_title( "in_fr_date" "10" "normal" "work_dateBtn" $commonUtil.toDate($date.get('yyyy-MM-dd'),'YYYY-MM-DD','DAY',0) )
+    								~
+    								#date_sole_no_title( "in_to_date" "10" "normal" "work_dateBtn2" $commonUtil.toDate($date.get('yyyy-MM-dd'),'YYYY-MM-DD','DAY',0) )
+								</td>	
+								<td width="40%" align="left">
+    								품목&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;
+									<input	type="text" name="in_item_id" class="normal" size="100" value="$!{in_item_id}"
+										onKeyDown="" onChange="getItemName(this);"
+										style="width:73PX; padding-right:5px; text-align:center; ">
+									<img name="imgItemId" tabindex="-1" 
+										src="sinc/template/basic/skin/nongshim/images/common/icon_search.gif" align="absmiddle" 
+										border="0" onClick="openItemPopup(); " style="cursor:pointer;"/>
+									<input	type="text" name="in_item_name" class="normal" size="100" value="$!{in_item_name}"
+										onKeyDown="" 
+										style="width:180PX; padding-right:5px; text-align:left; " readonly >	
+								</td>
+								<td width="25%" align="left">
+									입력시간 :&nbsp;
+									<select name="in_input_gubn">
+        								<option value="%" #if( "$!{in_input_gubn}" == "%" ) selected #end >전체</option>
+        								<option value="01" #if( "$!{in_input_gubn}" == "01" ) selected #end >18시이후</option>
+        								<option value="02" #if( "$!{in_input_gubn}" == "02" ) selected #end >17시이후</option>
+        							</select>
+								</td>
+                            </tr>
+                            <tr>
+								<td width="35%" align="left">
+									배송지점 :&nbsp;
+									<select name="tgt_loc_sel" style="width:80px; ">
+										<option value="%">전체</option> 
+									#foreach( $tr in $ip_07020_DC_list )
+										<option value="${tr.get(0)}" 
+											#if( "$!{tgt_loc_sel}" == "${tr.get(0)}" ) selected #end)>${tr.get(1)}</option>
+									#end
+									</select>									
+									영업지점 :&nbsp;
+									<select name="sales_list" style="width:130px; ">
+										<option value="%">전체</option> 
+									#foreach( $tr in $ip_07020_Sales_list)
+										<option value="${tr.get(0)}" 
+											#if( "$!{sales_list}" == "${tr.get(0)}" ) selected #end)>${tr.get(1)}</option>
+									#end
+									</select>									
+								</td>
+								<td width="40%" align="left">
+									전표구분 :&nbsp;
+									<select name="in_slip_gubn">
+        								<option value="%" #if( "$!{in_slip_gubn}" == "%" ) selected #end >전체</option>
+        								<option value="01" #if( "$!{in_slip_gubn}" == "01" ) selected #end >일반</option>
+        								<option value="02" #if( "$!{in_slip_gubn}" == "02" ) selected #end >회송</option>
+        								<option value="03" #if( "$!{in_slip_gubn}" == "03" ) selected #end >타계정</option>
+        								<option value="04" #if( "$!{in_slip_gubn}" == "04" ) selected #end >수출출고</option>
+        							</select>
+								</td>
+								<td width="25%" align="left">
+									마감구분 :&nbsp;
+									<select name="in_clos_gubn">
+        								<option value="01" #if( "$!{in_clos_gubn}" == "01" ) selected #end >전체</option>
+        								<option value="02" #if( "$!{in_clos_gubn}" == "02" ) selected #end >마감</option>
+        								<option value="03" #if( "$!{in_clos_gubn}" == "03" ) selected #end >마감전</option>
+        								<option value="04" #if( "$!{in_clos_gubn}" == "04" ) selected #end >마감수량차이</option>
+        							</select>
+								</td>
+                            </tr>
+                        </table> 
+                    </td>
+                    <td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+                </tr>
+                <tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+            </table>
+        </td> 
+    </tr>
+
+    <input name="search_h" type="hidden" value="45"> ## search 조건 부분 높이 
+    <tr><td height="1"></td></tr>
+    ## TAB 영역
+    <tr>
+        <td valign="top">
+        ## tab 좌측 여백
+        ##tabLeft()               
+            
+            <table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>                    
+
+            <table name="grid" width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+                <tr>
+                    <td align="left" width="100%" >
+                        <script>initWiseGrid("WiseGrid", "100%", "100%");</script>
+                    </td>
+				</tr>
+            </table> 
+            
+            <table height="5"><tr><td></td></tr></table>
+            <table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+                <input type="hidden" name="_moon_service" value="${_moon_service}">
+                <input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+                <input type="hidden" name="_user_id" value="$!{_user_id}">
+            </td></tr></table>
+            
+            </td></tr></table>
+            
+        </td>
+    </tr>
+</table>
+
+<script>
+    
+    // 화면 resize
+    $!{resizeFuncCallCode};
+    function window.onresize() { $!{resizeFuncCallCode}; }
+    
+    // 도움말 내용 입력
+    var helpStr = "◈ Job Change 시간 ";    
+    helpCont.innerHTML = helpStr;
+    hDynamicHeight = 0; 
+           
+</script> 

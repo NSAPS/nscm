@@ -1,0 +1,122 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setGridAutoResize('79', '180')" )
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+## WiseGrid에 mouse의 double click이 되었을때 이벤트가 발생한다. 
+
+
+<script language=javascript for="WiseGrid" event="CellDblClick(strColumnKey, nRow)">
+  GridCellDblClick(strColumnKey, nRow);
+  GridChangeCell(strColumnKey, nRow);
+  
+</script>
+<script language=javascript for="WiseGrid" event="HeaderClick(strColumnKey)">
+HeaderClick(strColumnKey);
+</script> 
+
+## WiseGrid의 컨텍스트 메뉴의 사용자 컨텍스트 메뉴를 클릭했을때 발생한다. 
+<script language=javascript for="WiseGrid" event="UserContextMenuClick(strMenuKey, strMenuItemKey, strColumnKey, nRow)">
+  	GridUserContextMenuClickHandler(strMenuKey, strMenuItemKey, strColumnKey, nRow);
+</script>
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr><td height="20"></td></tr>
+				<tr>
+					<td width="50%" align="left">
+    								유효납품일  :&nbsp;
+									#date_sole_no_title("in_cnfm_date" "10" "normal" "btnC" "$date.get('yyyy-MM-dd')")
+									##~ 
+									##date_sole_no_title("end_date" "10" "normal" "btnE" "$date.get('yyyy-MM-dd')")
+									###date_sole_no_title("end_date" "10" "normal" "btnE" "$commonUtil.toDate($date.get('yyyy-MM-dd'),'YYYY-MM-DD','DAY',40)")
+					</td>
+                	<td width="50%" align="right">
+						#button("search")
+						<input type="button" name="btnSave" 	value="  저장" onClick="GoSave();" class="btn_sav_on" >
+						<input type="button" name="btnDelete" 	value="  삭제" onClick="GoDelete();" class="btn1_on" >       
+							&nbsp;&nbsp;
+						<input type="button" name="btnOrder" 		value="  차수 정렬" onClick="Order();" class="btn2_on" >	
+						<input type="button" name="btnIf" 		value="  ERP 전송" onClick="GoIf();" class="btn2_on" >
+						
+						
+										
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; " id="search_menu">
+						
+						
+							
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="23"> ## search 조건 부분 높이 
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	
+	 <tr>
+        <td valign="top">
+        ## tab 좌측 여백
+        ##tabLeft()               
+            
+            <table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>                    
+
+            <table name="grid" width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+                <tr>
+                    <td align="left" width="100%" height="480px" >
+                        <script>initWiseGrid("WiseGrid", "100%", "100%");</script>
+                    </td>
+				</tr>
+            </table> 
+            
+            <table height="5"><tr><td></td></tr></table>
+            <table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+                <input type="hidden" name="_moon_service" value="${_moon_service}">
+                <input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+                <input type="hidden" name="_user_id" value="$!{_user_id}">
+            </td></tr></table>
+            
+            </td></tr></table>
+            
+        </td>
+    </tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	//$!{resizeFuncCallCode};
+	//function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 기준정보Check 조회는 ITEM ID을 반드시 입력하고 조회해야 합니다.";
+	helpStr += "<br>◈ 2.품목 디테일 조회에서 각 공장을 더블클릭하면 3.BOM 정보에 대한 상세내용이 표시 됩니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0; 
+	
+	//document.cookie = "webfxtab_tabPane1=1";
+	
+</script>

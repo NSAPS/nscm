@@ -1,0 +1,591 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>
+
+<!--
+=====================================================================================================
+	게시판 
+=====================================================================================================
+-->
+	
+	<query id="moon_board_title">
+			
+			SELECT 	TITLE, DATA_FLAG
+			  FROM 	T3WEB_BOARD_INFO
+			 WHERE 	BOARD_ID = '${_board_id}'
+			
+	</query>
+	
+	<!-- 게시판 리스트 -->
+	<query id="moon_board_list" paging="true">
+			
+			SELECT 	DISTINCT A.SUBJECT, A.USER_NAME, TO_CHAR(A.MADE_DTTM, 'YYYY-MM-DD') MADE_DTTM
+					, NVL(A.READ_COUNT, 0) READ_COUNT, A.RE_STEP, B.BOARD_COUNT
+					, NVL(A.RE_LEVEL, 0) RE_LEVEL, C.DATA_FLAG, C.MEMO_FLAG
+					, A.USER_ID, A.BOARD_ID
+			  FROM 	T3WEB_BOARD A LEFT JOIN
+					( 	SELECT	BOARD_ID, RE_STEP, COUNT(BOARD_ID) BOARD_COUNT
+						  FROM 	T3WEB_BOARD_COMMENT
+						 GROUP BY BOARD_ID, RE_STEP ) B	
+					ON A.BOARD_ID = B.BOARD_ID AND A.RE_STEP = B.RE_STEP
+					, T3WEB_BOARD_INFO C, T3WEB_BOARD_SECU D, MAP_GRP_USER E
+			 WHERE	E.GROUP_ID = D.GROUP_ID
+			   AND	D.SECU_FLAG = '1'
+			   AND	D.BOARD_ID = C.BOARD_ID
+			   AND	A.BOARD_ID = C.BOARD_ID 
+			   AND 	A.BOARD_ID = '$!{_board_id}' 
+		#if( "$!{_board_search_condition}" != "" ) 
+			  [AND 	A.${_board_search_condition} LIKE '%${_board_search_value}%']
+		#end 
+			 ORDER BY A.RE_STEP DESC
+			
+	</query>
+	
+	<!-- 조회 횟수 UPDATE -->
+	<query id="moon_board_list_count">
+			
+			UPDATE 	T3WEB_BOARD 
+			   SET 	READ_COUNT = (
+							SELECT 	NVL(MAX(READ_COUNT), 0) + 1 
+							  FROM 	T3WEB_BOARD
+							 WHERE	USER_ID = '${_user_id}'
+							   AND	BOARD_ID = '${_board_id}'
+							   AND	RE_STEP = ${_board_step}
+					)
+			 WHERE 	BOARD_ID = '${_board_id}'
+			   AND 	RE_STEP = ${_board_step}
+			
+	</query>		
+	
+	<!-- 게시물 조회 -->
+	<query id="moon_board_detail">
+			
+			SELECT 	SUBJECT, CONTENT, USER_NAME,
+					TO_CHAR(MADE_DTTM, 'YYYY-MM-DD') MADE_DTTM, 
+					READ_COUNT, EMAIL, USER_ID
+			  FROM 	T3WEB_BOARD, DUAL B
+			 WHERE 	BOARD_ID = '${_board_id}'
+			   AND 	RE_STEP = ${_board_step}
+			
+	</query>
+	
+	<!-- 메모(댓글) 조회 -->
+	<query id="moon_board_memo_list">
+			
+			SELECT	USER_NAME, TO_CHAR(MADE_DTTM, 'YYYY-MM-DD') MADE_DTTM, 
+					MEMO, SEQ
+			  FROM 	T3WEB_BOARD_COMMENT, DUAL B
+			 WHERE 	BOARD_ID = '${_board_id}'
+			   AND 	RE_STEP = ${_board_step}
+			 ORDER	BY SEQ DESC
+			
+	</query>
+	
+	<!-- 첨부파일 조회 -->
+	<query id="moon_board_file">
+			
+			SELECT 	FILE_ONAME, FILE_SIZE, RE_STEP 
+					, SEQ, NVL(DOWNLOAD_COUNT, 0) DOWNLOAD_COUNT
+			  FROM 	T3WEB_BOARD_FILE, DUAL B
+			 WHERE 	BOARD_ID = '${_board_id}'
+			   AND 	RE_STEP = ${_board_step}
+			
+	</query>
+	
+	<!-- RE_STEP (게시물 ID) 생성 -->
+	<query id="moon_board_insert_key" key="seq=seq">
+			
+			SELECT NVL(MAX(RE_STEP),99) + 100 SEQ FROM T3WEB_BOARD, DUAL B WHERE BOARD_ID = '${_board_id}'
+			
+	</query>
+	
+	<!-- 게시물 등록 -->
+	<query id="moon_board_insert">
+			
+			INSERT	INTO T3WEB_BOARD ( BOARD_ID, RE_STEP, USER_ID, USER_NAME, SUBJECT, CONTENT, EMAIL
+					, READ_COUNT, IP, MADE_TYPE, MADE_DTTM, MADE_BY	)
+		<![CDATA[
+			SELECT 	'${_board_id}'
+					, NVL(MAX(RE_STEP), 99) + 100
+					, '${_user_id}'
+			 		, '${_board_name}'
+					, '${_board_subject}'
+					, '${_board_contents}'
+					, '${_board_email}'
+					, 0
+					, '${_board_ip}'
+					, 'AD'
+					, SYSDATE
+					, 'SYSTEM'
+		]]>
+			 FROM 	T3WEB_BOARD, DUAL B 
+			WHERE 	BOARD_ID = '${_board_id}'
+	</query>
+	
+	<!-- 게시물 내용이 큰 경우 하나의 파라미터에 다 담지 못하므로 여럿으로 나누어 INSERT -->
+	<query id="moon_board_insert2" fix="_board_id" iterator="contents_array">
+			
+			UPDATE 	T3WEB_BOARD 
+			   SET 	CONTENT = CONTENT||'${contents_array}'
+			 WHERE 	BOARD_ID = '${_board_id}' 
+		 	   AND 	RE_STEP = ( SELECT MAX(RE_STEP) FROM T3WEB_BOARD WHERE BOARD_ID = '${_board_id}' )
+		
+	</query>
+	
+	<!-- 첨부파일 SEQ 생성 -->
+	<query id="moon_board_file_insert_key" key="seq1=seq1">
+			
+			SELECT 	NVL(MAX(A.SEQ),0) + 1 SEQ1
+			  FROM 	T3WEB_BOARD_FILE A,
+					(	SELECT	MAX(RE_STEP) RE_STEP
+						  FROM 	T3WEB_BOARD
+						 WHERE 	BOARD_ID = '${_board_id}' ) B
+			 WHERE 	BOARD_ID ='${_board_id}'
+			   AND 	A.RE_STEP = B.RE_STEP
+			
+	</query>
+	
+	<!-- 첨부파일 RE_STEP 생성 -->
+	<query id="moon_board_file_insert_key2" key="seq2=seq2">
+			
+			SELECT 	NVL(MAX(RE_STEP),0) + 1 SEQ2
+			  FROM 	T3WEB_BOARD, DUAL B
+			 WHERE 	BOARD_IDD = '${_board_id}'
+			
+	</query>
+	
+	<!-- 첨부파일 등록 -->
+	<query id="moon_board_file_insert" iterator="_board_file_name _board_file_size _board_file_path _board_file_oname" fix="_board_id">
+			
+			INSERT	INTO T3WEB_BOARD_FILE( BOARD_ID, RE_STEP, SEQ, FILE_NAME, FILE_SIZE, FILE_PATH, FILE_ONAME
+					, MADE_TYPE, MADE_DTTM, MADE_BY	)
+			SELECT	'${_board_id}'
+					, C.RE_STEP
+					, CASE WHEN (A.CNT > 0) THEN B.SEQ ELSE 1 END
+					, '${_board_file_name}'
+					, '${_board_file_size}'
+					, '${_board_file_path}'
+					, '${_board_file_oname}'
+					, 'AD'
+					, SYSDATE
+					, 'SYSTEM'
+			 FROM
+			(
+					SELECT  COUNT(A.BOARD_ID) CNT
+					  FROM 	T3WEB_BOARD_FILE A,
+					(
+							SELECT 	NVL(MAX(RE_STEP), 0) RE_STEP
+							  FROM 	T3WEB_BOARD
+							 WHERE 	BOARD_ID = '${_board_id}'
+					) b
+					 WHERE 	BOARD_ID = '${_board_id}'
+					   AND 	A.RE_STEP = B.RE_STEP
+			)A,
+			(
+					SELECT  NVL(MAX(A.SEQ),0)+1 SEQ
+					  FROM 	T3WEB_BOARD_FILE A,
+					(
+							SELECT 	NVL(MAX(RE_STEP),0) RE_STEP
+							  FROM 	T3WEB_BOARD
+							 WHERE 	BOARD_ID = '${_board_id}'
+					) B
+					 WHERE 	BOARD_ID ='${_board_id}'
+					   AND 	A.RE_STEP = B.RE_STEP
+			) B,
+			(
+					SELECT 	NVL(MAX(RE_STEP),0) RE_STEP
+					  FROM 	T3WEB_BOARD
+					 WHERE 	BOARD_ID = '${_board_id}'
+			) C
+			
+	</query>
+	
+	<!-- 첨부파일 다운로드 경로 -->
+	<query id="moon_board_file_download"  key="file_name=_moon_filename	file_path=_moon_file_path file_oname=_moon_file_originalname">
+			
+			SELECT 	FILE_NAME, FILE_PATH, FILE_ONAME
+			  FROM 	T3WEB_BOARD_FILE, DUAL B
+			 WHERE 	BOARD_ID = '${_board_id}'
+			   AND 	RE_STEP = '${_re_step}' 
+			   AND 	SEQ = '${_file_seq}'
+			
+	</query>
+	
+	<!-- 첨부파일 다운로드 횟수 UPDATE -->
+	<query id="moon_board_download_count">
+			
+			UPDATE 	T3WEB_BOARD_FILE SET DOWNLOAD_COUNT = NVL(DOWNLOAD_COUNT, 0) + 1
+			 WHERE 	BOARD_ID = '${_board_id}'
+			   AND 	RE_STEP = '${_re_step}' 
+			   AND 	SEQ = '${_file_seq}'
+			
+	</query>
+	
+	<!-- 게시물 수정 -->
+	<query id="moon_board_modify_update">
+			
+			UPDATE	T3WEB_BOARD 
+			   SET 	SUBJECT	= '${_board_subject}' 
+					, CONTENT = '${_board_contents}'
+			 WHERE 	USER_ID	= '${_user_id}'
+			   AND	BOARD_ID = '${_board_id}' 
+			   AND 	RE_STEP = ${_board_step}
+			
+	</query>
+	
+	<!-- 게시물 크기가 큰 경우 내용을 잘라서 INSERT -->
+	<query id="moon_board_modify_update2" fix="_board_id _board_step" iterator="contents_array">
+			
+			UPDATE 	T3WEB_BOARD 
+			   SET 	CONTENT = CONTENT||'${contents_array}'
+			 WHERE 	BOARD_ID = '${_board_id}' 
+			   AND 	RE_STEP = ${_board_step}
+			
+	</query>
+	
+	<!-- 게시물 삭제 권한 체크 -->
+	<query id="moon_board_delete_condition">
+			
+			SELECT 	B.USER_ID
+			  FROM 	T3WEB_BOARD A, REG_USER B
+			 WHERE 	A.USER_ID = B.USER_ID
+			   AND 	A.BOARD_ID = '${_board_id}'
+			   AND 	A.RE_STEP = '${_board_step}'
+			
+	</query>
+	
+	<!-- 게시물 삭제 -->
+	<query id="moon_board_delete">
+			DELETE 	
+			  FROM 	T3WEB_BOARD 
+			 WHERE 	USER_ID	='${_user_id}'
+			   AND	BOARD_ID ='${_board_id}'
+			   AND 	RE_STEP ='${_board_step}'
+	</query>
+	
+	<!-- 게시물 삭제 -->
+	<!-- 게시물 메모(댓글) 삭제  -->
+	<query id="moon_board_delete_comment">
+			
+			DELETE 
+			  FROM 	T3WEB_BOARD_COMMENT
+			 WHERE	BOARD_ID = '${_board_id}'
+			   AND	RE_STEP = '${_board_step}'
+			 
+	</query>
+	
+	<!-- 게시물 삭제 -->
+	<!-- 게시물 첨부파일 삭제 -->
+	<query id="moon_board_delete_file">
+			
+			DELETE 
+			  FROM 	T3WEB_BOARD_FILE
+			 WHERE	BOARD_ID = '${_board_id}'
+			   AND	RE_STEP	= '${_board_step}'
+			
+	</query>	
+	
+	<!-- 게시물 메모(댓글) 등록 -->
+	<query id="moon_memo_register">
+			
+			INSERT	INTO T3WEB_BOARD_COMMENT ( BOARD_ID, RE_STEP, SEQ, USER_ID, MEMO, USER_NAME, MADE_TYPE, MADE_DTTM, MADE_BY )
+			SELECT 	'${_board_id}'
+					, '${_board_step}'
+					, NVL(MAX(SEQ),0) + 1
+					, '${_user_id}'
+					, '${_memo}'
+					, '${_memoName}'
+					, 'AD'
+					, SYSDATE
+					, 'SYSTEM'
+			  FROM 	T3WEB_BOARD_COMMENT
+			
+	</query>
+	
+	<!-- 게시물 메모(댓글) 삭제 -->
+	<query id="moon_board_memo_del_action">
+			
+			DELETE 
+			  FROM 	T3WEB_BOARD_COMMENT 
+			 WHERE 	SEQ = '${_memo_seq}'
+			
+	</query>
+	
+	<!-- 답글 등록에 따른 연관되는 다른 게시물의 RE_STEP UPDATE -->
+	<query id="moon_board_reply_step_board">
+			
+			<![CDATA[
+			UPDATE 	T3WEB_BOARD 
+			   SET 	RE_STEP = RE_STEP - 1 
+			 WHERE 	RE_STEP > ${_board_reply_min}
+			   AND 	RE_STEP < ${_board_step}
+			]]>
+			
+	</query>
+	
+	<!-- 답글 등록에 따른 연관되는 다른 게시물의  메모(댓글)에 대한 RE_STEP UPDATE -->
+	<query id="moon_board_reply_step_comment">
+			
+			<![CDATA[
+			UPDATE 	T3WEB_BOARD_COMMENT 
+			   SET 	RE_STEP = RE_STEP - 1 
+			 WHERE 	RE_STEP > ${_board_reply_min}
+			   AND 	RE_STEP < ${_board_step}
+			]]>
+			
+	</query>
+	
+	<!-- 답글 등록에 따른 연관되는 다른 게시물의 첨부파일에 대한 RE_STEP UPDATE -->
+	<query id="moon_board_reply_step_file">
+			
+			<![CDATA[
+			UPDATE 	T3WEB_BOARD_FILE
+			   SET 	RE_STEP = RE_STEP - 1 
+			 WHERE 	RE_STEP > ${_board_reply_min}
+			   AND 	RE_STEP < ${_board_step}
+			]]>
+			
+	</query>
+	
+	<!-- 답글 첨부파일 등록 -->
+	<query id="moon_board_reply_file_insert" fix="_board_id _board_restep"
+			iterator="_board_file_name _board_file_size _board_file_path _board_file_oname">
+			
+			INSERT	INTO T3WEB_BOARD_FILE( BOARD_ID, RE_STEP, SEQ, FILE_NAME, FILE_SIZE, FILE_PATH, FILE_ONAME
+					, MADE_TYPE, MADE_DTTM, MADE_BY	)
+			SELECT 	'${_board_id}'
+					, '${_board_restep}'
+					, CASE WHEN(A.CNT >0) THEN B.SEQ  ELSE 1 END
+					, '${_board_file_name}'
+					, '${_board_file_size}'
+					, '${_board_file_path}'
+					, '${_board_file_oname}'
+					, 'AD'
+					, SYSDATE
+					, 'SYSTEM'
+			  FROM
+			(
+					SELECT  COUNT(A.BOARD_ID) CNT
+					  FROM 	T3WEB_BOARD_FILE A,
+					(
+							SELECT	NVL(MAX(RE_STEP),0) RE_STEP
+							  FROM	T3WEB_BOARD
+							 WHERE	BOARD_ID = '${_board_id}'
+					) B
+					 WHERE 	BOARD_ID ='${_board_id}'
+					   AND 	A.RE_STEP = B.RE_STEP
+			)A,
+			(
+					SELECT  NVL(MAX(A.SEQ),0)+1 SEQ
+					  FROM	T3WEB_BOARD_FILE A,
+					(
+						  SELECT  NVL(MAX(RE_STEP),0) RE_STEP
+						    FROM  T3WEB_BOARD
+						   WHERE  BOARD_ID = '${_board_id}'
+					) B
+					 WHERE	BOARD_ID ='${_board_id}'
+					   AND	A.RE_STEP = B.RE_STEP
+			)B
+			
+	</query>
+	
+	<!-- 답글 등록 -->
+	<query id="moon_board_reply_content">
+			
+			INSERT	INTO T3WEB_BOARD ( BOARD_ID, RE_STEP, USER_ID, RE_LEVEL, USER_NAME, SUBJECT, CONTENT
+					, EMAIL, READ_COUNT, IP, MADE_TYPE, MADE_DTTM, MADE_BY )
+			SELECT 	'${_board_id}'
+					, '${_board_restep}'
+					, '${_user_id}'
+					, NVL(RE_LEVEL, 0) + 1 
+					, '${_board_name}'
+					, '${_board_subject}'
+					, '${_board_contents}'
+					, '${_board_email}'
+					, 0
+					, '${_board_ip}'
+					, 'AD'
+					, SYSDATE
+					, 'SYSTEM'
+			  FROM 	T3WEB_BOARD , DUAL B
+			 WHERE 	BOARD_ID = '${_board_id}' 
+			   AND 	RE_STEP = ${_board_step}
+			
+	</query>
+	
+	<!-- 답글의 내용이 큰 경우 나누어서 INSERT -->
+	<query id="moon_board_reply_content2" fix="_board_id _board_restep" iterator="contents_array">
+		
+			UPDATE 	T3WEB_BOARD 
+			   SET 	CONTENT = CONTENT||'${contents_array}'
+			 WHERE 	BOARD_ID = '${_board_id}' 
+			   AND 	RE_STEP = ${_board_restep}
+		
+	</query>
+	
+	<!-- 
+	=======================
+		게시판 관리
+	=======================
+	-->
+	
+	<!-- 게시판 리스트 -->
+	<query id="moon_board_admin" paging="true">
+			
+			SELECT	A.BOARD_ID, A.TABLE_EXPLAIN, NVL(B.TOTAL, 0) TOTAL 
+					, TO_CHAR(A.MADE_DTTM, 'YYYY-MM-DD') MADE_DTTM, A.DATA_FLAG
+			  FROM 	T3WEB_BOARD_INFO A,  
+					(	SELECT 	BOARD_ID, COUNT(BOARD_ID) TOTAL 
+						  FROM 	T3WEB_BOARD 
+						 GROUP BY BOARD_ID 	) B 
+			 WHERE 	A.BOARD_ID = B.BOARD_ID(+)
+			
+	</query>
+	
+	<!-- 게시판 생성 -->
+	<query id="moon_board_admin_create_save">
+			
+			INSERT	INTO T3WEB_BOARD_INFO ( BOARD_ID, TABLE_EXPLAIN, TITLE, DATA_FLAG, MEMO_FLAG, MADE_TYPE, MADE_DTTM, MADE_BY )
+			VALUES	( '${board_id}', '${table_explain}', '${title}', '${data_flag}', '${memo_flag}'
+					, 'AD', SYSDATE, 'SYSTEM' )
+			
+	</query>
+	
+	<!-- 게시판 그룹 접근 권한 등록 -->
+	<query id="moon_board_secu_save" iterator="secu_group_seq secu_flag" fix="board_id">
+			
+			INSERT	INTO T3WEB_BOARD_SECU ( GROUP_ID, BOARD_ID, SECU_FLAG, MADE_TYPE, MADE_DTTM, MADE_BY ) 
+			VALUES	( '${secu_group_seq}', '${board_id}', '${secu_flag}', 'AD', SYSDATE, 'SYSTEM' )
+			
+	</query>
+	
+	<!-- BOARD_ID 중복 CHECK -->
+	<query id="moon_board_admin_create_check">
+			
+			SELECT 	BOARD_ID, TABLE_EXPLAIN, TITLE, DATA_FLAG, MEMO_FLAG, MADE_TYPE, MADE_DTTM, MADE_BY
+			  FROM 	T3WEB_BOARD_INFO, DUAL B
+			 WHERE 	BOARD_ID = '${board_id}'
+			
+	</query>
+	
+	<!-- 게시판 생성 화면에서 그룹 리스트 가져오기 -->
+	<query id="moon_board_admin_secu_group">		
+			
+			SELECT	GROUP_ID, GROUP_NAME
+			  FROM 	REG_GROUP, DUAL B
+			 ORDER BY GROUP_ID
+			 
+	</query>	
+	
+	<!-- 게시판 상세 정보  -->
+	<query id="moon_board_admin_detail">
+			
+			SELECT 	A.BOARD_ID, A.TABLE_EXPLAIN, A.TITLE, A.DATA_FLAG, A.MEMO_FLAG
+					, NVL(B.TOTAL, 0) TOTAL, TO_CHAR(A.MADE_DTTM, 'YYYY-MM-DD') MADE_DTTM
+			  FROM 	T3WEB_BOARD_INFO A,
+					( 	SELECT 	BOARD_ID, COUNT(BOARD_ID) TOTAL 
+						  FROM 	T3WEB_BOARD 
+						 GROUP BY BOARD_ID ) B
+			 WHERE 	A.BOARD_ID = B.BOARD_ID(+)
+			   AND 	A.BOARD_ID = '${_board_id}'
+			
+	</query>
+	
+	<!-- 게시판 상세 정보 : 그룹 접근 권한 -->
+	<query id="moon_board_admin_secu_detail">
+			
+			SELECT	B.GROUP_ID, B.GROUP_NAME, '${_board_id}' BOARD_ID, NVL(A.SECU_FLAG, 0) SECU_FLAG
+			  FROM 	( 	SELECT 	A.GROUP_ID, A.BOARD_ID, A.SECU_FLAG 
+						  FROM 	T3WEB_BOARD_SECU A 
+						 WHERE 	A.BOARD_ID = '${_board_id}') A
+					, REG_GROUP B
+			 WHERE	B.GROUP_ID = A.GROUP_ID(+)
+			
+	</query>
+	
+	<!-- 게시판관리 : 수정 : 저장 -->
+	<query id="moon_board_admin_modify_save">
+			
+			UPDATE 	T3WEB_BOARD_INFO 
+			   SET 	TABLE_EXPLAIN = '${table_explain}'
+					, TITLE = '${title}'
+					, DATA_FLAG = '${data_flag}'
+					, MEMO_FLAG = '${memo_flag}'
+			 WHERE 	BOARD_ID = '${_board_id}'
+			
+	</query>
+	
+	<!-- 게시판관리 : 수정 : 게시판 그룹 접근 권한 삭제 : 일괄삭제 후 수정 내용 등록 -->
+	<query id="moon_board_admin_mod_secu_del">
+			
+			DELETE 	T3WEB_BOARD_SECU 
+			 WHERE 	BOARD_ID = '${_board_id}'
+			
+	</query>
+	
+	<!-- 게시판관리 : 수정 : 게시판 그룹 접근 권한 등록 -->
+	<query id="moon_board_admin_mod_secu_save" iterator="secu_group_seq secu_flag" fix="_board_id">
+			
+			INSERT	INTO T3WEB_BOARD_SECU ( GROUP_ID, BOARD_ID, SECU_FLAG, MADE_TYPE, MADE_DTTM, MADE_BY ) 
+			VALUES	( '${secu_group_seq}', '${_board_id}', '${secu_flag}', 'AD', SYSDATE, 'SYSTEM' )
+			
+	</query>
+	
+	<!-- 게시판관리 : 수정 : 그룹 접근 권한 수정 -->
+	<query id="moon_board_admin_secu_modify_save" iterator="secu_group_seq secu_flag board_secu_group_seq" fix="_board_id">
+		
+		#if($board_secu_group_seq !='')
+			UPDATE 	T3WEB_BOARD_SECU 
+			   SET 	SECU_FLAG = '${secu_flag}'
+			 WHERE 	BOARD_ID = '${_board_id}'
+			   AND	GROUP_ID = '${secu_group_seq}'
+		#else
+			INSERT	INTO T3WEB_BOARD_SECU ( GROUP_ID, BOARD_ID, SECU_FLAG, MADE_TYPE, MADE_DTTM, MADE_BY ) 
+			VALUES	( '${secu_group_seq}', '${_board_id}', '${secu_flag}', 'AD', SYSDATE, 'SYSTEM' )
+		#end
+				
+	</query>
+	
+	<!-- 게시판관리 : 삭제 -->
+	<query id="moon_board_admin_del_action" iterator="_board_admin_del">
+			
+			DELETE
+			  FROM 	T3WEB_BOARD_INFO
+			 WHERE	BOARD_ID = '${_board_admin_del}'
+			
+	</query>
+	
+	<!-- 게시판관리 : 게시판 삭제에 따른 게시물 삭제 -->
+	<query id="moon_board_admin_board_del" iterator="_board_admin_del">
+			
+			DELETE 
+			  FROM 	T3WEB_BOARD
+			 WHERE	BOARD_ID ='${_board_admin_del}'
+			
+	</query>
+	
+	<!-- 게시판관리 : 게시판 삭제에 따른 게시물 메모(댓글) 삭제 -->
+	<query id="moon_board_admin_memo_del" iterator="_board_admin_del">
+			
+			DELETE
+			  FROM 	T3WEB_BOARD_COMMENT 
+			 WHERE	BOARD_ID ='${_board_admin_del}'
+			
+	</query>
+	
+	<!-- 게시판관리 : 게시판 삭제에 따른 게시물 그룹 접근 권한 삭제 -->
+	<query id="moon_board_admin_secu_del" iterator="_board_admin_del">
+			
+			DELETE
+			  FROM 	T3WEB_BOARD_SECU
+			 WHERE	BOARD_ID ='${_board_admin_del}'
+			
+	</query>
+	
+	
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</queries>

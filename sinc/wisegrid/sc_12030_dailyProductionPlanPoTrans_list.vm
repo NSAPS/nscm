@@ -1,0 +1,201 @@
+############################################################
+## 프로그램ID : sc_12030_dailyProductionPlanPoTrans_list.vm
+## 프로그램명 : 일간생산계획 변경(PO발행)
+## 개발자  : 정재교
+## 개발일자 : 2009-03-19 목요일
+##
+##관련 job file : job_sc_12030_dailyProductionPlanPoTrans_list.xml
+##
+##관련 query file : query_sc_12030_dailyProductionPlanPoTrans_list.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2009-03-19  정재교           sc_12030_dailyProductionPlanPoTrans_list.vm 개발
+##
+##
+############################################################
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setWiseGridAutoResize('112', '150')" )            
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+#########################################    WiseGrid Event     #####################################################			
+######################################### 기본 Event외 추가 Event #####################################################
+
+## WiseGrid에 Mouse Over 되었을때 이벤트가 발생한다. 
+<script language=javascript for="WiseGrid" event="MouseOver(strType ,strColumnKey, nRow)">
+  	GridMouseOverHandler(strType, strColumnKey, nRow);
+</script>
+
+## WiseGrid의 컨텍스트 메뉴의 사용자 컨텍스트 메뉴를 클릭했을때 발생한다. 
+<script language=javascript for="WiseGrid" event="UserContextMenuClick(strMenuKey, strMenuItemKey, strColumnKey, nRow)">
+  	GridUserContextMenuClickHandler(strMenuKey, strMenuItemKey, strColumnKey, nRow);
+</script>
+
+##  WiseGrid의 t_combo타입의 컬럼내용이 변경되었을때 발생합니다  
+<script language=javascript for="WiseGrid" event="ChangeCombo(strColumnKey,nRow,nOldIndex,nNewIndex)">
+	GridChangeComboHandler(strColumnKey, nRow, nOldIndex, nNewIndex);
+</script>
+
+############################################ WiseGrid Event #########################################################
+					
+##<input type="hidden" name="cat_id" value="PS">
+	
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">  
+	## 기능 버튼 영역 
+	<tr> 
+		<td height="25" align="right" >
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+				<tr>					 
+					<td align="left" width='50%' > 
+						<input type="button" name="btnSelect" value=" 전송" onClick="GoTrans(); " class="btn1_on">
+					</td>
+					<td align="right" width='50%' > 
+						#button("search")
+						#toolbar_nscm($_moon_toolbar "sc_11020_dailyProductionPlanAnalysisNewItem_reg" "" "sc_11020_dailyProductionPlanAnalysisNew_list_save_comp" "")
+					</td>
+				</tr>
+			</table> 
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" 
+							id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr height="22px"> 
+								<td width="10%" align="right">공장 :</td> 
+            					<td width="90%" align="left" colspan="3">      
+									<input type="checkbox" name="selected_plant_all" class="normal" style="border:1px; " onClick="checkSelectedPlantAll(this); " >전체</input>&nbsp;
+								#foreach( $condition in $check_plant_list )  
+									<input type="checkbox" name="selected_plant" class="normal" style="border:0px; " value="$condition.get(0)">$condition.get(1)</input>											
+								#end 
+   									</select>  
+            					</td> 
+							</tr>
+							<tr>
+								#set( $week = $weekly_3_start_end_date3.get(0) )
+            					<td width="10%" align="right">주차 :</td>
+            					<td width="40%" align="left">     
+									##<input type="radio" name="checked_weekly" value="w0" style="border:0px; " onClick="checkedWeekly(this);" #if($!{checked_weekly} == "w0") checked #else #end>당주[$week.get(21)]</input>&nbsp;
+                                    ##<input type="radio" name="checked_weekly" value="w1" style="border:0px; " onClick="checkedWeekly(this);" #if($!{checked_weekly} == "w1" || "$!{checked_weekly}" == "") checked #else #end>차주[$week.get(22)]</input>&nbsp;
+                                    ##<input type="radio" name="checked_weekly" value="w2" style="border:0px; " onClick="checkedWeekly(this);" #if($!{checked_weekly} == "w2") checked #else #end>차차주[$week.get(23)]</input>
+									<input type="hidden" name="w0_start" value="$week.get(0)"/>
+									<input type="hidden" name="w0_end" value="$week.get(1)"/>
+									<input type="hidden" name="w1_start" value="$week.get(2)"/>
+									<input type="hidden" name="w1_end" value="$week.get(3)"/>
+									<input type="hidden" name="w2_start" value="$week.get(4)"/>
+									<input type="hidden" name="w2_end" value="$week.get(5)"/>
+									  																	    
+            						#date_sole_no_title( "start_date" "10" "normal" "dutyBtn" $date.get('yyyy-MM-dd'))
+            						~
+            						#date_sole_no_title( "end_date" "10" "normal" "dutyBtn2" $date.get('yyyy-MM-dd'))
+                					
+									<select name="selected_weekly" style="width:65px;" onChange="doChangeSelectedWeekly(); ">  
+										<option value="" #if($!{selected_weekly} == "") selected #end>선택</option>
+										<option value="w0" selected >당주</option>											
+										<option value="w1" >차주</option>		
+										<option value="w2" >차차주</option>		
+   									</select>    
+            					</td>     
+								<td width="10%" align="right">구분 :</td> 
+            					<td width="40%" align="left">   
+									<input type="radio" name="checked_po_type" value="01" style="border:0px; " onClick="checkedWeekly(this);" #if($!{checked_weekly} == "po01" || "$!{checked_weekly}" == "") checked #else #end>발행대상</input>&nbsp;
+                                    <input type="radio" name="checked_po_type" value="02" style="border:0px; " onClick="checkedWeekly(this);" #if($!{checked_weekly} == "po02") checked #else #end>전송결과</input>&nbsp;
+                                    <input type="radio" name="checked_po_type" value="03" style="border:0px; " onClick="checkedWeekly(this);" #if($!{checked_weekly} == "po03") checked #else #end>발행현황</input>
+								</td>											
+            				</tr>							
+            			</table> 
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td> 
+	</tr>
+	 
+	<input name="search_h" type="hidden" value="46"> ## search 조건 부분 높이      
+	<tr><td height="0"></td></tr>     
+	## TAB 영역      
+	<tr>						
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1" >
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>	
+										
+					<table name="grid" width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						 
+						<tr>
+							<td align="left" > 
+								<script>initWiseGrid("WiseGrid", "100%", "450");</script>  
+							</td> 
+						</tr>
+					</table> 
+					 
+					<table height="5px"><tr><td></td></tr></table>
+					
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+						##$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+						<input type="hidden" name="_moon_service" value="${_moon_service}">
+						<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+						<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+						<input type="hidden" name="_user_id" value="$!{_user_id}">
+					</td></tr></table> 
+					 
+					## waiting 표시영역
+					#waitingArea()
+					 
+				</div>  
+			</div> 
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 일간 생산계획 변경(PO발행)";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+	function doChangeSelectedWeekly(){
+		var weekly = document.frm.selected_weekly.value;
+		
+		if( weekly == "w0" ){
+			document.frm.start_date.value = document.frm.w0_start.value;
+			document.frm.end_date.value = document.frm.w0_end.value;
+		}
+		else if( weekly == "w1" ){
+			document.frm.start_date.value = document.frm.w1_start.value;
+			document.frm.end_date.value = document.frm.w1_end.value;
+		}
+		else if( weekly == "w2" ){
+			document.frm.start_date.value = document.frm.w2_start.value;
+			document.frm.end_date.value = document.frm.w2_end.value;
+		} 
+		else{
+			document.frm.start_date.value = "";
+			document.frm.end_date.value = "";			
+		}
+	};
+	
+	doChangeSelectedWeekly();
+	
+</script> 

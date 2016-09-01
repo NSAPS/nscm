@@ -1,0 +1,168 @@
+<table cellpadding=0 cellspacing=0 border=0 class=normal-table width="100%">
+    <tr id=text_layer style="display:block">
+        <td align=center  width=100%>
+			<table cellpadding=0 cellspacing=0 border=0 class=normal-table>
+				<tr><td bgcolor=#CCCCCC colspan=3></td></tr>
+				<tr>
+					<td width=1 bgcolor=#CCCCCC></td>
+					<td width=100% height=1 bgcolor=#FFFFFF></td>
+					<td width=1 bgcolor=#CCCCCC></td>
+				</tr>
+				<tr>
+					<td width=1 height=1 bgcolor=#CCCCCC></td>
+					<td width=100% height=100%align=right bgcolor=#EFEFEF >
+			  			#parse("/sinc/template/${_moon_template}/component/board/board_editor_funtion.vm")
+			  			#parse("/sinc/template/${_moon_template}/component/board/board_editor_textarea.vm")
+					</td>
+					<td width=1 height=1 bgcolor=#CCCCCC></td>
+				</tr>
+				<tr>
+					<td bgcolor=#CCCCCC colspan=3></td>
+				</tr>
+			</table>
+        </td>
+    </tr>
+	<tr id=html_layer style="display:none">
+        <td align=center width="100%">
+			<table width="100%" cellpadding=0 cellspacing=0 border=0 class=normal-table>
+				<tr><td bgcolor=#CCCCCC colspan=3></td></tr>
+				<tr>
+					<td width=1 bgcolor=#CCCCCC></td>
+					<td height=1 bgcolor=FFFFFF></td>
+					<td width=1 bgcolor=#CCCCCC></td>
+				</tr>
+				<tr>
+					<td width=1 bgcolor=#CCCCCC></td>
+					<td height=28 class=neo align=center bgcolor=#EFEFEF>
+					    &lt;BR> Tag를 사용하지 않으면 줄 바꿈이 되지 않습니다!
+					</td>
+					<td width=1 bgcolor=#CCCCCC></td>
+				</tr>
+				<tr>
+					<td width=1 height=1 bgcolor=#CCCCCC></td>
+					<td id="html_layer_td" height=280 align=center style='word-break:break-all'>
+						<textarea name=html_body
+							class=comm style='width:100%;height:100%' wrap=virtual></textarea>
+					</td>
+					<td width=1 height=1 bgcolor=#CCCCCC></td>
+				</tr>
+				<tr>
+					<td bgcolor=#CCCCCC colspan=3></td>
+				</tr>
+			</table>
+        </td>
+	</tr> 
+	<tr id=preview_layer style="display:none">
+        <td align=center width="100%">
+			<table width="100%" class=normal-table cellpadding=0 cellspacing=0 border=0>
+				<tr><td bgcolor=#CCCCCC colspan=3></td></tr>
+				<tr>
+					<td width=1 bgcolor=#CCCCCC></td>
+					<td height=1 bgcolor=FFFFFF></td>
+					<td width=1 bgcolor=#CCCCCC></td>
+				</tr>
+				<tr>
+					<td width=1 bgcolor=#CCCCCC></td>
+					<td height=29 align=center bgcolor=#EFEFEF>
+					   ▤ 현재 작성 한 문서는 아래와 같습니다. ▤
+					</td>
+					<td width=1 bgcolor=#CCCCCC></td>
+				</tr>
+				<tr>
+					<td width=1 bgcolor=#CCCCCC></td>
+					<td height=1 bgcolor=#CCCCCC></td>
+					<td width=1 bgcolor=#CCCCCC></td>
+				</tr>
+				<tr>
+					<td width=1 height=1 bgcolor=#CCCCCC></td>
+					<td height=280 bgcolor=#FFFFFF valign=top align=cneter>
+						<table width="100%">
+							<tr height=5>
+								<td width="100%" id=pre_content style='word-break:break-all'>
+								</td>
+							</tr>
+						</table>
+					</td>
+					<td width=1 height=1 bgcolor=#CCCCCC></td>
+				</tr>
+				<tr>
+					<td bgcolor=#CCCCCC colspan=3></td>
+				</tr>
+			</table>
+        </td>
+    </tr>
+</table>
+<table cellpadding=0 cellspacing=0 class=normal-table>
+	 <tr>
+        <td width='100%' align=right height=18 bgcolor=#EFEFEF>
+        	#if($_board_type && $_board_type.equals("reply"))
+			<input type=checkbox name=chk onClick="change_context(this)">원글보기
+			#end
+			<input type=checkbox name=pre_check onClick="content_preview(this)">미리보기
+        	<input type=radio name=text_check value=text  checked onclick="javascript:layer_change('html_layer','text_layer')">웹
+			<input type=radio name=html_check value=html onclick="javascript:layer_change('text_layer','html_layer')">텍스트&nbsp;&nbsp;
+		</td>
+    </tr>
+</table>
+#if($_board_type && $_board_type.equals("reply"))
+<table id=temp_layer style="display:none" class=normal-table cellpadding=0 cellspacing=0 border=0  width="100%">
+    <tr>
+		<tr><td height=1 bgcolor=#999999></td></tr>
+		<tr><td height=1 bgcolor=#FFFFFF></td></tr>
+		<tr><td height=2 bgcolor=#EDEDED></td></tr>
+	</tr>
+    <tr>
+        <td align=center width="100%">
+			<table class=normal cellpadding=0 cellspacing=0 border=0 bgcolor=#EDEDED width="100%">
+				<tr><td height=1 bgcolor=#999999></td></tr>
+				<tr><td height=1 bgcolor=#FFFFFF></td></tr>
+				<tr>
+					<td class=neo width="100%">
+						&nbsp;▒  제 목 : $!{moon_board_detail.get(0).get(0)} ▒
+					</td>
+				</tr>
+				<tr><td height=1 class=lightmid></td></tr>
+			</table>
+	</tr>
+	<tr>
+		<tr><td height=1 bgcolor=#999999></td></tr>
+		<tr><td height=1 bgcolor=#FFFFFF></td></tr>
+		<tr><td height=2 bgcolor=#EDEDED></td></tr>
+	</tr>
+	</tr>
+		<td align=center>
+			<table width="100%" cellpadding=0 cellspacing=0 border=0>
+				<tr><td height=5></td></tr>
+				<tr>
+					<td width='100%'  height=100  valign=top class=neo>
+						$!{moon_board_detail.get(0).get(1)}
+					</td>
+				</tr>
+				<tr><td height=5></td></tr>
+			</table>
+        </td>
+    </tr>
+</table>
+#end
+
+#if($_board_type && $_board_type.equals("modify"))
+<table id=temp_layer style="display:none" class=normal-table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+        <td align=center>
+			<table width="100%" cellpadding=0 cellspacing=0 border=0>
+				<tr><td height=5></td></tr>
+				<tr>
+					<td width='100%'  height=100  valign=top class=neo id=temp_content> 
+						#if( "$!{_board_id}" == "BOARD_NOTICE" ) 
+							$!{c_notice_detail.get(0).get(1)}
+						#else 
+							$!{moon_board_detail.get(0).get(1)}
+						#end 
+					</td>
+				</tr>
+				<tr><td height=5></td></tr>
+			</table>
+        </td>
+    </tr>
+</table>
+#end

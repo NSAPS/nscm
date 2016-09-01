@@ -1,0 +1,164 @@
+############################################################
+## 프로그램ID      : sc_01120_plantAllocationPlanResult_export.vm
+## 프로그램명      : 차주 수출판매계획 등록
+## 개발자          : 남웅용
+## 개발일자        : 2010-01-01
+##
+## 관련 job file   : job_sinc_20_scheduling_04.xml
+## 관련 query file : query_sinc_20_scheduling_04.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2009-10-15  남웅용      create
+## 2.0 		  2010-05-01  남웅용		ERP재고,주문 기준으로 재개발
+##
+############################################################
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+##set( $resizeFuncCallCode = "setGridAutoResize2('120', '180')" )
+#set( $resizeFuncCallCode = "setGridAutoResize('78', '103')" )
+
+##공장할당 버전
+<input type="hidden" name="plant_alloc_version" value="$plant_alloc_version.get(0).get(0)">
+
+<!--	 WiseGrid의 셀을 더블클릭 했을때 발생한다. -->
+<script language=javascript for="WiseGrid" event="CellDblClick(strColumnKey, nRow)">
+	GridCellDblClick(strColumnKey, nRow);
+</script>
+
+<!--	 WiseGrid에 MOUSE OVER 되었을때 발생한다. -->
+<script language=javascript for="WiseGrid" event="MouseOver(strType, strColumnKey, nRow)">
+	GridMouseOver(strType, strColumnKey, nRow);
+</script>
+
+<!--	 WiseGrid에 MOUSE OUT 되었을때 발생한다. -->
+<script language=javascript for="WiseGrid" event="MouseOut(strType, strColumnKey, nRow)">
+	GridMouseOut(strType, strColumnKey, nRow);
+</script>
+
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						#button("search")
+							<input type="button" name="btnSave" value="  저장" onClick="GoSave();" class="btn_sav_on" 
+								#if("$!{_user_group_id}" != "GRP007" && "$!{_user_group_id}" != "GRP001") ## 해외영업팀과 관리자그룹만 저장버튼 활성
+								disabled
+								#end
+								>
+						##toolbar_nscm($_moon_toolbar "" "" "GoSave" "")							
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " ></td></tr> ##onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " ></td> ##onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; ">
+							
+							<tr>
+								<td width="10%" align="right">조회 일자 :</td> 
+								<td width="20%">  																	    
+            						#date_sole_no_title( "sdate" "10" "normal" "searchBtn" $date.get('yyyy-MM-dd'))
+            					</td>
+								
+								<td width="70%"> 
+									<input type="radio" name="checked_domain" value="DO" style="border:0px;"
+            							onClick="this.checked" checked >내수</input>&nbsp;
+            						<input type="radio" name="checked_domain" value="EXMTS" style="border:0px;"
+            							onClick="this.checked" #if("$!{checked_domain}" == "EXMTS") checked #end>수출MTS</input>&nbsp;            						
+            						<input type="radio" name="checked_domain" value="EXMTO" style="border:0px;"
+            							onClick="this.checked" #if("$!{checked_domain}" == "EXMTO") checked #end>수출MTO</input>&nbsp;            						
+            						<input type="radio" name="checked_domain" value="EXHAWA" style="border:0px;"
+            							onClick="this.checked" #if("$!{checked_domain}" == "EXHAWA") checked #end>수출상품</input>&nbsp;
+										&nbsp;&nbsp;&nbsp;&nbsp; 현재 화면의 주차 기준은 월요일 ~ 일요일입니다 .           						
+								</td>
+								
+								##<td width="10%" align="right"></td>
+            					##<td width="20%"> 
+            					</td>
+							</tr>
+						</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " ></td> ##onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " ></td></tr> ##onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="23"> ## search 조건 부분 높이 
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			##<div>&nbsp;</div>
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+    					<table name="grid" width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+    						 
+    						<tr>
+    							<td align="left" > 
+    								<script>initWiseGrid("WiseGrid", "100%", "450");</script>  
+    							</td> 
+    						</tr>
+    					</table> 
+					
+					</td></tr></table>
+					
+				##</div>
+
+    			<input type="hidden" name="_moon_service" value="${_moon_service}">
+    			<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+				<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+    			<input type="hidden" name="_user_id" value="$!{_user_id}">
+					
+                <input type="hidden" name="perpage_pre" value="${_moon_perpage}">
+                <input type="hidden" name="pagenumber_pre" value="$!{_moon_pagenumber}">					
+				
+			##</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	
+	// 
+	function chkOpenClose( obj ) {
+		alert(obj.tagName);
+		if( obj.tagName != "INPUT" && obj.tagName != "SELECT" && obj.tagName != "BUTTON" ) {
+			OpenClose(search_menu); $!{resizeFuncCallCode};
+		}
+	}
+	
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 조회된 리스트의 데이터를 더블클릭하면 해당 코드 그룹 수정화면으로 이동합니다.";
+	helpStr += "<br>◈ 상단의 등록버튼을 클릭하면 코드 등록 화면으로 이동합니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+	//document.cookie = "webfxtab_tabPane1=1";
+
+</script> 

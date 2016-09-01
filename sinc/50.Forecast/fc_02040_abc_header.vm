@@ -1,0 +1,260 @@
+<script type='text/javascript' src='$!{project}/dwr/interface/nongshim.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/engine.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/util.js'></script>
+
+<table id="dataArea" border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	<tr>
+		<td height="25" align="right" bgcolor="${toolbar_bgcolor}" class="line">
+			<table align="right" width="100%" height="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+				<tr>
+					<input type="hidden" name="search_type" value="$!{search_type}">
+					<td align="left">
+						<input type="button" name="btnDivision" value="재분류" onClick="searchIFrameData('fc_02040_abc_tailer', 'NEW');" class="btn1_on">						
+					</td>
+					<td align="right">
+						<input type="button" name="btnSearch" value=" 조회" onClick="searchIFrameData('fc_02040_abc_tailer','ORG');" class="btn_search_on">
+						#toolbar_nscm($_moon_toolbar "" "" "" "")
+					</td>
+				</tr>
+			</table>
+		</td>                                                                                                                                                                                                                  
+	</tr>
+	<tr id="search_menu" style="DISPLAY:block">
+		<td height="20" valign="top" bgcolor="${search_bgcolor}" class="line">
+			<table id="searchArea" border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; display:block; ">
+				<tr>
+					<td height="10"></td>
+				</tr>
+				<tr id="mainTrArea">
+					<td width="60%" align="center">
+						<table height="21" border="0" cellpadding="0" cellspacing="0">
+							<tr>
+								<td width="90" align="center" class="td1">
+									<span>분석 기준 그룹</span>
+								</td>
+								<td align="left">
+									<select name="analy_grp" style="width:100px" OnChange="setThisTemp(document.frm.d_analy_grp, this);">
+										<option value="">선택</option>
+										#foreach( $choice in $!{fc_02040_analysis_groups} )
+											<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{analy_grp}") selected #end >$choice.get(1)</option>
+										#end
+									</select>
+								</td>
+							</tr>								
+							<tr>
+								<td width="90" align="center" class="td1">
+									<span>분석 기준 대상</span>
+								</td>
+								<td align="left">
+									<select type="list" style="width:100px" name="analy_target" onChange="setThisTemp(document.frm.d_analy_target, this);displayUOM(this);">
+										<option value="">선택</option>
+										#foreach( $choice in $!{fc_02040_analyze_by_points} )
+											<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{analy_target}") selected #end >$choice.get(1)</option>
+										#end
+									</select>
+								</td>									
+                            </tr>
+							<tr id="qtyTrIf" style="display:none;">
+								<td width="90" align="center" class="td1">
+									<span>분석 기준 단위</span>
+								</td>
+								<td align="left">
+									<select type="list" style="width:100px" name="analy_uom" onChange="setThisTemp(document.frm.d_analy_target, this);">
+										<option value="BOX" #if( "BOX" == "$!{analy_uom}") selected #end >BOX</option>
+										<option value="EA"  #if( "EA" == "$!{analy_uom}") selected #end >EA</option>										
+									</select>
+								</td>									
+                            </tr>
+							<tr>
+								<td width="90" align="center" class="td1">
+									<span>실적 시작일</span>
+								</td>
+								<td align="left">
+									<select name="start" style="width:100px" OnChange="setThisTemp(document.frm.d_start, this);changeEndDate(this);">
+										<option value="">선택</option>
+    									#foreach( $choice in $!{fc_02040_abc_start} )
+    										<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{start}") selected #end >$choice.get(0)</option>
+    									#end
+									</select>
+                                </td>
+							</tr>
+							<tr>
+								<td width="90" align="center" class="td1">
+									<span>실적 완료일</span>
+								</td>
+								<td align="left"> 
+									<select name="end" style="width:100px" OnChange="setThisTemp(document.frm.d_end, this);">
+										<option value="">--------------------</option>												
+									</select>				
+                                 </td>
+							</tr>																		
+						</table>
+					</td>							
+					<td width="40%" align="left"> 
+						<table height="21" border="0" cellpadding="0" cellspacing="0">									
+							<tr>
+								<td width="120" align="center" class="td1" colspan=2>
+									<span>ABC 클래스 비율</span>
+								</td>
+							</tr>		
+							<tr>
+								<td width="80" align="center" class="td1">
+									<span>A 클래스</span>
+								</td>
+								<td align="left">
+									<input name="a_class" type="text" value="50" style="width:40px;" maxlength="5" class="normal" onKeyPress="onlynumber();">
+								</td>
+                            </tr>
+							<tr>
+								<td width="80" align="center" class="td1">
+									<span>B 클래스</span>
+								</td>
+								<td align="left">
+									<input name="b_class" type="text" value="30" style="width:40px;" maxlength="5" class="normal" onKeyPress="onlynumber();">
+                                </td>
+							</tr>
+							<tr>
+								<td width="80" align="center" class="td1">
+									<span>C 클래스</span>
+								</td>
+								<td align="left"> 
+									<input name="c_class" type="text" value="20" style="width:40px;" maxlength="5" class="normal" onKeyPress="onlynumber();">			
+                                 </td>
+							</tr>			
+						</table>
+					</td>
+				 </tr>
+				 <tr id="tempBtArea" style="display:none;">
+					<td align="left">								
+                		<input type="button" name="option" value=" Option" onClick="displayOption('REBUILD');" class="btn1_on">
+						<input type="button" name="btnSave1" value=" 저장" onClick="updateData('fc_02040_abc_tailer_save');" class="btn_mod_on">	
+					</td>
+				 </tr>
+				 <tr id="tempTrArea" style="display:none;">
+					<td width="50%" align="center">
+						<table height="21" border="0" cellpadding="0" cellspacing="0">        							
+							<tr>
+								<td height="5" align="left"></td>
+							</tr>
+							<tr>
+								<td width="100" align="center" class="td1">
+									<span>분석 기준그룹</span>
+								</td>
+								<td align="left">
+									<input type="text" name="d_analy_grp" style="width:100;background:#CCCCCC;" class="normal" readonly>					
+								</td>
+							</tr>
+							<tr>
+								<td width="100" align="center" class="td1">
+									<span>분석 기준대상</span> 
+								</td>
+								<td align="left" colspan="3">
+									<input type="text" name="d_analy_target" style="width:100;background:#CCCCCC;" class="normal" readonly>	
+								</td>
+							</tr>
+							<tr>        								
+								<td width="100" align="center" class="td1">
+									<span>실적 시작일</span>
+								</td> 
+								<td align="left" width="100">
+									<input type="text" name="d_start" style="width:100;background:#CCCCCC;" class="normal" readonly>
+                                </td>       								
+							</tr>
+							<tr>
+								<td width="90" align="center" class="td1">
+									<span>실적 완료일</span>
+								</td>
+								<td align="left" width="100"> 
+									<input type="text" name="d_end" style="width:100;background:#CCCCCC;" class="normal" readonly>	
+                                </td>
+							</tr>
+						</table>
+					</td>	
+					<td width="40%" align="left"> 
+						<table height="21" border="0" cellpadding="0" cellspacing="0">									
+							<tr>
+								<td width="120" align="center" class="td1" colspan=2>
+									<span>ABC 클래스 비율</span>
+								</td>
+							</tr>		
+							<tr>
+								<td width="80" align="center" class="td1">
+									<span>A 클래스</span>
+								</td>
+								<td align="left">
+									<input name="d_a_class" type="text" style="width:40px;background:#cccccc;" maxlength="3" class="normal" readonly>
+								</td>
+                            </tr>
+							<tr>
+								<td width="80" align="center" class="td1">
+									<span>B 클래스</span>
+								</td>
+								<td align="left">
+									<input name="d_b_class" type="text" style="width:40px;background:#cccccc;" maxlength="3" class="normal" readonly>
+                                </td>
+							</tr>
+							<tr>
+								<td width="80" align="center" class="td1">
+									<span>C 클래스</span>
+								</td> 
+								<td align="left"> 
+									<input name="d_c_class" type="text" style="width:40px;background:#cccccc;" maxlength="3" class="normal" readonly>			
+                                 </td>
+							</tr>			
+						</table>
+					</td>        					
+				 </tr>	
+		  		 <tr height="10"><td></td></tr>
+		     </table>
+			 <table id="chartArea" border="0" width="100%" cellpading="0" cellspacing="0" style="display:none;">
+				<tr>
+					<td align="left" width="5%">								
+                		<input type="button" name="option" value=" Option" onClick="displayOption('CHART');" class="btn1_on">								
+					</td>
+				</tr>
+				<tr>        					
+					<td align="left">
+						<div id="my_chart" style="padding: 0px; margin:10px; border: 1px solid lightblue; width: 100%;"></div>
+					</td>										 
+				</tr>        				 			
+		  		<tr height="10"><td></td></tr>
+		     </table>
+		 </td>   
+	 </tr>	 
+	 <tr class="line" height="10"><td></td></tr>
+	 <tr>
+	 	 <td valign="top">
+			<iframe id="child" name="iframe" src="service.do?_moon_service=fc_02040_abc_tailer&amp;_moon_perpage=100&amp;_moon_pagenumber=1" width="100%" height="100%" scrolling="no" topmargin="0" leftmargin="0" frameborder="NO" border="0" framespacing="0"></iframe>
+		 </td>
+	 </tr>	 
+	 <input type="hidden" name="_moon_service" value="${_moon_service}">
+	 <input type="hidden" name="_moon_pagenumber" value="${_moon_pagenumber}">
+</table>
+
+## waiting 표시 영역
+<table width="100%" height="100%" id="waitArea" style="display:none;"> 
+	<tr>
+		<td valign="middle" align="center">
+			<img src="sinc/template/basic/skin/nongshim/images/common/progress_waiting.gif" 
+				align="absmiddle" border="0" width="200px" height="60px">
+			<img src="sinc/template/basic/skin/nongshim/images/common/loading_icon.gif" 
+				align="absmiddle" border="0" width="60px" height="60px">
+			<br><h1>&nbsp;</h1><br><h1>&nbsp;</h1><br>
+		</td>
+	</tr>
+</table>
+	
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력  
+	var helpStr = "취급 상품을 ABC 세 가지로 나누고, 그 중에서 최상위 A랭크 상품을 중점관리 해 나가는 기법이다.<br><br>";	
+	helpStr += "◈분석 기준그룹을 기준으로 분석 기준대상이 큰 순서로 나열.(예 : 대표제품을 기준으로 판매수량이 큰 순서대로 나열한다.)<br>";
+	helpStr += "◈분석 기준그룹을 기준으로 분석 기준대상상의 구성비를 계산하여 전시. (예: 대표제품을 기준으로 판매수량 구성비를 계산한다.)<br>"; 	
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;	
+				
+</script>

@@ -1,0 +1,342 @@
+############################################################
+## 프로그램ID : rp_01030_dailyPushTransportAdjust_list.vm
+## 프로그램명 : PUSH 수송 계획 조정 (현재 사용 하지 않음)
+## 개발자  : 허준성
+## 개발일자 : 2008-08-27 수요일
+##
+##관련 job file : job_sinc_40_replenishmentPlanning_00.xml
+##
+##관련 query file : query_sinc_40_replenishmentPlanning_00.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2008-08-27  허준성    rp_01030_dailyPushTransportAdjust_list.vm 개발
+##
+##
+############################################################
+
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('150', '175')" )
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						#button("search")
+						#toolbar_nscm($_moon_toolbar "" "" "rp_01030_dailyPushTransportAdjust_list_save_comp" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" 
+							id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr>
+								<td width="15%" align="right">
+            						계획주기 :
+            					</td>
+            					<td width="18%" align="left">
+									##<select name="plan_version" onChange="setVersions(this.value); " style="width:130px; ">
+									<select name="period_type" style="width:130px; " onChange="doChange(this); ">
+									#foreach( $tr in $dailyTransportPlan_period_type_list )
+										<option value="${tr.get(0)}" #if( "$!{period_type}" == "${tr.get(0)}" ) selected #end)>
+											${tr.get(1)}
+										</option>
+									#end
+									</select>
+            					</td>
+								<td width="15%" align="right">
+            						출고장 :
+            					</td>
+            					<td width="18%" align="left">
+									<select name="selected_src_loc" style="width:160px; " onChange="setMaxStock(this.value);">
+										<option value="">선택</option>
+									#foreach( $tr in $src_loc_and_max_capa )
+										<option value="${tr.get(0)}!%!${tr.get(2)}" 
+											#if( "$!{selected_src_loc}" == "${tr.get(0)}!%!${tr.get(2)}" ) selected #end)>${tr.get(1)}</option>
+									#end
+									</select>
+									<input type="hidden" name="src_loc">
+            					</td>
+            					<td width="15%" align="right">
+            						수송일자 :
+            					</td>
+            					<td width="19%" align="left">
+									#date_sole_no_title("creation_date" "10" "normal" "btnC" "$date.get('yyyy-MM-dd')")
+            					</td>           					
+            				</tr>
+            				<tr>
+								<td width="15%" align="right">
+            						계획버전 :
+            					</td>
+            					<td width="18%" align="left">
+									<a id="divVersion"> 
+                						<select name="plan_version" style="width:130px; " >
+                							<option value="">선택</option>									
+                						</select>		
+            						</a>
+									<script>
+										function doChange(obj){ 
+                                    		var divStr = "<select name=\"plan_version\" style=\"width:130px; \" onChange=\"setVersions(this.value);\"> ";
+                                    	#foreach( $condition in $dailyTransportPlan_version_list )
+                                    		if ( obj.value == "$condition.get(2)" ) { 
+                                    			divStr += "<option value=\"${condition.get(0)}!%!${condition.get(1)}\" ";
+												if($condition.get(4) == 27)
+													if("$!{plan_version}" == "${condition.get(0)}!%!${condition.get(1)}")
+														divStr += "style=\"background-color:#ffffaa; \" selected>";
+													else
+														divStr += "style=\"background-color:#ffffaa; \">";
+												else
+													if("$!{plan_version}" == "${condition.get(0)}!%!${condition.get(1)}")
+														divStr += " selected>";
+													else
+														divStr += ">";
+                                    			divStr += "$condition.get(0) - $condition.get(1)</option>"; 
+                                    		}
+                                    	#end 
+                                    		divStr += "</select>"; 
+                                    		divVersion.innerHTML = divStr;	
+											setVersions(document.frm.plan_version.value);
+                                    	}             
+									</script>
+									<input type="hidden" name="version">
+									<input type="hidden" name="seq">
+            					</td>
+								<td width="15%" align="right">
+            						마감예상재고:
+            					</td>
+            					<td width="18%" align="left">
+									#if( ${stock_plan_and_expect_stock.size()} > 0 )
+										#set( $exp_stk = "${stock_plan_and_expect_stock.get(0).get(1)}" )
+										#if( "$!{exp_stk}" != "" )
+											#set( $exp_stk = "$number.format($exp_stk)" )
+										#end
+									#end
+									<input name="expect_stock" class="normal" disabled value="$!{exp_stk}"
+										style="width:80px; text-align:right; ">
+            					</td>
+            					<td width="15%" align="right">
+            						최대재고:
+            					</td>
+            					<td width="19%" align="left">
+									<input name="max_stock" class="normal" disabled style="width:80px; text-align:right; ">
+            					</td>   
+            				</tr>
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="47"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+								<img src="/nscm/sinc/template/basic/skin/nongshim/images/common/dot_sub6.gif" width="16" height="13">Total :
+								<span id="areaTot" class="f_color_o b">$!{_moon_service_count}</span>
+							</td>
+						</tr>
+					</table>
+					
+					<table id="tbMain" border="0" width="100%" cellpadding="0" cellspacing="0"><tr><td>
+						<div id="topLeft" style="height:40px; width:445px; overflow:hidden; ">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead>
+									<tr height="40px"> 
+										<td width="30px">번호</td>
+										<td width="40px">선택</td>
+										<td width="95px">수송계획일자</td>
+										<td width="160px">입고장</td>
+										<td width="50px">차량<br>순번</td>
+									    <td width="70px">적재율</td>
+									</tr> 
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td>
+					<td> 
+						<div id="topLine" style="height:40px; width:500px;overflow:hidden;">
+							<table width="480px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead>
+									<tr height="22px">
+										<td width="160px" colspan="2">재고상차수량</td>
+										<td width="160px" colspan="2">생산상차수량</td>
+										<td width="160px" colspan="2" class="right">합계상차수량</td>
+									</tr>
+									<tr align="center" height="18px">
+										<td width="80px" class="mid">PLT</td>
+										<td width="80px" class="mid">BOX</td>
+										<td width="80px" class="mid">PLT</td>
+										<td width="80px" class="mid">BOX</td>
+										<td width="80px" class="mid">PLT</td>
+										<td width="80px" class="midright">BOX</td>
+									</tr>
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td></tr>	
+					<tr><td valign="top">
+						<div id="leftDisplay" style="width:445px; overflow:hidden; ">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="left_tbody">
+								## 수송계획일자(0) 입고장코드(1) 입고장명(2) 차량순번(3) 적재율(4)
+								## 재고상차수량PLT(5) 재고상차수량BOX(6) 생산상차수량PLT(7) 생산상차수량BOX(8) 
+								## 합계수량PLT(9) 합계수량BOX(10)
+								#foreach( $tr in $rp_01030_dailyPushTransportAdjust_list )
+									<tr id="left_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+										## 번호
+										<td width="30px" align="center" style="background-color:${search_bgcolor}; " 
+											onClick="clickLine(this); " id="tdRowNo">
+											<a id="divRowNo">$velocityCount</a>
+										</td>
+										## 선택
+										<td width="40px" align="center" class="right">
+											<input type="checkbox" name="check_flag" value="" class="normal"
+												style="text-align:center; border-width:0; " onKeyDown="moveNextBox(this); "></input>
+											<input type="hidden" name="check_value" value="">
+										</td>
+										## 수송계획일자(0)
+										<td width="95px" align="center" onClick="setEditMode(this); ">
+											<a id="divTransDate">$tr.get(0)</a><input type="hidden" name="trans_date" value="$tr.get(0)">
+										</td>
+										## 입고장명(2)
+										<td width="160px" align="left">
+											<a id="divTgtLoc">&nbsp;$tr.get(2)</a>
+											<input type="hidden" name="tgt_loc" value="$tr.get(1)"> ##입고장 코드
+										</td>
+										## 차량순번(3)
+										<td width="50px" align="center">
+											<a id="divTruckSeq">$tr.get(3)</a>
+											<input type="hidden" name="truck_seq" value="$tr.get(3)"> ##차량코드
+										</td>
+										## 적재율(4)
+										<td width="70px" align="right">
+											#if( "$tr.get(4)" == "" )
+												#set( $per = "" )
+											#else
+												#set( $per = "$number.format('#,##0.0', $tr.get(4))" )
+											#end
+											<a id="divPer">$!{per}% &nbsp;</a>
+										</td>
+									</tr>
+								#end
+								</tbody> 
+							</table> 
+						</div>
+					</td> 
+					<td valign="top"> 
+						<div id="mainDisplay" class="ns_scroll" style="border:0; width:500px; overflow-y:scroll; overflow-x:scroll; " onscroll="scrollX(); scrollY(); ">
+							<table width="480px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="main_tbody">
+								## 수송계획일자(0) 입고장코드(1) 입고장명(2) 차량순번(3) 적재율(4)
+								## 재고상차수량PLT(5) 재고상차수량BOX(6) 생산상차수량PLT(7) 생산상차수량BOX(8) 
+								## 합계수량PLT(9) 합계수량BOX(10)
+								#foreach( $tr in $rp_01030_dailyPushTransportAdjust_list )
+									<tr id="main_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+										## 재고상차수량 PLT(5)
+										<td width="80px" align="right">
+											<a id="divBasePlt">$tr.get(5)&nbsp;</a>
+										</td>
+										## 재고상차수량 BOX(6)
+										<td width="80px" align="right">
+											<a id="divBaseBox">$tr.get(6)&nbsp;</a>
+										</td>
+										## 생산상차수량 PLT(7)
+										<td width="80px" align="right">
+											<a id="divProdPlt">$tr.get(7)&nbsp;</a>
+										</td>
+										## 생산상차수량 BOX(8)
+										<td width="80px" align="right">
+											<a id="divProdBox">$tr.get(8)&nbsp;</a>
+										</td>
+										## 합계수량 PLT(9)
+										<td width="80px" align="right">
+											<a id="divSumPlt">$tr.get(9)&nbsp;</a>
+										</td>
+										## 합계수량 BOX(10)
+										<td width="80px" align="right" class="right">
+											<a id="divSumBox">$tr.get(10)&nbsp;</a>
+										</td>
+									</tr>
+								#end
+								</tbody>
+							</table>
+						</div>
+					</td></tr></table>
+					
+					<table border="0" width="100%" cellpadding="0" cellspacing="0" height="5px"><tr><td></td></tr></table>
+					
+					
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+						
+					<input type="hidden" name="_moon_service" value="$!{_moon_service}">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 계획버전, 출고장, 수송일자를 반드시 입력하고 조회해야 합니다.";
+	helpStr += "<br>◈ 최대재고는 출고장을 변경할때 마다 그 해당 출고장의 최대재고 수량을 나타냅니다.";
+	helpStr += "<br>◈ 마감예상재고는 계획버전과 수송일자  출고장을 모두 선택하신 후 조회 버튼을 클릭하시면 해당 출고자의 마감예상재고 수량을 확인할 수 있습니다.";
+	helpStr += "<br>◈ 원하시는 ROW의 수송계획일자를 수정하시고 선택을 체크하셔야  수송계획에 반영됩니다.";
+	helpStr += "<br>◈ 적재율은 해당순번에 수송할 차량의 부피 기준 적재율을 나타냅니다.";
+	helpCont.innerHTML = helpStr;
+	// 도움말 zoomOut 높이 조절 변수
+	hDynamicHeight = 0;
+	
+	// 계획 주기 셋팅 및 계획버전 셋팅 
+	doChange(document.frm.period_type);
+	
+	if( "$!{plan_version}" != "" ) {
+		document.frm.plan_version.value = "$!{plan_version}";
+	}
+	
+	// 버전 초기값 세팅
+	setVersions(document.frm.plan_version.value);
+	setMaxStock(document.frm.selected_src_loc.value);
+	
+</script>

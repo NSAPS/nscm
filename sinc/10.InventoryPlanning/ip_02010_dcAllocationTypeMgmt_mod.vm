@@ -1,0 +1,306 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수
+##set( $resizeFuncCallCode = "setHtmlGridAutoResize3('142', '280', '180','$!{sel_date_term}')" )
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/replenishPlan.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<input type="hidden" name="sel_yyyy" #if("$!{sel_yyyy}" == "")value="$date.get('yyyy')" #else value="$!{sel_yyyy}"#end>
+<input type="hidden" name="sel_mm" #if("$!{sel_mm}" == "")value="$date.get('mm')" #else value="$!{sel_mm}"#end>
+<input type="hidden" name="to_date" value="$!{to_date}">
+<input type="hidden" name="item_name" value="$!{item_name}">
+<input type="hidden" name="user_id" value="$!{_user_id}">
+
+<table id="dataArea" border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역 
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr> 
+                	<td align="right">
+						#button("search")
+						<input type="button" name="btnSave" value="  저장" onClick="GoSave('ip_02030_SP_IP_SaveAllocationQty_comp')" class="btn_sav_on" >
+						<input type="button" name="btnDel" value="  삭제" onClick="GoDelete('ip_02030_deleteDC_ALLOC_comp',$ip_02030headerDate.size())" class="btn_del_on" >
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" 
+							id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr>
+            					<td width="15%" align="right">
+									작업년월 : 
+								</td>
+								<td width="15%" align="left"> 
+									<select name="insel_yyyy" >
+										#foreach( $condition in $ip_02010combo_yyyy )
+											<option value="$condition.get(0)" 
+												#if("$!{insel_yyyy}" == "")
+    												#if( "$date.get('yyyy')" == "$condition.get(0)" ) selected #end
+												#elseif("$!{insel_yyyy}" == "$condition.get(0)") 
+													selected 
+												#end
+											>$condition.get(0)</option>
+										#end
+									</select>
+									<select name="insel_mm" >
+										#foreach( $condition in $ip_02010combo_mm )
+											<option value="$condition.get(0)" 
+												#if("$!{insel_mm}" == "")
+													#if( "$date.get('MM')" == "$condition.get(0)" ) selected #end
+												#elseif("$!{insel_mm}" == "$condition.get(0)") 
+													selected 
+												#end
+											>$condition.get(0)</option>
+										#end
+									</select>									
+            					</td>
+								<td width="10%" align="right"> 
+									
+								</td> 
+            					<td width="60%" align="left"> 
+									<input name="insel_prod_gubn" type="radio" class="normal" value="all"
+										style="background-color:#f2f2f2; border:0;">
+									전체품목&nbsp;&nbsp;
+									<input name="insel_prod_gubn" type="radio" class="normal" value="single"
+										style="background-color:#f2f2f2; border:0;">
+									선택품목
+								</td> 
+ 							</tr>
+            				<tr>
+								<td width="15%" align="right">
+									공급할당기준 :
+								</td>
+								<td width="15%" align="left">
+									<select name="insel_allocQoutaType" >
+										#foreach( $condition in $ip_02010combo_allocQuotaType2 )
+											<option value="$condition.get(0)" #if( "$!{sel_allocQuotaType}" == "$condition.get(0)" ) selected #end>$condition.get(1)</option>
+										#end
+									</select>
+            					</td>
+								<td width="10%" align="right"> 
+									품목 :
+								</td> 
+            					<td width="60%" align="left">
+									<input	type="text" name="in_sel_item" class="normal" size="100" value="$!{in_sel_item}"
+										onKeyDown="moveNextBox(this); " onChange="dwClear();"
+										style="width:73PX; padding-right:5px; text-align:cneter; ">
+									<img name="imgItemId" tabindex="-1" 
+										src="sinc/template/basic/skin/nongshim/images/common/icon_search.gif" align="absmiddle" 
+										border="0" onClick="openDCAllocationItemPopup(this); " style="cursor:pointer;"/>
+									<input	type="text" name="in_alloc_item_name" class="normal" size="100" value="$!{item_name}"
+										onKeyDown="moveNextBox(this); " 
+										style="width:300PX; padding-right:5px; text-align:cneter; " disabled >	
+									<input type="hidden" name="old_alloc_item" 	value="$!{in_alloc_item}" >
+								</td> 
+							</tr>
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="47"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr width="100%" height="100%">
+		<td width="100%" valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; display:block; ">
+						<tr height="2"><td colspan="7" style="background-color:#d0d0d0; "></td></tr>
+						<tr>
+        					<td width="2" style="background-color:#d0d0d0; "></td>
+							<td width="15%" align="right">
+								1. 실적적용기간 : 
+							</td>
+							<td width="60%" colspan="2" align="left"> 
+								<select name="insel_yyyy" >
+									#foreach( $condition in $ip_02010combo_yyyy )
+										<option value="$condition.get(0)" 
+											#if("$!{insel_yyyy}" == "")
+												#if( "$date.get('yyyy')" == "$condition.get(0)" ) selected #end
+											#elseif("$!{insel_yyyy}" == "$condition.get(0)") 
+												selected 
+											#end
+										>$condition.get(0)</option>
+									#end
+								</select>
+								<select name="insel_mm" >
+									#foreach( $condition in $ip_02010combo_mm )
+										<option value="$condition.get(0)" 
+											#if("$!{insel_mm}" == "")
+												#if( "$date.get('MM')" == "$condition.get(0)" ) selected #end
+											#elseif("$!{insel_mm}" == "$condition.get(0)") 
+												selected 
+											#end
+										>$condition.get(0)</option>
+									#end
+								</select>	
+								&nbsp;가중치 :	
+								<input	type="text" name="alloc_weight" class="normal" size="100" value="$!{in_alloc_item}"
+										onKeyDown="moveNextBox(this); " onChange="dwClear();"
+										style="width:73PX; padding-right:5px; text-align:cneter; ">
+        					</td>
+                            <td width="20%" align="center">
+                                <a href="javascript:add();"><img name="side_expand" src="$!{project}/sinc/template/basic/images/common/application_side_expand.png" align="absmiddle" border="0"/></a>
+                                <br>
+                                <a href="javascript:del();"><img name="side_contract" src="$!{project}/sinc/template/basic/images/common/application_side_contract.png" align="absmiddle" border="0"/></a>
+                            </td>
+							<td width="25%" align="left">
+								<select name="select_1" style="width:170px;" multiple size=7 OnChange="">  										
+									#foreach( $choice in $!{select_1st} )
+										<option value="$choice.get(0)!%!$choice.get(1)" #if( "$choice.get(0)!%!$choice.get(1)" == "$!{select_1}") selected #end>$choice.get(2)</option>
+									#end
+								</select>
+							</td>
+        					<td width="2" style="background-color:#d0d0d0; "></td>
+						</tr>					
+						<tr height="2"><td colspan="7" style="background-color:#d0d0d0; "></td></tr>
+
+						<tr height="30px">
+        					<td width="2" style="background-color:#d0d0d0; "></td>
+							<td width="15%" align="right">
+								2. 참 &nbsp;조 &nbsp;제 &nbsp;품 : 
+							</td>
+           					<td width="60%" colspan="4" align="left">
+									<input	type="text" name="in_alloc_item" class="normal" size="100" value="$!{in_alloc_item}"
+										onKeyDown="moveNextBox(this); " onChange="dwClear();"
+										style="width:73PX; padding-right:5px; text-align:cneter; ">
+									<img name="imgItemId" tabindex="-1" 
+										src="sinc/template/basic/skin/nongshim/images/common/icon_search.gif" align="absmiddle" 
+										border="0" onClick="openDCAllocationItemPopup(this); " style="cursor:pointer;"/>
+									<input	type="text" name="in_alloc_item_name" class="normal" size="100" value="$!{item_name}"
+										onKeyDown="moveNextBox(this); " 
+										style="width:300PX; padding-right:5px; text-align:cneter; " disabled >	
+									<input type="hidden" name="old_alloc_item" 	value="$!{in_alloc_item}" >
+							</td> 
+       					<td width="2" style="background-color:#d0d0d0; "></td>
+						</tr>					
+						<tr height="2"><td colspan="7" style="background-color:#d0d0d0; "></td></tr>
+						
+						<tr>
+        					<td width="2" style="background-color:#d0d0d0; "></td>
+							<td width="15%" align="right">
+								3. 공급할당대상 : 
+							</td>
+							<td width="20%" align="left"> 
+								<select name="insel_allocTo" onChange="doChange2(this); ">
+									<option value="00">선택</option>
+									#foreach( $condition in $ip_02030combo_allocTo )
+										<option value="$condition.get(0)" >$condition.get(1)</option>
+									#end
+								</select>
+							</td>
+							<td id="td_alloc_to" width="20%" align="left"> 
+								<select name="select_1" style="width:170px;" multiple size=14 OnChange="">  										
+									#foreach( $choice in $!{select_1st} )
+										<option value="$choice.get(0)!%!$choice.get(1)" #if( "$choice.get(0)!%!$choice.get(1)" == "$!{select_1}") selected #end>$choice.get(2)</option>
+									#end
+								</select>
+        					</td>
+                            <td width="20%" align="center">
+                                <a href="javascript:add();"><img name="side_expand" src="$!{project}/sinc/template/basic/images/common/application_side_expand.png" align="absmiddle" border="0"/></a>
+                                <br>
+                                <a href="javascript:del();"><img name="side_contract" src="$!{project}/sinc/template/basic/images/common/application_side_contract.png" align="absmiddle" border="0"/></a>
+                            </td>
+							<td width="25%" align="left">
+								<select name="select_1" style="width:170px;" multiple size=14 OnChange="">  										
+									#foreach( $choice in $!{select_1st} )
+										<option value="$choice.get(0)!%!$choice.get(1)" #if( "$choice.get(0)!%!$choice.get(1)" == "$!{select_1}") selected #end>$choice.get(2)</option>
+									#end
+								</select>
+							</td>
+        					<td width="2" style="background-color:#d0d0d0; "></td>
+						</tr>					
+						<tr height="30px">
+        					<td width="2" style="background-color:#d0d0d0; "></td>
+							<td width="15%" align="right">
+								&nbsp;&nbsp;참 &nbsp;조 &nbsp;제 &nbsp;품 : 
+							</td>
+           					<td width="60%" colspan="4" align="left">
+									<input	type="text" name="in_alloc_item" class="normal" size="100" value="$!{in_alloc_item}"
+										onKeyDown="moveNextBox(this); " onChange="dwClear();"
+										style="width:73PX; padding-right:5px; text-align:cneter; ">
+									<img name="imgItemId" tabindex="-1" 
+										src="sinc/template/basic/skin/nongshim/images/common/icon_search.gif" align="absmiddle" 
+										border="0" onClick="openDCAllocationItemPopup(this); " style="cursor:pointer;"/>
+									<input	type="text" name="in_alloc_item_name" class="normal" size="100" value="$!{item_name}"
+										onKeyDown="moveNextBox(this); " 
+										style="width:300PX; padding-right:5px; text-align:cneter; " disabled >	
+									<input type="hidden" name="old_alloc_item" 	value="$!{in_alloc_item}" >
+							</td> 
+       					<td width="2" style="background-color:#d0d0d0; "></td>
+						</tr>					
+
+						<tr height="2"><td colspan="7" style="background-color:#d0d0d0; "></td></tr>
+						
+					</table>
+					
+				</div>
+				
+				<div class="tab-page" id="tabPage2" style="overflow:hidden; ">
+					<h2 class="tab">판매지분 정보조회</h2>
+					
+					<table id="gridArea2" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					</td></tr></table> ## gridArea
+			
+				</div>
+			</div>
+		</td>
+	</tr>
+	
+</table>
+## waiting 표시영역
+#waitingArea()
+<script>
+	
+    // 화면 reload 없이 Line 입력 값에 따라 공정 combobox 채움 
+    function doChange2(obj1){
+
+		var sel_alloc_to = obj1.value;
+		var arr_len;
+		var in_td_alloc_to;
+
+    	commonUtil.getCodeList("alloc_to",sel_alloc_to,"ip_02030combo_allocToData", { 
+    		callback:function(arrList){
+				in_td_alloc_to = "<select name=\"select_1\" style=\"width:170px;\" multiple size=14 OnChange=\"\">";
+				for(var i=0 ; i < arrList.length ; i++){
+					in_td_alloc_to +=	"<option value="+arrList[i].substring(0,2)+">"+arrList[i]+"</option>";
+				}	
+				in_td_alloc_to += "</select>";
+				td_alloc_to.innerHTML = in_td_alloc_to;
+			}
+    	});
+	}	
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 생성일자, 입고장, 계획버전을 반드시 입력하고 조회해야 합니다.";
+	helpStr += "<br>◈ 각 항목을 입력한 후 상단의 저장 버튼을 클릭하여 수정 내용을 저장합니다.";
+	helpStr += "<br>◈ 번호를 클릭하면 해당 라인의 판매정보와 공장예상재고가 조회됩니다.";
+	helpStr += "<br>◈ 추가/삭제의 테이블 헤더부분을 클릭하면 새로운 라인이 생성됩니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+</script>
+

@@ -1,0 +1,467 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>	
+
+		<!-- 공장할당 버전 -->
+		<query id="sc_11020_dailyProductionPlan_List">
+			with V_LST
+			          as (
+			                  select PLA.VERSION ,PLA.PLANT_ID ,PLA.PROC_ID ,PLA.ITEM_ID ,PLA.ORD_NO ,PLA.ORD_ITEM_NO
+			                        ,sum(case when WEK.DAY_RANK=1 and PLA.SHIFT_TYPE=1 then PLA.SHIFT_QTY end) as D01A
+			                        ,sum(case when WEK.DAY_RANK=1 and PLA.SHIFT_TYPE=3 then PLA.SHIFT_QTY end) as D01B
+			                        ,sum(case when WEK.DAY_RANK=1 and PLA.SHIFT_TYPE=5 then PLA.SHIFT_QTY end) as D01C
+			                        ,sum(case when WEK.DAY_RANK=2 and PLA.SHIFT_TYPE=1 then PLA.SHIFT_QTY end) as D02A
+			                        ,sum(case when WEK.DAY_RANK=2 and PLA.SHIFT_TYPE=3 then PLA.SHIFT_QTY end) as D02B
+			                        ,sum(case when WEK.DAY_RANK=2 and PLA.SHIFT_TYPE=5 then PLA.SHIFT_QTY end) as D02C
+			                        ,sum(case when WEK.DAY_RANK=3 and PLA.SHIFT_TYPE=1 then PLA.SHIFT_QTY end) as D03A
+			                        ,sum(case when WEK.DAY_RANK=3 and PLA.SHIFT_TYPE=3 then PLA.SHIFT_QTY end) as D03B
+			                        ,sum(case when WEK.DAY_RANK=3 and PLA.SHIFT_TYPE=5 then PLA.SHIFT_QTY end) as D03C
+			                        ,sum(case when WEK.DAY_RANK=4 and PLA.SHIFT_TYPE=1 then PLA.SHIFT_QTY end) as D04A
+			                        ,sum(case when WEK.DAY_RANK=4 and PLA.SHIFT_TYPE=3 then PLA.SHIFT_QTY end) as D04B
+			                        ,sum(case when WEK.DAY_RANK=4 and PLA.SHIFT_TYPE=5 then PLA.SHIFT_QTY end) as D04C
+			                        ,sum(case when WEK.DAY_RANK=5 and PLA.SHIFT_TYPE=1 then PLA.SHIFT_QTY end) as D05A
+			                        ,sum(case when WEK.DAY_RANK=5 and PLA.SHIFT_TYPE=3 then PLA.SHIFT_QTY end) as D05B
+			                        ,sum(case when WEK.DAY_RANK=5 and PLA.SHIFT_TYPE=5 then PLA.SHIFT_QTY end) as D05C
+			                        ,sum(case when WEK.DAY_RANK=6 and PLA.SHIFT_TYPE=1 then PLA.SHIFT_QTY end) as D06A
+			                        ,sum(case when WEK.DAY_RANK=6 and PLA.SHIFT_TYPE=3 then PLA.SHIFT_QTY end) as D06B
+			                        ,sum(case when WEK.DAY_RANK=6 and PLA.SHIFT_TYPE=5 then PLA.SHIFT_QTY end) as D06C
+			                        ,sum(case when WEK.DAY_RANK=7 and PLA.SHIFT_TYPE=1 then PLA.SHIFT_QTY end) as D07A
+			                        ,sum(case when WEK.DAY_RANK=7 and PLA.SHIFT_TYPE=3 then PLA.SHIFT_QTY end) as D07B
+			                        ,sum(case when WEK.DAY_RANK=7 and PLA.SHIFT_TYPE=5 then PLA.SHIFT_QTY end) as D07C
+			                         ---------------------------------------------------------------------------------
+			             			,max(case when WEK.DAY_RANK=1 and PLA.SHIFT_TYPE=1 and DH.REASON01||DH.REASON02||DH.REASON_MSG||DH.PLAN_MSG is not null then DH.REASON01||'_MSG_'||DH.REASON02||'_MSG_'||DH.REASON_MSG||'_MSG_'||DH.PLAN_MSG end) as MSGD01A
+			                        ,max(case when WEK.DAY_RANK=1 and PLA.SHIFT_TYPE=3 and DH.REASON01||DH.REASON02||DH.REASON_MSG||DH.PLAN_MSG is not null then DH.REASON01||'_MSG_'||DH.REASON02||'_MSG_'||DH.REASON_MSG||'_MSG_'||DH.PLAN_MSG end) as MSGD01B
+			                        ,max(case when WEK.DAY_RANK=1 and PLA.SHIFT_TYPE=5 and DH.REASON01||DH.REASON02||DH.REASON_MSG||DH.PLAN_MSG is not null then DH.REASON01||'_MSG_'||DH.REASON02||'_MSG_'||DH.REASON_MSG||'_MSG_'||DH.PLAN_MSG end) as MSGD01C
+			                        ,max(case when WEK.DAY_RANK=2 and PLA.SHIFT_TYPE=1 and DH.REASON01||DH.REASON02||DH.REASON_MSG||DH.PLAN_MSG is not null then DH.REASON01||'_MSG_'||DH.REASON02||'_MSG_'||DH.REASON_MSG||'_MSG_'||DH.PLAN_MSG end) as MSGD02A
+			                        ,max(case when WEK.DAY_RANK=2 and PLA.SHIFT_TYPE=3 and DH.REASON01||DH.REASON02||DH.REASON_MSG||DH.PLAN_MSG is not null then DH.REASON01||'_MSG_'||DH.REASON02||'_MSG_'||DH.REASON_MSG||'_MSG_'||DH.PLAN_MSG end) as MSGD02B
+			                        ,max(case when WEK.DAY_RANK=2 and PLA.SHIFT_TYPE=5 and DH.REASON01||DH.REASON02||DH.REASON_MSG||DH.PLAN_MSG is not null then DH.REASON01||'_MSG_'||DH.REASON02||'_MSG_'||DH.REASON_MSG||'_MSG_'||DH.PLAN_MSG end) as MSGD02C
+			                        ,max(case when WEK.DAY_RANK=3 and PLA.SHIFT_TYPE=1 and DH.REASON01||DH.REASON02||DH.REASON_MSG||DH.PLAN_MSG is not null then DH.REASON01||'_MSG_'||DH.REASON02||'_MSG_'||DH.REASON_MSG||'_MSG_'||DH.PLAN_MSG end) as MSGD03A
+			                        ,max(case when WEK.DAY_RANK=3 and PLA.SHIFT_TYPE=3 and DH.REASON01||DH.REASON02||DH.REASON_MSG||DH.PLAN_MSG is not null then DH.REASON01||'_MSG_'||DH.REASON02||'_MSG_'||DH.REASON_MSG||'_MSG_'||DH.PLAN_MSG end) as MSGD03B
+			                        ,max(case when WEK.DAY_RANK=3 and PLA.SHIFT_TYPE=5 and DH.REASON02||DH.REASON02||DH.REASON_MSG||DH.PLAN_MSG is not null then DH.REASON01||'_MSG_'||DH.REASON02||'_MSG_'||DH.REASON_MSG||'_MSG_'||DH.PLAN_MSG end) as MSGD03C
+			                        ,max(case when WEK.DAY_RANK=4 and PLA.SHIFT_TYPE=1 and DH.REASON02||DH.REASON02||DH.REASON_MSG||DH.PLAN_MSG is not null then DH.REASON01||'_MSG_'||DH.REASON02||'_MSG_'||DH.REASON_MSG||'_MSG_'||DH.PLAN_MSG end) as MSGD04A
+			                        ,max(case when WEK.DAY_RANK=4 and PLA.SHIFT_TYPE=3 and DH.REASON02||DH.REASON02||DH.REASON_MSG||DH.PLAN_MSG is not null then DH.REASON01||'_MSG_'||DH.REASON02||'_MSG_'||DH.REASON_MSG||'_MSG_'||DH.PLAN_MSG end) as MSGD04B
+			                        ,max(case when WEK.DAY_RANK=4 and PLA.SHIFT_TYPE=5 and DH.REASON02||DH.REASON02||DH.REASON_MSG||DH.PLAN_MSG is not null then DH.REASON01||'_MSG_'||DH.REASON02||'_MSG_'||DH.REASON_MSG||'_MSG_'||DH.PLAN_MSG end) as MSGD04C
+			                        ,max(case when WEK.DAY_RANK=5 and PLA.SHIFT_TYPE=1 and DH.REASON02||DH.REASON02||DH.REASON_MSG||DH.PLAN_MSG is not null then DH.REASON01||'_MSG_'||DH.REASON02||'_MSG_'||DH.REASON_MSG||'_MSG_'||DH.PLAN_MSG end) as MSGD05A
+			                        ,max(case when WEK.DAY_RANK=5 and PLA.SHIFT_TYPE=3 and DH.REASON02||DH.REASON02||DH.REASON_MSG||DH.PLAN_MSG is not null then DH.REASON01||'_MSG_'||DH.REASON02||'_MSG_'||DH.REASON_MSG||'_MSG_'||DH.PLAN_MSG end) as MSGD05B
+			                        ,max(case when WEK.DAY_RANK=5 and PLA.SHIFT_TYPE=5 and DH.REASON02||DH.REASON02||DH.REASON_MSG||DH.PLAN_MSG is not null then DH.REASON01||'_MSG_'||DH.REASON02||'_MSG_'||DH.REASON_MSG||'_MSG_'||DH.PLAN_MSG end) as MSGD05C
+			                        ,max(case when WEK.DAY_RANK=6 and PLA.SHIFT_TYPE=1 and DH.REASON02||DH.REASON02||DH.REASON_MSG||DH.PLAN_MSG is not null then DH.REASON01||'_MSG_'||DH.REASON02||'_MSG_'||DH.REASON_MSG||'_MSG_'||DH.PLAN_MSG end) as MSGD06A
+			                        ,max(case when WEK.DAY_RANK=6 and PLA.SHIFT_TYPE=3 and DH.REASON02||DH.REASON02||DH.REASON_MSG||DH.PLAN_MSG is not null then DH.REASON01||'_MSG_'||DH.REASON02||'_MSG_'||DH.REASON_MSG||'_MSG_'||DH.PLAN_MSG end) as MSGD06B
+			                        ,max(case when WEK.DAY_RANK=6 and PLA.SHIFT_TYPE=5 and DH.REASON02||DH.REASON02||DH.REASON_MSG||DH.PLAN_MSG is not null then DH.REASON01||'_MSG_'||DH.REASON02||'_MSG_'||DH.REASON_MSG||'_MSG_'||DH.PLAN_MSG end) as MSGD06C
+			                        ,max(case when WEK.DAY_RANK=7 and PLA.SHIFT_TYPE=1 and DH.REASON02||DH.REASON02||DH.REASON_MSG||DH.PLAN_MSG is not null then DH.REASON01||'_MSG_'||DH.REASON02||'_MSG_'||DH.REASON_MSG||'_MSG_'||DH.PLAN_MSG end) as MSGD07A
+			                        ,max(case when WEK.DAY_RANK=7 and PLA.SHIFT_TYPE=3 and DH.REASON02||DH.REASON02||DH.REASON_MSG||DH.PLAN_MSG is not null then DH.REASON01||'_MSG_'||DH.REASON02||'_MSG_'||DH.REASON_MSG||'_MSG_'||DH.PLAN_MSG end) as MSGD07B
+			                        ,max(case when WEK.DAY_RANK=7 and PLA.SHIFT_TYPE=5 and DH.REASON02||DH.REASON02||DH.REASON_MSG||DH.PLAN_MSG is not null then DH.REASON01||'_MSG_'||DH.REASON02||'_MSG_'||DH.REASON_MSG||'_MSG_'||DH.PLAN_MSG end) as MSGD07C
+			                    from DAILY_SCH_PLAN_SHIFT PLA
+			                         inner join
+			                         (
+			                             select --마지막 확정 버젼을 가져온다.
+			                                    /*+ INDEX(PLAN_VERSION_LOG IDX_PLAN_VERSION_LOG_2) */
+			                                    distinct CAT_ID ,SUB_CAT
+			                                   ,decode(SUB_CAT,'ANY','1110'      ,'ANS','1120'      ,'ANSB','1130'
+			                                                  ,'ASA','1140'      ,'KUM','1160'      ,'PUS' ,'1170'      ,'NOK','1180') as PLANT_ID
+			                                   ,max(VERSION) as MAX_VER
+			                               from PLAN_VERSION_LOG
+			                              where PERIOD_TYPE='DAILY'
+			                                and CAT_ID     = 'PS'
+			                                and to_number(STATUS) >= 23
+			                              group by CAT_ID ,SUB_CAT
+			                         ) IDX
+			                         on  IDX.CAT_ID   = PLA.CAT_ID
+			                         and IDX.PLANT_ID = PLA.PLANT_ID
+			                         and IDX.MAX_VER  = PLA.VERSION
+			                         ----------------------------------------------------------------------------------------------------------------------------
+			                         inner join
+			                         (
+			                            select YYYYMMDD ,DAY_RANK
+			                              from (
+			                                        select --화면조회구간을 가져와 구간 리스트를 생성 한다.
+			                                               YYYYMMDD
+			                                              ,dense_rank() over( order by CAL_DATE) as DAY_RANK
+			                                          from CAL_MST CAL
+			                                               inner join (
+			                                                               select case when upper('${weekNo}')='W0' then to_char(next_day(SYSDATE-7,2),'YYYYMMDD')
+			                                                                           when upper('${weekNo}')='W1' then to_char(next_day(SYSDATE,2),'YYYYMMDD')
+			                                                                           when upper('${weekNo}')='W2' then to_char(next_day(SYSDATE+7,2),'YYYYMMDD') end as SDATE
+			                                                                 from DUAL
+			                                               ) IDX
+			                                               on  CAL.YYYYMMDD >=IDX.SDATE
+			                                   )
+			                               where  7 >= DAY_RANK
+			                         ) WEK
+			                         on PLA.PROD_DATES = WEK.YYYYMMDD
+			                         and PLA.WO_END    = 'Y' --완제품 마지막 공정(포장)을 보정/관리 한다.
+			                         ----------------------------------------------------------------------------------------------------------------------------
+			                          left outer join
+			                         (
+			                            /* 계획 수정 내역 및 알림 사항 */
+			                            SELECT  A.CAT_ID, A.PLANT_ID, A.VERSION, A.SEQ, A.WO_ID, A.ITEM_ID, A.PROC_ID, A.LINE_ID, 
+			                                    TO_CHAR(A.PROD_DATES,'YYYYMMDD') PROD_DATES, A.SHIFT_TYPE,
+			                                    CD.CD01_NAME REASON01, CD.CD02_NAME REASON02, A.REASON_MSG, A.PLAN_MSG
+			                            FROM    DAILY_SCH_PLAN_HISTORY A,
+			                                    (
+			                                    SELECT  
+			                                            MAX(HT.HIS_NO) HIS_NO, HT.CAT_ID, HT.PLANT_ID, HT.VERSION,
+			                                            HT.ITEM_ID, HT.LINE_ID, HT.PROC_ID, HT.PROD_DATES, HT.SHIFT_TYPE  
+			                                    FROM    DAILY_SCH_PLAN_HISTORY HT
+			                                    GROUP   BY HT.CAT_ID, HT.PLANT_ID, HT.VERSION, HT.ITEM_ID, 
+			                                            HT.LINE_ID, HT.PROC_ID, HT.PROD_DATES, HT.SHIFT_TYPE 
+			                                    ) B,                                    
+			                                    (
+			                                    SELECT  A.CD CD01, A.CD_NAME CD01_NAME, B.CD CD02, B.CD_NAME CD02_NAME
+			                                    FROM    CODE_MST A,
+			                                            CODE_MST B
+			                                    WHERE   A.CD_GRP = 'MSG_GROUP'
+			                                    AND     A.CD_NAME = B.CD_GRP
+			                                    ) CD                                    
+			                            WHERE   A.HIS_NO     = B.HIS_NO
+			                            AND     A.CAT_ID     = B.CAT_ID
+			                            AND     A.PLANT_ID   = B.PLANT_ID
+			                            AND     A.VERSION    = B.VERSION
+			                            AND     A.ITEM_ID    = B.ITEM_ID
+			                            AND     A.LINE_ID    = B.LINE_ID
+			                            AND     A.PROD_DATES = B.PROD_DATES
+			                            AND     A.SHIFT_TYPE = B.SHIFT_TYPE
+			                            AND     A.REASON01   = CD.CD01(+)
+			                            AND     A.REASON02   = CD.CD02(+)
+			                            ORDER   BY A.PLANT_ID, A.VERSION, A.ITEM_ID, A.PROC_ID, A.PROD_DATES, A.SHIFT_TYPE 
+			                         ) DH
+			                         ON     PLA.CAT_ID     = DH.CAT_ID
+			                         AND    PLA.PLANT_ID   = DH.PLANT_ID
+			                         AND    PLA.VERSION    = DH.VERSION
+			                         AND    PLA.SEQ        = DH.SEQ
+			                         AND	PLA.ITEM_ID	   = DH.ITEM_ID
+			                         AND    PLA.LINE_ID    = DH.LINE_ID
+			                         AND    PLA.PROC_ID    = DH.PROC_ID
+			                         AND    PLA.PROD_DATES = DH.PROD_DATES
+			                         AND    PLA.SHIFT_TYPE = DH.SHIFT_TYPE 
+			                       where 	PLA.PLANT_ID in ('$commonUtil.replaceAll("$!{selected_plant}","''","'")')                        
+			                       group by PLA.VERSION ,PLA.PLANT_ID ,PLA.PROC_ID ,PLA.ITEM_ID ,PLA.ORD_NO ,PLA.ORD_ITEM_NO
+			             )
+			             select HRC.PLANT_NAME                                                 --0
+			                   ,HRC.PROC_NAME                                                  --1
+			                   ,ITM.ITEM_NAME                                                  --2
+			                   ,ITM.SPEC                                                       --3
+			                   ,CAP.LABOR_WOMAN                                                --4
+			                   ,decode(ITM.MTO_MTS_TYPE, '0001','O', '0002', 'S') MTO_MTS_TYPE --5
+			                   ,PLA.ORD_NO                                                     --6
+			                   ,PLA.ORD_ITEM_NO                                                --7
+			                   ,to_char(PLA.D01A,'FM999,999') as D01A                          --8
+			                   ,to_char(PLA.D01B,'FM999,999') as D01B                          --9
+			                   ,to_char(PLA.D01C,'FM999,999') as D01C                          --10
+			                   ,to_char(PLA.D02A,'FM999,999') as D02A                          --11
+			                   ,to_char(PLA.D02B,'FM999,999') as D02B                          --12
+			                   ,to_char(PLA.D02C,'FM999,999') as D02C                          --13
+			                   ,to_char(PLA.D03A,'FM999,999') as D03A                          --14
+			                   ,to_char(PLA.D03B,'FM999,999') as D03B                          --15
+			                   ,to_char(PLA.D03C,'FM999,999') as D03C                          --16
+			                   ,to_char(PLA.D04A,'FM999,999') as D04A                          --17
+			                   ,to_char(PLA.D04B,'FM999,999') as D04B                          --18
+			                   ,to_char(PLA.D04C,'FM999,999') as D04C                          --19
+			                   ,to_char(PLA.D05A,'FM999,999') as D05A                          --20
+			                   ,to_char(PLA.D05B,'FM999,999') as D05B                          --21
+			                   ,to_char(PLA.D05C,'FM999,999') as D05C                          --22
+			                   ,to_char(PLA.D06A,'FM999,999') as D06A                          --23
+			                   ,to_char(PLA.D06B,'FM999,999') as D06B                          --24
+			                   ,to_char(PLA.D06C,'FM999,999') as D06C                          --25
+			                   ,to_char(PLA.D07A,'FM999,999') as D07A                          --26
+			                   ,to_char(PLA.D07B,'FM999,999') as D07B                          --27
+			                   ,to_char(PLA.D07C,'FM999,999') as D07C                          --28
+			                   ,PLA.VERSION                                                    --29
+			                   ,PLA.PLANT_ID                                                   --30
+			                   ,PLA.PROC_ID                                                    --31
+			                   ,PLA.ITEM_ID                                                    --32
+			                   ,HRC.LINE_NAME                                                  --33
+			                   ,HRC.TEAM_NAME                                                  --34
+			                   ,nvl(PLA.MSGD01A,'_MSG__MSG__MSG_')||'_MSG_'||BG.BGD01A as CD01A                       --35
+			                   ,nvl(PLA.MSGD01B,'_MSG__MSG__MSG_')||'_MSG_'||BG.BGD01B as CD01B                       --36
+			                   ,nvl(PLA.MSGD01C,'_MSG__MSG__MSG_')||'_MSG_'||BG.BGD01C as CD01C                       --37
+			                   ,nvl(PLA.MSGD02A,'_MSG__MSG__MSG_')||'_MSG_'||BG.BGD02A as CD02A                       --38
+			                   ,nvl(PLA.MSGD02B,'_MSG__MSG__MSG_')||'_MSG_'||BG.BGD02B as CD02B                       --39
+			                   ,nvl(PLA.MSGD02C,'_MSG__MSG__MSG_')||'_MSG_'||BG.BGD02C as CD02C                       --40
+			                   ,nvl(PLA.MSGD03A,'_MSG__MSG__MSG_')||'_MSG_'||BG.BGD03A as CD03A                       --41
+			                   ,nvl(PLA.MSGD03B,'_MSG__MSG__MSG_')||'_MSG_'||BG.BGD03B as CD03B                       --42
+			                   ,nvl(PLA.MSGD03C,'_MSG__MSG__MSG_')||'_MSG_'||BG.BGD03C as CD03C                       --43
+			                   ,nvl(PLA.MSGD04A,'_MSG__MSG__MSG_')||'_MSG_'||BG.BGD04A as CD04A                       --44
+			                   ,nvl(PLA.MSGD04B,'_MSG__MSG__MSG_')||'_MSG_'||BG.BGD04B as CD04B                       --45
+			                   ,nvl(PLA.MSGD04C,'_MSG__MSG__MSG_')||'_MSG_'||BG.BGD04C as CD04C                       --46
+			                   ,nvl(PLA.MSGD05A,'_MSG__MSG__MSG_')||'_MSG_'||BG.BGD05A as CD05A                       --47
+			                   ,nvl(PLA.MSGD05B,'_MSG__MSG__MSG_')||'_MSG_'||BG.BGD05B as CD05B                       --48
+			                   ,nvl(PLA.MSGD05C,'_MSG__MSG__MSG_')||'_MSG_'||BG.BGD05C as CD05C                       --49
+			                   ,nvl(PLA.MSGD06A,'_MSG__MSG__MSG_')||'_MSG_'||BG.BGD06A as CD06A                       --50
+			                   ,nvl(PLA.MSGD06B,'_MSG__MSG__MSG_')||'_MSG_'||BG.BGD06B as CD06B                       --51
+			                   ,nvl(PLA.MSGD06C,'_MSG__MSG__MSG_')||'_MSG_'||BG.BGD06C as CD06C                       --52
+			                   ,nvl(PLA.MSGD07A,'_MSG__MSG__MSG_')||'_MSG_'||BG.BGD07A as CD07A                       --53
+			                   ,nvl(PLA.MSGD07B,'_MSG__MSG__MSG_')||'_MSG_'||BG.BGD07B as CD07B                       --54
+			                   ,nvl(PLA.MSGD07C,'_MSG__MSG__MSG_')||'_MSG_'||BG.BGD07C as CD07C                       --55
+			               from V_LST PLA                
+			                    -------------------------------------------
+			                    --공장명, 팀명, 라인명, 작업장 명을 가져온다.
+			                    left outer join  SCH_ITEM_RANK HRC
+			                    on  HRC.CAT_ID   = 'PS'
+			                    and HRC.PLANT_ID =PLA.PLANT_ID
+			                    and HRC.PROC_ID  =PLA.PROC_ID
+			                    and HRC.ITEM_ID  =PLA.ITEM_ID
+			                    -------------------------------------------
+			                    --제품명,규격,구분을 가져온다.
+			                    inner join ITEM_MST ITM
+			                    on  ITM.ITEM_ID    = PLA.ITEM_ID
+			                    and ITM.ITYPE      = 'FERT' --완제품
+			                #if("$!{checked_multi}" == "visual")
+			                    and ITM.MULTI_FLAG = 'V'
+			                #elseif("$!{checked_multi}" == "multi")
+			                    and ITM.MULTI_FLAG = 'M'
+			                #elseif("$!{checked_multi}" == "normal")
+			                    and ITM.MULTI_FLAG IS NULL
+			                #end
+			                    -------------------------------------------
+			                    --TO여 를 가져온다.      
+			                    left outer join          
+			                    (                        
+			                        SELECT  DISTINCT     
+			                                PLANT_ID, ITEM_ID, LINE_ID, PROC_ID, LABOR_MAN, LABOR_WOMAN
+			                        FROM    ITEM_CAPA    
+			                        WHERE   MADE_TYPE != 'DE'
+			                        ORDER   BY PLANT_ID, ITEM_ID, LINE_ID, PROC_ID, LABOR_MAN, LABOR_WOMAN
+			                    ) CAP
+			                    on  CAP.PLANT_ID = PLA.PLANT_ID
+			                    and CAP.ITEM_ID  = PLA.ITEM_ID
+			                    and CAP.PROC_ID  = PLA.PROC_ID
+			                    -------------------------------------------
+			                    left outer join
+			                    (
+			                         select WOK.PLANT_ID ,WOK.PROC_ID
+			                               ,max(nvl(case when IDX.DAY_RANK=1 and decode(substr(WOK.SHIFT_ID,1,3),'JOG','1','OTD','1','DAY','3','NIG','5','OTJ','1','OTN','5')=1 then substr(WOK.WORKTY_ID,2,1) end,'N')) as BGD01A
+			                               ,max(nvl(case when IDX.DAY_RANK=1 and decode(substr(WOK.SHIFT_ID,1,3),'JOG','1','OTD','1','DAY','3','NIG','5','OTJ','1','OTN','5')=3 then substr(WOK.WORKTY_ID,2,1) end,'N')) as BGD01B
+			                               ,max(nvl(case when IDX.DAY_RANK=1 and decode(substr(WOK.SHIFT_ID,1,3),'JOG','1','OTD','1','DAY','3','NIG','5','OTJ','1','OTN','5')=5 then substr(WOK.WORKTY_ID,2,1) end,'N')) as BGD01C
+			                               ,max(nvl(case when IDX.DAY_RANK=2 and decode(substr(WOK.SHIFT_ID,1,3),'JOG','1','OTD','1','DAY','3','NIG','5','OTJ','1','OTN','5')=1 then substr(WOK.WORKTY_ID,2,1) end,'N')) as BGD02A
+			                               ,max(nvl(case when IDX.DAY_RANK=2 and decode(substr(WOK.SHIFT_ID,1,3),'JOG','1','OTD','1','DAY','3','NIG','5','OTJ','1','OTN','5')=3 then substr(WOK.WORKTY_ID,2,1) end,'N')) as BGD02B
+			                               ,max(nvl(case when IDX.DAY_RANK=2 and decode(substr(WOK.SHIFT_ID,1,3),'JOG','1','OTD','1','DAY','3','NIG','5','OTJ','1','OTN','5')=5 then substr(WOK.WORKTY_ID,2,1) end,'N')) as BGD02C
+			                               ,max(nvl(case when IDX.DAY_RANK=3 and decode(substr(WOK.SHIFT_ID,1,3),'JOG','1','OTD','1','DAY','3','NIG','5','OTJ','1','OTN','5')=1 then substr(WOK.WORKTY_ID,2,1) end,'N')) as BGD03A
+			                               ,max(nvl(case when IDX.DAY_RANK=3 and decode(substr(WOK.SHIFT_ID,1,3),'JOG','1','OTD','1','DAY','3','NIG','5','OTJ','1','OTN','5')=3 then substr(WOK.WORKTY_ID,2,1) end,'N')) as BGD03B
+			                               ,max(nvl(case when IDX.DAY_RANK=3 and decode(substr(WOK.SHIFT_ID,1,3),'JOG','1','OTD','1','DAY','3','NIG','5','OTJ','1','OTN','5')=5 then substr(WOK.WORKTY_ID,2,1) end,'N')) as BGD03C
+			                               ,max(nvl(case when IDX.DAY_RANK=4 and decode(substr(WOK.SHIFT_ID,1,3),'JOG','1','OTD','1','DAY','3','NIG','5','OTJ','1','OTN','5')=1 then substr(WOK.WORKTY_ID,2,1) end,'N')) as BGD04A
+			                               ,max(nvl(case when IDX.DAY_RANK=4 and decode(substr(WOK.SHIFT_ID,1,3),'JOG','1','OTD','1','DAY','3','NIG','5','OTJ','1','OTN','5')=3 then substr(WOK.WORKTY_ID,2,1) end,'N')) as BGD04B
+			                               ,max(nvl(case when IDX.DAY_RANK=4 and decode(substr(WOK.SHIFT_ID,1,3),'JOG','1','OTD','1','DAY','3','NIG','5','OTJ','1','OTN','5')=5 then substr(WOK.WORKTY_ID,2,1) end,'N')) as BGD04C
+			                               ,max(nvl(case when IDX.DAY_RANK=5 and decode(substr(WOK.SHIFT_ID,1,3),'JOG','1','OTD','1','DAY','3','NIG','5','OTJ','1','OTN','5')=1 then substr(WOK.WORKTY_ID,2,1) end,'N')) as BGD05A
+			                               ,max(nvl(case when IDX.DAY_RANK=5 and decode(substr(WOK.SHIFT_ID,1,3),'JOG','1','OTD','1','DAY','3','NIG','5','OTJ','1','OTN','5')=3 then substr(WOK.WORKTY_ID,2,1) end,'N')) as BGD05B
+			                               ,max(nvl(case when IDX.DAY_RANK=5 and decode(substr(WOK.SHIFT_ID,1,3),'JOG','1','OTD','1','DAY','3','NIG','5','OTJ','1','OTN','5')=5 then substr(WOK.WORKTY_ID,2,1) end,'N')) as BGD05C
+			                               ,max(nvl(case when IDX.DAY_RANK=6 and decode(substr(WOK.SHIFT_ID,1,3),'JOG','1','OTD','1','DAY','3','NIG','5','OTJ','1','OTN','5')=1 then substr(WOK.WORKTY_ID,2,1) end,'N')) as BGD06A
+			                               ,max(nvl(case when IDX.DAY_RANK=6 and decode(substr(WOK.SHIFT_ID,1,3),'JOG','1','OTD','1','DAY','3','NIG','5','OTJ','1','OTN','5')=3 then substr(WOK.WORKTY_ID,2,1) end,'N')) as BGD06B
+			                               ,max(nvl(case when IDX.DAY_RANK=6 and decode(substr(WOK.SHIFT_ID,1,3),'JOG','1','OTD','1','DAY','3','NIG','5','OTJ','1','OTN','5')=5 then substr(WOK.WORKTY_ID,2,1) end,'N')) as BGD06C
+			                               ,max(nvl(case when IDX.DAY_RANK=7 and decode(substr(WOK.SHIFT_ID,1,3),'JOG','1','OTD','1','DAY','3','NIG','5','OTJ','1','OTN','5')=1 then substr(WOK.WORKTY_ID,2,1) end,'N')) as BGD07A
+			                               ,max(nvl(case when IDX.DAY_RANK=7 and decode(substr(WOK.SHIFT_ID,1,3),'JOG','1','OTD','1','DAY','3','NIG','5','OTJ','1','OTN','5')=3 then substr(WOK.WORKTY_ID,2,1) end,'N')) as BGD07B
+			                               ,max(nvl(case when IDX.DAY_RANK=7 and decode(substr(WOK.SHIFT_ID,1,3),'JOG','1','OTD','1','DAY','3','NIG','5','OTJ','1','OTN','5')=5 then substr(WOK.WORKTY_ID,2,1) end,'N')) as BGD07C
+			                           from WORK_DIARY WOK
+			                                inner join
+			                                (
+			                                    select YYYYMMDD ,DAY_RANK
+			                                      from (
+			                                                select --화면조회구간을 가져와 구간 리스트를 생성 한다.
+			                                                       YYYYMMDD
+			                                                      ,dense_rank() over( order by CAL_DATE) as DAY_RANK
+			                                                  from CAL_MST CAL
+			                                                       inner join (
+			                                                                       select case when upper('${weekNo}')='W0' then to_char(next_day(SYSDATE-7,2),'YYYYMMDD')
+			                                                                                   when upper('${weekNo}')='W1' then to_char(next_day(SYSDATE,2),'YYYYMMDD')
+			                                                                                   when upper('${weekNo}')='W2' then to_char(next_day(SYSDATE+7,2),'YYYYMMDD') end as SDATE
+			                                                                         from DUAL
+			                                                       ) IDX
+			                                                       on  CAL.YYYYMMDD >=IDX.SDATE
+			                                           )
+			                                       where  7 >= DAY_RANK
+			                                ) IDX
+			                                on  WOK.PLANT_ID like '%'
+			                                and WOK.PROC_ID  like '%'
+			                                and WOK.DUTY_DATE = IDX.YYYYMMDD
+			                              group by WOK.PLANT_ID ,WOK.PROC_ID
+			                    ) BG
+			                    on  BG.PLANT_ID = PLA.PLANT_ID
+			                    and BG.PROC_ID  = PLA.PROC_ID
+			              order by PLA.PLANT_ID, PLA.PROC_ID, HRC.ITEM_ORDER                    
+		</query>
+	
+		  <query id="gird_header_list">
+		      select --해더를 가져온다.
+		             COL_IDX||'!%!'||COL_ID||'!%!'||COL_TEXT||'!%!'||COL_TYPE||'!%!'||COL_LENGTH||'!%!'||COL_SIZE||'!%!'||COL_EDITTYPE||'!%!'||COL_BG_COLOR
+		        from GRID_HEADER_MST
+		       where upper(JOB_ID) = upper('$!{job_id}')
+		       order by COL_IDX    
+		  </query>
+		        
+			
+		  <query id="daily_header">
+		     select SEQ
+		           ||'!%!'||CAL.YYYY     --년
+		           ||'!%!'||CAL.MM       --월
+		           ||'!%!'||CAL.DD       --일
+		           ||'!%!'||CAL.WEEK_DAY --주차(한글)
+		           ||'!%!'||CAL.WEEK_NO  --주차(숫자)
+		           ||'!%!'||CAL.CAL_DATE --날짜(DATE형)
+		           ||'!%!'||CAL.YYYYMMDD --날자(VARCHAR)
+		           ||'!%!'||CAL.YYYYWW   --년주차(52)
+		       from (
+		                 --당주,차주,차차주에 대한 날짜를 가져온다.
+		                 select 1 as SEQ ,to_date(to_char(SYSDATE,'YYYYMMDD')) as WEEK_DATE from DUAL union all 
+		                 select 2 as SEQ ,to_date(to_char(SYSDATE+7,'YYYYMMDD')) as WEEK_DATE from DUAL union all  
+		                 select 3 as SEQ ,to_date(to_char(SYSDATE+14,'YYYYMMDD')) as WEEK_DATE from DUAL 
+		            ) IDX 
+		            -----------------------------------------------------
+		            --주차를 가져온다.
+		            inner join CAL_MST WEK
+		            on  IDX.WEEK_DATE = WEK.CAL_DATE
+		            -----------------------------------------------------
+		            --주차에 대한  일자를 가져온다.
+		            inner join CAL_MST CAL
+		            on  WEK.YYYYWW = CAL.YYYYWW
+		      order by CAL.CAL_DATE
+		  </query>
+		
+		<!-- 선택된 날짱의 주차의 날짜 정보를 추출 -->  
+		<query id="daily_header_selected">
+		
+            SELECT  
+                    SEQ
+                    ||'!%!'||CAL.YYYY     --년
+                    ||'!%!'||CAL.MM       --월
+                    ||'!%!'||CAL.DD       --일
+                    ||'!%!'||CAL.WEEK_DAY --주차(한글)
+                    ||'!%!'||CAL.WEEK_NO  --주차(숫자)
+                    ||'!%!'||CAL.CAL_DATE --날짜(DATE형)
+                    ||'!%!'||CAL.YYYYMMDD --날자(VARCHAR)
+                    ||'!%!'||CAL.YYYYWW   --년주차(52)
+            FROM    (
+                    --당주,차주,차차주에 대한 날짜를 가져온다.
+                    SELECT 
+                            1 AS SEQ ,
+                            TO_DATE('$!{selected_date}','YYYY-MM-DD') AS WEEK_DATE 
+                    FROM    DUAL 
+                    ) IDX 
+                    -----------------------------------------------------
+                    --주차를 가져온다.
+                    INNER JOIN CAL_MST WEK
+                    ON  IDX.WEEK_DATE = WEK.CAL_DATE
+                    -----------------------------------------------------
+                    --주차에 대한  일자를 가져온다.
+                    INNER JOIN CAL_MST CAL
+                    ON  WEK.YYYYWW = CAL.YYYYWW
+            ORDER   BY  CAL.CAL_DATE
+            
+		</query>		  
+  		
+  		<!-- 연장, 휴동 정보 -->
+		<query id="work_type_info">
+  
+                    SELECT  
+                            WD.PLANT_ID, WD.PROC_ID,
+                            -- N: 정상, O: 연장, F: 휴동
+                            MAX(CASE WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+0,'YYYYMMDD') AND WD.SHIFT_ID = '1' AND NVL(SHIFT_QTY,0) &lt;= 0 THEN 'F' WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+0,'YYYYMMDD') AND WD.SHIFT_ID = '1' THEN WD.WORKTY_ID ELSE '0' END) BGD01A,
+                            MAX(CASE WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+0,'YYYYMMDD') AND WD.SHIFT_ID = '3' AND NVL(SHIFT_QTY,0) &lt;= 0 THEN 'F' WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+0,'YYYYMMDD') AND WD.SHIFT_ID = '3' THEN WD.WORKTY_ID ELSE '0' END) BGD01B,
+                            MAX(CASE WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+0,'YYYYMMDD') AND WD.SHIFT_ID = '5' AND NVL(SHIFT_QTY,0) &lt;= 0 THEN 'F' WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+0,'YYYYMMDD') AND WD.SHIFT_ID = '5' THEN WD.WORKTY_ID ELSE '0' END) BGD01C,
+                            MAX(CASE WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+1,'YYYYMMDD') AND WD.SHIFT_ID = '1' AND NVL(SHIFT_QTY,0) &lt;= 0 THEN 'F' WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+1,'YYYYMMDD') AND WD.SHIFT_ID = '1' THEN WD.WORKTY_ID ELSE '0' END) BGD02A,
+                            MAX(CASE WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+1,'YYYYMMDD') AND WD.SHIFT_ID = '3' AND NVL(SHIFT_QTY,0) &lt;= 0 THEN 'F' WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+1,'YYYYMMDD') AND WD.SHIFT_ID = '3' THEN WD.WORKTY_ID ELSE '0' END) BGD02B,
+                            MAX(CASE WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+1,'YYYYMMDD') AND WD.SHIFT_ID = '5' AND NVL(SHIFT_QTY,0) &lt;= 0 THEN 'F' WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+1,'YYYYMMDD') AND WD.SHIFT_ID = '5' THEN WD.WORKTY_ID ELSE '0' END) BGD02C,
+                            MAX(CASE WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+2,'YYYYMMDD') AND WD.SHIFT_ID = '1' AND NVL(SHIFT_QTY,0) &lt;= 0 THEN 'F' WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+2,'YYYYMMDD') AND WD.SHIFT_ID = '1' THEN WD.WORKTY_ID ELSE '0' END) BGD03A,
+                            MAX(CASE WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+2,'YYYYMMDD') AND WD.SHIFT_ID = '3' AND NVL(SHIFT_QTY,0) &lt;= 0 THEN 'F' WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+2,'YYYYMMDD') AND WD.SHIFT_ID = '3' THEN WD.WORKTY_ID ELSE '0' END) BGD03B,
+                            MAX(CASE WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+2,'YYYYMMDD') AND WD.SHIFT_ID = '5' AND NVL(SHIFT_QTY,0) &lt;= 0 THEN 'F' WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+2,'YYYYMMDD') AND WD.SHIFT_ID = '5' THEN WD.WORKTY_ID ELSE '0' END) BGD03C,
+                            MAX(CASE WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+3,'YYYYMMDD') AND WD.SHIFT_ID = '1' AND NVL(SHIFT_QTY,0) &lt;= 0 THEN 'F' WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+3,'YYYYMMDD') AND WD.SHIFT_ID = '1' THEN WD.WORKTY_ID ELSE '0' END) BGD04A,
+                            MAX(CASE WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+3,'YYYYMMDD') AND WD.SHIFT_ID = '3' AND NVL(SHIFT_QTY,0) &lt;= 0 THEN 'F' WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+3,'YYYYMMDD') AND WD.SHIFT_ID = '3' THEN WD.WORKTY_ID ELSE '0' END) BGD04B,
+                            MAX(CASE WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+3,'YYYYMMDD') AND WD.SHIFT_ID = '5' AND NVL(SHIFT_QTY,0) &lt;= 0 THEN 'F' WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+3,'YYYYMMDD') AND WD.SHIFT_ID = '5' THEN WD.WORKTY_ID ELSE '0' END) BGD04C,
+                            MAX(CASE WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+4,'YYYYMMDD') AND WD.SHIFT_ID = '1' AND NVL(SHIFT_QTY,0) &lt;= 0 THEN 'F' WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+4,'YYYYMMDD') AND WD.SHIFT_ID = '1' THEN WD.WORKTY_ID ELSE '0' END) BGD05A,
+                            MAX(CASE WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+4,'YYYYMMDD') AND WD.SHIFT_ID = '3' AND NVL(SHIFT_QTY,0) &lt;= 0 THEN 'F' WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+4,'YYYYMMDD') AND WD.SHIFT_ID = '3' THEN WD.WORKTY_ID ELSE '0' END) BGD05B,
+                            MAX(CASE WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+4,'YYYYMMDD') AND WD.SHIFT_ID = '5' AND NVL(SHIFT_QTY,0) &lt;= 0 THEN 'F' WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+4,'YYYYMMDD') AND WD.SHIFT_ID = '5' THEN WD.WORKTY_ID ELSE '0' END) BGD05C,
+                            MAX(CASE WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+5,'YYYYMMDD') AND WD.SHIFT_ID = '1' AND NVL(SHIFT_QTY,0) &lt;= 0 THEN 'F' WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+5,'YYYYMMDD') AND WD.SHIFT_ID = '1' THEN WD.WORKTY_ID ELSE '0' END) BGD06A,
+                            MAX(CASE WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+5,'YYYYMMDD') AND WD.SHIFT_ID = '3' AND NVL(SHIFT_QTY,0) &lt;= 0 THEN 'F' WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+5,'YYYYMMDD') AND WD.SHIFT_ID = '3' THEN WD.WORKTY_ID ELSE '0' END) BGD06B,
+                            MAX(CASE WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+5,'YYYYMMDD') AND WD.SHIFT_ID = '5' AND NVL(SHIFT_QTY,0) &lt;= 0 THEN 'F' WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+5,'YYYYMMDD') AND WD.SHIFT_ID = '5' THEN WD.WORKTY_ID ELSE '0' END) BGD06C,
+                            MAX(CASE WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+6,'YYYYMMDD') AND WD.SHIFT_ID = '1' AND NVL(SHIFT_QTY,0) &lt;= 0 THEN 'F' WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+6,'YYYYMMDD') AND WD.SHIFT_ID = '1' THEN WD.WORKTY_ID ELSE '0' END) BGD07A,
+                            MAX(CASE WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+6,'YYYYMMDD') AND WD.SHIFT_ID = '3' AND NVL(SHIFT_QTY,0) &lt;= 0 THEN 'F' WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+6,'YYYYMMDD') AND WD.SHIFT_ID = '3' THEN WD.WORKTY_ID ELSE '0' END) BGD07B,
+                            MAX(CASE WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+6,'YYYYMMDD') AND WD.SHIFT_ID = '5' AND NVL(SHIFT_QTY,0) &lt;= 0 THEN 'F' WHEN WD.DUTY_DATE = TO_CHAR(WK.MON+6,'YYYYMMDD') AND WD.SHIFT_ID = '5' THEN WD.WORKTY_ID ELSE '0' END) BGD07C
+                    FROM    (
+                            SELECT  
+                                    WD.PLANT_ID, WD.DUTY_DATE, WD.PROC_ID, WD.LINE_ID,
+                                    WD.WORKTY_ID, WD.SHIFT_ID,
+                                    FN_GET_SHIFT_QTY(WD.PLANT_ID, WD.LINE_ID, WD.DUTY_DATE, WD.SHIFT_ID) AS SHIFT_QTY
+                            FROM    (              
+                                    SELECT  
+                                            WD.PLANT_ID, WD.DUTY_DATE, WD.PROC_ID, HR.PARENT_HID LINE_ID,
+                                            SUBSTR(WD.WORKTY_ID,2,1) WORKTY_ID, 
+                                            DECODE(SUBSTR(WD.SHIFT_ID,1,3),'JOG','1','OTD','1','DAY','3','NIG','5','OTJ','1','OTN','5') SHIFT_ID        
+                                    FROM    WORK_DIARY WD             
+                                            ----------------------------------
+                                            LEFT OUTER JOIN HRCHY HR
+                                            ON  HR.HTYPE = WD.PLANT_ID
+                                            AND HR.HID   = WD.PROC_ID  
+                                            AND HR.LVL   = 40
+                                            AND HR.LVL_TYPE = '작업장'
+                                    WHERE   WD.PLANT_ID IN ('$commonUtil.replaceAll("$!{selected_plant}","''","'")')
+                                    AND     HR.PARENT_HID IS NOT NULL
+                                    ) WD
+                            ) WD                        
+                            ----------------------------------------------
+                            INNER JOIN
+                            (
+                            -- 해당주차 월요일
+                            SELECT NEXT_DAY(TO_DATE('$!{selected_date}','YYYY-MM-DD')-7, 2) MON 
+                            FROM   DUAL
+                            ) WK
+                            ON  WD.DUTY_DATE >= TO_CHAR(WK.MON,'YYYYMMDD')
+                            AND WD.DUTY_DATE &lt;= TO_CHAR(WK.MON+6,'YYYYMMDD')                            
+                    GROUP   BY WD.PLANT_ID, WD.PROC_ID
+                    ORDER   BY WD.PLANT_ID, WD.PROC_ID 				  
+  
+  		</query>
+
+		<query id="sc_11020_dailyProductPlan_ERP_IF_Check_popup">
+            SELECT  T1.PLANT_ID,
+			        T2.PLANT_NAME,
+			        DECODE(T1.PLAN_KIND,'PROD','완제품','반제품') PLAN_KIND_NAME,
+			        MAX(T1.VERSION) VERSION,
+			        MAX(SUBSTR(IF_DATE,1,4)||'년'||SUBSTR(IF_DATE,5,2)||'월'||SUBSTR(IF_DATE,7,2)||'일('
+			        ||TO_CHAR(TO_DATE(IF_DATE,'YYYY-MM-DD'),'DY')||') '
+			        ||SUBSTR(IF_TIME,1,2)||'시'||SUBSTR(IF_TIME,3,2)||'분')  DATETIME,
+			        MAX(DECODE(IF_FLAG,'C','생산오더 생성완료(ERP)','오더생성중(ERP)'))   IF_NAME
+			FROM    IF_DAILY_SCH_PLAN   T1,
+			        V_PLANT             T2
+			WHERE   T1.VERSION LIKE REPLACE(REPLACE('$!{cnfm_date}', '-', ''), '/', '')||'%'
+			AND     NVL(T1.IF_FLAG,'X') != 'F'
+			AND     T1.PLANT_ID = T2.PLANT_ID
+			#if("$!{in_plan_kind}" == "PROD")
+				AND	T1.PLAN_KIND = 'PROD'
+			#elseif("$!{in_plan_kind}" == "SEMI")
+				AND	T1.PLAN_KIND = 'SEMI'
+			#end
+            GROUP
+	        BY      T1.PLANT_ID, T2.PLANT_NAME, T1.PLAN_KIND
+            ORDER
+			BY      T1.PLANT_ID, T1.PLAN_KIND
+		</query>
+		
+		<!-- ERP I/F상태를 확인한다. -->
+		<query id="sc_11020_check_ERP_IF_status">
+
+			SELECT  MAX(USE_FLAG), SUM(DECODE(USE_FLAG,'Y',1,0))
+			FROM    PROC_STATUS
+			WHERE   CAT_ID  = 'IF'
+
+		</query>	
+		
+		<!-- ERP I/F상태 'Y' -> 전송제한  -->
+		<query id="sc_11020_SAVE_ERP_IF_Y">
+
+			UPDATE 	PROC_STATUS
+			SET     USE_FLAG 	= 'Y',
+					MADE_DTTM	= SYSDATE,
+					MADE_BY		= '$!{user_id}'
+			WHERE   CAT_ID  	= 'IF';
+
+		</query>			
+
+		<!-- ERP I/F상태 'N' -> 전송해제  -->
+		<query id="sc_11020_SAVE_ERP_IF_N">
+
+			UPDATE 	PROC_STATUS
+			SET     USE_FLAG 	= 'N',
+					MADE_DTTM	= SYSDATE,
+					MADE_BY		= '$!{user_id}'
+			WHERE   CAT_ID  	= 'IF';
+
+		</query>			
+			
+</queries>

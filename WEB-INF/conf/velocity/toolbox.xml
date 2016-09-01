@@ -1,0 +1,134 @@
+﻿<?xml version="1.0"?>
+<toolbox>
+	
+	<tool>
+	  	<key>params</key>
+	  	<scope>request</scope>
+	  	<class>org.apache.velocity.tools.view.tools.ParameterParser</class>
+	</tool>
+	<tool>
+		<key>text</key>
+		<scope>request</scope>
+		<class>org.apache.velocity.tools.struts.MessageTool</class>
+	</tool>
+	<tool>
+		<key>math</key>
+		<scope>request</scope>
+		<class>org.apache.velocity.tools.generic.MathTool</class>
+	</tool>
+	<tool>
+		<key>number</key>
+		<scope>request</scope>
+		<class>org.apache.velocity.tools.generic.NumberTool</class>
+	</tool>
+	<tool>
+		<key>date</key>
+		<scope>application</scope>
+		<class>org.apache.velocity.tools.generic.DateTool</class>
+	</tool>	
+	<tool>
+		<key>render</key>
+		<scope>request</scope>
+		<class>org.apache.velocity.tools.view.tools.ViewRenderTool</class>
+	</tool>	
+	
+	<tool>
+	  	<key>moon</key>
+	  	<scope>request</scope>
+	  	<class>com.zionex.t3sinc.tsf.tool.MoonTool</class>
+	</tool>
+	<tool>
+	  	<key>menulist</key>
+	  	<scope>request</scope>
+	  	<class>com.zionex.t3sinc.tsf.tool.MenuListTool</class>
+	</tool>
+	<tool>
+		<key>support</key>
+		<scope>request</scope>
+		<class>com.zionex.t3sinc.tsf.tool.VTLSupportTool</class>
+	</tool>
+	<tool>
+	  	<key>leftmenu</key>
+	  	<scope>request</scope>
+	  	<class>com.zionex.t3sinc.tsf.tool.LeftMenuTool</class>
+	</tool>	
+	<tool>
+	  	<key>menu</key>
+	  	<scope>request</scope>
+	  	<class>com.zionex.t3sinc.tsf.menu.MenuTool</class>
+	</tool>	
+	<!-- KSY 2005.07.13 -->
+	<tool>
+	  	<key>checkpermission</key>
+	  	<scope>request</scope>
+	  	<class>com.zionex.t3sinc.tsf.tool.PermissionChecker</class>
+	</tool>
+	<tool>
+	  	<key>zlattice</key>
+	  	<scope>request</scope>
+	  	<class>com.zionex.t3sinc.tsf.tool.ZLatticeTool</class>
+	</tool>	
+	
+	<!-- ################################################################################################### -->
+	<!-- 여기부터 사용자 추가 -->
+	<!-- ################################################################################################### -->
+	
+	<!-- 2008.05.21 by TJ -->
+	<!-- commonUtil -->
+	<tool>	
+	  	<key>commonUtil</key>
+	  	<scope>request</scope> 
+	  	<class>com.zionex.t3sinc.common.CommonUtil</class> 
+	</tool>
+	
+	<!-- 2008.05.01 by TJ --> 
+	<!-- Altered 2008.05.21 by TJ -->
+	<!-- Insert Connection Logs -->
+	<tool>	
+	  	<key>connectionLogs</key>
+	  	<scope>request</scope> 
+	  	<class>com.zionex.t3sinc.common.ConnectionLogs</class> 
+	</tool> 
+	
+	<!-- 2008.05.01 by TJ --> 
+	<!-- Altered 2008.05.21 by TJ -->
+	<!-- Get Job Info -->
+	<tool>	
+	  	<key>xmlJobHandler</key>
+	  	<scope>request</scope> 
+	  	<class>com.zionex.t3sinc.common.XmlJobHandler</class> 
+	</tool> 
+	
+	<!-- 2008.05.01 by TJ -->
+	<!-- ServerInfo -->
+	<tool>	
+	  	<key>serverInfo</key>
+	  	<scope>request</scope> 
+	  	<class>com.zionex.t3sinc.common.ServerInfo</class> 
+	</tool> 
+	
+	<!-- 2008.07.03 by TJ -->
+	<!-- 보충수송 CLASS -->
+	<tool>	
+	  	<key>replenishPlan</key>
+	  	<scope>request</scope> 
+	  	<class>com.zionex.t3sinc.common.ReplenishPlan</class> 
+	</tool> 
+	
+	<!-- 수요예측 CLASS -->
+	<tool>
+	  	<key>nongshim</key>
+	  	<scope>request</scope>
+	  	<class>com.zionex.t3sinc.common.NongshimTool</class>
+	</tool>
+	<tool>
+	  	<key>grid</key>
+	  	<scope>request</scope>
+	  	<class>com.zionex.t3sinc.tsf.tool.GridTool</class>
+	</tool>
+	
+	<!-- ################################################################################################### -->
+	<!-- 사용자 추가 끝 -->
+	<!-- ################################################################################################### -->
+		
+</toolbox>

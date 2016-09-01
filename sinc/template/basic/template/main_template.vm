@@ -1,0 +1,435 @@
+#set($project = $request.getContextPath())
+#set( $excelCheck = "$_moon_description" )
+
+#if( "$excelCheck" != "excel" )
+## 세션이 끊어질 경우 경고 메시지를 띄우고 윈도우를 닫습니다 
+<script> 
+//alert("i am here1");
+	var chk = "$!{_moon_skin}"; 
+//alert("chk = " + chk);
+	if( chk == null || chk == "" ){ 
+		alert("Session 이 끊어졌습니다. 창을 닫고 다시 로그인 하세요.");
+		top.window.close();
+	}
+</script>
+
+## session out 시 화면을 보이지 않게 
+#if( "$!{_moon_skin}" != "" )
+
+	## 비정상적 접근 체크 
+	#set( $accessCheck = "$!{_moon_skin}" ) 
+	
+	#set( $excelCheck = "description" )
+	#set( $excelCheck = "$_moon_description" )
+	
+	#parse("/sinc/template/basic/skin/${_moon_skin}/skin.vm")
+	
+	## UI Connection Log
+	## service_id 저장을 위한 화면 load 시에는 log 를 남기지 않음
+	#if( "$_moon_description" != "setServiceID" )
+		#set( $tmp = $connectionLogs.insertLogs("${_user_id}", "${_moon_service}", "$request.getRemoteAddr()") )
+	#end
+	
+	<html>
+	<head>
+	##<META http-equiv="Content-Language" content="ko"> 
+	<META http-equiv="Content-Type" content="text/html; charset=EUC-KR">
+	
+	##if( "${_moon_description}" == "popup" )
+		##<title>POPUP FRAME of </title>
+	##else
+		##<title>MAIN FRAME of </title>
+	##end
+
+	#if( "${_moon_description}" == "popup" )
+		<title>${_moon_title}</title>
+	#else
+		<title>${_moon_title}</title>
+	#end
+	
+	<style> 
+	.cap1 {filter='progid:DXImageTransform.Microsoft.Gradient(GradientType=1, StartColorStr=${gradient_start}, EndColorStr=${gradient_middle})';font-family: ${font_family}; font-size: ${font_size_up}pt; color:#FFFFFF; border:0 solid #000000;height:22px;} 
+	.cap2 {filter='progid:DXImageTransform.Microsoft.Gradient(GradientType=1, StartColorStr=${gradient_middle}, EndColorStr=${gradient_end})';font-family: 굴림; font-size: ${font_size_up}pt; color:#FFFFFF; border:0 solid #000000;height:22px;} 
+	.button1_1 {
+		filter='progid:DXImageTransform.Microsoft.Gradient(GradientType=0, StartColorStr=#FBF6FD, EndColorStr=#D0B8F1)';
+		font-family: ${font_family};   font-size: ${font_size_dw}pt; 
+		border:1px solid;  border-color:ButtonHighlight ButtonShadow ButtonShadow ButtonHighlight; 
+		height:18px;}
+	.button1_2 {
+		filter='progid:DXImageTransform.Microsoft.Gradient(GradientType=0, StartColorStr=#FFFFFF, EndColorStr=${gradient_middle})';
+		font-family: ${font_family}; 	font-size: ${font_size_dw}pt; 
+		border:1px solid; border-color: ButtonHighlight ButtonShadow ButtonShadow ButtonHighlight; 
+		height:18px;
+	} 	
+	.button2_1{
+		font-size: ${font_size}pt;
+		border: 1px solid;
+		border-color:	ButtonHighlight ButtonShadow
+					ButtonShadow ButtonHighlight;
+		background:	${toolbar_btn_bgcolor};		
+	}
+	.button2_2{
+		font-size: ${font_size}pt;
+		border: 1px solid;
+		border-color:	#000000 #000000
+					#000000 #000000;
+		background:	${toolbar_btn2_bgcolor};		
+	}
+	.button2_3{
+		color: gray;
+		font-size: ${font_size}pt;
+		border: 1px solid;
+		border-color:	#787878 #C7C7C7
+					#C7C7C7 #787878;
+		background:	${toolbar_btn_bgcolor};		
+	}
+	.cap3 {filter='progid:DXImageTransform.Microsoft.Gradient(GradientType=1, StartColorStr=gray, EndColorStr=silver)';font-family: ${font_family}; font-size: ${font_size_up}pt; color:#FFFFFF; border:0 solid #000000;height:20px;}
+	.cap4 {filter='progid:DXImageTransform.Microsoft.Gradient(GradientType=1, StartColorStr=silver, EndColorStr=white)';font-family: ${font_family}; font-size: ${font_size_up}pt; color:#FFFFFF; border:0 solid #000000;height:20px;}
+	</style>
+	
+	<link href="$!{project}/sinc/template/basic/skin/nongshim/css/allpage.css" rel="stylesheet" type="text/css">
+
+	## excel 화면이 아닌 경우, style sheet & script function 불러들임
+	#if( "$excelCheck" != "excel" )
+		<link type="text/css" rel="stylesheet" href="$!{project}/sinc/template/basic/skin/${_moon_skin}/skin.css" />
+        <link type="text/css" rel="stylesheet" href="$!{project}/sinc/template/basic/css/dynamic.css" />
+        <link type="text/css" rel="stylesheet" href="$!{project}/sinc/template/basic/css/dhtmlwindow.css" />
+        <link type="text/css" rel="stylesheet" href="$!{project}/sinc/template/basic/css/modal.css" />
+        <link type="text/css" rel="stylesheet" href="$!{project}/sinc/template/basic/script/grid/styles/classic/grid.css" />
+		<link type="text/css" rel="stylesheet" href="$!{project}/sinc/template/basic/skin/style.css" />
+		
+		<script type="text/javascript" src="$!{project}/sinc/template/basic/script/tabpane.js"></script>
+		<script type="text/javascript" src="$!{project}/sinc/template/basic/script/sortabletable.js"></script>
+		<script type="text/javascript" src="$!{project}/sinc/template/basic/script/sortTable.js"></script>
+		<script type="text/javascript" src="$!{project}/sinc/template/basic/script/util.js"></script>
+		<script type="text/javascript" src="$!{project}/sinc/template/basic/script/action.js"></script>
+		<script type="text/javascript" src="$!{project}/sinc/template/basic/script/grid/lib/grid.js"></script>
+		<script type="text/javascript" src="$!{project}/sinc/template/basic/script/dynamic/dhtmlwindow.js"></script>
+		<script type="text/javascript" src="$!{project}/sinc/template/basic/script/dynamic/modal.js"></script>
+		<script type="text/javascript" src="$!{project}/sinc/template/basic/script/swfobject.js"></script>
+		<script type="text/javascript" src="$!{project}${_moon_path}/script/${_moon_target}.js"></script>
+		
+		<!-- calendar stylesheet -->
+		<!--<link rel="stylesheet" type="text/css" media="all" href="/sinc/template/basic/script/jscalendar/calendar-system.css" title="win2k-cold-1" />-->
+		<link rel="stylesheet" type="text/css" media="all" href="$!{project}/sinc/template/basic/skin/${_moon_skin}/calendar.css" title="calendar" />
+		<!--style type="text/css">@import url($!{project}/sinc/template/basic/script/jscalendar/calendar-win2k-1.css);</style-->
+		<!-- main calendar program -->
+		<script type="text/javascript" src="$!{project}/sinc/template/basic/script/jscalendar/calendar.js"></script>
+		
+		<!-- language for the calendar -->
+		<!--script type="text/javascript" src="$!{project}/sinc/template/basic/script/jscalendar/lang/calendar-ko.js"></script-->
+		<script type="text/javascript" src="$!{project}/sinc/template/basic/script/jscalendar/lang/calendar-ko.js"></script>
+		
+		<!-- the following script defines the Calendar.setup helper function, which makes  adding a calendar a matter of 1 or 2 lines of code. -->
+		<script type="text/javascript" src="$!{project}/sinc/template/basic/script/jscalendar/calendar-setup.js"></script>
+	#end
+	
+    ##########################################################################################################################
+    ## WISEGRID 관련 SCRIPT 추가
+    ##########################################################################################################################
+    ##<link rel="stylesheet" href="$!{project}/WiseGrid/css/wisegrid.css" type="text/css"></link>
+    <script language="JavaScript" src="$!{project}/WiseGrid/js/WiseGrid_TAG.js"></script>
+    <script language="JavaScript" src="$!{project}/WiseGrid/js/WiseGrid_Property.js"></script>
+    
+    <!--
+    	WiseGrid 오브젝트가 생성되고 초기화된 후 발생하는 
+    	JavaScript Event인 Initialize()를 받아 그리드의 헤더를 셋팅한다.	
+    -->
+    <script language="javascript" for="WiseGrid" event="Initialize()">
+    	init();
+    </script>
+    
+    <!--  	서버와의 통신이 정상적으로 완료되면 발생한다.   -->
+    <script language="javascript" for="WiseGrid" event="EndQuery()">
+    	GridEndQuery();
+    </script>
+    
+    <!--  	WiseGrid의 셀을 클릭했을때 발생하는 Javacript Event인 CellClick()을 받아 해당하는 작업을 진행한다.  -->
+    <script language="javascript" for="WiseGrid" event="CellClick(strColumnKey,nRow)">
+    	GridCellClick(strColumnKey, nRow)
+    </script>
+    
+    <!--	 WiseGrid의 셀의 내용이 변경되었을때 발생한다. -->
+    <script language="javascript" for="WiseGrid" event="ChangeCell(strColumnKey,nRow,nOldValue,nNewValue)">
+    	GridChangeCell(strColumnKey, nRow,nOldValue,nNewValue);
+    </script>
+
+    ##########################################################################################################################
+	
+	## popup, excel, iframe 이 아닌 경우
+	## main frame 펼침-복구 함수 정의
+	#if( ( "${_moon_description}" != "popup" ) && ( "$excelCheck" != "excel" ) && "${_moon_description}" != "iframe" && "${_moon_description}" != "" )
+		<script>
+			//KSY 2005.09.08
+			/*
+			var imgOrigin  = "$!{project}/sinc/template/basic/images/common/arrow_left_green.png";
+			var imgChanged = "$!{project}/sinc/template/basic/images/common/arrow_right_green.png";
+			var colstr = "";
+			function FrameResize(obj) {
+				if (top.left_home.cols == "0,*" ) {
+					top.left_home.cols = colstr;
+					obj.src = imgOrigin;
+				} else {
+					colstr = top.left_home.cols;
+					top.left_home.cols = "0,*";
+					obj.src = imgChanged;
+				}	
+			}
+			*/
+			var imgOrigin  = "$!{project}/sinc/template/basic/skin/nongshim/images/btn/btn_menu_close.gif";
+			var imgChanged = "$!{project}/sinc/template/basic/skin/nongshim/images/btn/btn_menu_open.gif";
+			var colstr = "";
+			function FrameResize(obj) {
+				if(top.left_home){
+    				if (top.left_home.cols == "0,*" ) {
+    					if(colstr == "")
+    						top.left_home.cols = "242,*";
+    					else		
+    						top.left_home.cols = colstr;
+    					obj.src = imgOrigin;
+    				} else {
+    					colstr = top.left_home.cols;
+    					top.left_home.cols = "0,*";
+    					obj.src = imgChanged;
+    				}	
+				}
+			}
+			
+			function FirstImageLoad(obj) {
+				if(top.left_home){
+    				if (top.left_home.cols == "0,*" ) {
+    					obj.src = imgChanged;
+    				} else {
+    					obj.src = imgOrigin;
+    				}
+				}
+			}
+		</script>
+	#else
+		<script>
+			function FrameResize(obj) {}
+			function FirstImageLoad(obj) {}
+		</script>
+	#end
+	
+	## 도움말 함수 정의
+	#if( ( "$excelCheck" != "excel" ) && ( "${_moon_description}" != "iframe" ) )
+		<script>
+			/* ****************************************************
+				도움말
+			***************************************************** */
+			var on_off = 0;
+			var x_bak = 0;
+			
+			//정리 
+			function move_onoff(chk, e){ 
+				obj = document.getElementById("divHelp");
+				if(chk == 1){
+					x_margin = e.clientX - obj.offsetLeft;
+					y_margin = e.clientY - obj.offsetTop;
+				}
+				on_off = chk;
+			}
+			
+			//이동
+			function moven(e){
+				obj = document.getElementById("divHelp");
+				if(on_off == 1){
+					x_result = e.clientX - x_margin;
+					y_result = e.clientY - y_margin;
+					if(x_result > 0){obj.style.left = x_result;}
+					if(y_result > 0){obj.style.top =  y_result;}
+				}
+			}
+			/* ****************************************************
+				도움말 END
+			***************************************************** */
+			
+		</script>
+	#end
+	
+	</head>
+	
+	## body 속성 정의
+	## iframe 인 경우 여백 제거
+	#if( "${_moon_description}" == "iframe" )
+		<body oncontextmenu="return $!{_moon_refresh_detect}" bgcolor="#ffffff" leftmargin="0" rightmargin="0" topmargin="0">
+	#elseif( "$excelCheck" != "excel" )
+		## 프레임 여백 0
+		<body oncontextmenu="return $!{_moon_refresh_detect}" onLoad="FirstImageLoad(document.images['ToggleArrow'])"
+			bgcolor="#ffffff" leftmargin="0" rightmargin="0" topmargin="0"
+			onmouseUp="move_onoff(0,event); hideHelp(); " onmouseMove="moven(event); ">
+	#else 
+		## 프레임 여백 0
+		<body oncontextmenu="return $!{_moon_refresh_detect}" onLoad="FirstImageLoad(document.images['ToggleArrow'])"
+			bgcolor="#ffffff" leftmargin="0" rightmargin="0" topmargin="0">
+	#end 
+	
+	## ??
+	<IFRAME NAME="_float" width="0" height="0" ></IFRAME> 
+	
+	<table height="100%" cellspacing=0 cellpadding=0 width="100%" border="0">
+	
+	## 네비게이션 표시 영역
+	## popup, excel, iframe 이 아닌 경우 main frame 펼침-복구 아이콘 표시
+	#if( ( "${_moon_description}" != "popup" ) && ( "$excelCheck" != "excel" ) && "${_moon_description}" != "iframe" )
+	  	<tr>
+			<td>
+				<table border="0" cellpadding="0" cellspacing="0" width="100%"><tr><td width="7px"></td><td>
+					<table border="0" cellpadding="0" cellspacing="0" width="100%">
+    					<tr>
+    						<td class="f14 black" width="90%">
+    							<img name="ToggleArrow" style="cursor:pointer; "
+    								src="$!{project}/sinc/template/basic/skin/nongshim/images/btn/btn_menu_close.gif" 
+    								align="absmiddle" onClick="FrameResize(this); "/>${_moon_navigation}
+    						</td>
+    						## 도움말 아이콘
+    						<td width="10%" align="right">
+    							<img name="infoBtn" src="$!{project}/sinc/template/basic/skin/nongshim/images/common/icon_p.gif" 
+    								align="absmiddle" onClick="displayHelp(); " style="cursor:pointer; "/>
+    						</td>
+    					</tr>
+    				</table>
+    				<!-- 2008.05.20 by TJ -->
+    				<!-- 도움말 -->
+    				<div id="divHelp" style="width:100%; height:30px; display:none; position:absolute; left:2px; top:25px; 
+    					z-index:100; border:1px solid gray; ">
+    					<table width="100%" height="20px" cellspacing="0" cellpadding="0"
+    						onMouseDown="move_onoff(1, event); " style="cursor:move; ">
+    						<tr>
+    							<td class="cap3" width="90%">&nbsp;HINT</td>
+    							<td class="cap4" width="10%" align="right">
+    								<button onClick="displayHelp(); " style="width:15px; vertical-align:top;
+    									color:white; background-color:gray; border:1; border-color:white; ">x</button>
+    							</td>
+    						</tr>
+    					</table>
+    					<table width="100%" height="10px" bgcolor="white" cellspacing="0" cellpadding="6">
+    						<tr><td><a id="helpCont">&nbsp;CONTENTS HERE</a></td></tr>
+    					</table>
+    				</div>
+    				<!-- 도움말 END -->
+				</td><td width="5px"></td></tr></table>
+			</td>
+		</tr>
+	#elseif( "${_moon_description}" == "popup" )
+	  	<tr>
+			<td>
+				<table border="0" cellpadding="0" cellspacing="0" width="100%"><tr><td width="7px"></td><td>
+					<table border="0" cellpadding="0" cellspacing="0" width="100%">
+						<tr height="5px"><td colspan="2"></td></tr>
+						<tr>
+    						<td class="f14 black" width="90%">
+								<a id="areaBtn"></a>
+    						</td>
+    						## 도움말 아이콘
+    						<td width="10%" align="right">
+    							<img name="infoBtn" src="$!{project}/sinc/template/basic/skin/nongshim/images/common/icon_p.gif" 
+    								align="absmiddle" onClick="displayHelp(); " style="cursor:pointer; "/>
+    						</td>
+    					</tr>
+    				</table>
+    				<!-- 2008.05.20 by TJ -->
+    				<!-- 도움말 -->
+    				<div id="divHelp" style="width:100%; height:30px; display:none; position:absolute; left:2px; top:25px; 
+    					z-index:100; border:1px solid gray; ">
+    					<table width="100%" height="20px" cellspacing="0" cellpadding="0"
+    						onMouseDown="move_onoff(1, event); " style="cursor:move; ">
+    						<tr>
+    							<td class="cap3" width="90%">&nbsp;HINT</td>
+    							<td class="cap4" width="10%" align="right">
+    								<button onClick="displayHelp(); " style="width:15px; vertical-align:top;
+    									color:white; background-color:gray; border:1; border-color:white; ">x</button>
+    							</td>
+    						</tr>
+    					</table>
+    					<table width="100%" height="10px" bgcolor="white" cellspacing="0" cellpadding="6">
+    						<tr><td><a id="helpCont">&nbsp;CONTENTS HERE</a></td></tr>
+    					</table>
+    				</div>
+    				<!-- 도움말 END -->
+				</td><td width="5px"></td></tr></table>
+			</td>
+		</tr>
+	#end
+		
+	  	<tr>
+		
+		## excel, iframe 이 아닌 경우 왼쪽 여백 표시
+			<td valign=top align=middle bgcolor="${main_bgcolor}" height="100%">
+				<form method="post" name="frm">
+    				<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+    					<tr>
+						#if( ( "$excelCheck" != "excel" ) && ( "${_moon_description}" != "iframe" ) )
+							<td width="7px"></td>
+						#end
+    						<td height="*" valign="top">
+    							#parse("${_moon_path}/${_moon_target}.vm")
+    						</td>
+						#if( ( "$excelCheck" != "excel" ) && ( "${_moon_description}" != "iframe" ) )
+							<td width="5px"></td>
+						#end
+    					</tr>
+    				</table>
+    				
+					## 이게 없으면 아래쪽에 여백이 생긴다,,,
+    				## 이유는 모르겠다,,
+    				<input type="hidden" name="tmpT">
+					
+					## service_id 저장을 위한 iframe
+					<iframe id="frameSetService" style="display:none; "></iframe>
+					
+				#if( "${_moon_description}" != "iframe" )
+					## tab 의 좌측 여백을 위한 tab 보이지 않게 설정
+					## 존재하지 않는 TAB 의 cookie 가 있다면 첫번째 
+					<script>
+						var cookieVal = 1;
+						if( document.all.tabPageLeft ) {
+							if( WebFXTabPane.getCookie("webfxtab_tabPane1") == 0 
+								|| WebFXTabPane.getCookie("webfxtab_tabPane1") == null
+								|| WebFXTabPane.getCookie("webfxtab_tabPane1") == "" ) {
+								WebFXTabPane.setCookie( "webfxtab_tabPane1", "1", 1 );
+								cookieVal = 1;
+							}
+							else {
+								cookieVal = WebFXTabPane.getCookie("webfxtab_tabPane1");
+							}
+    						if( !eval("document.all.tabPage"+cookieVal.toString()) ) {
+    							WebFXTabPane.setCookie( "webfxtab_tabPane1", "1", 1 );
+    						}
+						}
+						else {
+							if( WebFXTabPane.getCookie("webfxtab_tabPane1") == 0 
+								|| WebFXTabPane.getCookie("webfxtab_tabPane1") == null
+								|| WebFXTabPane.getCookie("webfxtab_tabPane1") == "" ) {
+								WebFXTabPane.setCookie( "webfxtab_tabPane1", "0", 1 );
+								cookieVal = 1;
+							}
+							else {
+								cookieVal = WebFXTabPane.getCookie("webfxtab_tabPane1");
+								cookieVal++;
+							}
+    						if( !eval("document.all.tabPage"+cookieVal.toString()) ) {
+    							WebFXTabPane.setCookie( "webfxtab_tabPane1", "0", 1 );
+    						}
+						}
+					</script>
+				#end
+					
+				</form>
+			</td>
+		</tr>
+	</table>
+	
+	</body>
+</html>
+
+## session out 시 접근 금지
+#else ## if( "$!{_moon_skin}" != "" )
+	$response.sendRedirect("about:blank")
+#end
+
+#else
+	<META http-equiv="Content-Type" content="text/html; charset=EUC-KR">
+	#parse("${_moon_path}/${_moon_target}.vm")
+#end

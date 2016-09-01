@@ -1,0 +1,958 @@
+############################################################
+## 프로그램ID : sc_11020_dailyProductionPlanAnalysisNew_list.vm
+## 프로그램명 : 일간생산계획 분석(재구성)
+## 개발자  : 정재교
+## 개발일자 : 2008-11-27 목요일
+##
+##관련 job file : job_sinc_20_scheduling_00.xml
+##
+##관련 query file : query_sinc_20_scheduling_00.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2008-11-27  정재교           sc_11020_dailyProductionPlanAnalysisNew_list.vm 개발
+##
+##
+############################################################
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+##set( $resizeFuncCallCode = "setGridAutoResize('142', '307')" ) 
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('112', '167')" )    
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/scheduling.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<input type="hidden" name="plant_version" value="$!{plant_version}">
+<input type="hidden" name="version_list" value="$!{version_list}">
+<input type="hidden" name="plant_list" value="$!{plant_list}">	
+<input type="hidden" name="line_grp" value="$!{line_grp}">
+<input type="hidden" name="line_grp_all" value="N">
+<input type="hidden" name="domain" value="$!{domain}">
+<input type="hidden" name="cat_id" value="PS">
+	
+##숨기 필드 CHECK FLAG
+<input type="hidden" name="f01" value="$!{f01}">##공장
+<input type="hidden" name="f02" value="$!{f02}">##원가부문
+<input type="hidden" name="f03" value="$!{f03}">##작업장
+<input type="hidden" name="f04" value="$!{f04}">##제품코드
+<input type="hidden" name="f05" value="$!{f05}">##제품명
+<input type="hidden" name="f06" value="$!{f06}">##규격
+<input type="hidden" name="f07" value="$!{f07}">##TO여
+<input type="hidden" name="f08" value="$!{f08}">##구분
+<input type="hidden" name="f09" value="$!{f09}">##오더번호
+<input type="hidden" name="f10" value="$!{f10}">##오더항목번호
+<input type="hidden" name="f11" value="$!{f11}">##PO 조
+<input type="hidden" name="f12" value="$!{f12}">##PO 주
+<input type="hidden" name="f13" value="$!{f13}">##PO 야
+
+	
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">  
+	## 기능 버튼 영역 
+	<tr> 
+		<td height="25" align="right" >
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+				<tr>		
+					<td align="left">
+						<input type="button" name="btnQtyChk" value=" 물량 검증" onClick="faSchQtyChkPopUp(); " class="btn1_on"/>
+						<input type="button" name="btnExcelDown" value=" Excel"  onClick="excelDownloadPopUp(); " class="btn1_on"/>
+						<input type="button" name="btnExcelDownload" value=" Excel ▼"  onClick="excelDownload(); " class="btn1_on"/>
+						<input type="button" name="btnExcelUpload" value=" Excel ▲"  onClick="excelUpload(); " class="btn1_on"/>
+					</td>
+					<td align="right"> 
+						<input type="button" name="btnSelect" value=" 선택" onClick="selectPlantAndVersionPopUp(); " class="btn1_on">
+						<input type="button" name="btnFaVsPs" value=" 검증" onClick="faVsPsPopUp(); " class="btn1_on">
+						#button("search")
+						#toolbar_nscm($_moon_toolbar "sc_11020_dailyProductionPlanAnalysisNewItem_reg" "" "sc_11020_dailyProductionPlanAnalysisNew_list_save_comp" "")
+					</td>
+				</tr>
+			</table> 
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" 
+							id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr >            
+								#set( $week = $weekly_3_start_end_date.get(0) )
+            					<td width="5%" align="right">주차 :</td>
+            					<td width="65%">  
+									<input type="radio" name="checked_weekly" value="w0" style="border:0px; "
+            							onClick="this.checked" #if($!{checked_weekly} == "w0") checked #else #end>당주($week.get(0)~$week.get(6))</input>&nbsp;
+            						<input type="radio" name="checked_weekly" value="w1" style="border:0px; "
+            							onClick="this.checked" #if($!{checked_weekly} == "w1" || "$!{checked_weekly}" == "") checked #else #end>차주($week.get(7)~$week.get(13))</input>&nbsp;
+            						<input type="radio" name="checked_weekly" value="w2" style="border:0px; "
+            							onClick="this.checked" #if($!{checked_weekly} == "w2") checked #else #end>차차주($week.get(14)~$week.get(20))</input>&nbsp;
+            					</td> 
+								<td width="10%" align="right">일반/멀티 :</td>
+            					<td width="20%">  
+									<input type="radio" name="checked_multi" value="default" checked="on" style="border:0px; "
+            							onClick="this.checked" #if($!{checked_multi} == "default") checked #else #end>전체</input>&nbsp;
+            						<input type="radio" name="checked_multi" value="normal"  style="border:0px; "
+            							onClick="this.checked" #if($!{checked_multi} == "normal") checked #else #end>일반</input>&nbsp;
+            						<input type="radio" name="checked_multi" value="visual" style="border:0px; "
+            							onClick="this.checked" #if($!{checked_multi} == "visual") checked #else #end>Visual</input>&nbsp;
+            						<input type="radio" name="checked_multi" value="multi" style="border:0px; "
+            							onClick="this.checked" #if($!{checked_multi} == "multi") checked #else #end>멀티</input>
+            					</td>											
+            				</tr>
+							<tr>
+								<td colspan="4" class="normal-table">
+							#foreach( $tr in $plant_and_version_list)  
+									##&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" class="normal" style="width:70px; text-align:center; font-size:8pt; " name="plant_name" value="$tr.get(0)" readOnly /> : <input type="text" class="normal" style="width:85px; text-align:center; font-size:8pt; " name="version_info" value="$tr.get(1)" readOnly/>
+									&nbsp;&nbsp;&nbsp;&nbsp;$!{tr.get(0)} : $!{tr.get(1)}
+							#end
+								</td>
+							</tr>
+            			</table> 
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td> 
+	</tr>
+	 
+	<input name="search_h" type="hidden" value="40"> ## search 조건 부분 높이      
+	<tr><td height="5"></td></tr> 
+	## TAB 영역
+	<tr>						
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>	
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>#page_info2()</td>
+						</tr>
+					</table>
+					 
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table id="tbMain" border="0" width="100%" cellpadding="0" cellspacing="0" >
+						<tr>							
+							<td>
+								#set($headHeight 	= 40 )## 헤더 높이  
+								#set($topLeft1 		= 25 )## 번호  
+								#set($topLeft2		= 75 )## 공장
+								#set($topLeft3 		= 70 )## 원가부문      
+								#set($topLeft4 		= 160 )## 작업장
+								#set($topLeft5 		= 60 )## 제품 코드  
+								#set($topLeft6 		= 260 )## 제품 명  
+								#set($topLeft7 		= 85 )## 규격
+								#set($topLeft9		= 0)## TO남
+								#set($topLeft10		= 30)## TO여
+								#set($topLeft8 		= 20 )## MTS/MTO
+								#set($topLeft11		= 70 )## ORD_NO
+								#set($topLeft12		= 50 )## ORD_ITEM_NO 
+								#set($topLeft13		= 35 )## PO 조
+								#set($topLeft14		= 35 )## po 주
+								#set($topLeft15		= 35 )## po 야 
+								#set($topLeftWidth 	= $topLeft1 + $topLeft2 + $topLeft3 + $topLeft4 + $topLeft5 + $topLeft6 + $topLeft7 + $topLeft8 + $topLeft9 + $topLeft10 + $topLeft11 + $topLeft12 + $topLeft13 + $topLeft14 + $topLeft15 )## 
+								<div id="topLeft" style="height:${headHeight}; width:${topLeftWidth}; overflow:hidden; ">
+        							<table id="topLeftTb" width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+        								<thead>   
+        									<tr height="${headHeight}px">
+        										<td width="${topLeft1}px" >번호</td>
+												##<td width="${checkBox}" rowspan="2">전체<br><input type="checkbox" name="checked_all" value="N" onClick="checkAll(this);"/></td>
+												<td id="tdPlant" width="${topLeft2}px" onDblClick="changeDisplay(this); ">공장</td>
+												<td id="tdTeam" width="${topLeft3}px" onDblClick="changeDisplay(this); ">원가부문</td>
+												<td id="tdShift1Po" width="${topLeft13}px" onDblClick="changeDisplay(this); ">조</td>
+												<td id="tdShift3Po" width="${topLeft14}px" onDblClick="changeDisplay(this); ">주</td>
+												<td id="tdShift5Po" width="${topLeft15}px" onDblClick="changeDisplay(this); ">야</td>
+												<td id="tdProc" width="${topLeft4}px" onDblClick="changeDisplay(this); ">작업장</td>
+												<td id="tdItemId" width="${topLeft5}px" onDblClick="changeDisplay(this); ">제품코드</td> 
+												<td id="tdItemName" width="${topLeft6}px" onDblClick="changeDisplay(this); ">제품 명</td>
+												<td id="tdSpec" width="${topLeft7}px" onDblClick="changeDisplay(this); ">규격</td>
+												#*<td id="tdToMan" width="${topLeft9}px" onDblClick="changeDisplay(this); ">TO남</td>*#
+												<td id="tdToWoman" width="${topLeft10}px" onDblClick="changeDisplay(this); ">TO여</td>
+												<td id="tdOS" width="${topLeft8}px" onDblClick="changeDisplay(this); ">구<br>분</td>
+												<td id="tdOrdNo" width="${topLeft11}px" onDblClick="changeDisplay(this); ">오더번호</td>
+												<td id="tdOrdItemNo" width="${topLeft12}px" onDblClick="changeDisplay(this); ">오더항목번호</td>
+        									</tr>  
+										 </thead>
+        			   				</table>
+			   					</div>
+							</td>
+							<td>
+								#set( $topLine1 = 50 )##월/조
+								#set( $topLine2 = 50 )##월/주
+								#set( $topLine3 = 50 )##월/야
+								#set( $topLine4 = 50 )##화/조
+								#set( $topLine5 = 50 )##화/주
+								#set( $topLine6 = 50 )##화/야
+								#set( $topLine7 = 50 )##수/조
+								#set( $topLine8 = 50 )##수/주
+								#set( $topLine9 = 50 )##수/야
+								#set( $topLine10 = 50 )##목/조
+								#set( $topLine11 = 50 )##목/주
+								#set( $topLine12 = 50 )##목/야
+								#set( $topLine13 = 50 )##금/조
+								#set( $topLine14 = 50 )##금/주
+								#set( $topLine15 = 50 )##금/야
+								#set( $topLine16 = 50 )##토/조
+								#set( $topLine17 = 50 )##토/주
+								#set( $topLine18 = 50 )##토/야
+								#set( $topLine19 = 50 )##일/조
+								#set( $topLine20 = 50 )##일/주
+								#set( $topLine21 = 50 )##일/야 
+								##set( $topLine22 = 40 )##합계 
+								#set( $headTopLine1 = $topLine1 + $topLine2 + $topLine3 )##월
+								#set( $headTopLine2 = $topLine4 + $topLine5 + $topLine6 )##월
+								#set( $headTopLine3 = $topLine7 + $topLine8 + $topLine9 )##월
+								#set( $headTopLine4 = $topLine10 + $topLine11 + $topLine12 )##월
+								#set( $headTopLine5 = $topLine13 + $topLine14 + $topLine15 )##월
+								#set( $headTopLine6 = $topLine16 + $topLine17 + $topLine18 )##월
+								#set( $headTopLine7 = $topLine19 + $topLine20 + $topLine21 )##월
+								#set( $headTopLine8 = 60 )##합계
+								#set($topLineWidth = $headTopLine1 + $headTopLine2 + $headTopLine3 + $headTopLine4 + $headTopLine5 + $headTopLine6 + $headTopLine7 + $headTopLine8 )   
+								<div id="topLine" style="height:${headHeight}; width:${topLineWidth}; overflow:hidden;">
+									<table width="${topLineWidth}" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>											
+											#if("$!{checked_weekly}" == "w0" )
+												#set( $cnt = 0 )
+											#elseif("$!{checked_weekly}" == "w2" )
+												#set( $cnt = 14 )
+											#else
+												#set( $cnt = 7 )
+											#end
+											<tr height="20px">
+												#set( $cnt = $cnt + 0 )
+												<td width="${headTopLine1}px" colspan="3">$week.get($cnt)</td> 
+												#set( $cnt = $cnt + 1 )
+												<td width="${headTopLine2}px" colspan="3">$week.get($cnt)</td> 
+												#set( $cnt = $cnt + 1 )
+												<td width="${headTopLine3}px" colspan="3">$week.get($cnt)</td>
+												#set( $cnt = $cnt + 1 )
+												<td width="${headTopLine4}px" colspan="3">$week.get($cnt)</td> 
+												#set( $cnt = $cnt + 1 )
+												<td width="${headTopLine5}px" colspan="3">$week.get($cnt)</td>
+												#set( $cnt = $cnt + 1 )
+												<td width="${headTopLine6}px" colspan="3">$week.get($cnt)</td>
+												#set( $cnt = $cnt + 1 )
+												<td width="${headTopLine7}px" colspan="3" >$week.get($cnt)</td> 
+												<td width="${headTopLine8}px" rowspan="2" class="right">합계</td> 
+											</tr>
+											<tr height="20px">		 										
+												<td width="${topLine1}px" class="mid">조</td>
+												<td width="${topLine2}px" class="mid">주</td>
+												<td width="${topLine3}px" class="mid">야</td> 
+												##<td width="50px" class="mid">상태</td> 
+												<td width="${topLine4}px" class="mid">조</td>
+												<td width="${topLine5}px" class="mid">주</td>
+												<td width="${topLine6}px" class="mid">야</td>
+												##<td width="60px" class="mid">상태</td>
+												<td width="${topLine7}px" class="mid">조</td>
+												<td width="${topLine8}px" class="mid">주</td>
+												<td width="${topLine9}px" class="mid">야</td>
+												##<td width="60px" class="mid">상태</td>
+												<td width="${topLine10}px" class="mid">조</td>
+												<td width="${topLine11}px" class="mid">주</td>
+												<td width="${topLine12}px" class="mid">야</td>
+												##<td width="60px" class="mid">상태</td>
+												<td width="${topLine13}px" class="mid">조</td>
+												<td width="${topLine14}px" class="mid">주</td>
+												<td width="${topLine15}px" class="mid">야</td>
+												##<td width="60px" class="mid">상태</td>
+												<td width="${topLine16}px" class="mid">조</td> 
+												<td width="${topLine17}px" class="mid">주</td>
+												<td width="${topLine18}px" class="mid">야</td> 
+												##<td width="60px" class="mid">상태</td>
+												<td width="${topLine19}px" class="mid">조</td>
+												<td width="${topLine20}px" class="mid">주</td>
+												<td width="${topLine21}px" class="mid">야</td>
+												##<td width="30px" class="midright">상태</td>
+											</tr> 
+										</thead>
+									</table>
+								</div>
+							</td> 
+						</tr>	
+						 
+						<tr>
+							<td valign="top">
+								#set( $displayHeight = "22px" )## 그리드 높이 
+								#set( $fSize = 8 )## font-size
+        						<div id="leftDisplay" style="width:${topLeftWidth}; overflow:hidden; ">
+        							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; " > 
+        								<tbody id="left_tbody" >
+										#set( $pPlant = "" )
+										#set( $pTeam = "" )
+										#set( $pProc = "" )
+        								#foreach( $tr in $sc_11020_dailyProductionPlanAnalysisNew_list )
+											#if( "$tr.get(2)" == "전체합계" )
+											<tr id="left_tr" height="${displayHeight}" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); " >
+        										## 번호
+                								<td width="${topLeft1}px" align="center" style="background-color:${search_bgcolor}; " >
+                									<a id="divRowNo">$velocityCount</a>
+                								</td>
+												## 공장
+        										<td id="tdPlant" width="${topLeft2}px" align="center" style="background-color:#b0b0b0; ">   
+        											<a id="divPlant" style="font-size:${fSize}pt; ">$tr.get(2)</a>
+        										</td>
+												## 원가부문 
+        										<td id="tdTeam" width="${topLeft3}px" align="left" style="background-color:#b0b0b0; ">
+        											<a id="divTeam" style="font-size:${fSize}pt; "></a> 											
+        										</td>
+												## PO 조
+        										<td id="tdShift1Po" width="${topLeft13}px" align="center" style="background-color:#b0b0b0; ">
+        											<a id="divShift1PO" style="font-size:${fSize}pt; "></a> 											
+        										</td>
+												## PO 주 
+        										<td id="tdShift3Po" width="${topLeft14}px" align="center" style="background-color:#b0b0b0; ">
+        											<a id="divShift3PO" style="font-size:${fSize}pt; "></a> 											
+        										</td>
+												## PO 야 
+        										<td id="tdShift5Po" width="${topLeft15}px" align="center" style="background-color:#b0b0b0; ">
+        											<a id="divShift5PO" style="font-size:${fSize}pt; "></a> 											
+        										</td>
+												## 작업장 
+        										<td id="tdProc" width="${topLeft4}px" align="left" style="background-color:#b0b0b0; "> 
+        											<a id="divProc" style="font-size:${fSize}pt; "></a>								
+        										</td>
+												## 제품 코드
+        										<td id="tdItemId" width="${topLeft5}px" align="center" style="background-color:#b0b0b0; ">
+        											<a id="divItemId" style="font-size:${fSize}pt; "></a>							
+        										</td>
+    											## 제품 명
+        										<td id="tdItemName" width="${topLeft6}px" align="left" style="background-color:#b0b0b0; ">
+        											<a id="divItemName" style="font-size:${fSize}pt; "></a>					
+        										</td>
+    											## 규격
+        										<td id="tdSpec" width="${topLeft7}px" align="center" style="background-color:#b0b0b0; ">
+        											<a id="divItemSpec" style="font-size:${fSize}pt; "></a>										
+        										</td>
+												## TO남
+        										#*<td id="tdToMan" width="${topLeft9}px" align="center" style="background-color:#b0b0b0; ">
+        											<a id="divToMan" style="font-size:${fSize}pt; "></a>										
+        										</td>*#
+												## TO여
+        										<td id="tdToWoman" width="${topLeft10}px" align="center" style="background-color:#b0b0b0; ">
+        											<a id="divToWoman" style="font-size:${fSize}pt; "></a>										
+        										</td>
+												## MTO/MTS
+												<td id="tdOS" width="${topLeft8}px" align="center" style="background-color:#b0b0b0; ">  
+													<a id="divMtoMts" style="font-size:${fSize}pt; "></a>
+												</td>
+												## 오더번호
+												<td id="tdOrdNo" width="${topLeft11}px" align="center" style="background-color:#b0b0b0; ">  
+													<a id="divOrdNo" style="font-size:${fSize}pt; "></a>
+												</td>
+												## 오더항목번호
+												<td id="tdOrdItemNo" width="${topLeft12}px" align="center" style="background-color:#b0b0b0; ">  
+													<a id="divOrdItemNo" style="font-size:${fSize}pt; "></a>
+												</td>
+											</tr>
+											#else
+												#if( "$pPlant" == "" )
+													#set( $pPlant = "$tr.get(1)" )
+													#set( $pTeam = "$tr.get(3)" )
+													#set( $pProc = "$tr.get(6)" )
+												#end
+        									<tr id="left_tr" height="${displayHeight}" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); " >
+        										## 번호
+                								<td width="${topLeft1}px" align="center" style="background-color:${search_bgcolor}; ">
+                									<a id="divRowNo">$velocityCount</a>
+                								</td>
+												## 공장
+        										<td id="tdPlant" width="${topLeft2}px" align="center" style="border-right-color:#909090; "
+													#if( "$pPlant" != "$tr.get(1)") #set($pPlant = "$tr.get(1)") style="border-top-width:2px;  border-top-color:#909090; " #end>   
+        											<a id="divPlant" style="font-size:${fSize}pt; ">$tr.get(2)</a><input
+        												type="hidden" name="plant_id" value="$tr.get(1)" >
+        										</td>
+												## 원가부문
+        										<td id="tdTeam" width="${topLeft3}px" align="left" style="border-right-color:#909090; "
+													#if( "$pTeam" != "$tr.get(3)")  style="border-top-width:2px;  border-top-color:#909090; " #end>
+        											<a id="divTeam" style="font-size:${fSize}pt; ">&nbsp;$tr.get(3)</a> 											
+        										</td>
+												## PO 조
+        										<td id="tdShift1Po" width="${topLeft13}px" align="center" style="border-right-color:#909090; "
+													#if( "$pTeam" != "$tr.get(3)")  style="border-top-width:2px;  border-top-color:#909090; " #end>
+        											<a id="divShift1PO" style="font-size:${fSize}pt; ">$tr.get(64)</a> 											
+        										</td>
+												## PO 주 
+        										<td id="tdShift3Po" width="${topLeft14}px" align="center" style="border-right-color:#909090; "
+													#if( "$pTeam" != "$tr.get(3)")  style="border-top-width:2px;  border-top-color:#909090; " #end>
+        											<a id="divShift3PO" style="font-size:${fSize}pt; ">$tr.get(65)</a> 											
+        										</td>
+												## PO 야 
+        										<td id="tdShift5Po" width="${topLeft15}px" align="center" style="border-right-color:#909090; "
+													#if( "$pTeam" != "$tr.get(3)") #set($pTeam = "$tr.get(3)") style="border-top-width:2px;  border-top-color:#909090; " #end>
+        											<a id="divShift5PO" style="font-size:${fSize}pt; ">$tr.get(66)</a> 											
+        										</td>
+												## 작업장 
+        										<td id="tdProc" width="${topLeft4}px" align="left" style="border-right-color:#909090; " 
+													#if( "$pProc" != "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end>     
+        											<a id="divProc" style="font-size:${fSize}pt; ">&nbsp;$tr.get(7)</a><input 
+        												type="hidden" name="proc_id" value="$tr.get(6)"> 											
+        										</td>
+												## 제품 코드
+        										<td id="tdItemId" width="${topLeft5}px" align="center" style="border-right-color:#909090; "  
+													#if( "$pProc" != "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end> 
+        											<a id="divItemId" style="font-size:${fSize}pt; ">$tr.get(8)</a><input
+        												type="hidden" name="item_id" value="$tr.get(8)"> 											
+        										</td>
+    											## 제품 명
+        										<td id="tdItemName" width="${topLeft6}px" align="left" style="border-right-color:#909090; "
+													#if( "$pProc" != "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end> 
+        											<a id="divItemName" style="font-size:${fSize}pt; ">&nbsp;$tr.get(9)</a>					
+        										</td>  
+    											## 규격
+        										<td id="tdSpec" width="${topLeft7}px" align="center" style="border-right-color:#909090; "
+													#if( "$pProc" != "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end> 
+        											<a id="divItemSpec" style="font-size:${fSize}pt; ">$tr.get(10)</a>	 									
+        										</td> 
+												## TO남
+        										#*<td id="tdToMan" width="${topLeft9}px" align="right" >
+        											<a id="divToMan" style="font-size:${fSize}pt; ">$tr.get(60)&nbsp;</a>										
+        										</td>*#
+												## TO여
+        										<td id="tdToWoman" width="${topLeft10}px" align="right" style="border-right-color:#909090; "
+													#if( "$pProc" != "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end> 
+        											<a id="divToWoman" style="font-size:${fSize}pt; ">$tr.get(62)&nbsp;</a>										
+        										</td>  
+												## MTO/MTS
+												<td id="tdOS" width="${topLeft8}px" align="center" style="border-right-color:#909090; "
+													#if( "$pProc" != "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end>  
+													<a id="divMtoMts" style="font-size:${fSize}pt; ">$tr.get(13)</a>
+												</td>
+												## 오더번호
+												<td id="tdOrdNo" width="${topLeft11}px" align="center" style="border-right-color:#909090; " 
+													#if( "$pProc" != "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end>  
+													<a id="divOrdNo" style="font-size:${fSize}pt; ">$tr.get(14)</a><input
+														type="hidden" name="ord_no" value="$tr.get(14)" >
+												</td>
+												## 오더항목번호
+												<td id="tdOrdItemNo" width="${topLeft12}px" align="center" style="border-right-color:#909090; " 
+													#if( "$pProc" != "$tr.get(6)") #set($pProc = "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end>  
+													<a id="divOrdItemNo" style="font-size:${fSize}pt; ">$tr.get(63)</a><input
+														type="hidden" name="ord_item_no" value="$tr.get(63)" >
+												</td>
+												<input type="hidden" name="version" value="$tr.get(11)"> 
+												<input type="hidden" name="seq" value="$tr.get(12)">												
+											</tr>
+											#end
+        								#end
+        								</tbody> 
+        							</table> 
+        						</div> 
+        					</td> 
+							
+							<td valign="top"> 
+								<div id="mainDisplay" class="ns_scroll" style="border:0; width:${topLineWidth}; overflow-y:scroll; overflow-x:scroll; " onscroll="scrollX(); scrollY(); ">
+									<table id="mainTable" width="${topLineWidth}" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="main_tbody">	 
+										#set( $style = "width:100%; border:0px; text-align:right; font-size:${fSize}pt; " )
+										#set( $pProc = "" )
+										#foreach( $tr in $sc_11020_dailyProductionPlanAnalysisNew_list )											
+											#if( "$tr.get(2)" == "전체합계" )
+											<tr id="main_tr" height="${displayHeight}" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">    											
+												## 조/월
+        										<td width="${topLine1}px" align="right" style="background-color:#b0b0b0; " >
+													<a id="shift_1_mon_tot" style="font-size:${fSize}pt; ">$tr.get(15)&nbsp;</a>
+												</td>
+												## 주/월
+        										<td width="${topLine2}px" align="right" style="background-color:#b0b0b0; " >
+        											<a id="shift_3_mon_tot" style="font-size:${fSize}pt; ">$tr.get(16)&nbsp;</a>
+        										</td>
+												## 야/월
+        										<td width="${topLine3}px" align="right" style="background-color:#b0b0b0; " >
+        											<a id="shift_5_mon_tot" style="font-size:${fSize}pt; ">$tr.get(17)&nbsp;</a>
+        										</td>
+												## 조/화
+        										<td width="${topLine4}px" align="right" style="background-color:#b0b0b0; " >  
+													<a id="shift_1_tue_tot" style="font-size:${fSize}pt; ">$tr.get(18)&nbsp;</a>
+        										</td>
+												## 주/화
+        										<td width="${topLine5}px" align="right" style="background-color:#b0b0b0; " >  
+													<a id="shift_3_tue_tot" style="font-size:${fSize}pt; ">$tr.get(19)&nbsp;</a>
+        										</td>
+												## 야/화
+        										<td width="${topLine6}px" align="right" style="background-color:#b0b0b0; " >  
+													<a id="shift_5_tue_tot" style="font-size:${fSize}pt; ">$tr.get(20)&nbsp;</a>
+        										</td>
+												## 조/수
+        										<td width="${topLine7}px" align="right" style="background-color:#b0b0b0; " >
+													<a id="shift_1_wed_tot" style="font-size:${fSize}pt; ">$tr.get(21)&nbsp;</a>
+        										</td>
+												## 주/수
+        										<td width="${topLine8}px" align="right" style="background-color:#b0b0b0; " >
+													<a id="shift_3_wed_tot" style="font-size:${fSize}pt; ">$tr.get(22)&nbsp;</a>	
+        										</td>
+												## 야/수
+        										<td width="${topLine9}px" align="right" style="background-color:#b0b0b0; " >
+													<a id="shift_5_wed_tot" style="font-size:${fSize}pt; ">$tr.get(23)&nbsp;</a>	
+        										</td>
+												## 조/목
+        										<td width="${topLine10}px" align="right" style="background-color:#b0b0b0; " >
+													<a id="shift_1_thu_tot" style="font-size:${fSize}pt; ">$tr.get(24)&nbsp;</a>		
+        										</td>
+												## 주/목
+        										<td width="${topLine11}px" align="right" style="background-color:#b0b0b0; " >
+													<a id="shift_3_thu_tot" style="font-size:${fSize}pt; ">$tr.get(25)&nbsp;</a>		
+        										</td>
+												## 야/목
+        										<td width="${topLine12}px" align="right" style="background-color:#b0b0b0; " >
+													<a id="shift_5_thu_tot" style="font-size:${fSize}pt; ">$tr.get(26)&nbsp;</a>	
+        										</td>
+												## 조/금
+        										<td width="${topLine13}px" align="right" style="background-color:#b0b0b0; " >
+													<a id="shift_1_fri_tot" style="font-size:${fSize}pt; ">$tr.get(27)&nbsp;</a>
+        										</td> 
+												## 주/금
+        										<td width="${topLine14}px" align="right" style="background-color:#b0b0b0; " >
+													<a id="shift_3_fri_tot" style="font-size:${fSize}pt; ">$tr.get(28)&nbsp;</a>
+        										</td>
+												## 야/금
+        										<td width="${topLine15}px" align="right" style="background-color:#b0b0b0; " >
+													<a id="shift_5_fri_tot" style="font-size:${fSize}pt; ">$tr.get(29)&nbsp;</a>
+        										</td>
+												## 조/토
+        										<td width="${topLine16}px" align="right" style="background-color:#b0b0b0; " >
+													<a id="shift_1_sat_tot" style="font-size:${fSize}pt; ">$tr.get(30)&nbsp;</a>
+        										</td>
+												## 주/토
+        										<td width="${topLine17}px" align="right" style="background-color:#b0b0b0; " >
+													<a id="shift_3_sat_tot" style="font-size:${fSize}pt; ">$tr.get(31)&nbsp;</a>
+        										</td> 
+												## 야/토 
+        										<td width="${topLine18}px" align="right" style="background-color:#b0b0b0; " >
+													<a id="shift_5_sat_tot" style="font-size:${fSize}pt; ">$tr.get(32)&nbsp;</a>
+												</td>
+												## 조/일       
+        										<td width="${topLine19}px" align="right" style="background-color:#b0b0b0; " >
+													<a id="shift_1_sun_tot" style="font-size:${fSize}pt; ">$tr.get(33)&nbsp;</a>													
+        										</td>
+												## 주/일 
+        										<td width="${topLine20}px" align="right" style="background-color:#b0b0b0; " >
+													<a id="shift_3_sun_tot" style="font-size:${fSize}pt; ">$tr.get(34)&nbsp;</a>													
+        										</td>
+												## 야/일 
+        										<td width="${topLine21}px" align="right" style="background-color:#b0b0b0; " >
+													<a id="shift_5_sun_tot" style="font-size:${fSize}pt; ">$tr.get(35)&nbsp;</a>	
+												</td>
+												## 합계 
+        										<td width="${headTopLine8}px" align="right"  class="right" style="background-color:#a0a0a0; ">  
+        											<a id="divTotal_tot" style="font-size:${fSize}pt; " >$tr.get(36)&nbsp;</a>
+												</td>
+											</tr> 
+											#else
+												#if("$!{checked_weekly}" == "w0" )
+    												#set( $cnt = 0 )
+    											#elseif("$!{checked_weekly}" == "w2" )
+    												#set( $cnt = 14 )
+    											#else
+    												#set( $cnt = 7 )
+												#end
+												
+												#if( "$pProc" == "" )
+													#set( $pProc = "$tr.get(6)" )
+												#end
+												 
+											<tr id="main_tr" height="${displayHeight}" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">    											
+												## 조/월 
+												#set( $cnt = $cnt + 0 )
+        										<td width="${topLine1}px" align="right"   
+													#if("$tr.get(37)" == "O") style="background-color:#d0d0d0; " #end  
+													#if( "$pProc" != "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end>
+        											##<a id="divShift1Mon" style="font-size:${fSize}pt; ">$tr.get(14)&nbsp;</a>
+													<input
+														#if("$tr.get(37)" == "O") style="background-color:#d0d0d0; "  #end
+														onMouseOver="capaInfoQtyPerHour(this); " title=""; ##onContextMenu="capaInfoProcByHour(this); return false;"
+														type="text" name="shift_1_mon" onFocusIn="saveValues(this);" onChange="changeShiftSelect(this); " value="$tr.get(15)"
+														onKeyDown="moveFocus(this); " onClick="this.select(); " 
+        												style="$style" tabindex="$velocityCount1" onDblClick="doubleClickfunc(this); "><input 
+														type="hidden" name="mon_shift1_check_flag" value="N"><input 
+														type="hidden" name="shift_1_mon_prod_dates" value="$week.get($cnt)"><input 
+														type="hidden" name="shift_1_mon_shift_type" value="1">
+												</td>
+												## 주/월
+        										<td width="${topLine2}px" align="right"   
+													#if("$tr.get(38)" == "O") style="background-color:#d0d0d0; " #end 
+													#if( "$pProc" != "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end>
+        											<input
+														#if("$tr.get(38)" == "O") style="background-color:#d0d0d0; " #end
+														onMouseOver="capaInfoQtyPerHour(this); " title="";
+														type="text" name="shift_3_mon" onFocusIn="saveValues(this);" onChange="changeShiftSelect(this); " value="$tr.get(16)"
+        												onKeyDown="moveFocus(this); " onClick="this.select();"
+														style="$style" tabindex="$velocityCount2" onDblClick="doubleClickfunc(this); "><input 
+														type="hidden" name="mon_shift3_check_flag" value="N"><input 
+														type="hidden" name="shift_3_mon_prod_dates" value="$week.get($cnt)"><input 
+														type="hidden" name="shift_3_mon_shift_type" value="3">
+        										</td>
+												## 야/월
+        										<td width="${topLine3}px" align="right" style="border-right-color:#909090; "
+													#if("$tr.get(39)" == "O") style="background-color:#d0d0d0; " #end 
+													#if( "$pProc" != "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end>
+        											<input
+														#if("$tr.get(39)" == "O") style="background-color:#d0d0d0; " #end
+														onMouseOver="capaInfoQtyPerHour(this); " title="";
+														type="text" name="shift_5_mon" onFocusIn="saveValues(this);" onChange="changeShiftSelect(this); " value="$tr.get(17)"
+        												onKeyDown="moveFocus(this); " onClick="this.select();"
+														style="$style" tabindex="$velocityCount3" onDblClick="doubleClickfunc(this); "><input 
+														type="hidden" name="mon_shift5_check_flag" value="N"><input 
+														type="hidden" name="shift_5_mon_prod_dates" value="$week.get($cnt)"><input 
+														type="hidden" name="shift_5_mon_shift_type" value="5">
+        										</td>
+												## 조/화
+												#set( $cnt = $cnt + 1 )
+        										<td width="${topLine4}px" align="right"   
+													#if("$tr.get(40)" == "O") style="background-color:#d0d0d0; " #end 
+													#if( "$pProc" != "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end>
+        											<input
+														#if("$tr.get(40)" == "O") style="background-color:#d0d0d0; " #end
+														onMouseOver="capaInfoQtyPerHour(this); " title="";
+														type="text" name="shift_1_tue" onFocusIn="saveValues(this);" onChange="changeShiftSelect(this); " value="$tr.get(18)"
+        												onKeyDown="moveFocus(this); " onClick="this.select();"
+														style="$style" tabindex="$velocityCount4" onDblClick="doubleClickfunc(this); "><input 
+														type="hidden" name="tue_shift1_check_flag" value="N"><input 
+														type="hidden" name="shift_1_tue_prod_dates" value="$week.get($cnt)"><input 
+														type="hidden" name="shift_1_tue_shift_type" value="1">
+        										</td>
+												## 주/화
+        										<td width="${topLine5}px" align="right"   
+													#if("$tr.get(41)" == "O") style="background-color:#d0d0d0; " #end 
+													#if( "$pProc" != "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end>
+        											<input
+														#if("$tr.get(41)" == "O") style="background-color:#d0d0d0; " #end
+														onMouseOver="capaInfoQtyPerHour(this); " title="";
+														type="text" name="shift_3_tue" onFocusIn="saveValues(this);" onChange="changeShiftSelect(this); " value="$tr.get(19)"
+        												onKeyDown="moveFocus(this); " onClick="this.select();"
+														style="$style" tabindex="$velocityCount5" onDblClick="doubleClickfunc(this); "><input 
+														type="hidden" name="tue_shift3_check_flag" value="N"><input 
+														type="hidden" name="shift_3_tue_prod_dates" value="$week.get($cnt)"><input 
+														type="hidden" name="shift_3_tue_shift_type" value="3">
+        										</td>
+												## 야/화
+        										<td width="${topLine6}px" align="right" style="border-right-color:#909090; "
+													#if("$tr.get(42)" == "O") style="background-color:#d0d0d0; " #end 
+													#if( "$pProc" != "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end>
+        											<input
+														#if("$tr.get(42)" == "O") style="background-color:#d0d0d0; " #end
+														onMouseOver="capaInfoQtyPerHour(this); " title="";
+														type="text" name="shift_5_tue" onFocusIn="saveValues(this);" onChange="changeShiftSelect(this); " value="$tr.get(20)"
+        												onKeyDown="moveFocus(this); " onClick="this.select();"
+														style="$style" tabindex="$velocityCount6" onDblClick="doubleClickfunc(this); "><input 
+														type="hidden" name="tue_shift5_check_flag" value="N"><input 
+														type="hidden" name="shift_5_tue_prod_dates" value="$week.get($cnt)"><input 
+														type="hidden" name="shift_5_tue_shift_type" value="5">
+        										</td>
+												## 조/수
+												#set( $cnt = $cnt + 1 )
+        										<td width="${topLine7}px" align="right"   
+													#if("$tr.get(43)" == "O") style="background-color:#d0d0d0; " #end 
+													#if( "$pProc" != "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end>
+        											<input
+														#if("$tr.get(43)" == "O") style="background-color:#d0d0d0; " #end
+														onMouseOver="capaInfoQtyPerHour(this); " title="";
+														type="text" name="shift_1_wed" onFocusIn="saveValues(this);" onChange="changeShiftSelect(this); " value="$tr.get(21)"
+        												onKeyDown="moveFocus(this); " onClick="this.select();"
+														style="$style" tabindex="$velocityCount7" onDblClick="doubleClickfunc(this); "><input 
+														type="hidden" name="wed_shift1_check_flag" value="N"><input 
+														type="hidden" name="shift_1_wed_prod_dates" value="$week.get($cnt)"><input 
+														type="hidden" name="shift_1_wed_shift_type" value="1">
+        										</td>
+												## 주/수
+        										<td width="${topLine8}px" align="right"   
+													#if("$tr.get(44)" == "O") style="background-color:#d0d0d0; " #end 
+													#if( "$pProc" != "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end>
+        											<input
+														#if("$tr.get(44)" == "O") style="background-color:#d0d0d0; " #end
+														onMouseOver="capaInfoQtyPerHour(this); " title="";
+														type="text" name="shift_3_wed" onFocusIn="saveValues(this);" onChange="changeShiftSelect(this); " value="$tr.get(22)"
+        												onKeyDown="moveFocus(this); " onClick="this.select();"
+														style="$style" tabindex="$velocityCount8" onDblClick="doubleClickfunc(this); "><input 
+														type="hidden" name="wed_shift3_check_flag" value="N"><input 
+														type="hidden" name="shift_3_wed_prod_dates" value="$week.get($cnt)"><input 
+														type="hidden" name="shift_3_wed_shift_type" value="3">
+        										</td>
+												## 야/수
+        										<td width="${topLine9}px" align="right" style="border-right-color:#909090; "
+													#if("$tr.get(45)" == "O") style="background-color:#d0d0d0; " #end 
+													#if( "$pProc" != "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end>
+        											<input
+														#if("$tr.get(45)" == "O") style="background-color:#d0d0d0; " #end
+														onMouseOver="capaInfoQtyPerHour(this); " title="";
+														type="text" name="shift_5_wed" onFocusIn="saveValues(this);" onChange="changeShiftSelect(this); " value="$tr.get(23)"
+        												onKeyDown="moveFocus(this); " onClick="this.select();"
+														style="$style" tabindex="$velocityCount9" onDblClick="doubleClickfunc(this); "><input 
+														type="hidden" name="wed_shift5_check_flag" value="N"><input 
+														type="hidden" name="shift_5_wed_prod_dates" value="$week.get($cnt)"><input 
+														type="hidden" name="shift_5_wed_shift_type" value="5">
+        										</td>
+												## 조/목
+												#set( $cnt = $cnt + 1 )
+        										<td width="${topLine10}px" align="right"   
+													#if("$tr.get(46)" == "O") style="background-color:#d0d0d0; " #end 
+													#if( "$pProc" != "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end>
+        											<input
+														#if("$tr.get(46)" == "O") style="background-color:#d0d0d0; " #end
+														onMouseOver="capaInfoQtyPerHour(this); " title="";
+														type="text" name="shift_1_thu" onFocusIn="saveValues(this);" onChange="changeShiftSelect(this); " value="$tr.get(24)"
+        												onKeyDown="moveFocus(this); " onClick="this.select();"
+														style="$style" tabindex="$velocityCount10" onDblClick="doubleClickfunc(this); "><input 
+														type="hidden" name="thu_shift1_check_flag" value="N"><input 
+														type="hidden" name="shift_1_thu_prod_dates" value="$week.get($cnt)"><input 
+														type="hidden" name="shift_1_thu_shift_type" value="1">
+        										</td>
+												## 주/목
+        										<td width="${topLine11}px" align="right"   
+													#if("$tr.get(47)" == "O") style="background-color:#d0d0d0; " #end 
+													#if( "$pProc" != "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end>
+        											<input
+														#if("$tr.get(47)" == "O") style="background-color:#d0d0d0; " #end
+														onMouseOver="capaInfoQtyPerHour(this); " title="";
+														type="text" name="shift_3_thu" onFocusIn="saveValues(this);" onChange="changeShiftSelect(this); " value="$tr.get(25)"
+        												onKeyDown="moveFocus(this); " onClick="this.select();"
+														style="$style" tabindex="$velocityCount11" onDblClick="doubleClickfunc(this); "><input 
+														type="hidden" name="thu_shift3_check_flag" value="N"><input 
+														type="hidden" name="shift_3_thu_prod_dates" value="$week.get($cnt)"><input 
+														type="hidden" name="shift_3_thu_shift_type" value="3">
+        										</td>
+												## 야/목
+        										<td width="${topLine12}px" align="right" style="border-right-color:#909090; "
+													#if("$tr.get(48)" == "O") style="background-color:#d0d0d0; " #end 
+													#if( "$pProc" != "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end>
+        											<input
+														#if("$tr.get(48)" == "O") style="background-color:#d0d0d0; " #end
+														onMouseOver="capaInfoQtyPerHour(this); " title="";
+														type="text" name="shift_5_thu" onFocusIn="saveValues(this);" onChange="changeShiftSelect(this); " value="$tr.get(26)"
+        												onKeyDown="moveFocus(this); " onClick="this.select();"
+														style="$style" tabindex="$velocityCount12" onDblClick="doubleClickfunc(this); "><input 
+														type="hidden" name="thu_shift5_check_flag" value="N"><input 
+														type="hidden" name="shift_5_thu_prod_dates" value="$week.get($cnt)"><input 
+														type="hidden" name="shift_5_thu_shift_type" value="5">
+        										</td>
+												## 조/금
+        										#set( $cnt = $cnt + 1 )
+        										<td width="${topLine13}px" align="right"   
+													#if("$tr.get(49)" == "O") style="background-color:#d0d0d0; " #end 
+													#if( "$pProc" != "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end>
+        											<input
+														#if("$tr.get(49)" == "O") style="background-color:#d0d0d0; " #end
+														onMouseOver="capaInfoQtyPerHour(this); " title="";
+														type="text" name="shift_1_fri" onFocusIn="saveValues(this);" onChange="changeShiftSelect(this); " value="$tr.get(27)"
+        												onKeyDown="moveFocus(this); " onClick="this.select();"
+														style="$style" tabindex="$velocityCount13" onDblClick="doubleClickfunc(this); "><input 
+														type="hidden" name="fri_shift1_check_flag" value="N"><input 
+														type="hidden" name="shift_1_fri_prod_dates" value="$week.get($cnt)"><input 
+														type="hidden" name="shift_1_fri_shift_type" value="1">
+        										</td> 
+												## 주/금
+												<td width="${topLine14}px" align="right"   
+													#if("$tr.get(50)" == "O") style="background-color:#d0d0d0; " #end 
+													#if( "$pProc" != "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end>
+        											<input
+														#if("$tr.get(50)" == "O") style="background-color:#d0d0d0; " #end
+														onMouseOver="capaInfoQtyPerHour(this); " title="";
+														type="text" name="shift_3_fri" onFocusIn="saveValues(this);" onChange="changeShiftSelect(this); " value="$tr.get(28)"
+        												onKeyDown="moveFocus(this); " onClick="this.select();"
+														style="$style" tabindex="$velocityCount14" onDblClick="doubleClickfunc(this); "><input 
+														type="hidden" name="fri_shift3_check_flag" value="N"><input 
+														type="hidden" name="shift_3_fri_prod_dates" value="$week.get($cnt)"><input 
+														type="hidden" name="shift_3_fri_shift_type" value="3">
+        										</td>
+												## 야/금
+        										<td width="${topLine15}px" align="right" style="border-right-color:#909090; "
+													#if("$tr.get(51)" == "O") style="background-color:#d0d0d0; " #end 
+													#if( "$pProc" != "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end>
+        											<input
+														#if("$tr.get(51)" == "O") style="background-color:#d0d0d0; " #end
+														onMouseOver="capaInfoQtyPerHour(this); " title="";
+														type="text" name="shift_5_fri" onFocusIn="saveValues(this);" onChange="changeShiftSelect(this); " value="$tr.get(29)"
+        												onKeyDown="moveFocus(this); " onClick="this.select();"
+														style="$style" tabindex="$velocityCount15" onDblClick="doubleClickfunc(this); "><input 
+														type="hidden" name="fri_shift5_check_flag" value="N"><input 
+														type="hidden" name="shift_5_fri_prod_dates" value="$week.get($cnt)"><input 
+														type="hidden" name="shift_5_fri_shift_type" value="5">
+        										</td>
+												## 조/토
+												#set( $cnt = $cnt + 1 )
+        										<td width="${topLine16}px" align="right"   
+													#if("$tr.get(52)" == "O") style="background-color:#d0d0d0; " #end 
+													#if( "$pProc" != "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end>
+        											<input
+														#if("$tr.get(52)" == "O") style="background-color:#d0d0d0; " #end
+														onMouseOver="capaInfoQtyPerHour(this); " title="";
+														type="text" name="shift_1_sat" onFocusIn="saveValues(this);" onChange="changeShiftSelect(this); " value="$tr.get(30)"
+        												onKeyDown="moveFocus(this); " onClick="this.select();"
+														style="$style" tabindex="$velocityCount16" onDblClick="doubleClickfunc(this); "><input 
+														type="hidden" name="sat_shift1_check_flag" value="N"><input 
+														type="hidden" name="shift_1_sat_prod_dates" value="$week.get($cnt)"><input 
+														type="hidden" name="shift_1_sat_shift_type" value="1">
+        										</td>
+												## 주/토
+        										<td width="${topLine17}px" align="right"   
+													#if("$tr.get(53)" == "O") style="background-color:#d0d0d0; " #end 
+													#if( "$pProc" != "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end>
+        											<input
+														#if("$tr.get(53)" == "O") style="background-color:#d0d0d0; " #end
+														onMouseOver="capaInfoQtyPerHour(this); " title="";
+														type="text" name="shift_3_sat" onFocusIn="saveValues(this);" onChange="changeShiftSelect(this); " value="$tr.get(31)"
+        												onKeyDown="moveFocus(this); " onClick="this.select();"
+														style="$style" tabindex="$velocityCount17" onDblClick="doubleClickfunc(this); "><input 
+														type="hidden" name="sat_shift3_check_flag" value="N"><input 
+														type="hidden" name="shift_3_sat_prod_dates" value="$week.get($cnt)"><input 
+														type="hidden" name="shift_3_sat_shift_type" value="3">
+        										</td> 
+												## 야/토 
+        										<td width="${topLine18}px" align="right" style="border-right-color:#909090; "
+													#if("$tr.get(54)" == "O") style="background-color:#d0d0d0; " #end 
+													#if( "$pProc" != "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end>
+        											<input
+														#if("$tr.get(54)" == "O") style="background-color:#d0d0d0; " #end
+														onMouseOver="capaInfoQtyPerHour(this); " title="";
+														type="text" name="shift_5_sat" onFocusIn="saveValues(this);" onChange="changeShiftSelect(this); " value="$tr.get(32)"
+        												onKeyDown="moveFocus(this); " onClick="this.select();"
+														style="$style" tabindex="$velocityCount18" onDblClick="doubleClickfunc(this); "><input 
+														type="hidden" name="sat_shift5_check_flag" value="N"><input 
+														type="hidden" name="shift_5_sat_prod_dates" value="$week.get($cnt)"><input 
+														type="hidden" name="shift_5_sat_shift_type" value="5">
+												</td>
+												## 조/일     
+												#set( $cnt = $cnt + 1 )
+        										<td width="${topLine19}px" align="right"  
+													#if("$tr.get(55)" == "O") style="background-color:#d0d0d0; " #end 
+													#if( "$pProc" != "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end>
+        											<input
+														#if("$tr.get(55)" == "O") style="background-color:#d0d0d0; " #end
+														onMouseOver="capaInfoQtyPerHour(this); " title="";
+														type="text"	name="shift_1_sun" onFocusIn="saveValues(this);" onChange="changeShiftSelect(this); " value="$tr.get(33)" 
+														onKeyDown="moveFocus(this); " onClick="this.select();"
+														style="$style" tabindex="$velocityCount19" onDblClick="doubleClickfunc(this); "><input 
+														type="hidden" name="sun_shift1_check_flag" value="N"><input 
+														type="hidden" name="shift_1_sun_prod_dates" value="$week.get($cnt)"><input 
+														type="hidden" name="shift_1_sun_shift_type" value="1">
+        										</td>
+												## 주/일 
+        										<td width="${topLine20}px" align="right"   
+													#if("$tr.get(56)" == "O") style="background-color:#d0d0d0; " #end 
+													#if( "$pProc" != "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end>
+        											<input 
+														#if("$tr.get(56)" == "O") style="background-color:#d0d0d0; " #end
+														onMouseOver="capaInfoQtyPerHour(this); " title="";
+														type="text"  name="shift_3_sun" onFocusIn="saveValues(this);" onChange="changeShiftSelect(this); " value="$tr.get(34)"
+        												onKeyDown="moveFocus(this); " onClick="this.select();"
+														style="$style" tabindex="$velocityCount20" onDblClick="doubleClickfunc(this); "><input 
+														type="hidden" name="sun_shift3_check_flag" value="N"><input 
+														type="hidden" name="shift_3_sun_prod_dates" value="$week.get($cnt)"><input 
+														type="hidden" name="shift_3_sun_shift_type" value="3">
+        										</td>
+												## 야/일 
+        										<td width="${topLine21}px" align="right" style="border-right-color:#909090; "
+													#if("$tr.get(57)" == "O") style="background-color:#d0d0d0; " #end 
+													#if( "$pProc" != "$tr.get(6)") #set($pProc = "$tr.get(6)") style="border-top-width:2px;  border-top-color:#909090; " #end>
+        											<input
+														#if("$tr.get(57)" == "O") style="background-color:#d0d0d0; " #end
+														onMouseOver="capaInfoQtyPerHour(this); " title="";
+														type="text" name="shift_5_sun" onFocusIn="saveValues(this);" onChange="changeShiftSelect(this); " value="$tr.get(35)"
+        												onKeyDown="moveFocus(this); " onClick="this.select();"
+														style="$style" tabindex="$velocityCount21" onDblClick="doubleClickfunc(this); "><input 
+														type="hidden" name="sun_shift5_check_flag" value="N"><input 
+														type="hidden" name="shift_5_sun_prod_dates" value="$week.get($cnt)"><input 
+														type="hidden" name="shift_5_sun_shift_type" value="5">
+												</td>
+												## 합계
+        										<td width="${headTopLine8}px" align="right" style="background-color:#f2f2f2; " class="right">  
+        											<a id="divTotal" style="font-size:${fSize}pt; ">$tr.get(36)&nbsp;</a><input
+														type="text" name="total" value="$tr.get(36)" style="display:none; ">
+												</td>
+											</tr> 
+											#end
+										#end
+										</tbody>
+									</table>
+								</div>
+							</td> 
+						</tr>
+					</table>
+					
+					</td></tr></table> 
+					 
+					<table height="5px"><tr><td></td></tr></table>
+					
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+						##$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+						<input type="hidden" name="_moon_service" value="${_moon_service}">
+						<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+						<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+						##<input type="hidden" name="_user_id" value="$!{_user_id}">
+					</td></tr></table> 
+					 
+					## waiting 표시영역
+					#waitingArea()
+					 
+				</div>  
+			</div> 
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 조회";
+	helpStr += "<br>&nbsp;&nbsp;1. 우측 상단의 선택 버튼을 클릭하여 POPUP창 표시 되면 공장, 버전 및 조회 조건을 선택하고 POPUP창 좌측 상단의 확인 버튼을 클릭합니다.";
+	helpStr += "<br>&nbsp;&nbsp;2. 주차 와 일반/멀티 항목을 선택(기본적으로 차주와 전체가 선택 되어 있음) 하고 우측 상단의 조회 버튼을 클릭합니다. ";
+	helpStr += "<br>&nbsp;&nbsp;3. 선택된 공장과 버전 및 조회 조건에 맞는 완제품 생산 계획이 화면에 조회 됩니다.. ";
+	helpStr += "<br>◈ 수량 조정";
+	helpStr += "<br>&nbsp;&nbsp;1. 조정할 위치의 수량을 수정한 후 우측 상단의 저장 버튼을 클릭하면 수량이 변경이 됩니다.";
+	helpStr += "<br>◈ 신규 제품 등록"; 
+	helpStr += "<br>&nbsp;&nbsp;1. 우측 상단의 등록 버튼을 클릭하면 신규 제품을 등록할 수 있는 POPUP창이 표시 됩니다.";
+	helpStr += "<br>&nbsp;&nbsp;2. POPUP창에 신규 등록할 제품의 정보를 입력하고 POPUP창 좌측 상단의 저장 버튼을 클릭합니다.";
+	helpStr += "<br>&nbsp;&nbsp;3. 일간 생산계획 분석 화면이 다시 조회 되면서 등록한 제품이 화면에 추가로 표시가 됩니다.";
+	helpStr += "<br>◈ 수량 추가";
+	helpStr += "<br>&nbsp;&nbsp;1. 수량을 추가할 위치를 선택하고 추가할 수량을 입력합니다.";
+	helpStr += "<br>&nbsp;&nbsp;2. 우측 상단의 저장 버튼을 클릭하면 화면이 다시 조회 되면서 추가한 수량이 저장이 됩니다.";
+	helpStr += "<br>&nbsp;&nbsp;※ 주의 사항 : 조 운영 캘린더의 조편성에 맞지 않거나, 설비 운영 캘린더에 지정된 휴일인 경우에는 수량이 추가가 되지 않습니다.";
+	helpStr += "<br>◈ 수량 삭제";
+	helpStr += "<br>&nbsp;&nbsp;1. 수량을 0으로 변경 후 우측 상단의 저장 버튼을 클릭하면 수량이 삭제 됩니다.";
+	helpStr += "<br>◈ 세부 조정";
+	helpStr += "<br>&nbsp;&nbsp;1. 조정할 수량이 있는 셀을 ALT + 마우스 좌측 버튼 클릭을 하면 세부 조정을 할 수 있는 POPUP창이 표시 됩니다.";
+	helpStr += "<br>&nbsp;&nbsp;2. POPUP창에는 투입 공정 부터 마지막 공정까지의 정보를 표시 해줍니다.";
+	helpStr += "<br>&nbsp;&nbsp;3. 공정 시작일시, 종료일시, 수량, UOM, 오더번호, 오더 항목 번호를 수정 할 수 있습니다.";
+	helpStr += "<br>&nbsp;&nbsp;4. 수정이 완료 되면 POPUP창의 좌측 상단의 저장 버튼을 클릭하면 저장이 됩니다.";
+	helpStr += "<br>※  추가 기능";
+	helpStr += "<br>&nbsp;&nbsp;◈ 컬럼 숨기기";
+	helpStr += "<br>&nbsp;&nbsp;&nbsp;&nbsp;1. 공장, 원가부문, 조, 주, 야, 작업장, 제품코드, 제품명, 규격, TO여, 구분, 오더번호, 오더항목번호 컬럼을 ";
+	helpStr += "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;더블 클릭하면 컬럼의 넓이가 최소화 됩니다.";
+	helpStr += "<br>&nbsp;&nbsp;&nbsp;&nbsp;2. 최소화된 컬럼을 다시 더블 클릭하면 원래 넓이로 돌아 갑니다.";
+	helpStr += "<br>&nbsp;&nbsp;◈ 셀 이동";
+	helpStr += "<br>&nbsp;&nbsp;&nbsp;&nbsp;1. 마우스 커서를 셀로 이동 후 키보드의 방향키를 이용하여 셀이동이 가능합니다(좌, 우, 상, 하 이동 가능) ";
+	helpStr += "<br>&nbsp;&nbsp;◈ 작업 시간 표시";
+	helpStr += "<br>&nbsp;&nbsp;&nbsp;&nbsp;1. 수량 위에 마우스 포인터를 올려 놓으면 해당 수량의 작업 시간을 툴팁으로 표시 해줍니다.";
+	helpStr += "<br>&nbsp;&nbsp;&nbsp;&nbsp;2. 셀을 CTRL + 마우스 좌측 버튼 클릭을 하게 되면 해당 작업장, 생산일자, SHIFT의 총 작업 시간을 표시 해줍니다.";
+	helpStr += "<br>※  버튼 설명";
+	helpStr += "<br>&nbsp;&nbsp;◈ 물량 검증(좌측 상단)";
+	helpStr += "<br>&nbsp;&nbsp;&nbsp;&nbsp;1. 주차별 공장할당 합계 수량과 생산계획 합계 수량을 비교 할 수 있는 POPUP창이 표시 됩니다.";
+	helpStr += "<br>&nbsp;&nbsp;◈ Excel(좌측 상단)";
+	helpStr += "<br>&nbsp;&nbsp;&nbsp;&nbsp;1. 생산계획 분석 화면에 조회된 데이터를 그리드로 조회 합니다.";
+	helpStr += "<br>&nbsp;&nbsp;&nbsp;&nbsp;2. 그리드의 좌측 상단을 더블 클릭해서 엑셀에 붙여넣기를 할 수 있습니다.";
+	helpStr += "<br>&nbsp;&nbsp;◈ Excel▼(좌측 상단)";
+	helpStr += "<br>&nbsp;&nbsp;&nbsp;&nbsp;1. 버튼을 클릭하면 조회된 생산계획을 엑셀파일로 저장이 가능합니다.";
+	helpStr += "<br>&nbsp;&nbsp;◈ Excel▲(좌측 상단)";
+	helpStr += "<br>&nbsp;&nbsp;&nbsp;&nbsp;1. 엑셀파일을 업로드 할수 있는 페이지로 이동합니다.";
+	helpStr += "<br>&nbsp;&nbsp;◈ 검증(우측 상단)";
+	helpStr += "<br>&nbsp;&nbsp;&nbsp;&nbsp;1. 제품별 공장할당량, 생산계획량, 공장할당량과 생산계획량  차이, 유통가품량을 비교 할수 있는 POPUP창이 표시 됩니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+	setFeildWidth();
+		
+</script> 

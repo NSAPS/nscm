@@ -1,0 +1,27 @@
+## ∞¯≈Î Template¿« Skin
+#set($body_bgcolor = "#d4d0c8")
+#set($font_size = 9)
+#set($font_size_up = $font_size + 1)
+#set($font_size_dw = $font_size - 1)
+#set($font_family = "µ∏øÚ,µ∏øÚ√º,ªı±º∏≤,±º∏≤,±º∏≤√º,Helvetica,Verdana")
+
+## Main Template¿« Skin
+	##GRADIENT##
+#set($gradient_start = "#172C65")
+#set($gradient_middle = "#A0CBEE")
+#set($gradient_end = "#d4d0c8")
+	##TOOLBAR&SEARCH##
+#set($toolbar_bgcolor = "#edebe6")
+#set($search_bgcolor = "#edebe6")
+#set($main_bgcolor = "#FFFFFF")
+#set($open_close = "#bcbab8")
+
+## Head Template¿« Skin
+#set($head_bgcolor = "#006699")
+
+## Left Body Template¿« Skin
+#set($left_bgcolor = "#FFFFFF")
+
+## Toolbar Button ¿« Skin
+#set($toolbar_btn_bgcolor = "#edebe6")
+#set($toolbar_btn2_bgcolor = "#9AACC3")

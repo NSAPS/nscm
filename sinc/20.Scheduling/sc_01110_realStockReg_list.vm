@@ -1,0 +1,402 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('142', '188')" )##142. 195
+##set( $resizeFuncCallCode = "setHtmlGridAutoResize('142', '260')" )  
+##set( $resizeFuncCallCode = "setHtmlGridAutoResize('140', '155')" ) 
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="left">
+						##<input type="button" name="btnSearch" value="신규 등록" onClick="GoSearch('ip_01020_inventoryPlan_item_reg'); " class="btn2_on">
+					</td>
+                	<td align="right">
+						##button("search")
+						#button("search")
+						##<input type="button" name="btnSearch" value="찾기" onClick="GoSearch('ip_02020_dcAllocatonItemMgmt_mod'); " class="btn1_on">
+						#toolbar_nscm($_moon_toolbar "" "" "sc_01110_realStockReg_save_comp" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" 
+							id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr>
+								<td width="70px" align="right"> 
+            						작업일자 :
+            					</td>								
+            					<td width="100px" align="left">
+									#date_sole_no_title("in_cnfm_date" "10" "normal" "btnC" "$date.get('yyyy-MM-dd')")
+            					</td>
+								<td width="60px" align="right">
+									공장 :
+								</td> 
+								<td width="100px" align="left">
+									<select name="sel_plant" onChange="doChange(this); ">
+										#foreach( $condition in $sc_01070_combo_plant )
+											<option value="$condition.get(0)"  #if( "$!{sel_plant}" == "$condition.get(0)" ) selected #end>$condition.get(1)</option>
+											#if("$!{sel_plant}" == "$condition.get(0)")
+												#set( $sel_plant_name = "$condition.get(1)" )
+											#end
+										#end
+                              			<option value="SUM" #if( "$!{sel_plant}" == "SUM" ) selected #end>품목 합계</option>
+									</select>
+									<input type="hidden" name="sel_plant_pre" value ="$!{sel_plant}" >
+								</td>
+								<td width="60px" align="right">
+									유형 :
+								</td> 
+								<td width="100px" align="left">
+									<select name="sel_halb_type" onChange="doChange(this); ">
+                              			<option value="">전체</option>
+										#foreach( $condition in $sc_01110_combo_halb_type )
+											<option value="$condition.get(0)"  #if( "$!{sel_halb_type}" == "$condition.get(0)" ) selected #end>$condition.get(1)</option>
+											#if("$!{sel_halb_type}" == "$condition.get(0)")
+												#set( $sel_halb_type_name = "$condition.get(1)" )
+											#end
+										#end
+									</select>
+									<input type="hidden" name="halb_type_pre" value ="$!{sel_halb_type_pre}" >
+								</td>
+								<td>
+								</td>
+            				</tr>
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="47"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+
+	#if( "$!{sel_plant}" != "SUM" )  										
+	##  각 공장별 화면
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>#page_info()</td>
+							<td align="right">#table_display()</td>
+						</tr>
+					</table>
+					  
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table id="tbMain" border="0" width="715" cellpadding="0" cellspacing="0" >
+						<tr>
+							<td> 
+                				<div id="topLeft" style="height:35px; width:440px; overflow:hidden; "> 
+                					<table width="200px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+                						<thead>
+                							<tr align="center" height="35px"> 
+                								<td align="center" width="30px"></td>
+                								<td align="center" width="80px">공 장</td>
+                								<td align="center" width="80px">자재코드</td>
+                								<td align="center" width="250px">자재명</td>
+                							</tr>
+                	   					 </thead>
+                	   				</table>
+                	   			</div>
+							</td>
+							<td> 
+                				<div id="topLine" style="height:35px; width:520px;overflow:hidden;"> 
+                					<table width="520px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+                						<thead>
+                							<tr height="35px">
+                								<td align="center" width="100px">규격</td>
+                								<td align="center" width="90px">ERP 재고<br>(EA)</td>
+                								<td align="center" width="90px">실재고 수량<br>(EA)</td>
+                								<td align="center" width="60px">환산<br>단위</td>
+                								<td align="center" width="90px">환산 수량<br>(BOX)</td>
+                								<td align="center" width="90px">안전 재고<br>(EA)</td>
+                							</tr>
+                	   					 </thead>
+                	   				</table>
+                	   			</div>
+							</td>  
+						</tr>	
+						
+						<tr>
+							<td valign="top"> 
+								<div id="leftDisplay" style="width:440px; overflow:hidden; ">
+									<table width="390px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="left_tbody">
+											#foreach( $tr in $sc_01110_realStockReg_list )
+											<tr  height="20px" onMouseOver="bgOver(this);" onMouseOut="bgOut(this);">
+												<td width="30px" align="center" style="background-color:${search_bgcolor}; "> ## 번호
+													<a id="divRowNo">$velocityCount</a>
+												</td>
+                    							## 공장명
+                    							<td width="80px" align="center" >
+                    								<a id="divLocId">$tr.get(1)</a><input
+                    									type="text" name="plant_id" class="normal" size="20" value="$tr.get(0)"
+                    									style="width:60PX; padding-right:5px; text-align:cneter; display:none;"  >
+                    							</td>
+                    							## 자재코드
+                    							<td width="80px" align="center" >
+                    								<a id="divItemId">&nbsp;$tr.get(2)</a><input
+                    									type="text" name="item_id" class="normal" size="20" value="$tr.get(2)"
+                    									style="width:100%; padding-right:5px; display:none; text-align:left	; ">
+                									<input type="hidden" name="itype" value ="$tr.get(10)" >
+                									<input type="hidden" name="mod_flag" value ="$tr.get(11)" >
+                									<input type="hidden" name="qty_uom" value ="$tr.get(7)" >
+                    							</td>
+												## 자재
+                    							<td width="250px" align="left" >
+                    								<a id="divItemName">&nbsp;$tr.get(3)</a><input
+                    									type="text" name="item_name" class="normal" size="20" value="$tr.get(3)"
+                    									style="width:100%; padding-right:5px; display:none; text-align:left; ">
+                    							</td>
+											</tr>
+										#end
+										</tbody> 
+									</table> 
+								</div> 	
+							</td> 
+							<td valign="top"> 
+								<div id="mainDisplay" class="ns_scroll" style="border:0; width:520px; overflow-y:scroll; overflow-x:scroll; " onscroll="scrollX(); scrollY(); ">
+									<table width="520px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="main_tbody">
+											##################### 출력 라인
+											#foreach( $tr in $sc_01110_realStockReg_list )
+											<tr  height="20px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+                 								## 규격
+                								<td width="100px"  align="left"> ## 
+                									<a id="divStdDev">&nbsp;&nbsp;$tr.get(4)</a><input 
+                										type="text" name="spec"  class="normal" size="20" align="right"
+                										value="$tr.get(4)" style="width:100%; height:100%; padding-left:1px; text-align:right; display:none;"  >
+                								</td>	
+                								## ERP 재고
+                								<td width="90px" align="right"> ## 
+                									<a id="divStdDev">$number.format($tr.get(5))&nbsp;&nbsp;</a><input 
+                										type="text" name="erp_qty"  class="normal" size="20" align="right"
+                										value="$tr.get(5)" style="width:100%; height:100%; padding-left:1px; text-align:right; display:none;"  >
+                								</td>													
+                								## EA 수량
+                								<td width="90px" onClick="setEditMode(this); " align="right"> ## 
+                									<input type="text" name="real_qty"  class="normal" size="20" align="right" 
+														onKeyDown="moveNextBox(this);" onKeyUp="moveUpDown(this);"
+                										onChange="calBoxQty(this);"
+                										value="$tr.get(6)" style="width:100%; height:100%; padding-left:1px; text-align:right">
+                								</td>
+                								## 환산 단위
+                								<td width="60px" onClick="setEditMode(this); " align="right"> ## 
+                									<input type="text" name="conv_qty"  class="normal" size="20" align="right" 
+														onKeyDown="moveNextBox(this);" onKeyUp="moveUpDown(this);"
+                										value="$tr.get(12)" style="width:100%; height:100%; padding-left:1px; text-align:right">
+                								</td>
+                								## BOX 수량
+                								<td width="90px" onClick="setEditMode(this); " align="right"> ## 
+                									<input type="text" name="box_qty"  class="normal" size="20" align="right" 
+														onKeyDown="moveNextBox(this);" onKeyUp="moveUpDown(this);"
+                										onChange="calEaQty(this);"
+                										value="$tr.get(8)" style="width:100%; height:100%; padding-left:1px; text-align:right">
+                								</td>
+                								## 안전재고 
+                								<td width="90px" onClick="setEditMode(this); " align="right"> ## 
+                									<input type="text" name="safety_stock"  class="normal" size="20" align="right" 
+														onKeyDown="moveNextBox(this);" onKeyUp="moveUpDown(this);"
+                										value="$tr.get(13)" style="width:100%; height:100%; padding-left:1px; text-align:right">
+                								</td>
+
+											</tr>
+										#end
+										</tbody>
+									</table>
+								</div>
+							</td>
+						</tr>
+					</table>
+						
+##					<table border="0" width="100%" cellpadding="0" cellspacing="0" height="5px"><tr><td></td></tr></table>
+##					</td></tr></table>
+##											
+##					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+##						$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+##						<input type="hidden" name="_moon_service" value="${_moon_service}">
+##						<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">						
+##						<input type="hidden" name="_user_id" value="$!{_user_id}">
+##					</td></tr></table>
+##										
+##					## 번호 배경색
+##					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">					
+##							
+##					## waiting 표시영역
+##					#waitingArea()
+##					
+##				</div>
+##			</div>
+##		</td>
+##	</tr>
+	#else
+	##  품목 합계 화면
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>#page_info()</td>
+							<td align="right">#table_display()</td>
+						</tr>
+					</table> 
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr> 
+							<td> 
+								#set( $header = "품목코드!%!품목명!%!규격!%!ERP재고!%!실재고 수량!%!기본단위!%!환산수량\n(BOX)!%!환산단위" )
+								#set( $headerType = "TEXT!%!TEXT!%!TEXT!%!NUMBER!%!NUMBER!%!TEXT!%!NUMBER!%!TEXT" )
+								#set( $colwidth = "80!%!220!%!100!%!90!%!90!%!90!%!90!%!90" ) 
+								#set( $colalign = "CENTER!%!LEFT!%!CENTER!%!RIGHT!%!RIGHT!%!CENTER!%!RIGHT!%!CENTER" )
+								##set( $colCor = "8=eeeeee&9=eeeeee&10=eeeeee&11=eeeeee&15=eeeeee&16=eeeeee&17=eeeeee&21=eeeeee&22=eeeeee&23=eeeeee&27=eeeeee&28=eeeeee&29=eeeeee" )
+								
+								## 이중헤더
+								##set( $topheader = "$gh.get(0).get(0)/%/$gh.get(0).get(1)/%/$gh.get(0).get(2)/%/$gh.get(0).get(3)/%/$gh.get(0).get(4)/%/$gh.get(0).get(5)/%/$gh.get(0).get(6)" )
+								##set( $topheaderPosition = "X!%!X!%!X!%!X!%!X!%!X!%!X!%!O!%!O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O/%/O!%!O!%!O" )
+								
+								#set( $data = $zlattice.getBody($!{sc_01110_realStockReg_list},"!%!", "/%/") )
+								
+								<textarea id="txt1" style="display:none;" rows="0" cols="0"> 
+									<object name='grid'
+										classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93" width="100%" height="375"
+										##codebase="http://java.sun.com/update/1.5.0/jinstall-1_5_0_03-windows-i586.cab#Version=1,5,3,0">
+										codebase="http://javadl.sun.com/webapps/download/AutoDL?BundleId=19588#Version=6,0,050,13">
+										<!--Necessary--> 
+										<param name="code" value="com.zionex.t3sinc.ui.ZLattice">
+										<param name="archive" value="zLattice.jar">
+										<param name="headertypes" value= "$headerType">
+										<param name="headers"  value= "$header"> 
+										<param name="data" value= "$data">
+										<!--Necessary for Modification Grid -->
+										<param name="names" value= "" >
+										<!--Necessary for Cookie -->
+										<param name="identity" value="sc_01110_realStockReg_list">
+										<!--Necessary in TYPE COMBO 
+										<param name="combo9" value="DATA1!%!DATA2!%!DATA3">-->
+										<!--optional - Default Value 있음-->
+										<param name="columndelimeter" value="!%!"> <!-- defalut : !%! -->
+										<param name="rowdelimeter" value="/%/"> <!-- defalut : /%/ -->
+										<param name="showgroupingfunction" value="false">  <!-- defalut : true -->
+										<param name="showprintingfunction" value="false">   <!-- defalut : true -->
+										<param name="showlockingfunction" value="false"> <!-- defalut : true -->
+										<param name="showpagingfunction" value="false"> <!-- defalut : true -->
+										<param name="enablesorting" value="true">   <!-- defalut : true -->
+										<param name="groupingcolumn" value="0"> <!-- defalut : 그루핑 없음 -->
+										<param name="groupsumcolumn" value="0"> <!-- defalut : 그루핑 없음 -->
+										<param name="lockedcolumn" value="6"> <!-- defalut : 락킹 없음 -->
+										<param name="presentpage" value="$_moon_pagenumber">   <!-- defalut : 1 -->
+										<param name="listinpage" value="$_moon_perpage">   <!-- defalut : 40 --> 
+										<param name="bordertype" value="PLANE"> <!-- default - PLANE -->
+										<param name="indateformat" value="yyyy-MM-dd"> <!-- default - yyyyMMdd -->
+										<param name="outdateformat" value="yyyy-MM-dd">  <!-- default - yyyyMMdd -->									
+										<param name="outnumberformat" value="&#035;,&#035;&#035;0"> 									 
+										<param name="columnwidth" value="$colwidth"> <!-- default -80 -->
+										<param name="hasverticaltotal" value="false"> <!-- default -true -->
+										<param name="hashorizontaltotal" value="true"> <!-- default -true -->
+										<param name="totalrowcolor" value="909090"> <!-- default ? E6E6FA -->
+										<param name="totalverticalrowcolor" value="909090"> <!-- default ? E6E6FF -->
+										<param name="totalhorizontalrowcolor" value="98FB98"> <!-- default ? E6E6FF -->
+										<param name="hascookie" value="false"> <!-- default -false -->
+										<param name="enableinserting" value="false"> <!-- default -false -->
+										<param name="enabledeleting" value="false"> <!-- default -false -->
+										<param name="enableediting" value="false"> <!-- default -false -->
+										<!--optional - Default Value 없음-->
+										##set( $colCor = "12=dfdfdf&13=dfdfdf&14=dfdfdf&18=dfdfdf&19=dfdfdf&20=dfdfdf" ) 
+										<param name="columncolor" value="$!{colCor}">
+										<param name="rowcolor" value="$!{rowCol}">
+										<param name="onclickrowfunc" value="onclickfunc">
+										<param name="callingfunction" value="DOUBLECLICKED_CALLING">
+										<param name="disablecolumns" value="">
+										<param name="columnalign" value="$colalign">
+										<param name="font" value="굴림">
+										<param name="fontsize" value="12">
+										<param name="columnheight" value="55">
+										<param name="headertype" value="HORIZONTAL_HEADER">
+										
+										## 이중 헤더
+										<param name="hasnestedsubheader" value="true"> 
+										<param name="topheaders" value="$!{topheader}">
+										<param name="topheaderposition" value="$!{topheaderPosition}">
+										<param name="enabledragging" value="true">
+									</object>
+								</textarea> 
+								<script language="javascript" src="${project}/object_activity.jsp?txtID=txt1"></script>
+							</td>
+						</tr>
+					</table> 
+	#end	
+					
+					<table height="5"><tr><td></td></tr></table>
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+						$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+						<input type="hidden" name="_moon_service" value="${_moon_service}">
+						<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">						
+						<input type="hidden" name="_user_id" value="$!{_user_id}">
+					</td></tr></table>
+					
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+	
+	
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	//CalculTotal($ip_01020_inventoryPlan_item_mod.size());
+
+	// 도움말 내용 입력
+	//var helpStr = "◈ 각 항목을 입력한 후 상단의 저장 버튼을 클릭하여 코드를 수정합니다.";
+	//helpStr += "<br>◈ 한 코드 그룹 내에 중복되는 코드는 존재할 수 없습니다.";
+	//helpStr += "<br>◈ 코드는 반드시 영문, 숫자 그리고 _ (underscore) 로만 입력합니다.";
+	//helpStr += "<br>◈ 상단의 삭제 버튼을 클릭하여 조회된 코드 그룹을 삭제합니다.";
+	//helpStr += "<br>◈ 코드 그룹을 수정할 수 없고, 수정하려면 삭제 후 재생성 하시기 바랍니다.";
+	//helpCont.innerHTML = helpStr;
+	//hDynamicHeight = 0;
+
+	
+</script>

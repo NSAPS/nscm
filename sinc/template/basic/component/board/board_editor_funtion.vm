@@ -1,0 +1,189 @@
+<font id='TextMode' style='display:inline'>
+<table width='100%'cellpadding='0' cellspacing='0' border='1'
+		bordercolorlight="#CCCCCC" bordercolordark=#FFFFFF>
+	<tr>
+		<td align=right>
+			<table width='100%'cellpadding='0' cellspacing='0' border='0'>
+				<tr>
+					<td align=right>
+						<select style='width:60'
+									onchange="block_style(this,'FormatBlock')" 
+									onblur='this.selectedIndex=0;TextEditor.focus();'
+									align=absmiddle>
+						  <option value>Style
+						  <option value>------
+						  <option value='<p>'>보통
+						  <option value='<pre>'>서식
+						  <option value='<ADDRESS>'>주소
+						  <option value='<DD>'>정의
+						  <option value='<H6>'>제목 6
+						  <option value='<H5>'>제목 5
+						  <option value='<H4>'>제목 4
+						  <option value='<H3>'>제목 3
+						  <option value='<H2>'>제목 2
+						  <option value='<H1>'>제목 1
+						</select>
+						<select style="width:65" 
+									onchange="block_style(this, 'fontName')" 
+									onblur='this.selectedIndex=0;TextEditor.focus();'
+									align=absmiddle>
+							<option value>Font
+							<option value>------------
+							<option value='굴림'>굴림
+							<option value='궁서'>궁서
+							<option value='돋움'>돋움
+							<option value='바탕'>바탕
+							<option value='Arial'>Arial
+							<option value='Arial Black'>Arial
+							<option value='Courier New'>Courier
+							<option value='Impact'>Impact
+							<option value='Verdana'>Verdana
+							<option value='Webdings'>Webdings
+							<option value='Wingdings'>Wingdings
+						</select>
+						<select style="width:50" 
+									onchange="block_style(this, 'FontSize')" 
+									onblur='this.selectedIndex=0;' align=absmiddle>
+							<option value>Size
+							<option value='1'>1
+							<option value='2'>2
+							<option value='3'>3
+							<option value='4'>4
+							<option value='5'>5
+							<option value='6'>6
+							<option value='7'>7
+							</select>
+						<img src='sinc/template/${_moon_template}/images/menuicon/distinct.gif' border='0' 
+								align='absmiddle' WIDTH='2' HEIGHT='18'>
+						<button OnClick="SelectionCommand2(-1,'Undo');" 
+								class="buttonImage" OnMouseOver="ButtonUp(this);" 
+								OnMouseOut="ButtonOut(this);">
+						<img src='sinc/template/${_moon_template}/images/menuicon/undo.gif' border=0 
+								alt='Undo' WIDTH=23 HEIGHT=22></button>
+						<button OnClick="SelectionCommand2(1,'Redo');" 
+								class="buttonImage" OnMouseOver="ButtonUp(this);" 
+								OnMouseOut="ButtonOut(this);">
+						<img src='sinc/template/${_moon_template}/images/menuicon/redo.gif' border=0 
+								alt='Redo' WIDTH=23 HEIGHT=22></button>
+						<img src='sinc/template/${_moon_template}}/images/menuicon/distinct.gif' border='0' 
+								align='absmiddle' WIDTH='2' HEIGHT='18'>
+						<button OnClick="SelectionCommand(this,'Cut');" 
+									class='buttonImage' OnMouseOver='ButtonUp(this);' 
+									OnMouseOut='ButtonOut(this);'>
+						<img src='sinc/template/${_moon_template}/images/menuicon/IconCut.gif'border='0'
+								alt='잘라내기(Ctrl + X)'></button>
+						<button OnClick="SelectionCommand(this,'Copy');" 
+									class='buttonImage' OnMouseOver='ButtonUp(this);' 
+									OnMouseOut='ButtonOut(this);'>
+						<img src='sinc/template/${_moon_template}/images/menuicon/IconCopy.gif'border='0' 
+								alt='복사(Ctrl + C)'></button>
+						<button OnClick="SelectionCommand(this,'Paste');" 
+									class='buttonImage' OnMouseOver='ButtonUp(this);' 
+									OnMouseOut='ButtonOut(this);'>
+						<img src='sinc/template/${_moon_template}/images/menuicon/IconPaste.gif'border='0' 
+								alt='붙여넣기(Ctrl + V)'></button>
+						<img src='sinc/template/${_moon_template}/images/menuicon/distinct.gif' border='0' 
+								align='absmiddle' WIDTH='2' HEIGHT='18'>
+						<button OnClick="SelectionCommand(this,'Bold');" 
+									class='buttonImage' OnMouseOver='ButtonUp(this);' 
+									OnMouseOut='ButtonOut(this);'>
+						<img src='sinc/template/${_moon_template}/images/menuicon/IconBold.gif'border='0'
+								alt='볼드체(Ctrl + B)'></button>
+						<button OnClick="SelectionCommand(this,'Italic');"
+									class='buttonImage' OnMouseOver='ButtonUp(this);'
+									OnMouseOut='ButtonOut(this);'>
+						<img src='sinc/template/${_moon_template}/images/menuicon/IconItalic.gif'border='0'
+								alt='이텔릭체(Ctrl + I)'></button>
+						<button OnClick="SelectionCommand(this,'Underline');"
+									class='buttonImage' OnMouseOver='ButtonUp(this);'
+									OnMouseOut='ButtonOut(this);'>
+						<img src='sinc/template/${_moon_template}/images/menuicon/IconUnderline.gif'border='0'
+								alt='밑줄(Ctrl + U)'></button>
+						<img src='sinc/template/${_moon_template}/images/menuicon/distinct.gif' border='0' 
+								align='absmiddle' WIDTH='2' HEIGHT='18'>
+						<button OnClick="ChFontColor('ForeColor');" 
+									class='buttonImage' OnMouseOver='ButtonUp(this);'
+									OnMouseOut='ButtonOut(this);'>
+						<img src='sinc/template/${_moon_template}/images/menuicon/fgcolor.gif'border='0'
+								alt='글자색'></button>
+						<button OnClick="ChFontColor('BackColor');" 
+									class='buttonImage' OnMouseOver='ButtonUp(this);'
+									OnMouseOut='ButtonOut(this);'>
+						<img src='sinc/template/${_moon_template}/images/menuicon/bgcolor.gif'border='0'
+								alt='글자 배경색'></button>
+						<img src='/${_moon_template}/images/menuicon/distinct.gif' border='0'
+								align='absmiddle' WIDTH='2' HEIGHT='18'>
+						<button OnClick="SelectionCommand(this,'JustifyLeft');"
+									class='buttonImage' OnMouseOver='ButtonUp(this);'
+									OnMouseOut='ButtonOut(this);'>
+						<img src='sinc/template/${_moon_template}/images/menuicon/IconLeft.gif'border='0'
+								alt='좌측정렬'></button>
+						<button OnClick="SelectionCommand(this,'JustifyCenter');"
+									class='buttonImage' OnMouseOver='ButtonUp(this);'
+									OnMouseOut='ButtonOut(this);'>
+						<img src='sinc/template/${_moon_template}/images/menuicon/IconCenter.gif'border='0'
+								alt='가운데정렬'></button>
+						<button OnClick="SelectionCommand(this,'JustifyRight');"
+									class='buttonImage' OnMouseOver='ButtonUp(this);'
+									OnMouseOut='ButtonOut(this);'>
+						<img src='sinc/template/${_moon_template}/images/menuicon/IconRight.gif'border='0'
+								alt='우측정렬'></button>
+						<img src='sinc/template/${_moon_template}/images/menuicon/distinct.gif' border='0'
+								align='absmiddle' WIDTH='2' HEIGHT='18'>
+						<button OnClick="SelectionCommand(this,'Indent');"
+									class='buttonImage' OnMouseOver='ButtonUp(this);'
+									OnMouseOut='ButtonOut(this);'>
+						<img src='sinc/template/${_moon_template}/images/menuicon/IconIndent.gif'border='0'
+								alt='들여쓰기 늘임'></button>
+						<button OnClick="SelectionCommand(this,'Outdent');"
+								class='buttonImage' OnMouseOver='ButtonUp(this);'
+								OnMouseOut='ButtonOut(this);'>
+						<img src='sinc/template/${_moon_template}/images/menuicon/IconOutdent.gif'border='0'
+								alt='들여쓰기 줄임'></button>
+						<button OnClick="SelectionCommand(this,'InsertOrderedList');"
+								class='buttonImage' OnMouseOver='ButtonUp(this);'
+								OnMouseOut='ButtonOut(this);'>
+						<img src='sinc/template/${_moon_template}/images/menuicon/IconOrdered.gif'border='0'
+								alt='번호있는 목록'></button>
+						<button OnClick="SelectionCommand(this,'InsertUnOrderedList');"
+								class='buttonImage' OnMouseOver='ButtonUp(this);'
+								OnMouseOut='ButtonOut(this);'>
+						<img src='sinc/template/${_moon_template}/images/menuicon/IconUnOrdered.gif'border='0'
+								alt='번호없는 목록'></button>
+						<img src='sinc/template/${_moon_template}/images/menuicon/distinct.gif' border='0'
+								align='absmiddle' WIDTH='2' HEIGHT='18'>
+						<button OnClick="SelectionCommand(this,'CreateLink');"
+								class='buttonImage' OnMouseOver='ButtonUp(this);'
+								OnMouseOut='ButtonOut(this);'>
+						<img src='sinc/template/${_moon_template}/images/menuicon/link.gif'border='0'
+								alt='HyperLink'></button>
+						<button OnClick="SelectionCommand(this,'InsertHorizontalRule');"
+								class="buttonImage" OnMouseOver="ButtonUp(this);" 
+								OnMouseOut="ButtonOut(this);">
+						<img src='sinc/template/${_moon_template}/images/menuicon/IconHr.gif' border=0 
+								alt='수평선삽입' WIDTH=18 HEIGHT=18></button>
+						<img src='sinc/template/${_moon_template}/images/menuicon/distinct.gif' border='0'
+								align='absmiddle' WIDTH='2' HEIGHT='18'>
+						</font>
+					</td>
+				</tr>	
+			</table>
+		</td>
+	</tr>	
+</table>
+<script>
+/** modified by neoburi-Inkuk*/
+function ChFontColor(cmd){
+	var ed;
+	//var value = showModalDialog( "service.do?_moon_service=board_editor_color",
+	//var value = showModalDialog( "/basic/component/board/board_editor_color.vm",
+	var value = showModalDialog( "$request.getContextPath()/sinc/template/${_moon_template}/component/board/board_editor_color.vm",
+                             "",
+                             "font-family:Verdana; font-size:12;dialogWidth:31em; dialogHeight:32em;status:no;help:no;self-close:no" );
+	if( value != null ){
+		ed = TextEditor.document.selection.createRange();
+		ed.execCommand(cmd, true, value);
+	}
+	TextEditor.document.body.focus();
+}
+</script> 

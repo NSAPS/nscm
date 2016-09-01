@@ -1,0 +1,160 @@
+## 비정상적 접근 방지 
+#loginCheck() 
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setGridAutoResize('122', '180')" )
+
+ 
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/commonTool.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<script language=javascript for="WiseGrid" event="ChangeCell(strColumnKey, nRow, vtOldValue, vtNewValue)">
+  integrityCheck(strColumnKey, nRow, vtOldValue, vtNewValue);
+</script>
+
+<script language=javascript for="WiseGrid" event="CellDblClick(strColumnKey, nRow)">
+	if(strColumnKey == "GROUP_ID")
+	{
+        onclickfunc(strColumnKey, nRow);
+	}
+</script>
+
+
+
+##<script language=javascript for="WiseGrid" event="EndQuery()">
+  ##reQuery();
+##</script>
+
+
+
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top3 pd_bot3">
+            	<tr>
+                	<td align="right">
+						#button("search")
+						#toolbar_nscm($_moon_toolbar "group_add2" "" "" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	<input type="hidden" name="confirm"></input>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="4"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="4" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="99%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; ">
+            				<tr id="search_menu" style="display:block; ">
+            					<td width="15%" align="right">
+									<select name="_board_search_condition">
+										<option value="group_name"
+											#if( "$_board_search_condition" == "group_name" ) selected #end>
+												$text.get("group_list_1.search.condition")</option>
+										<option value="group_id"
+											#if( "$_board_search_condition" == "group_id" ) selected #end>
+												$text.get("group_list_2.search.condition")</option>
+									</select>
+									&nbsp;
+            					</td>
+            					<td width="85%" align="left">
+									<input type="text" name="_board_search_value" size="20" class="normal"
+										value="$!{_board_search_value}" onkeydown="alert(event.keyCode); if(event.keyCode =='13') { alert('do query');}">
+										##if(event.keyCode =='13') doQuery()
+									</input>
+            					</td>
+								
+                				#* <td valign="middle" align="right" width="40%" height="100%">
+                					<table border=0 cellpadding="0" cellspacing="0">
+                						<tr>
+                							<td><script language="javascript">document.write("<input type=button value='조회' onClick='doQuery()'>");</script></td>	
+                							<td><script language="javascript">document.write("<input type=button value='삭제' onClick='doDelete()'>");</script></td>
+                							<td><script language="javascript">document.write("<input type=button value='행추가' onClick='doLineInsert()'>");</script></td>
+                							<td><script language="javascript">document.write("<input type=button value='저장' onClick='doSave()'>");</script></td>
+                							<td><script language="javascript">document.write("<input type=button value='저장취소' onClick='doSaveCancel()'>");</script></td>
+                						</tr>
+                					</table>
+								</td> *#
+								
+            				</tr> 
+            			</table>
+					</td>
+					<td width="4" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="4"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="23"> ## search 조건 부분 높이 
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>						
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				###tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>##탭 타이틀명..
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					
+					#*
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>#page_info()</td>
+							<td align="right">#table_display()</td>
+						</tr>
+					</table>
+					*#
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td align="left">
+									<script>initWiseGrid("WiseGrid", "100%", "350");</script>
+							</td>
+						</tr>
+					</table> 
+					
+					<table height="5"><tr><td></td></tr></table>
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+						##$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+						<input type="hidden" name="_moon_service" value="${_moon_service}">
+						<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+						<input type="hidden" name="group_id">
+					</td></tr></table>
+					
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 조회된 리스트의 데이터를 더블클릭하면 해당 그룹의 상세정보 화면으로 이동합니다.";
+	helpStr += "<br>◈ 상단의 등록버튼을 클릭하면 그룹등록 화면으로 이동합니다.";
+	helpCont.innerHTML = helpStr;
+	// 도움말 zoomOut 높이 조절 변수
+	hDynamicHeight = 0;
+	
+</script> 

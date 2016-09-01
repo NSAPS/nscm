@@ -1,0 +1,180 @@
+<script language="JavaScript" type="text/javascript">
+	window.onload = function() { setSize(); }
+	window.onresize = function() { setSize(); }
+	window.oncontextmenu="return $!{_moon_refresh_detect}"
+
+	function setSize() {
+		var leftDisplayWidth = leftDisplay.style.width.split("px")[0];
+		var currentWidth = document.body.clientWidth;
+		var currentHeight = document.body.clientHeight;
+		var widthBalancing = currentWidth - leftDisplayWidth;
+
+		if (widthBalancing > 82) {			
+			tbMain.width = widthBalancing - 35;  
+    		topLine.style.width = widthBalancing - 22;
+    		mainDisplay.style.width = widthBalancing - 5; 
+		}
+
+		if (currentHeight > 167) {
+			leftDisplay.style.height = currentHeight - 117;
+			mainDisplay.style.height = currentHeight - 100;
+		}
+
+	}
+</script>
+ <table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">	 
+	 <tr>
+		<td valign="top">
+			<div class="tab-pane" id="itemSiteTabPane">
+				<div class="tab-page" id="tabPage1">
+					<h2 class="tab">$_moon_title</h2>
+				
+					<table id="tbMain" border="0" width="925px" cellpadding="1" cellspacing="0">						
+						<tr>
+							<td>Total : <b>$_moon_service_count</b></td>
+						</tr>
+						<tr>							
+							<td> 
+								<table width="380px" border="0" cellpadding="0" cellspacing="0" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+									<thead>
+										<tr height="40px">
+											<td width="30px" align="center">No</td>
+											<td width="30px" align="center">선택</td>
+											<td width="150px" align="center">Option 코드</td>
+											<td width="170px" align="center">Option 명</td>
+										</tr>
+									</thead>
+								</table> 
+							</td>
+							<td>
+								<div id="topLine" style="height:40px; width:2268px;overflow:hidden;"> 
+									<table width="100%" border="0" cellpadding="0" cellspacing="0" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>
+											<tr align="center" height="40px">
+												<td width="70px" align="center">코드</td>
+												<td width="190px" align="center">코드 명</td>
+												<td width="30px" align="center">사용여부</td>
+												<td width="130px" align="center">기준1</td>
+												<td width="130px" align="center">기준2</td>
+												<td width="130px" align="center">기준3</td>
+												<td width="130px" align="center">기준4</td>	
+												<td width="130px" align="center">기준5</td>	
+												<td width="130px" align="center">기준6</td>	
+												<td width="130px" align="center">기준7</td>	
+												<td width="130px" align="center">기준8</td>	
+												<td width="130px" align="center">기준9</td>	
+												<td width="130px" align="center">기준10</td>	
+												<td width="130px" align="center">기준11</td>	
+												<td width="130px" align="center">기준12</td>
+												<td width="130px" align="center">기준13</td>	
+												<td width="130px" align="center">기준14</td>	
+												<td width="130px" align="center">기준15</td>	
+											</tr>
+					   					 </thead>
+					   				</table>
+					   			</div>
+							</td>
+						</tr>
+						<tr>
+							<td valign="top">
+								<div id="leftDisplay" style="width:380px; overflow:hidden; ">
+									<!-- 해당 vm의 js에서 구현 -->
+									<table id="leftTable" width="100%" cellspacing="0" cellpadding="0" border="0" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody>
+											#set($count = 0)
+											#foreach( $row in $fc_01050_optionMgmt_tailer)
+    											<tr id="tr1" height="24" align="center" style="background:#CCCCCC;">
+													<input type="hidden" name="modifyCheckParam" value="0" >
+													<td width="30px" align="center">$math.add($math.mul($_moon_perpage, $math.sub($_moon_pagenumber, 1)), $velocityCount)</td>
+    												<td width="30px" align="center"><input id="$!{count}" type="checkbox" name="updateCheck" value="0" onClick="changeRowField('$_moon_service_count', this); setCheckBoxValue('$_moon_service_count', this);"></td>
+													<td width="150px" align="left">&nbsp$row.get(0)</td>
+													<td width="170px" align="left">&nbsp$row.get(1)</td>
+												</tr> 
+												#set($count = $count + 1)
+											#end
+											<input type="hidden" name="isChecked" value="0"> 
+										</tbody>
+									</table>
+								</div>
+							</td>
+							<td align="top">
+								<div id="mainDisplay" class="ns_scroll" style="border:0; width:2285px; overflow-y:scroll;overflow-x:scroll" onscroll="scrollX();scrollY();">
+									<!-- 해당 vm의 js에서 구현 -->
+									<table width="100%" cellspacing="0" cellpadding="0" border="0" class="ns-table" style="table-layout:fixed; border-collapse:collapse;">
+										<tbody>	
+											#set($count = 0)
+											#foreach( $row in $fc_01050_optionMgmt_tailer) 
+												<input name="row_opt_cd" type="hidden" value="$!{row.get(0)}" disabled/>
+												<input name="row_cd" type="hidden" value="$!{row.get(2)}" disabled/>
+												
+    											<tr id="tr2" height="24" align="center" style="background:#CCCCCC;">
+													<td width="70px" align="left">&nbsp$row.get(2)</td>
+    												<td width="190px" align="left">&nbsp$row.get(3)</td>
+    												<td width="30px" align="center">
+														<input id="$!{count}" type="checkbox" name="is_able" value="$!{row.get(4)}" onClick="check('$_moon_service_count', this);" #if("$!{row.get(4)}" == "Y") checked #end disabled>
+														<input name="usable_chk" type="hidden" value="$!{row.get(4)}" disabled/>
+													</td>
+    												<td width="130px" align="center">
+														<input name="std1" type="text" value="$!{row.get(5)}" class="normal" style="width:100%;" disabled/>
+													</td>
+    												<td width="130px" align="center">
+														<input name="std2" type="text" value="$!{row.get(6)}" class="normal" style="width:100%;" disabled/>
+													</td>
+													<td width="130px" align="center">
+														<input name="std3" type="text" value="$!{row.get(7)}" class="normal" style="width:100%;" disabled/>
+													</td>
+													<td width="130px" align="center">
+														<input name="std4" type="text" value="$!{row.get(8)}" class="normal" style="width:100%;" disabled/>
+													</td>
+													<td width="130px" align="center">
+														<input name="std5" type="text" value="$!{row.get(9)}" class="normal" style="width:100%;" disabled/>
+													</td>
+													<td width="130px" align="center">
+														<input name="std6" type="text" value="$!{row.get(10)}" class="normal" style="width:100%;" disabled/>
+													</td>
+													<td width="130px" align="center">
+														<input name="std7" type="text" value="$!{row.get(11)}" class="normal" style="width:100%;" disabled/>
+													</td>
+													<td width="130px" align="center">
+														<input name="std8" type="text" value="$!{row.get(12)}" class="normal" style="width:100%;" disabled/>
+													</td>
+													<td width="130px" align="center">
+														<input name="std9" type="text" value="$!{row.get(13)}" class="normal" style="width:100%;" disabled/>
+													</td>
+													<td width="130px" align="center">
+														<input name="std10" type="text" value="$!{row.get(14)}" class="normal" style="width:100%;" disabled/>
+													</td>
+													<td width="130px" align="center">
+														<input name="std11" type="text" value="$!{row.get(15)}" class="normal" style="width:100%;" disabled/>
+													</td>
+													<td width="130px" align="center">
+														<input name="std12" type="text" value="$!{row.get(16)}" class="normal" style="width:100%;" disabled/>
+													</td>
+													<td width="130px" align="center">
+														<input name="std13" type="text" value="$!{row.get(17)}" class="normal" style="width:100%;" disabled/>
+													</td>
+													<td width="130px" align="center">
+														<input name="std14" type="text" value="$!{row.get(18)}" class="normal" style="width:100%;" disabled/>
+													</td>
+													<td width="130px" align="center">
+														<input name="std15" type="text" value="$!{row.get(19)}" class="normal" style="width:100%;" disabled/>
+													</td>    												
+												</tr>
+												#set($count = $count + 1)
+											#end											
+										</tbody>
+									</table> 
+								</div>
+							</td>
+						</tr>
+					</table>			
+				</div>				 
+				<input type="hidden" name="_moon_service" value="${_moon_service}">
+				<input type="hidden" name="_moon_pagenumber"  value="${_moon_pagenumber}">
+			</div>
+		</td>
+	</tr>
+</table>
+<script>
+	//mergeInheritanceTableRows(leftTable, 4, 2);
+</script>

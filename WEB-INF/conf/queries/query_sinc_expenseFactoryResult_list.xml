@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>	
+
+<!--
+=====================================================================================================
+	TEMPLATE 
+=====================================================================================================
+--> 
+
+	<!-- combo 공장할당 버젼 --> 
+	<query id="expenseFactoryResult_list_combo_version"  paging="false"> 
+
+		select aa.version
+          from (select pl.version
+                  from plan_version_log pl, dual a
+                 where pl.period_type = 'DAILY'
+                   and pl.cat_id = 'FA'
+                   and pl.sub_cat = 'FA'
+                   and pl.version is not null
+                   and pl.commts LIKE '비용기반%' --commts is null
+                 order by pl.version desc
+               ) aa
+         where 10 >= rownum		 
+		 
+	</query>
+	
+	
+	
+	<!-- combo 설비유형 코드 --> 
+	<query id="expenseFactoryResult_list_combo_res_code"  paging="false"> 
+		select cm.cd as cd, cm.cd_name as cd_name
+		  from code_mst cm, dual a
+		 where cm.cd_grp = 'CAT06'
+		 order by cm.cd
+	</query>
+	
+	
+	<!-- combo 비용기반 공장할당 품목 리스트 --> 
+	<query id="expenseFactoryResult_list_combo_item_list"  paging="false">
+		select item_id||'!%!'||item_name as result
+		  from (  
+		        select im.item_id, im.item_name, im.spec
+		                  from item_mst im,
+		                       (select distinct ft.item_id
+		                          from fa_cost_trace ft, dual a
+		                         where ft.version = '$!{version}'
+		                       ) ct
+		                 where im.item_id = ct.item_id        
+		                 order by im.item_name
+		        )	
+	</query>
+	
+	
+	<!-- combo 공장 리스트 : 경로2 기준 --> 
+	<query id="expenseFactoryResult_list_combo_path2"  paging="false"> 
+        select hy.htype as plant_id, hy.hid_name as plant_name
+          from hrchy hy, dual a
+         where hy.lvl_type = '공장'
+           and hy.htype != '1300'
+         order by hy.htype
+	</query>
+
+	
+	<!-- combo 배송지점 리스트 : 경로4 기준 --> 
+	<query id="expenseFactoryResult_list_combo_path4"  paging="false"> 
+		select dm.dc_id as dc_id, dm.dc_name as dc_name
+          from dc_mst dm, dual a
+         where dm.rdc_flag = 'Y'
+         order by dm.dc_name
+	</query>	
+
+	
+	
+	
+
+	
+	
+	
+	<!--여기서 처리 안함 자바단에서 바로 쿼리 날림!! -->
+	<!-- combo 공급할당 사유 --> 
+	<query id="expenseFactoryResult_list"  paging="false"> 
+
+    /* 비용기반 2차 공장할당결과 공장별 수량, Portion 조회 */          
+    select qq.cat06, qq.cat06_name, qq.item_id, qq.item_name, qq.spec, 1 seq, '수량' gubun,
+           to_char(max(case when qq.plant_id = '1110' then qq.qty_by_cost end), '999,999,999') "anyang",
+           to_char(max(case when qq.plant_id = '1120' then qq.qty_by_cost end), '999,999,999') "anseong",
+           to_char(max(case when qq.plant_id = '1130' then qq.qty_by_cost end), '999,999,999') "anseong_u",
+           to_char(max(case when qq.plant_id = '1140' then qq.qty_by_cost end), '999,999,999') "asan",
+           to_char(max(case when qq.plant_id = '1160' then qq.qty_by_cost end), '999,999,999') "gumi",
+           to_char(max(case when qq.plant_id = '1170' then qq.qty_by_cost end), '999,999,999') "busan",
+           to_char(max(case when qq.plant_id = '1180' then qq.qty_by_cost end), '999,999,999') "noksan",
+           to_char(sum(qq.qty_by_cost), '999,999,999') "total"
+      from (/* 비율 vs. 비용 기반 공장할당결과 비교 */
+            select ls.version, ls.cat06, ls.cat06_name, ls.item_id, ls.item_name, ls.spec, ls.seq, ls.plant_id, ls.qty_by_cost
+              from fa_rate_cost_qty_comp ls     
+             where ls.plant_id is not null
+               and ls.qty_by_cost is not null
+               and ls.version = '20090326.22.56'
+           ) qq
+     group by qq.cat06, qq.cat06_name, qq.item_id, qq.item_name, qq.spec
+     union 
+    /* 비용기반 2차 공장할당결과 공장별 수량, Portion 조회 */          
+    select qq.cat06, qq.cat06_name, qq.item_id, qq.item_name, qq.spec, 2 seq, 'Portion' gubun,
+           to_char(round(max(case when qq.plant_id = '1110' then qq.qty_by_cost end)/sum(qq.qty_by_cost), 2)*100, '999,999,999') "anyang",
+           to_char(round(max(case when qq.plant_id = '1120' then qq.qty_by_cost end)/sum(qq.qty_by_cost), 2)*100, '999,999,999') "anseong",
+           to_char(round(max(case when qq.plant_id = '1130' then qq.qty_by_cost end)/sum(qq.qty_by_cost), 2)*100, '999,999,999') "anseong_u",
+           to_char(round(max(case when qq.plant_id = '1140' then qq.qty_by_cost end)/sum(qq.qty_by_cost), 2)*100, '999,999,999') "asan",
+           to_char(round(max(case when qq.plant_id = '1160' then qq.qty_by_cost end)/sum(qq.qty_by_cost), 2)*100, '999,999,999') "gumi",
+           to_char(round(max(case when qq.plant_id = '1170' then qq.qty_by_cost end)/sum(qq.qty_by_cost), 2)*100, '999,999,999') "busan",
+           to_char(round(max(case when qq.plant_id = '1180' then qq.qty_by_cost end)/sum(qq.qty_by_cost), 2)*100, '999,999,999') "noksan",
+           to_char(round(sum(qq.qty_by_cost)/sum(qq.qty_by_cost), 2)*100, '999,999,999') "total"
+      from (/* 비율 vs. 비용 기반 공장할당결과 비교 */
+            select ls.version, ls.cat06, ls.cat06_name, ls.item_id, ls.item_name, ls.spec, ls.seq, ls.plant_id, ls.qty_by_cost
+              from fa_rate_cost_qty_comp ls     
+             where ls.plant_id is not null
+               and ls.qty_by_cost is not null
+               and ls.version = '20090326.22.56'
+           ) qq
+     group by qq.cat06, qq.cat06_name, qq.item_id, qq.item_name, qq.spec 
+
+	
+
+	</query>	
+	
+	
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</queries>	

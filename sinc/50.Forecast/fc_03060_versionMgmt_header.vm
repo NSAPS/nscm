@@ -1,0 +1,116 @@
+<script type='text/javascript' src='$!{project}/dwr/interface/nongshim.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/engine.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/util.js'></script>
+	
+<table id="dataArea" border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	<tr>
+		<td height="25" align="right" bgcolor="${toolbar_bgcolor}" class="line">
+			<table align="right" width="100%" height="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+				<tr>
+					<td width="100" align="center"> 
+						<span>삭제대상 코드 </span>
+					</td>
+					<td width="80" align="left">
+						<input type="text" name="del_code" style="width:80;" class="normal">						
+					</td>				
+					<td width="80" align="left">
+						<input type="hidden" name="del_oper_type">						
+					</td>
+					<td align="right">
+						<input type="button" name="btnSearch" value=" 조회" onClick="searchIFrameData('fc_03060_versionMgmt_tailer');" class="btn_search_on">
+						#toolbar_nscm_iframe($_moon_toolbar "" "" "fc_03060_versionMgmt_save_action" "fc_03060_versionMgmt_delete_action")
+					</td>
+				</tr>
+			</table>
+		</td>                                                                                                                                                                                                                  
+	</tr>
+	<tr id="search_menu" style="DISPLAY:block">
+		<td height="20" valign="top" bgcolor="${search_bgcolor}" class="line">
+					
+			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; display:block; ">
+				<tr>
+					<td height="10"></td>
+				</tr>
+				<tr>
+					<td width="300" align="left">
+						<table height="21" border="0" cellpadding="0" cellspacing="0">
+							<tr> 
+								<td width="100" align="center" class="td1">
+									<span>계획 유형 </span>
+								</td>
+								<td width="130" align="left">
+									<input type="hidden" name="f_oper_type" value="$!{f_oper_type}">
+									<input type="hidden" name="f_bucket" value="$!{f_bucket}">
+									<select name="oper_type" OnChange="changeFcstName(this);">
+										<option value="">선택</option>
+										#foreach( $choice in $!{fc_03060_oper_types} )
+											<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{oper_type}") selected #end >$choice.get(1)</option>
+										#end
+									</select>
+								</td>
+							</tr>									
+							<tr>
+								<td width="100" align="center" class="td1">
+									<span>계획 명</span> 
+								</td>								
+								<td width="130" align="left">
+									<select name="fcst_code" OnChange="changeStart(this, document.frm.oper_type);">
+										<option value="">-----------</option>
+										#foreach( $choice in $!{fc_03060_fcst_names} )
+											<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{fcst_code}") selected #end>$choice.get(1)</option>
+										#end	
+									</select>
+								</td>
+							</tr>
+							<tr>
+								<td width="100" align="center" class="td1">
+									<span>시작월/주</span>
+								</td>
+								<td width="130" align="left">
+									<select name="start" OnChange="">
+										<option value="">-----------</option>
+										#foreach( $choice in $!{fc_03060_start_dates} )
+											<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{start}") selected #end>$choice.get(1)</option>
+										#end								
+									</select>																	
+                                 </td>       								
+                             </tr>									 
+						</table>
+					</td>        				 
+					<td width="300" align="left"> 
+						<table height="21" border="0" cellpadding="0" cellspacing="0"> 
+																
+							<tr>
+								<td width="100" align="center" class="td1">
+									<span>저장 계획 명</span> 
+								</td>								
+								<td width="130" align="left">
+									<input type="text" name="save_name" value="$!{save_name}" class="normal">
+								</td>
+							</tr>
+							 <tr>	
+								<td align="center" class="td1">											
+									<input type="checkbox" name="log_confirm" value="$!{log_confirm}" onClick="check(this);" #if("$!{log_confirm}" == "Y") checked #end>
+								</td> 
+								<td align="left" class="td1">
+									<span>&nbsp 일별/요일지수 적용</span>
+								</td>
+							</tr>
+						
+                         </table>
+					 </td> 
+				 </tr>
+		  		 <tr height="10"><td></td></tr>
+		     </table>					
+		 </td>   
+	 </tr>
+	 <tr class="line" height="10"><td></td></tr>
+	 <tr>
+	 	 <td valign="top">
+			<iframe id="child" name="iframe" src="service.do?_moon_service=fc_03060_versionMgmt_tailer&amp;_moon_perpage=100&amp;_moon_pagenumber=1" width="100%" height="100%" scrolling="no" topmargin="0" leftmargin="0" frameborder="NO" border="0" framespacing="0"></iframe>
+		 </td>
+	 </tr>
+	 
+	 <input type="hidden" name="_moon_service" value="${_moon_service}">
+	 <input type="hidden" name="_moon_pagenumber" value="${_moon_pagenumber}">
+</table>

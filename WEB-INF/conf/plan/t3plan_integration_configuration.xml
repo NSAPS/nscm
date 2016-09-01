@@ -1,0 +1,420 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<t3plan_integration_configuration>
+	
+		<host>soyoung</host>
+		<port>1099</port>
+		<binding_name>T3Plan</binding_name>
+		<client>com.zionex.client.Client</client>
+		<matches>		
+			<match job="problem_summary">
+				<ui name="problem_summary_ui">
+					<parameters>
+						<parameter name="versions" type="string"/>
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="problem_detail">
+				<ui name="problem_detail_ui">
+					<parameters>
+						<parameter name="start_date" type="string"/>
+						<parameter name="end_date" type="string"/>
+						<parameter name="stage_id" type="string"/>
+						<parameter name="problem_type" type="string"/>
+						<parameter name="severity_id" type="string"/>
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="identify_shortage">
+				<ui name="identify_shortage_ui">
+					<parameters>
+						<parameter name="start_date" type="string"/>
+						<parameter name="end_date" type="string"/>
+						<parameter name="stage_id" type="string"/>
+						<parameter name="order_type" type="string"/>		
+						<parameter name="order_id" type="string"/>	
+					</parameters>
+				</ui> 
+			</match>
+			
+			<match job="inventory_analysis">
+				<ui name="inventory_ui">
+					<parameters>
+						<parameter name="start_date" type="string"/>
+						<parameter name="end_date" type="string"/>
+						<parameter name="stage_id" type="string"/>
+						<parameter name="item_id" type="string"/>
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="resource_load_analysis">
+				<ui name="resource_load_analysis_ui">
+					<parameters>
+						<parameter name="start_date" type="string"/>
+						<parameter name="end_date" type="string"/>
+						<parameter name="stage_id" type="string"/>
+						<parameter name="resource_id" type="string"/>		
+						<parameter name="chart_type1" type="string"/>	
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="resource_capa_modify">
+				<ui name="resource_modify_ui">
+					<parameters>
+						<parameter name="resource_id" type="string"/>
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="resource_capa_modify_save">
+				<ui name="resource_modify_ui">
+					<parameters>
+						<parameter name="resource_id" type="string"/>
+						<parameter name="bucket_start" type="string"/>
+						<parameter name="bucket_end" type="string"/>
+						<parameter name="init_capacity" type="string"/>
+						<parameter name="max_capacity" type="string"/>
+						<parameter name="bucket_id" type="list"/>
+						<parameter name="init_capacities" type="list"/>
+						<parameter name="max_capacities" type="list"/>
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="gantt_chart">
+				<ui name="gantt_chart_ui">
+					<parameters>
+						<parameter name="start_date" type="string"/>
+						<parameter name="end_date" type="string"/>
+						<parameter name="stage_id" type="string"/>
+						<parameter name="resource_id" type="string"/>
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="production_plan">
+				<ui name="production_plan_ui">
+					<parameters>
+						<parameter name="start_date" type="string"/>
+						<parameter name="end_date" type="string"/>
+						<parameter name="stage_id" type="string"/>
+						<parameter name="route_id" type="string"/>
+						<parameter name="inventory_id" type="string"/>
+						<parameter name="po_id" type="string"/>
+						<parameter name="category" type="string"/>
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="resource_load">
+				<ui name="resource_load_ui">
+					<parameters>
+						<parameter name="start_date" type="string"/>
+						<parameter name="end_date" type="string"/>
+						<parameter name="stage_id" type="string"/>
+						<parameter name="resource_id" type="string"/>	
+						<parameter name="chart_type" type="string"/>	
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="order">
+				<ui name="order_ui">
+					<parameters>
+						<parameter name="start_date" type="string"/>
+						<parameter name="end_date" type="string"/>
+						<parameter name="stage_id" type="string"/>
+						<parameter name="so_id" type="string"/>
+						<parameter name="po_id" type="string"/>
+						<parameter name="customer" type="string"/>
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="order_detail">
+				<ui name="order_detail_ui">
+					<parameters>
+						<parameter name="description" type="string"/>					
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="order_modify">
+				<ui name="order_ui">
+					<parameters>
+						<parameter name="start_date" type="string"/>
+						<parameter name="end_date" type="string"/>
+						<parameter name="stage_id" type="string"/>
+						<parameter name="so_id" type="string"/>
+						<parameter name="po_id" type="string"/>
+						<parameter name="customer" type="string"/>
+					</parameters>
+				</ui>
+			</match>		
+			
+			<match job="order_modify_save">
+				<ui name="order_ui">
+					<parameters>
+						<parameter name="start_date" type="string"/>
+						<parameter name="end_date" type="string"/>
+						<parameter name="stage_id" type="string"/>
+						<parameter name="so_id" type="string"/>
+						<parameter name="po_id" type="string"/>
+						<parameter name="customer" type="string"/>
+						<parameter name="sales_order_id" type="list"/>
+						<parameter name="order_id" type="list"/>
+						<parameter name="description" type="list"/>
+						<parameter name="quantity" type="list"/>
+						<parameter name="due_date" type="list"/>
+						<parameter name="item_4" type="list"/> <!-- priority -->
+						<parameter name="item_5" type="list"/> <!-- shipping_policy -->
+					</parameters>
+				</ui>
+			</match>		
+			
+			<match job="order_insert_save">
+				<ui name="order_insert_ui">
+					<parameters>
+						<parameter name="so_name" type="string"/>
+						<parameter name="customer_id" type="string"/>
+						<parameter name="product_id" type="string"/>
+						<parameter name="quantity" type="string"/>
+						<parameter name="due_date" type="string"/>
+						<parameter name="priority" type="string"/>
+						<parameter name="policy" type="string"/>
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="order_management">
+				<ui name="order_ui">
+					<parameters>
+						<parameter name="start_date" type="string"/>
+						<parameter name="end_date" type="string"/>
+						<parameter name="stage_id" type="string"/>
+						<parameter name="so_id" type="string"/>
+						<parameter name="po_id" type="string"/>
+						<parameter name="customer" type="string"/>
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="order_management_detail">
+				<ui name="order_mgmt_detail_ui">
+					<parameters>
+						<parameter name="so_id" type="string"/>					
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="order_tracking">
+				<ui name="order_track_ui">
+					<parameters>
+						<parameter name="start_date" type="string"/>
+						<parameter name="end_date" type="string"/>
+						<parameter name="stage_id" type="string"/>
+						<parameter name="so_id" type="string"/>
+						<parameter name="po_id" type="string"/>
+						<parameter name="customer" type="string"/>
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="order_tracking_popup">
+				<ui name="order_track_ui">
+					<parameters>
+						<parameter name="start_date" type="string"/>
+						<parameter name="end_date" type="string"/>
+						<parameter name="stage_id" type="string"/>
+						<parameter name="so_id" type="string"/>
+						<parameter name="po_id" type="string"/>
+						<parameter name="customer" type="string"/>
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="alternate_route">
+				<ui name="alternate_route_ui">
+					<parameters>
+						<parameter name="start_date" type="string"/>
+						<parameter name="end_date" type="string"/>
+						<parameter name="stage_id" type="string"/>
+						<parameter name="item_id" type="string"/>					
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="alternate_route_save">
+				<ui name="alternate_route_ui">
+					<parameters>
+						<parameter name="start_date" type="string"/>
+						<parameter name="end_date" type="string"/>
+						<parameter name="stage_id" type="string"/>
+						<parameter name="item_id" type="string"/>
+						<parameter name="route_id" type="list"/>
+						<parameter name="priority" type="list"/>
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="frozen_order">
+				<ui name="order_frozen_ui">
+					<parameters>
+						<parameter name="exeType" type="string"/>
+						<parameter name="flag" type="string"/>
+						<parameter name="condition1" type="string"/>
+						<parameter name="condition2" type="string"/>
+						<parameter name="condition3" type="string"/>
+						<parameter name="condition4" type="string"/>
+						
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="frozen_order_save">
+				<ui name="order_frozen_ui">
+					<parameters>
+						<parameter name="exeType" type="String"/>
+						<parameter name="order_id" type="list"/>
+						<parameter name="save_check" type="list"/>
+						<parameter name="flag" type="string"/>
+						<parameter name="condition1" type="string"/>
+						<parameter name="condition2" type="string"/>
+						<parameter name="condition3" type="string"/>
+						<parameter name="condition4" type="string"/>			
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="production_order">
+				<ui name="Production_Line_Choice_Ui">
+					<parameters>
+						<parameter name="po_id" type="string"/>					
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="production_order_save">
+				<ui name="Production_Line_Choice_Ui">
+					<parameters> 
+						<parameter name="po_id" type="string"/>
+						<parameter name="operator_id" type="list"/>
+						<parameter name="parent_id" type="list"/>
+						<parameter name="operator_type" type="list"/>
+						<parameter name="alternate_check" type="list"/>
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="resource_calendar">
+				<ui name="resource_calendar_ui">
+					<parameters>
+						<parameter name="start_date" type="string"/>
+						<parameter name="end_date" type="string"/>
+						<parameter name="stage_id" type="string"/>
+						<parameter name="resource_id" type="string"/>
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="plan_execution">
+				<ui name="plan_execution_ui">
+					<parameters>
+						<parameter name="start_date" type="string"/>
+						<parameter name="end_date" type="string"/>
+						<parameter name="geo_info" type="string"/>
+						<parameter name="id_1" type="string"/>
+						<parameter name="id_2" type="string"/>
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="plan_execution_exec_exe">
+				<ui name="plan_execution_ui">
+					<parameters>
+						<parameter name="control_idx" type="string"/>
+						<parameter name="zone_idx" type="string"/>					
+						<parameter name="geo_info" type="string"/>
+						<parameter name="plan_setting" type="string"/>
+						<parameter name="processors" type="list"/>
+						<parameter name="order_sort" type="list"/>
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="plan_execution_info">
+				<ui name="seah_plan_execution_ui">
+					<parameters>
+						<parameter name="controlIndex" type="string"/>
+						<parameter name="planSetting" type="string"/>
+						<parameter name="processors" type="string"/>
+						<parameter name="orderSortPolicies" type="string"/>
+						<parameter name="start_date" type="string"/>
+						<parameter name="end_date" type="string"/>
+						<parameter name="version_id" type="string"/>
+						<parameter name="version_description" type="string"/>
+						<parameter name="old_version_id" type="string"/>
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="kpi_summary">
+				<ui name="kpi_summary_ui">
+					<parameters>
+						<parameter name="start_date" type="string"/>
+						<parameter name="end_date" type="string"/>
+						<parameter name="stage_id" type="string"/>
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="plan_comparison">
+				<ui name="plan_comparison_ui">
+					<parameters>
+						<parameter name="start_date" type="string"/>
+						<parameter name="end_date" type="string"/>
+						<parameter name="stage_id" type="string"/>
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="release_plan">
+				<ui name="plan_release_ui">
+					<parameters>
+						<parameter name="start_date" type="string"/>
+						<parameter name="end_date" type="string"/>
+						<parameter name="stage_id" type="string"/>
+						<parameter name="release_flag" type="string"/>
+						<parameter name="plan_name" type="string"/>
+						<parameter name="time_stamp" type="string"/>
+						<parameter name="release_type" type="string"/>
+						<parameter name="charge" type="String"/>
+						<parameter name="description" type="string"/>
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="turn_dishes">
+				<ui name="seah_turn_dish_ui">
+					<parameters>
+						<parameter name="start_date" type="string"/>
+						<parameter name="end_date" type="string"/>
+					</parameters>
+				</ui>
+			</match>
+			
+			<match job="turn_dishes_detail">
+				<ui name="seah_turn_dish_detail_ui">
+					<parameters>
+						<parameter name="turnDish_Id" type="string"/>
+						<parameter name="subGroupIndex" type="string"/>
+					</parameters>
+				</ui>
+			</match>
+		
+	</matches>
+
+</t3plan_integration_configuration>

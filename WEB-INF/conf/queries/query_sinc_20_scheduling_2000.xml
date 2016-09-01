@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>	
+
+<!--
+=====================================================================================================
+	생산계획 >> 기준정보
+=====================================================================================================
+--> 
+	
+	<!-- 
+	=======================
+		Job Change 시간관리
+	=======================
+	--> 
+	
+
+
+	<!-- Job Change 시간관리 line name list -->
+	<query id="line_name_list">
+		
+		
+		SELECT  PLANT_ID, LINE_ID, LINE_NAME 
+		  FROM  V_HRCHY_PROC, DUAL B
+		 GROUP BY PLANT_ID, LINE_ID, LINE_NAME 
+		 ORDER BY LINE_ID
+	
+	
+	</query>
+	
+	
+		
+	
+	<!-- Job Change 시간관리 작업장 name list -->
+	<query id="proc_name_list">
+	
+	
+		SELECT  PLANT_ID, LINE_ID, PROC_ID, PROC_NAME 
+		  FROM  V_HRCHY_PROC, DUAL B
+		 GROUP BY PLANT_ID, LINE_ID, PROC_ID, PROC_NAME 
+		 ORDER BY PROC_ID
+		 
+	
+	</query>
+	
+	
+	
+	
+	
+	
+	<!-- Job Change 시간관리 공장이름 리스트 --> 
+	<query id="plant_name_list">
+	
+	
+		SELECT  PLANT_ID, PLANT_NAME
+		  FROM  V_HRCHY_PROC, DUAL B
+		 GROUP BY PLANT_ID, PLANT_NAME
+		 ORDER BY PLANT_ID
+				
+		
+	</query>
+	
+    	
+	<!-- Job Change 시간관리 메인화면 데이터 리스트 --> 
+	<query id="sc_01090_jobChangeMgmt_list" paging="true">	
+	
+        select --J/C 조회 쿼리
+               PLANT            --0
+              ,PLANT_NM         --1
+              ,LINE_ID          --2
+              ,LINE_NM          --3
+              ,PROC_ID          --4
+              ,PROC_NM          --5
+              ,FROM_GROUP       --6
+              ,FROM_GROUP_NM    --7
+              ,TO_GROUP         --8
+              ,TO_GROUP_NM      --9
+              ,nvl(JC_TIME,0) as JC_TIME --10
+              ,nvl(BOX_QTY,0) as BOX_QTY --11
+          from JC_TIME_TEST
+		 where 1=1
+		  [and PLANT    = '${p_plant_name}']
+		  [and LINE_ID  = '${p_line}']
+		  [and PROC_ID  = '${p_proc}']
+         order by PLANT
+                 ,LINE_ID 
+                 ,PROC_ID
+                 ,decode(FROM_GROUP,'ALL',1,2) ,FROM_GROUP
+                 ,decode(TO_GROUP,'ALL',1,2) ,TO_GROUP	
+	</query>
+    
+    
+	<query id="sc_01090_jobChangeMgmt_list_pop" paging="true">	
+        select --공장과 라인이 동일한 제품에 대한
+               --모든 경우의 수를 추출 한다.
+                JC1.PLANT                                                              
+               ,JC1.PLANT_NM                                                           
+               ,JC1.LINE_ID                                                            
+               ,JC1.LINE_NM                                                            
+               ,JC1.PROC_ID                                                            
+               ,JC1.PROC_NM                                                            
+               ,JC1.RECIPE_TYPE as FROM_GROUP                                          
+               ,JC1.ITEM_NAME as FROM_GROUP_NM                                         
+               ,JC2.RECIPE_TYPE as TO_GROUP                                            
+               ,JC2.ITEM_NAME as TO_GROUP_NM                                    
+               ,0 as JC_TIME
+               ,0 as BOX_QTY       
+          from JC_TIME_TEST_MST JC1                                                    
+               inner join JC_TIME_TEST_MST JC2
+               on  JC1.PLANT   = JC2.PLANT
+               and JC1.LINE_ID = JC2.LINE_ID
+               and JC1.PROC_ID = JC2.PROC_ID
+               -------------------------------------
+	    	   and JC1.PLANT    = '${p_plant_id}'
+	    	   and JC1.LINE_ID  = '${p_line_id}'
+	    	   and JC1.PROC_ID  = '${p_proc_id}'
+               and JC1.RECIPE_TYPE != JC2.RECIPE_TYPE
+               and not exists (
+                                   select 'X'
+                                     from JC_TIME_TEST JCT
+                                   where JCT.PLANT   = JC1.PLANT
+                                     and JCT.LINE_ID = JC1.LINE_ID
+                                     and JCT.PROC_ID = JC1.PROC_ID
+                                     and JCT.FROM_GROUP = JC1.RECIPE_TYPE
+                                     and JCT.TO_GROUP   = JC2.RECIPE_TYPE
+                              )
+          order by 7,8,9,10  
+	</query>    
+    
+    
+    
+	
+	<!-- job change mod 화면 조회영영역 라인네임 -->
+	<query id="sc_01090_jobChangeMgmt_mod_line">
+	
+		SELECT  DISTINCT LINE_NAME
+		  FROM  V_HRCHY_PROC, DUAL B
+		 WHERE  PLANT_ID = '$!{plant_name}'
+		   AND  LINE_ID = '$!{line_id}'
+		   
+	</query>
+	
+	
+	
+	
+	
+	<!-- job change mod 화면 조회영영역 작업장네임 -->
+	<query id="sc_01090_jobChangeMgmt_mod_proc">
+	
+		SELECT  DISTINCT PROC_NAME
+		  FROM  V_HRCHY_PROC, DUAL B
+		 WHERE  PLANT_ID = '$!{plant_name}'
+		   AND  LINE_ID = '$!{line_id}'
+		   AND  PROC_ID = '$!{proc_id}'
+		   
+	</query>
+	
+	
+	
+	
+	<!-- Job change mod 화면 메인 데이터 리스트 -->
+	<query id="sc_01090_jobChangeMgmt_mod">
+
+		
+		SELECT  DTA.ID_A, DTA.NAME_A, DTA.ID_B, DTA.NAME_B, JC.JC_TIME
+		  FROM  (
+		        SELECT  AA.RECIPE_TYPE ID_A, AA.ITEM_NAME NAME_A
+		                ,BB.RECIPE_TYPE ID_B, BB.ITEM_NAME NAME_B
+		          FROM  (
+		                SELECT  TT.RECIPE_TYPE, IT.ITEM_NAME
+		                  FROM  ITEM_MST IT
+		                        ,(
+		                        SELECT  IM.ITEM_ID, IM.ITEM_NAME, IM.RECIPE_TYPE, IC.ITEM_ID
+		                          FROM  ITEM_MST IM
+		                                ,(
+		                                SELECT  ITEM_ID
+		                                  FROM  ITEM_CAPA
+		                                 WHERE  PLANT_ID = '$!{plant_name}'
+		                                   AND  LINE_ID = '$!{line_id}'
+		                                   AND  PROC_ID = '$!{proc_id}'
+		                                ) IC
+		                         WHERE  IM.ITEM_ID = IC.ITEM_ID
+		                        ) TT
+		                 WHERE  IT.ITEM_ID = TT.RECIPE_TYPE
+		                 GROUP BY IT.ITEM_ID, TT.RECIPE_TYPE, IT.ITEM_NAME
+		                ) AA
+		                ,(
+		                SELECT  TT.RECIPE_TYPE, IT.ITEM_NAME
+		                  FROM  ITEM_MST IT
+		                        ,(
+		                        SELECT  IM.ITEM_ID, IM.ITEM_NAME, IM.RECIPE_TYPE, IC.ITEM_ID
+		                          FROM  ITEM_MST IM
+		                                ,(
+		                                SELECT  ITEM_ID
+		                                  FROM  ITEM_CAPA
+		                                 WHERE  PLANT_ID = '$!{plant_name}'
+		                                   AND  LINE_ID = '$!{line_id}'
+		                                   AND  PROC_ID = '$!{proc_id}'
+		                                ) IC
+		                         WHERE  IM.ITEM_ID = IC.ITEM_ID
+		                        ) TT
+		                 WHERE  IT.ITEM_ID = TT.RECIPE_TYPE
+		                 GROUP BY IT.ITEM_ID, TT.RECIPE_TYPE, IT.ITEM_NAME
+		                ) BB
+		         WHERE  AA.RECIPE_TYPE != BB.RECIPE_TYPE
+		        ) DTA
+		        ,( 
+		        SELECT  FROM_GRP, TO_GRP, JC_TIME
+		          FROM  JC_TIME 
+		         WHERE  PLANT_ID = '$!{plant_name}' 
+		           AND  LINE_ID = '$!{line_id}' 
+		           AND  PROC_ID = '$!{proc_id}'
+		        ) JC
+		 WHERE  DTA.ID_A = JC.FROM_GRP (+) 
+		   AND  DTA.ID_B = JC.TO_GRP (+)
+		 ORDER BY JC.JC_TIME, DTA.ID_A, DTA.ID_B
+ 
+	
+	</query>
+	
+	
+	
+	
+	
+	<!-- Job change mod 화면 저장 : 단계 1.화면삭제 -->
+	<query id="sc_01090_jobChangeMgmt_list_save_1">
+	
+		DELETE  JC_TIME
+		 WHERE  MADE_TYPE != 'DE'
+		   AND  PLANT_ID = '$!{plant_name}'           
+		   AND  LINE_ID = '$!{line}'
+		   AND  PROC_ID = '$!{proc}'
+	
+	</query>
+	
+	
+	<!-- Job change mod 화면 저장 : 단계  2.JC타입이  '가동율'이 아닐때 INSERT -->
+	<query id="sc_01090_jobChangeMgmt_list_save_2_1" fix="plant_name jc_name line proc eff_mod _user_id" iterator="from_g to_g jc_time">
+		
+	
+		#if ( "$!{jc_name}" != "EFFICIENCY" )
+			#if ( "$!{jc_time}" != "" )		
+				INSERT  INTO JC_TIME (PLANT_ID, JC_TYPE, LINE_ID, PROC_ID, FROM_GRP, TO_GRP 
+	                    ,JC_TIME, EFFICIENCY, MADE_TYPE, MADE_DTTM, MADE_BY)
+	            SELECT  '$!{plant_name}' AS PLANT_ID
+	                    ,'$!{jc_name}' AS JC_TYPE
+	                    ,'$!{line}' AS LINE_ID
+	                    ,'$!{proc}' AS PROC_ID
+	                    ,'$!{from_g}' AS FROM_GRP
+	                    ,'$!{to_g}' AS TO_GRP
+	                    ,'$!{jc_time}' AS JC_TIME
+	                    ,'$!{eff_mod}' AS EFFICIENCY
+	                    ,'AD' AS MADE_TYPE
+	                    ,SYSDATE AS MADE_DTTM
+	                    ,'$!{_user_id}' AS MADE_BY
+	              FROM  DUAL 
+	             WHERE  NOT EXISTS (SELECT  PLANT_ID 
+	                                  FROM  JC_TIME                                   
+	                                 WHERE  PLANT_ID = '$!{plant_name}'
+	                                   AND  JC_TYPE = '$!{jc_name}'
+	                                   AND  LINE_ID = '$!{line}'
+	                                   AND  PROC_ID = '$!{proc}'
+	                                   AND  FROM_GRP = '$!{from_g}'
+	                                   AND  TO_GRP = '$!{to_g}'
+				                    )
+			#else
+				DELETE  JC_TIME
+				 WHERE  0=1
+			#end								
+		#else
+			DELETE  JC_TIME
+			 WHERE  0=1
+		#end	
+	 	 
+	</query>
+	
+	
+	
+	
+	<!-- Job change mod 화면 저장 : 단계  3.JC타입이  '가동율'일때 INSERT -->	
+	<query id="sc_01090_jobChangeMgmt_list_save_2_2">
+	
+	
+		#if ( "$!{jc_name}" == "EFFICIENCY" )	
+			INSERT  INTO JC_TIME (PLANT_ID, JC_TYPE, LINE_ID, PROC_ID, FROM_GRP, TO_GRP 
+		                    ,EFFICIENCY, MADE_TYPE, MADE_DTTM, MADE_BY)
+		            SELECT  '$!{plant_name}' AS PLANT_ID
+		                    ,'$!{jc_name}' AS JC_TYPE
+		                    ,'$!{line}' AS LINE_ID
+		                    ,'$!{proc}' AS PROC_ID
+		                    ,'DMY' AS FROM_GRP
+		                    ,'DMY' AS TO_GRP                    
+		                    ,'$!{eff_mod}' AS EFFICIENCY
+		                    ,'AD' AS MADE_TYPE
+		                    ,SYSDATE AS MADE_DTTM
+		                    ,'$!{_user_id}' AS MADE_BY
+		              FROM  DUAL 
+		             WHERE  NOT EXISTS (SELECT  PLANT_ID 
+                                  		  FROM  JC_TIME                                   
+		                                 WHERE  PLANT_ID = '$!{plant_name}'
+		                                   AND  JC_TYPE = '$!{jc_name}'
+		                                   AND  LINE_ID = '$!{line}'
+		                                   AND  PROC_ID = '$!{proc}'
+		                                   AND  FROM_GRP = 'DMY'
+		                                   AND  TO_GRP = 'DMY'
+					                    )
+		#else
+			DELETE  JC_TIME
+			 WHERE  0=1
+		#end
+		
+			
+	</query>
+	
+
+<!--
+=====================================================================================================
+	생산계획 >> 분석정보
+=====================================================================================================
+--> 
+	
+	<!-- 
+	=======================
+		ERP PO 리스트
+	=======================
+	-->
+	
+	
+	<!--ERP PO : 처리상태 리스트 -->
+	<query id="erppoinfo_descr_list">
+	
+		SELECT  DISTINCT PI.DESCR
+		  FROM  V_ERP_PO_INFO PI, DUAL B
+		 ORDER BY PI.DESCR
+		 
+	</query>
+	
+	
+	
+	
+	<!-- ERP PO 리스트 조회 -->
+	<query id="sc_02180_erpPoInfo_list" paging="true">
+	
+        SELECT  /*IM.SALES_CAT01, IM.SALES_CAT02, IM.CAT01*/
+                TO_CHAR(PI.IF_DTTM, 'YYYY-MM-DD')
+                ,PI.PLANT_ID, PI.PLANT_NAME, PI.ITEM_ID, PI.ITEM_NAME
+                ,PI.ITYPE, PI.PO_ID, PI.PO_QTY, PI.COMPL_QTY
+                ,PI.QTY_UOM, TO_CHAR(PI.START_DTTM,'YYYY-MM-DD'), TO_CHAR(PI.END_DTTM, 'YYYY-MM-DD')
+                ,PI.WO_ID, PI.DESCR                
+          FROM  V_ERP_PO_INFO PI, ITEM_MST IM
+         WHERE  PI.ITEM_ID = IM.ITEM_ID 
+          [AND  PI.PLANT_ID = '${selected_plant}']
+          [AND  IM.SALES_CAT01 = '${selected_hr_type1}']
+          [AND  IM.SALES_CAT02 = '${selected_hr_type2}']
+          [AND  IM.CAT01 = '${selected_cat01}']
+          [AND  PI.DESCR = '${descr}']
+           AND  PI.ITEM_ID||PI.ITEM_NAME LIKE '%'||'$!{item_id}'||'%'
+  		   AND  PI.ITEM_NAME LIKE '%'||'$!{item_name}'||'%'
+  		   #if ( "$!{sdate}" == "" )
+		   		AND  PI.IF_DTTM = TO_CHAR(SYSDATE, 'YYYY-MM-DD')
+		   #else 
+		   		AND  PI.IF_DTTM = '$!{sdate}'
+		   #end
+  	     ORDER BY PI.IF_DTTM, PI.PLANT_ID, PI.ITEM_ID, PI.PO_ID    
+	
+	</query>
+	
+	
+	
+	
+	
+	
+		
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</queries>

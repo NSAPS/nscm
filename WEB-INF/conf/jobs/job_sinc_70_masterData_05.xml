@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+<!--
+=====================================================================================================
+	기준정보 >> 생산계획
+=====================================================================================================
+-->
+	
+	<!--
+	======================================================================
+		시생산 칼린더정
+	======================================================================
+	-->
+
+	<!-- 시생산 칼린더 : 조회 -->
+	<job id="md_05130_testProdCalendar" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 생산계획 >> 시생산 칼린더</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>시생산 칼린더 조회 및 조정</title>
+		<authority>1</authority>		
+		<description>시생산 칼린더 조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="combo_plant_list" datasource="t3sinc"/> <!-- plant list -->
+			<query idref="sim_oper_combo_line_list" datasource="t3sinc"/> <!-- line list -->
+			<query idref="sch_capa_rate_combo_proc_list" datasource="t3sinc"/> <!-- 작업장 list -->
+			<query idref="md_05130_testProdCalendar" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 시생산 칼린더 : 저장 -->
+	<job id="md_05130_testProdCalendar_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_05130_testProdCalendar_save"/>		
+		<sub_job id="md_05130_testProdCalendar"/>
+		<permission_desc>시생산 칼린더-저장</permission_desc>
+	</job>
+	<job id="md_05130_testProdCalendar_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="md_05130_testProdCalendar_save" datasource="t3sinc"/> <!-- RND_CAL UPDATE -->
+		</queries>
+	</job>
+	
+	
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</jobs>	

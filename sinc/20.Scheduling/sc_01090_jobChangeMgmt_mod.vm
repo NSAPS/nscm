@@ -1,0 +1,210 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize2('150', '180')" )
+
+## 이전 화면으로 이동할 때 조회조건을 기억하기 위한 parameter
+<input type="hidden" name="cd_grp_pre" value="$!{cd_grp_pre}">
+<input type="hidden" name="perpage_pre" value="${perpage_pre}">
+<input type="hidden" name="pagenumber_pre" value="$!{pagenumber_pre}">
+<input type="hidden" name="plant_name" value="$!{plant_name}">	
+<input type="hidden" name="jc_type" value="$!{jc_type}">
+<input type="hidden" name="select_line" value="$!{select_line}">
+<input type="hidden" name="select_proc" value="$!{select_proc}">
+## 화면 저장 하기위한   parameter
+<input type="hidden" name="line" value="$!{line_id}">
+<input type="hidden" name="proc" value="$!{proc_id}">
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						<input type="button" name="btnBack" value=" 이전화면" onClick="moveBack(); "
+						class="btn1_on">										
+						#toolbar_nscm($_moon_toolbar "" "" "sc_01090_jobChangeMgmt_list_save_comp" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table id="search_menu" border="0" width="100%" cellpading="0" cellspacing="0" 
+						style="background-color:#f2f2f2; display:block; ">
+							<tr>
+            					<td width="13%" align="right">
+									공장 ($!plant_name) :
+								</td>
+								<td width="21%" align="left">                        			
+									<input type="text" name="plant_n" size="100"  style="width:90px; text-align:center; " 
+									class="normal" readOnly 
+									#foreach( $tr in $plant_name_list ) 
+										#if( "$!{plant_name}" == "$tr.get(0)" ) value="$tr.get(1)" #else #end 
+									#end>									
+                        		</td>
+            					<td width="12%" align="right">
+									라인 ($line_id) :
+								</td>
+								<td width="27%" align="left">
+                        			<input type="text" name="line_n" size="100"  style="width:155px; text-align:center; " 
+									class="normal" value="$!sc_01090_jobChangeMgmt_mod_line.get(0).get(0)" readOnly>
+                        		</td>																
+							</tr>
+							<tr>
+								<td width="13%" align="right">
+									JC 타입 :
+								</td>
+								<td width="21%" align="left"> ## jc type								
+									<select name="jc_name" style="width:90px; " onChange="del(this); ">
+										#foreach( $tr in $jc_type_list )
+    										#if( "$!{jc_name}" == "" )
+    											<option value="${tr.get(0)}" align="center"
+    												#if( "$!{jc_id}" == "$tr.get(0)" ) selected #end)>$tr.get(1)</option>
+    										#else
+    											<option value="${tr.get(0)}" align="center"
+    												#if( "$!{jc_name}" == "$tr.get(0)" ) selected #end)>$tr.get(1)</option>
+    										#end
+    									#end
+									</select>									
+								</td>
+								<td width="12%" align="right">
+									작업장 ($proc_id) :
+								</td>							
+								<td width="27%" align="left">
+                        			<input type="text" name="proc_n" size="100"  style="width:155px; text-align:center; " 
+									class="normal" value="$!sc_01090_jobChangeMgmt_mod_proc.get(0).get(0)" readOnly>
+                        		</td>
+            					<td width="8%" align="right">
+									가동률 :
+								</td>
+								<td width="18%" align="left"> ## EFFICIENCY
+									<input type="text" name="eff_mod" size="20" align="center" class="normal" onChange="chen(this); "
+									 style="width:90px; text-align:center; " value="$!{efficiency}" onFocusOut="setViewMode_2(this); ">
+								</td>
+							</tr>	
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="45"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+									
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>								
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+								#page_info2()
+							</td>
+						</tr>
+					</table>					   
+					<table id="tbMain" border="0" width="715" cellpadding="0" cellspacing="0" >
+						<tr>							    
+							<td>   
+								<div id="topLine" style="height:35px; width:626px; overflow:hidden;">
+									<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>	
+											<tr align="center" height="35px">
+												<td width="5%">번호</td>
+												<td width="9%">FROM<br>그룹</td>
+												<td width="34%">FROM 그룹명</td>
+												<td width="9%">TO그룹</td>
+												<td width="34%">TO 그룹명</td>
+												<td width="9%" class="right">JC TIME</td> 
+											</tr>
+					   					 </thead>
+					   				</table>
+					   			</div>            								
+							</td>
+						</tr>            						  
+						<tr>							  
+							<td valign="top"> 
+								<div id="mainDisplay" class="ns_scroll" style="border:0; width:626px; overflow-y:scroll; ">
+									<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="main_tbody">	
+										#foreach( $tr in $sc_01090_jobChangeMgmt_mod )
+											<tr id="main_tr" height="22px" onMouseOver="bgOver2(this); " onMouseOut="bgOut2(this); ">                											
+                								<td width="5%" align="center" style="background-color:${search_bgcolor}; "> ## 번호
+                									<a id="divRowNo">$velocityCount</a>
+                								</td>
+        										<td width="9%" align="center" > ## from 그룹
+        											<a id="dfrom_g">$tr.get(0)</a>													
+        										</td><input type="hidden" name="from_g"  value="$tr.get(0)">
+        										<td width="34%" align="center" > ## from 그룹명
+        											<a id="dfrom_n">$tr.get(1)</a>											
+        										</td> 
+        										<td width="9%" align="center" > ## to 그룹
+        											<a id="dto_g">$tr.get(2)</a>										
+        										</td><input type="hidden" name="to_g"  value="$tr.get(2)">
+        										<td width="34%" align="center"> ## to 그룹명
+        											<a id="dto_n">$tr.get(3)</a>											
+        										</td>
+												<td width="9%" align="center" class="right" onClick="setEditMode(this); "> ## JC TIME
+													<a id="jct" align="center">
+														&nbsp;$tr.get(4)
+													</a><input
+														type="text" name="jc_time" class="normal" size="20" value="$tr.get(4)"
+														onKeyDown="moveNextBox(this); " onFocusOut="setViewMode(this); "
+														style="width:100%; text-align:center; display:none;" tabindex="1">													
+                            					</td>												
+											</tr>
+										#end
+										</tbody>
+									</table>
+								</div>
+							</td>
+						</tr> 
+					</table>
+					
+					</td></tr></table>
+					<!-- gridArea end  --> 				
+					
+					<input type="hidden" name="_moon_service">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ Job Change시간관리 수정은 필요한 FROM-TO그룹의 JT TIME 값을 변경 하여 신규 및 기존 FROM-TO그룹을 추가 및 삭제 합니다.";
+	helpStr += "<br>◈ JC 타입, 가동률, JC TIME을 변경 및 입력하여 저장 버튼을 클릭하여 수정합니다.";	
+	helpStr += "<br>◈ JC 타입이 '가동률'로 선택되면 가동률의 값을 입력합니다. 또한 JC TIME 값은 모두 삭제가 됩니다.";
+	helpStr += "<br>◈ JC 타입이 '처방유형'혹은 '규격'이 선택되면 가동률의 값은 삭제하고, 필요로하는 FROM-TO그룹의 JT TIME 값을 입력합니다.";
+	helpStr += "<br>◈ 각각의 항목은 숫자로만 입력합니다.";	
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+</script>
+
+

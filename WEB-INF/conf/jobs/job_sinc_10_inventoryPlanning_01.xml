@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+<!--
+=====================================================================================================
+	재고정책>>분석정보>>
+=====================================================================================================
+--> 
+	
+	<!-- 
+	=============================
+	  품목별 일자별 배정현황 조회
+	=============================
+	-->
+	<!-- 품목별 일자별 배정현황 조회 --> 
+	<job id="ip_02100_Daily_DC_Alloc_Plan_Analysis" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고정책 >> 분석정보 >> 품목별 일자별 배정현황 조회</navigation>
+		<toolbars>0010</toolbars>
+		<title>품목별 일자별 배정현황 조회</title>
+		<authority>1</authority>		
+		<description>품목별 일자별 배정현황 조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_02100_HEADER_DATE" datasource="t3sinc"/>
+			<query idref="ip_02100_combo_search_type" datasource="t3sinc"/>
+			<query idref="ip_02100_Daily_DC_Alloc_Plan_Analysis" datasource="t3sinc"/>
+		</queries>
+	</job> 
+
+<!--  
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</jobs>	

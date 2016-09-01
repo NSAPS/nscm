@@ -1,0 +1,154 @@
+<script language="JavaScript" type="text/javascript">
+	window.onload = function() { setSize(); }
+	window.onresize = function() { setSize(); }
+	window.oncontextmenu="return $!{_moon_refresh_detect}"
+
+	function setSize() {
+		var leftDisplayWidth = leftDisplay.style.width.split("px")[0];
+		var currentWidth = document.body.clientWidth;
+		var currentHeight = document.body.clientHeight;
+		var widthBalancing = currentWidth - leftDisplayWidth;
+
+		if (widthBalancing > 82) {			
+			tbMain.width = widthBalancing - 35;  
+    		topLine.style.width = widthBalancing - 22;
+    		mainDisplay.style.width = widthBalancing - 5; 
+		}
+
+		if (currentHeight > 167) {
+			leftDisplay.style.height = currentHeight - 167;
+			mainDisplay.style.height = currentHeight - 150;
+		}		
+
+	}
+</script>
+ <table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">	 
+	 <tr>
+		<td valign="top">
+			<div class="tab-pane" id="itemSiteTabPane">
+				<div class="tab-page" id="tabPage1">
+					<h2 class="tab">$_moon_title</h2>
+				
+					<table id="tbMain" border="0" width="925px" cellpadding="1" cellspacing="0">						
+						<tr>
+							<td>Total : <b>$_moon_service_count</b></td>
+						</tr>
+						<tr>							
+							<td> 
+								<table width="300px" border="0" cellpadding="0" cellspacing="0" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+									<thead>
+										<tr height="40px">
+											<td width="30px" align="center">No</td>
+											<td width="30px" align="center">선택</td>
+											<td width="80px" align="center">품목코드</td>
+											<td width="160px" align="center">품목명</td>
+										</tr>
+									</thead>
+								</table> 
+							</td>
+							<td>
+								<div id="topLine" style="height:40px; width:1058px;overflow:hidden;">
+									<table width="100%" border="0" cellpadding="0" cellspacing="0" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>
+											<tr align="center" height="40px">
+												<td width="60px" align="center">영업지점코드</td>
+												<td width="150px" align="center">영업지점명</td>
+												<td width="60px" align="center">배송지점코드</td>
+												<td width="150px" align="center">배송지점명</td>
+												<td width="100px" align="center">생성일</td>
+												<td width="40px" align="center">최대<br>변폭</td>
+												<td width="40px" align="center">월</td>	
+												<td width="40px" align="center">화</td>	
+												<td width="40px" align="center">수</td>	
+												<td width="40px" align="center">목</td>	
+												<td width="40px" align="center">금</td>	
+												<td width="40px" align="center">토</td>	
+												<td width="40px" align="center">일</td>	
+												<td width="40px" align="center">총계</td>	
+												<td width="150px" align="center">비고</td>												
+											</tr>
+					   					 </thead>
+					   				</table>
+					   			</div>
+							</td>
+						</tr>
+						<tr>
+							<td valign="top">
+								<div id="leftDisplay" style="width:300px; overflow:hidden; ">
+									<!-- 해당 vm의 js에서 구현 -->
+									<table width="100%" cellspacing="0" cellpadding="0" border="0" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody>
+											#set($count = 0)
+											#foreach( $row in $fc_01040_dow_tailer)
+    											<tr id="tr1" height="24" align="center" style="background:#CCCCCC;">
+													<input type="hidden" name="modifyCheckParam" value="0" >
+													<td width="30px" align="center">$math.add($math.mul($_moon_perpage, $math.sub($_moon_pagenumber, 1)), $velocityCount)</td>
+    												<td width="30px" align="center"><input id="$!{count}" type="checkbox" name="updateCheck" value="0" onClick="changeRowField('$_moon_service_count', this); setCheckBoxValue('$_moon_service_count', this);" $activation></td>
+													<td width="80px" align="center">$row.get(0)</td>
+													<td width="160px" align="center">$row.get(1)</td>
+												</tr> 
+												#set($count = $count + 1)
+											#end
+											<input type="hidden" name="isChecked" value="0">
+										</tbody>
+									</table>
+								</div>
+							</td>
+							<td align="top">
+								<div id="mainDisplay" class="ns_scroll" style="border:0; width:1075px; overflow-y:scroll;overflow-x:scroll" onscroll="scrollX();scrollY();">
+									<!-- 해당 vm의 js에서 구현 -->
+									<table width="100%" cellspacing="0" cellpadding="0" border="0" class="ns-table" style="table-layout:fixed; border-collapse:collapse;">
+										<tbody>											
+											#foreach( $row in $fc_01040_dow_tailer)
+												<input name="row_item_cd" type="hidden" value="$!{row.get(0)}" disabled/>
+												<input name="row_site_cd" type="hidden" value="$!{row.get(2)}" disabled/>
+												<input name="row_dc_cd" type="hidden" value="$!{row.get(4)}" disabled/>
+												<input name="row_gen_date" type="hidden" value="$!{row.get(6)}" disabled/>
+												
+    											<tr id="tr2" height="24" align="center" style="background:#CCCCCC;">
+													<td width="60px" align="center">$row.get(2)</td>
+    												<td width="150px" align="center">$row.get(3)</td>
+    												<td width="60px" align="center">$row.get(4)</td>
+    												<td width="150px" align="center">$row.get(5)</td>
+    												<td width="100px" align="center">$row.get(6)</td>
+    												<td width="40px" align="center">$row.get(7)</td>
+    												<td width="40px" align="center">
+														<input name="day1" type="text" value="$!{row.get(8)}" class="normal" style="width:38px;" maxlength="5" onKeyPress="onlynumber();" disabled/>
+													</td>	
+    												<td width="40px" align="center">
+														<input name="day2" type="text" value="$!{row.get(9)}" class="normal" style="width:38px;" maxlength="5" onKeyPress="onlynumber();" disabled/>
+													</td>	
+    												<td width="40px" align="center">
+														<input name="day3" type="text" value="$!{row.get(10)}" class="normal" style="width:38px;" maxlength="5" onKeyPress="onlynumber();" disabled/>
+													</td>	
+    												<td width="40px" align="center">
+														<input name="day4" type="text" value="$!{row.get(11)}" class="normal" style="width:38px;" maxlength="5" onKeyPress="onlynumber();" disabled/>
+													</td>	
+    												<td width="40px" align="center">
+														<input name="day5" type="text" value="$!{row.get(12)}" class="normal" style="width:38px;" maxlength="5" onKeyPress="onlynumber();" disabled/>
+													</td>	
+    												<td width="40px" align="center">
+														<input name="day6" type="text" value="$!{row.get(13)}" class="normal" style="width:38px;" maxlength="5" onKeyPress="onlynumber();" disabled/>
+													</td>	
+    												<td width="40px" align="center">
+														<input name="day7" type="text" value="$!{row.get(14)}" class="normal" style="width:38px;" maxlength="5" onKeyPress="onlynumber();" disabled/>
+													</td>	
+    												<td width="40px" align="center">$row.get(15)</td>
+    												<td width="150px" align="center">
+														<input name="etc" type="text" value="$!{row.get(16)}" class="normal" style="width:148px;" disabled/>													
+													</td>		
+												</tr>												
+											#end											
+										</tbody>
+									</table>
+								</div>
+							</td>
+						</tr>
+					</table>			
+				</div>				
+				<input type="hidden" name="_moon_service" value="${_moon_service}">
+				<input type="hidden" name="_moon_pagenumber"  value="${_moon_pagenumber}">
+			</div>
+		</td>
+	</tr>
+</table>

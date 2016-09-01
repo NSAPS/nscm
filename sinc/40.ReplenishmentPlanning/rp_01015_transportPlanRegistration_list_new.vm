@@ -1,0 +1,178 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+##set( $resizeFuncCallCode = "setGridAutoResize('117', '177')" )
+##set( $resizeFuncCallCode = "setGridAutoResize('150', '198')" )
+#set( $resizeFuncCallCode = "setGridAutoResize('170', '160')" ) ## ('170', '218')
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<input type="hidden" name="plan_version" value="20000000.01.01">
+<input type="hidden" name="version" value="20000000.01.01">
+<input type="hidden" name="seq" value="1">
+##<input type="hidden"name="truck_seq" class="normal"  value="">
+
+<script language=javascript for="WiseGrid" event="CellDblClick(strColumnKey, nRow)">
+  GridCellDblClick(strColumnKey, nRow);
+</script>	
+	
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="left" width="50%">
+						<input type="button" name="btnBack" value=" 발 행"  
+							onClick="makeBrand('rp_01015_transBillPublishment_list_save_comp'); " class="btn1_on">
+						<input type="button" name="btnBack" value="대량전표등록"  
+							onClick="mass_plan_reg('rp_01015_mass_trans_plan_reg'); " class="btn3_on"> 
+					</td>
+                	<td align="right" width="50%">
+						#button("search")
+						#toolbar_nscm($_moon_toolbar "rp_01015_transportPlanRegistration_reg_new" "" "" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table id="search_menu" border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; display:block;">
+							<tr style="display:block; ">
+								<td width="80px" align="right">
+            						출고장 :
+            					</td>
+            					<td width="110px" align="left">
+									<select name="src_loc_sel" style="width:120px; ">
+										<option value="">전체</option>
+									#foreach( $tr in $dc_id_and_short_name_list )
+										<option value="${tr.get(0)}" 
+											#if( "$!{src_loc_sel}" == "${tr.get(0)}" ) selected #end)>${tr.get(1)}</option>
+									#end
+									</select>
+            					</td>
+
+								<td width="80px" align="right">
+            						입고장 :
+            					</td>
+            					<td width="110px" align="left">
+									<select name="tgt_loc_sel" style="width:120px; ">
+										<option value="">전체</option>
+									#foreach( $tr in $dc_id_and_short_name_list )
+										<option value="${tr.get(0)}" 
+											#if( "$!{tgt_loc_sel}" == "${tr.get(0)}" ) selected #end)>${tr.get(1)}</option>
+									#end
+									</select>
+            					</td>
+								<td> 
+								</td>
+            				</tr> 
+            				<tr>
+            					<td width="80px" align="right">
+            						수송일자 : 
+            					</td>
+            					<td width="250px" align="left">
+									#date_sole_no_title("trans_start" "10" "normal" "btnS" "$date.get('yyyy-MM-dd')")
+									~ #date_sole_no_title("trans_end" "10" "normal" "btnE" "$date.get('yyyy-MM-dd')")
+            					</td>
+            					<td width="80px" align="right">
+									전표번호 :
+								</td>
+            					<td width="200px" align="left">
+									<input name="truck_seq_sel" value="$!{truck_seq_sel}" style="width:100; " class="normal">
+								</td>								
+            				</tr>
+							<tr>
+            					<td width="80px" align="right">
+									제품 :
+            					</td>
+								<td width="35%" align="left">
+									<input name="item_id" class="normal" style="width:70px; " onChange="getItemName(this); "
+										onkeypress="enterCheck('${_moon_service}'); " value="$!{item_id_sel}">
+									<input name="item_name" class="normal" style="width:160px; " value="$!{item_name_sel}" onClick="document.frm.item_id.value=''"><img
+										name="imgItem" src="sinc/template/basic/skin/nongshim/images/common/icon_search.gif"
+										align="absmiddle" border="0" style="cursor:pointer;"  
+										onClick="openItemSearchPop('item_id', '450', '300'); " >
+									<input type="hidden" name="item_id_sel" value="$!{item_id_sel}" >
+									<input type="hidden" name="item_name_sel" value="$!{item_name_sel}" >
+								</td>
+								<td  colspwan="2">
+								</td>
+								<td>
+								</td>
+							</tr>
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	##<input name="search_h" type="hidden" value="43"> ## search 조건 부분 높이 
+	<input name="search_h" type="hidden" value="70"> ## search 조건 부분 높이 
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+    <tr>
+        <td valign="top">
+        ## tab 좌측 여백
+        ##tabLeft()               
+            
+            <table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>                    
+
+            <table name="grid" width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+                <tr>
+                    <td align="left" width="100%" >
+                        <script>initWiseGrid("WiseGrid", "100%", "100%");</script>
+                    </td>
+				</tr>
+            </table> 
+            
+            <table height="5"><tr><td></td></tr></table>
+            <table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+                <input type="hidden" name="_moon_service" value="${_moon_service}">
+                <input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+                <input type="hidden" name="_user_id" value="$!{_user_id}">
+            </td></tr></table>
+            
+            </td></tr></table>
+            
+        </td>
+    </tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 수송 지시서를 조회하고 발행하는 화면입니다.";
+	helpStr += "<br>◈ 조회조건을 선택하시고 조회 버튼을 누르시면 원하는 데이타를 조회할 수 있습니다.";
+	helpStr += "<br>◈ 아이템 조건을 입력할때 제품명이나 제품코드를 다 입력하지 않아도 비슷한 데이타가 모두 조회됩니다.";
+	helpStr += "<br>◈ 발행 버튼 클릭시 미 발행된 Row수를 알려주며, 다시 한번 확인하게 됩니다.";
+	helpCont.innerHTML = helpStr;
+	// 도움말 zoomOut 높이 조절 변수
+	var hDynamicHeight = 0;
+	
+	// combo box:VERSION 선택시 공장 리스트 채움
+	function checkConfirm(){
+		
+		if(!confirm("현재 발행되지 않은 Row가 "+ "$!{brand_no_count_of_transBillPublishment.get(0)}" +"개 존재합니다. 발행하시겠습니까?"))
+			return true;
+		else
+			return false;
+	}
+	
+</script> 

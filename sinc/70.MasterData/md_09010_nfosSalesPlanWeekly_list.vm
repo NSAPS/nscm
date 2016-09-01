@@ -1,0 +1,303 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+##set( $resizeFuncCallCode = "setGridAutoResize('117', '177')" )
+#set( $resizeFuncCallCode = "setGridAutoResize('167', '220')" )
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						#button("search")
+						#toolbar_nscm($_moon_toolbar "" "" "" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" 
+							id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr>
+            					<td width="12%" align="right">
+            						계획수립년도 :
+            					</td>
+            					<td width="13%" align="left">									
+									<select name="mon_plan" style="width:70px; ">
+									#foreach( $tr in $mon_plan_list )
+										#if( "$!{mon_plan}" == "" )
+											<option value="${tr.get(0)}"
+												#if( "$tr.get(0)" == "$date.get('yyyy')" ) selected #end)>${tr.get(0)}</option>
+										#else
+											<option value="${tr.get(0)}"
+												#if( "$tr.get(0)" == "$!{mon_plan}" ) selected #end)>${tr.get(0)}</option>
+										#end
+									#end
+									</select>									
+            					</td>
+            					<td width="10%" align="right">
+            						영업지점 :
+            					</td>
+            					<td width="25%" align="left">
+									<select name="sale_loc" style="width:155px; ">
+									<option value="">전체</option>
+									#foreach( $tr in $sale_loc_list )
+										<option value="${tr.get(0)}"
+											#if( "$!{sale_loc}" == "${tr.get(0)}" ) selected #end)>${tr.get(1)}</option>
+									#end
+									</select>
+            					</td>							
+								<td width="10%" align="right">
+            						판매일자 :
+            					</td>
+            					<td width="30%" align="left">
+									#date_sole_no_title("creation_date" "10" "normal" "btnC" "$date.get('yyyy-MM-dd')")
+            					</td>            					
+            				</tr>
+            				<tr>
+            					<td width="12%" align="right">
+            						버전 :
+            					</td>
+            					<td width="13%" align="left">
+									<select name="mon_plan_version" style="width:70px; ">
+									#foreach( $tr in $mon_plan_version_list )
+										<option value="${tr.get(0)} - ${tr.get(1)}"
+											#if( "$!{mon_plan_version}" == "${tr.get(0)} - ${tr.get(1)}" ) selected #end)>${tr.get(0)} - ${tr.get(1)}</option>
+									#end
+									</select>
+            					</td>
+            					<td width="10%" align="right">
+            						배송지점 :
+            					</td>
+            					<td width="25%" align="left">									
+									<select name="del_loc" style="width:155px; ">
+									<option value="">전체</option>
+									#foreach( $tr in $del_loc_list )
+										<option value="${tr.get(0)}"
+											#if( "$!{del_loc}" == "${tr.get(0)}" ) selected #end)>${tr.get(1)}</option>
+									#end
+									</select>
+            					</td>
+            					<td width="10%" align="right">
+									제품 :
+            					</td>
+								<td width="30%" align="left">
+									<input name="item_id" class="normal" style="width:70px; " onChange="getItemName(this); "
+										onkeypress="enterCheck('${_moon_service}'); " value="$!{item_id}">
+									<input name="item_name" class="normal" style="width:120px; "
+										onkeypress="enterCheck('${_moon_service}'); " value="$!{item_name}"><img
+										name="imgItem" src="sinc/template/basic/skin/nongshim/images/common/icon_search.gif"
+										align="absmiddle" border="0" style="cursor:pointer;" value="$!{item_name}"
+										onClick="openCodeSearchPop('item_id', 'item_name', '400', '300'); ">
+								</td>
+            				</tr>							
+							## 라디오 버튼
+							<tr>
+								<td width="12%" align="right">
+            					</td>
+								<td width="13%" align="left">
+								</td>
+								<td width="10%" align="right">
+									내수/수출 :
+            					</td>
+								<td width="25%" align="left">									
+									<input type="radio" name="domRadio" value="DO" checked="on" onClick="setDomain(this.value); " style="border:0px;"
+											#if ($!{domRadio} == "DO") checked #end>										
+										      내수</input>&nbsp;
+									<input type="radio" name="domRadio" value="EX" onClick="setDomain(this.value); " style="border:0px;"
+										    #if ($!{domRadio} == "EX") checked #end>										
+										      수출</input>
+									<input type="hidden" name="domain" value="$!{domain}"></input>
+								</td>
+								<td width="10%" align="right">
+									제품구분 :
+            					</td>
+								<td width="30%" align="left">
+									<input type="radio" name="guradio" value="10" onClick="setgubun(this.value); " checked="on" style="border:0px;"
+										#if ($!{guradio} == "10") checked #end>
+											일반</input>&nbsp;
+									<input type="radio" name="guradio" value="11" onClick="setgubun(this.value); " style="border:0px;"
+										#if ($!{guradio} == "11") checked #end>
+											크로스도킹</input>
+									<input type="hidden" name="gubun" value="$!{gubun}" ></input>
+								</td>
+							</tr>
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="64"> ## search 조건 부분 높이 
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>#page_info()</td>
+							<td align="right">#table_display()</td>
+						</tr>
+					</table>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>								
+								#if( $date_list.size() == 0 )
+									#set( $d01 = "D" )
+									#set( $d02 = "D+1" )
+									#set( $d03 = "D+2" )
+									#set( $d04 = "D+3" )
+									#set( $d05 = "D+4" )
+									#set( $d06 = "D+5" )
+									#set( $d07 = "D+6" )
+									#set( $d08 = "W+1" )
+								#else
+									#set( $d01 = "$!date_list.get(0).get(0)" )
+									#set( $d02 = "$!date_list.get(0).get(1)" )
+									#set( $d03 = "$!date_list.get(0).get(2)" )
+									#set( $d04 = "$!date_list.get(0).get(3)" )
+									#set( $d05 = "$!date_list.get(0).get(4)" )
+									#set( $d06 = "$!date_list.get(0).get(5)" )
+									#set( $d07 = "$!date_list.get(0).get(6)" )
+									#set( $d08 = "$!date_list.get(0).get(7)" )
+								#end
+								
+								#set( $header = "SALE\nID!%!영업\n지점!%!DELI\nID!%!배송\n지점!%!제품\n코드!%!제품 명!%!구분" )
+								#set( $header = "$!{header}!%!$!{d01}!%!$!{d02}!%!$!{d03}!%!$!{d04}!%!$!{d05}!%!$!{d06}!%!$!{d07}!%!$!{d08}" )
+																
+								## 이중헤더								
+								#set( $topheader = "W/%/W+1" )
+								#set( $topheaderPosition = "X!%!X!%!X!%!X!%!X!%!X!%!X!%!O!%!O!%!O!%!O!%!O!%!O!%!O/%/O" )
+
+								#set( $headerType = "TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER" )
+								#set( $colwidth = "0!%!100!%!0!%!110!%!75!%!100!%!80!%!60!%!60!%!60!%!60!%!60!%!60!%!60!%!80" )
+								#set( $colalign = "CENTER!%!CENTER!%!CENTER!%!CENTER!%!CENTER!%!CENTER!%!CENTER!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT" )
+								#set( $data = $zlattice.getBody($!{md_09010_nfosSalesPlanWeekly_list},"!%!", "/%/") ) 
+								
+								<textarea id="txt1" style="display:none;" rows="0" cols="0"> 
+									<object name='grid'
+										classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93" width="100%" height="375"
+										##codebase="http://java.sun.com/update/1.5.0/jinstall-1_5_0_03-windows-i586.cab#Version=1,5,3,0">
+										codebase="http://javadl.sun.com/webapps/download/AutoDL?BundleId=19588#Version=6,0,050,13">
+										<!--Necessary--> 
+										<param name="code" value="com.zionex.t3sinc.ui.ZLattice">
+										<param name="archive" value="zLattice.jar">
+										<param name="headertypes" value= "$headerType">
+										<param name="headers"  value= "$header">
+										<param name="data" value= "$data">
+										<!--Necessary for Modification Grid -->
+										<param name="names" value= "" >
+										<!--Necessary for Cookie -->
+										<param name="identity" value="md_09010_nfosSalesPlanWeekly_list">
+										<!--Necessary in TYPE COMBO 
+										<param name="combo9" value="DATA1!%!DATA2!%!DATA3">-->
+										<!--optional - Default Value 있음-->
+										<param name="columndelimeter" value="!%!"> <!-- defalut : !%! -->
+										<param name="rowdelimeter" value="/%/"> <!-- defalut : /%/ -->
+										<param name="showgroupingfunction" value="false">  <!-- defalut : true -->
+										<param name="showprintingfunction" value="false">   <!-- defalut : true -->
+										<param name="showlockingfunction" value="false"> <!-- defalut : true -->
+										<param name="showpagingfunction" value="false"> <!-- defalut : true -->
+										<param name="enablesorting" value="true">   <!-- defalut : true -->
+										<param name="groupingcolumn" value="6"> <!-- defalut : 그루핑 없음 -->
+										<param name="groupsumcolumn" value="0"> <!-- defalut : 그루핑 없음 -->
+										<param name="lockedcolumn" value="6"> <!-- defalut : 락킹 없음 -->
+										<param name="presentpage" value="$_moon_pagenumber">   <!-- defalut : 1 -->
+										<param name="listinpage" value="$_moon_perpage">   <!-- defalut : 40 -->
+										<param name="bordertype" value="PLANE"> <!-- default - PLANE -->
+										<param name="indateformat" value="yyyy-MM-dd"> <!-- default - yyyyMMdd -->
+										<param name="outdateformat" value="yyyy-MM-dd">  <!-- default - yyyyMMdd -->									
+										<param name="outnumberformat" value="&#035;,&#035;&#035;0"> 									 
+										<param name="columnwidth" value="$colwidth"> <!-- default -80 -->
+										<param name="hasverticaltotal" value="true"> <!-- default -true -->
+										<param name="hashorizontaltotal" value="true"> <!-- default -true -->
+										<param name="totalrowcolor" value="dddddd"> <!-- default ? E6E6FA -->
+										<param name="totalverticalrowcolor" value="dddddd"> <!-- default ? E6E6FF -->
+										<param name="totalhorizontalrowcolor" value="dddddd"> <!-- default ? E6E6FF -->
+										<param name="hascookie" value="false"> <!-- default -false -->
+										<param name="enableinserting" value="false"> <!-- default -false -->
+										<param name="enabledeleting" value="false"> <!-- default -false -->
+										<param name="enableediting" value="false"> <!-- default -false -->
+										<!--optional - Default Value 없음-->
+										##set( $colCor = "12=dfdfdf&13=dfdfdf&14=dfdfdf&18=dfdfdf&19=dfdfdf&20=dfdfdf" ) 
+										<param name="columncolor" value="$!{colCor}">
+										<param name="rowcolor" value="$!{rowCol}">
+										<param name="onclickrowfunc" value="onclickfunc">
+										<param name="callingfunction" value="DOUBLECLICKED_CALLING">
+										<param name="disablecolumns" value="">
+										<param name="columnalign" value="$colalign">
+										<param name="font" value="굴림">
+										<param name="fontsize" value="12">
+										<param name="columnheight" value="40"> 
+										<param name="headertype" value="HORIZONTAL_HEADER">
+										
+										## 이중 헤더
+										<param name="hasnestedsubheader" value="true"> 
+										<param name="topheaders" value="$!{topheader}">
+										<param name="topheaderposition" value="$!{topheaderPosition}">
+										<param name="enabledragging" value="true">
+									</object>
+								</textarea> 
+								<script language="javascript" src="${project}/object_activity.jsp?txtID=txt1"></script>
+							</td>
+						</tr>
+					</table> 
+					
+					<table height="5"><tr><td></td></tr></table>
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+						$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+						<input type="hidden" name="_moon_service" value="${_moon_service}">
+						<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+						<input type="hidden" name="_user_id" value="$!{_user_id}">
+					</td></tr></table>
+					
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 일간 판매계획은 조회전용 입니다.";
+	helpStr += "<br>◈ 각각 조건들을 선택하고 조회버튼을 클릭하여 일간판매계획을 조회합니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0; 
+	
+	//document.cookie = "webfxtab_tabPane1=1";
+	
+</script>

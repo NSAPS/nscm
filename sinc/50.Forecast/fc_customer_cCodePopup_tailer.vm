@@ -1,0 +1,85 @@
+<script language="JavaScript" type="text/javascript">
+	window.onload = function() { setSize(); }
+	window.onresize = function() { setSize(); }
+	window.oncontextmenu="return $!{_moon_refresh_detect}"
+
+	function setSize() {	 	 
+	}
+</script>
+ 
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">  
+	## 기능 버튼 영역
+	<tr>      
+	    <td height="">   
+			<table width="99%" border="0" cellspacing="0" cellpadding="0" style="background-color:#f2f2f2;">
+				<tr height= "10px">  	   
+					<td width="" align="left" class="" >
+						거래처:				 
+						<input type="text" name="cust_search" value="$!{cust_search}" style="height: 19px;">
+						#button("search") 
+					</td>	 
+					 
+				</tr>
+			</table> 
+      </td> 
+	</tr> 
+	 <tr>
+		<td valign="top"> 
+					<table id="tbMain" border="0" width="99%" cellpadding="0" cellspacing="0" ><tr><td>
+						##우측상단헤더
+						<div id="topLine" style="height:40px; width:100%;overflow:hidden;">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								   <thead>	   
+    									<tr height="25px">   
+    										<td width="10%"><!--전체<br><input type="checkbox" name="checked_all" value="N" onClick="checkAll(this);"/>--></td>
+    										<td width="25%">거래처(NO)</td>
+    										<td width="60%">거래처명</td>
+    									</tr>			   						
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td></tr>	
+					<tr>
+					<td valign="top">  
+						## 우측 하단 로우  
+						<div id="mainDisplay" class="ns_scroll" style="border:1; width:100%;">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="main_tbody"> 
+								#foreach( $choice in $!{customer_cCode_list} ) 
+									<tr id="main_tr" height="20px" onMouseOver="bgOver2(this); " onMouseOut="bgOut2(this); ">
+										## 체크박스 
+										<td width="10%" align="center">
+			    							<input type="checkbox" name="ids" value="'$!{choice.get(0)}'" onClick="javascript:addCheckedItem('$!{choice.get(0)}', '$!{choice.get(1)}');"> 	
+										</td>
+										## 거래처명
+										<td width="25%" align="center">
+											<a id="divWoId">$choice.get(0)</a>
+											<input type="hidden" name="input_cust_id" value="$choice.get(0)">
+										</td>		
+										## 거래처ID  
+										<td width="60%" align="left">
+											<a id="divWoId">$choice.get(1)</a>
+											<input type="hidden" name="input_cust_nm" value="$choice.get(1)">
+										</td>		
+									</tr>
+								#end
+								</tbody>
+							</table>
+						</div>
+					</td></tr></table> 	 
+    			<table heigth= "100%" width="100%">
+    			 <tr>  
+    			  <td align="center">
+        			$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+        			<input type="hidden" name="_moon_service"     value="${_moon_service}">				
+        			<input type="hidden" name="_moon_pagenumber"  value="${_moon_pagenumber}"> 
+        			<input type="hidden" name="_moon_perpage"     value="$!{_moon_perpage}"> 		
+					<input type="hidden" name="gubun"             value="${_gubun}">
+    		      </td>
+    			 </tr>  
+    		   </table>					
+			</table> 
+
+		</td>
+	</tr>
+</table>   

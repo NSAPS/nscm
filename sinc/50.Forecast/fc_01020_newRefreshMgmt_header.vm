@@ -1,0 +1,191 @@
+<script type='text/javascript' src='$!{project}/dwr/interface/nongshim.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/engine.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/util.js'></script>
+	
+<table id="dataArea" border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	<tr>
+		<td height="25" align="right" bgcolor="${toolbar_bgcolor}" class="line">
+			<table align="right" width="100%" height="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+				<tr>
+					<td align="left">
+						<input type="button" name="btnReg1" value="  적용" onClick="applyRealign();" class="btn_mod_on">				
+					</td>
+					<td align="right">
+						<input type="button" name="btnSearch" value=" 조회" onClick="searchIFrameData('fc_01020_newRefreshMgmt_tailer');" class="btn_search_on">
+						#toolbar_nscm_iframe($_moon_toolbar "" "" "fc_01020_newRefreshMgmt_save_action" "fc_01020_newRefreshMgmt_delete_action")
+					</td>
+				</tr>
+			</table>
+		</td>                                                                                                                                                                                                                  
+	</tr>
+	<tr id="search_menu" style="DISPLAY:block">
+		<td height="20" valign="top" bgcolor="${search_bgcolor}" class="line">
+			
+			<div class="tab-pane" id="newRefreshHeadTbp">
+				<div class="tab-page" id="tabPage1">
+					<h2 class="tab" id="tab1">조회 Tab</h2>
+				
+        			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; display:block; ">
+        				<tr>
+        					<td height="10"></td>
+        				</tr>
+        				<tr>
+        					<td width="40%" align="center">
+        						<table height="21" border="0" cellpadding="0" cellspacing="0">
+        							<tr>
+        								<td width="80" align="center" class="td1">
+        									<span>유형</span>
+        								</td>
+        								<td align="left">
+        									<select name="realign_type" OnChange="">
+        										<option value="">전체</option>
+        										#foreach( $choice in $!{fc_01020_realign_types} )
+        											<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{realign_type}") selected #end >$choice.get(1)</option>
+        										#end
+        									</select>											
+        								</td>
+        							</tr>
+								</table>
+        					</td>							
+							<td width="60%" align="left"> 
+								<table height="21" border="0" cellpadding="0" cellspacing="0">									
+									<tr>        								
+										<td width="80" align="center" class="td1"> 
+        									<span>품목 코드</span>
+        								</td> 
+        								<td width="220" align="left">
+        									<input name="item_code" type="text" value="$!{item_code}" class="normal" style="width:80px;"
+										   ><img name="searchBt1" src="$!{project}/sinc/template/basic/skin/nongshim/images/common/icon_search.gif" align="absmiddle" onClick="openPopupWindow('ITEM2',document.frm.realign_type,'');" style="cursor:pointer; "
+										  /><input name="item_name" type="text" value="$!{item_name}" class="normal" style="width:120px;background:#CCCCCC;" readonly>
+                                        </td> 
+        							</tr>
+        						</table>
+							</td>
+        				 </tr>	
+        		  		 <tr height="10"><td></td></tr>
+        		     </table>					
+    			 </div>
+				 <div class="tab-page" id="tabPage2">
+					<h2 class="tab" id="tab2">등록/수정 Tab</h2>
+					<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; display:block; ">
+        				<tr><td height="10"></td></tr>
+						<tr>
+        					<td width="50%" align="center">
+        						<table height="21" border="0" cellpadding="0" cellspacing="0">
+        							<tr>
+        								<td width="80" align="center" class="td1">
+        									<span>유형</span>
+        								</td>
+        								<td align="left">
+        									<select name="save_realign_type" onChange="setTargetItemCode(this);">
+        										<option value="">선택</option>
+        										#foreach( $choice in $!{fc_01020_realign_types} )
+        											<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{save_realign_type}") selected #end >$choice.get(1)</option>
+        										#end
+        									</select>
+											<input name="hidden_save_realign_type" type="hidden" value="$!{hidden_save_realign_type}"/>
+        								</td>
+        							</tr>
+									<tr>
+        								<td width="80" align="center" class="td1">
+        									<span>실적 적용일</span>
+        								</td>
+        								<td align="left">
+        									<input name="save_start" type="text" value="$!{save_start}" class="normal" style="width:60px;" maxlength="8"> ~ 
+											<input name="save_end" type="text" value="$!{save_end}" class="normal" style="width:60px;" maxlength="8">
+        								</td>
+        							</tr>
+									<tr>
+        								<td width="80" align="center" class="td1">
+        									<span>실적 비율</span>
+        								</td>
+        								<td align="left">
+        									<input name="save_realign_rate" type="text" value="0" class="normal" style="width:30px;" maxlength="4" onKeyPress="onlynumber();"> %
+        								</td>
+        							</tr>
+									<tr>
+        								<td width="80" align="center" class="td1">
+        									<span>비고</span>
+        								</td>
+        								<td align="left">
+        									<input name="save_etc" type="text" value="$!{save_etc}" class="normal" style="width:200px;">
+        								</td>
+        							</tr>
+								</table>
+        					</td>							
+							<td width="50%" align="left"> 
+								<table height="21" border="0" cellpadding="0" cellspacing="0">									
+									<tr>        								
+										<td width="100" align="center" class="td1"> 
+        									<span>품목코드</span>
+        								</td> 
+        								<td width="220" align="left">
+        									<input name="save_item_code" type="text" value="$!{save_item_code}" class="normal" style="width:80px;"
+										   ><img name="searchBt2" src="$!{project}/sinc/template/basic/skin/nongshim/images/common/icon_search.gif" align="absmiddle" onClick="openPopupWindow('ITEM2_SAVE',document.frm.save_realign_type,'');" style="cursor:pointer; "
+										  /><input name="save_item_name" type="text" value="$!{save_item_name}" class="normal" style="width:120px;background:#CCCCCC;" readonly>
+                                        </td> 
+        							</tr>
+									<tr>        								
+										<td width="100" align="center" class="td1"> 
+        									<span>대상 품목코드</span>
+        								</td> 
+        								<td width="220" align="left">
+        									<input name="save_target_item_code" type="text" value="$!{save_target_item_code}" class="normal" style="width:80px;" readonly
+										   ><img name="searchBt3" src="$!{project}/sinc/template/basic/skin/nongshim/images/common/icon_search.gif" align="absmiddle" onClick="openPopupWindow('ITEM2_SAVE_TARGET',document.frm.save_realign_type,'target');" style="cursor:pointer; "
+										  /><input name="save_target_item_name" type="text" value="$!{save_target_item_code}" class="normal" style="width:120px;background:#CCCCCC;" readonly>
+                                        </td> 
+        							</tr>
+									<tr>
+        								<td width="100" align="center" class="td1">
+        									<span>시장잠식 비율</span> 
+        								</td>
+        								<td align="left">
+        									<input name="save_cannibalization" type="text" value="0" class="normal" style="width:30px;" maxlength="4" onKeyPress="onlynumber();"> %
+        								</td>
+        							</tr>
+									<tr>
+        								<td width="100" align="center" class="td1">
+        									<span>저장방식</span>
+        								</td>
+        								<td align="left">
+        									<select name="save_type" style="width:100" OnChange="changeGuiStatus(this);">
+        										<option value="INSERT">INSERT</option>
+												<option value="UPDATE">UPDATE</option>
+												<option value="DELETE">DELETE</option>
+        									</select>
+        								</td>
+										<input type="hidden" name="save_apply">
+        							</tr>
+        						</table>
+							</td>     								  
+        				</tr>						
+        		  		<tr height="10"><td></td></tr>
+        		    </table>        			
+    			 </div>			 
+			 </div>
+		 </td>   
+	 </tr>
+	 <tr class="line" height="10"><td></td></tr>
+	 <tr>
+	 	 <td valign="top">
+			<iframe id="child" name="iframe" src="service.do?_moon_service=fc_01020_newRefreshMgmt_tailer&amp;_moon_perpage=100&amp;_moon_pagenumber=1" width="100%" height="100%" scrolling="no" topmargin="0" leftmargin="0" frameborder="NO" border="0" framespacing="0"></iframe>
+		 </td>
+	 </tr>
+	 <input type="hidden" name="_user_id" value="$!{_user_id}">
+	 <input type="hidden" name="_moon_service" value="${_moon_service}">
+	 <input type="hidden" name="_moon_pagenumber" value="${_moon_pagenumber}">
+</table>
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력  
+	var helpStr = "신제품 및 Refresh 제품이 반영된 수요예측을 위한 Re-align 대상 품목을 관리한다.<br><br>";	
+	helpStr += "◈실적비율 : 대상품목의 실적을 설정한 실적비율만큼 COPY 하여 원 품목의 실적에 반영.<br>";
+	helpStr += "◈시장잠식비율 : 대상품목의 실적에서 설정한 시장잠식비율만큼 차감.<br>";	
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;	
+				
+</script>

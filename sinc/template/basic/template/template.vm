@@ -1,0 +1,58 @@
+## session out 시 화면을 보이지 않게 
+#if( "$!{_moon_skin}" != "" ) 
+
+    ## 로그인 성공
+	#if( $!{login.size()} != 0 ) 
+    	
+		$session.setAttribute("_moon_navigation", "${_moon_navigation}")
+        $session.setAttribute("_moon_title", "${_moon_title}")
+        $session.setAttribute("_moon_toolbar", "${_moon_toolbar}")
+        $session.setAttribute("_moon_service", "${_moon_service}")
+        $session.setAttribute("_moon_target", "${_moon_target}")
+        
+        $session.setAttribute("_user_id", "${login.get(0).get(0)}")
+        $session.setAttribute("_user_name", "$!{login.get(0).get(1)}")
+        $session.setAttribute("_user_group_id", "$!{login.get(0).get(2)}")
+        $session.setAttribute("_user_email", "$!{login.get(0).get(3)}")
+        $session.setAttribute("_moon_path", "${_moon_path}")
+		$session.setAttribute("_user_login_ip", "$request.getRemoteAddr()")
+		$session.setAttribute("_user_service", "${_moon_service}")
+        
+        #set($project = $request.getContextPath())
+
+    	<html>
+        <title>SCM System for NONGSHIM</title>
+		#*
+		<frameset border=0 frameSpacing=0 rows=50,* frameBorder=0>
+        	<frame name="headFrame" marginWidth="5" marginHeight="5" src="$!{project}/sinc/template/basic/template/head_template.vm" noResize scrolling="no">
+        	<frameset name="left_home" frameBorder="0" cols="230,*" >
+        		<frame name="leftFrame" marginWidth="5" marginHeight="5" src="service.do?_moon_service=main_menu&_moon_menu=true&_user_id=${_user_id}" scrolling="no">
+        		<frame name="mainFrame" marginWidth="5" marginHeight="5" src="$!{project}/sinc/template/basic/template/main_template.vm" noResize scrolling="no">
+        	</frameset>
+        </frameset>
+		*#
+		##<frameset rows="50,*" frameBorder="no" frameSpacing="0">
+		<frameset rows="70,*" frameBorder="no" frameSpacing="0">
+        	<frame name="headFrame" marginWidth="0" marginHeight="0" src="$!{project}/sinc/template/basic/template/head_template.vm" noResize scrolling="no">
+        	##<frameset name="left_home" cols="230,*" frameBorder="no" frameSpacing="0">
+        	<frameset name="left_home" cols="242,*" frameBorder="no" frameSpacing="0">
+        		<frame name="leftFrame" marginWidth="0" marginHeight="0" src="service.do?_moon_service=main_menu&_moon_menu=true&_user_id=${_user_id}" scrolling="no">
+        		<frame name="mainFrame" marginWidth="0" marginHeight="0" src="$!{project}/sinc/template/basic/template/main_template.vm" noResize scrolling="no">
+        	</frameset>
+        </frameset>
+		</html>
+    	
+	## 로그인 실패
+    #else 
+		<script language="javascript">
+			alert("ID 또는 PASSWORD가 틀립니다."); 
+			opener.document.frm._user_id.value = ""; 
+			opener.document.frm._user_pwd.value = "";
+			opener.document.frm._user_id.focus();
+			window.close();
+		</script>
+	#end 
+
+#else 
+	$response.sendRedirect("about:blank") 
+#end 

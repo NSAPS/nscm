@@ -1,0 +1,604 @@
+## 비정상적 접근 방지 
+#loginCheck() 
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('92', '117')" )    
+ 
+## 코드 중복 체크를 위해 dwr 선언 
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+## 공장을 저정하기 위한 변수
+<input type="hidden" name="selected_plant" value="$!{selected_plant}"> 
+<input type="hidden" name="selected_won" value="$!{selected_won}"> 
+<input type="hidden" name="selected_line" value="$!{selected_line}"> 
+## 근무일자를 저정하기 위한 변수
+<input type="hidden" name="duty_date" value="$!{duty_date}">
+
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<script>
+		areaBtn.innerHTML = " &nbsp; <input type=\"button\" name=\"btnSave\" value=\"  저장\" onClick=\"GoSave('sc_01050_shiftOperationCalendar_popup_save_comp')\" class=\"btn_sav_on\" >";
+	</script>
+	## 조회 영역 
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table id="search_menu" style="display:block; " border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; ">
+            				<tr >
+            					<td width="10%" align="right">공장 :</td> 
+            					<td width="30%" align="left"> 									
+									#foreach( $condition in $combo_plant_list )  
+										#if($!{selected_plant} == "$condition.get(0)")  									
+											<input name="selected_plant_name" style="width:100px; text-align:center; " class="normal" value="$condition.get(1)" readOnly>
+										#end
+									#end   				 					 
+            					</td>					 			
+							    <td width="10%" align="right">일괄 적용 :</td>
+								<td width="50%" align="left">
+									<select name="selected_duty_day" style="width:45px; ">
+										<option value="0">일</option> 
+										<option value="6">월</option>
+										<option value="12">화</option>
+										<option value="18">수</option>
+										<option value="24">목</option>    
+										<option value="30">금</option> 
+										<option value="36">토</option>  
+									</select><select name="selected_shift" style="width:50px"> 
+										<option value="0">조</option>
+										<option value="2">주</option>
+										<option value="4">야</option>
+									</select><select name="selected_start_end" style="width:50px">
+										<option value="0">착수</option>
+										<option value="1">완료</option> 
+									</select><input 
+										name="input_time" type="text" style="width:60px; text-align:center; " class="normal" value=""><input  
+										name="btn_batch_prod_date" type="button" value="적용" style="width:35px; text-align:center; " 
+										onClick="shiftChangeTimeBatch(); " class="button1_1" onmouseover="this.className='button1_2'" 
+										onmouseout="this.className='button1_1'">
+								</td>								
+            				</tr> 
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="46"> ## search 조건 부분 높이 
+	<tr><td height="5"></td></tr> 
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>#page_info2()</td>
+						</tr>
+					</table>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table id="tbMain" border="0" width="715" cellpadding="0" cellspacing="0" >
+						<tr>							
+							<td>
+								#set($headHeight = "60px")## 헤더 높이  
+								#set($topLeftWidth = "595px")## 
+								#set($number 	= "30px")## 번호 
+								#set($checkBox	= "30px")## 체크 박스
+								#set($teamCode 	= "40px")## 원가부분코드
+								#set($teamName 	= "75px")## 원가부문
+								#set($line 		= "100px")## 라인
+								#set($procCode 	= "50px")## 작업장코드
+								#set($procName 	= "120px")## 작업장
+								#set($wrokType 	= "150px")## work type
+								<div id="topLeft" style="height:${headHeight}; width:${topLeftWidth}; overflow:hidden; ">
+        							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+        								<thead>   
+        									<tr height="40px"> 
+        										<td width="${number}" rowspan="2">번호</td>
+												<td width="${checkBox}" rowspan="2">전체<br><input type="checkbox" name="checked_all" value="N" onClick="checkAll(this);"/></td>
+												<td width="${teamCode}" rowspan="2">원가<br>부문<br>코드</td>
+												<td width="${teamName}" rowspan="2">원가부문</td>
+												<td width="${line}" rowspan="2">라인</td>
+												<td width="${procCode}" rowspan="2">작업장<br>코드</td> 
+												<td width="${procName}" rowspan="2">작업장</td>
+												<td width="${wrokType}" colspan="3">WORK TYPE</td>
+        									</tr>  
+											<tr height="20px">   
+												<td width="50" class="mid">교대조</td> 
+												<td width="50" class="mid">휴식</td> 
+												<td width="50" class="mid">기타</td> 
+											</tr>
+        			   					 </thead>
+        			   				</table>
+			   					</div>
+							</td>
+							<td>  
+								#set($topLineWidth = "2520px")    
+								<div id="topLine" style="height:${headHeight}; width:${topLineWidth}; overflow:hidden;">
+									<table width="${topLineWidth}" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>	
+											<tr height="20px">      
+												<td width="360px" colspan="6">$shift_oper_cal_header_dates.get(0).get(0)</td> 
+												<td width="360px" colspan="6">$shift_oper_cal_header_dates.get(0).get(1)</td> 
+												<td width="360px" colspan="6">$shift_oper_cal_header_dates.get(0).get(2)</td>
+												<td width="360px" colspan="6">$shift_oper_cal_header_dates.get(0).get(3)</td>  
+												<td width="360px" colspan="6">$shift_oper_cal_header_dates.get(0).get(4)</td>
+												<td width="360px" colspan="6">$shift_oper_cal_header_dates.get(0).get(5)</td>  
+												<td width="360px" colspan="6" class="right">$shift_oper_cal_header_dates.get(0).get(6)</td> 
+											</tr>
+											<tr height="20px">		 										
+												<td width="120px" colspan="2" class="mid">조</td>
+												<td width="120px" colspan="2" class="mid">주</td>
+												<td width="120px" colspan="2" class="mid">야</td> 
+												<td width="120px" colspan="2" class="mid">조</td>
+												<td width="120px" colspan="2" class="mid">주</td>
+												<td width="120px" colspan="2" class="mid">야</td>
+												<td width="120px" colspan="2" class="mid">조</td>
+												<td width="120px" colspan="2" class="mid">주</td>
+												<td width="120px" colspan="2" class="mid">야</td>
+												<td width="120px" colspan="2" class="mid">조</td>
+												<td width="120px" colspan="2" class="mid">주</td>
+												<td width="120px" colspan="2" class="mid">야</td>
+												<td width="120px" colspan="2" class="mid">조</td>
+												<td width="120px" colspan="2" class="mid">주</td>
+												<td width="120px" colspan="2" class="mid">야</td>
+												<td width="120px" colspan="2" class="mid">조</td> 
+												<td width="120px" colspan="2" class="mid">주</td>
+												<td width="120px" colspan="2" class="mid">야</td> 
+												<td width="120px" colspan="2" class="mid">조</td>
+												<td width="120px" colspan="2" class="mid">주</td>
+												<td width="120px" colspan="2" class="midright">야</td>
+											</tr>	
+											<tr height="20px">
+												<td width="60px" class="mid">착수</td>
+												<td width="60px" class="mid">완료</td>
+												<td width="60px" class="mid">착수</td>
+												<td width="60px" class="mid">완료</td>
+												<td width="60px" class="mid">착수</td>
+												<td width="60px" class="mid">완료</td>
+												<td width="60px" class="mid">착수</td>
+												<td width="60px" class="mid">완료</td>
+												<td width="60px" class="mid">착수</td>
+												<td width="60px" class="mid">완료</td>
+												<td width="60px" class="mid">착수</td>
+												<td width="60px" class="mid">완료</td>
+												<td width="60px" class="mid">착수</td>
+												<td width="60px" class="mid">완료</td>
+												<td width="60px" class="mid">착수</td>
+												<td width="60px" class="mid">완료</td>
+												<td width="60px" class="mid">착수</td>
+												<td width="60px" class="mid">완료</td>
+												<td width="60px" class="mid">착수</td>
+												<td width="60px" class="mid">완료</td>
+												<td width="60px" class="mid">착수</td>
+												<td width="60px" class="mid">완료</td>
+												<td width="60px" class="mid">착수</td>
+												<td width="60px" class="mid">완료</td>
+												<td width="60px" class="mid">착수</td>
+												<td width="60px" class="mid">완료</td>
+												<td width="60px" class="mid">착수</td>
+												<td width="60px" class="mid">완료</td>
+												<td width="60px" class="mid">착수</td>
+												<td width="60px" class="mid">완료</td>
+												<td width="60px" class="mid">착수</td>
+												<td width="60px" class="mid">완료</td>
+												<td width="60px" class="mid">착수</td>
+												<td width="60px" class="mid">완료</td>
+												<td width="60px" class="mid">착수</td>
+												<td width="60px" class="mid">완료</td>
+												<td width="60px" class="mid">착수</td>
+												<td width="60px" class="mid">완료</td>
+												<td width="60px" class="mid">착수</td>
+												<td width="60px" class="mid">완료</td>
+												<td width="60px" class="mid">착수</td>
+												<td width="60px" class="midright">완료</td>
+											</tr>
+										</thead>
+									</table>
+								</div>
+							</td> 
+						</tr>	
+						 
+						<tr>
+							<td valign="top">
+								#set($displayHeight = "22px")## 그리드 높이
+        						<div id="leftDisplay" style="width:${topLeftWidth}; overflow:hidden; ">
+        							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+        								<tbody id="left_tbody">
+        								#foreach( $tr in $sc_01050_shiftOperationCalendar_popup )
+        									<tr id="left_tr" height="${displayHeight}" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+        										## 번호
+                								<td width="${number}" align="center" style="background-color:${search_bgcolor}; ">
+                									<a id="divRowNo">$velocityCount</a>
+                								</td>
+												## 체크박스 
+        										<td width="30px" align="center">
+        											<input name="check_modify" type="checkbox" value="N" class="normal" style="" onClick="checkEvent(this)">
+        											<input name="checkModify" type="hidden" value="N">
+        										</td>
+												## 원가부문 코드
+        										<td width="${teamCode}" align="center" >
+        											<a id="divTeamId">$tr.get(0)</a><input
+        												type="text" name="team_id" class="normal" value="$tr.get(0)"												
+        												style="width:100%; display:none; "> 											
+        										</td>
+    											## 원가부문
+        										<td width="${teamName}" align="left" >
+        											<a id="divTeamName">&nbsp;$tr.get(1)</a><input
+        												type="text" name="team_name" class="normal" value="$tr.get(1)"												
+        												style="width:100%; display:none; "> 											
+        										</td> 
+    											## 라인
+        										<td width="${line}" align="left" >
+        											<a id="divLineName">&nbsp;$tr.get(3)</a><input
+        												type="text" name="line_id" class="normal" value="$tr.get(2)"												
+        												style="width:100%; display:none; "> ##라인코드						
+        										</td>
+    											## 작업장 코드
+        										<td width="${procCode}" align="center" >
+        											<a id="divProcCd">$tr.get(4)</a><input
+        												type="text" name="proc_cd" class="normal" value="$tr.get(4)"												
+        												style="width:100%; display:none; "> 											
+        										</td>
+    											## 작업장 
+        										<td width="${procName}" align="left" >
+        											<a id="divProcName">&nbsp;$tr.get(5)</a><input
+        												type="text" name="proc_name" class="normal" value="$tr.get(5)"												
+        												style="width:100%; display:none; "> 											
+        										</td>
+												## work type
+												<td width="50px" align="center">  
+													<a id="divProcName">$tr.get(6)</a>
+													<input type="hidden" name="proc_name" class="normal" value="$tr.get(6)"> 
+												</td>
+												<td width="50px" align="center">
+													<a id="divProcName">$tr.get(7)</a>
+													<input type="hidden" name="proc_name" class="normal" value="$tr.get(7)">
+												</td>
+												<td width="50px" align="center">
+													<a id="divProcName">$tr.get(8)</a>
+													<input type="hidden" name="proc_name" class="normal" value="$tr.get(8)">
+												</td>
+        									</tr>
+        								#end
+        								</tbody> 
+        							</table> 
+        						</div> 
+        					</td> 
+							<td valign="top"> 
+								<div id="mainDisplay" class="ns_scroll" style="border:0; width:${topLineWidth}; overflow-y:scroll; overflow-x:scroll; " onscroll="scrollX(); scrollY(); ">
+									<table width="${topLineWidth}" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="main_tbody">	
+										#foreach( $tr in $sc_01050_shiftOperationCalendar_popup )
+											<tr id="main_tr" height="${displayHeight}" onMouseOver="bgOver2(this); " onMouseOut="bgOut2(this); ">    											
+												## sun 조1       
+        										<td width="60px" align="center" onClick="setEditMode(this); "> 
+													<a id="divShift1SunStart" style="font-weight:bold; ">$tr.get(11)</a><input 
+        												name="shift_1_sun_start" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="1" value="$tr.get(11)">  
+													<input type="hidden" name="sun_shift1_workty_id" value="$tr.get(9)"> 
+													<input type="hidden" name="sun_shift1_shift_id" value="$tr.get(10)">
+												</td>
+												<td width="60px" align="center" onClick="setEditMode(this); ">   
+													<a id="divShift1SunEnd" style="font-weight:bold; ">$tr.get(12)</a><input 
+        												name="shift_1_sun_end" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="2" value="$tr.get(12)"> 
+												</td> 
+												## sun 주1
+        										<td width="60px" align="center" onClick="setEditMode(this); "> 
+													<a id="divShift3SunStart" style="font-weight:bold; " >$tr.get(15)</a><input 
+        												name="shift_3_sun_start" type="text" class="normal" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="3" value="$tr.get(15)">
+													<input type="hidden" name="sun_shift3_workty_id" value="$tr.get(13)"> 
+													<input type="hidden" name="sun_shift3_shift_id" value="$tr.get(14)">
+        											
+												</td>
+												<td width="60px" align="center" onClick="setEditMode(this); ">   
+													<a id="divShift3SunEnd" style="font-weight:bold; ">$tr.get(16)</a><input 
+        												name="shift_3_sun_end" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="4" value="$tr.get(16)"> 
+												</td>
+												## sun 야1
+        										<td width="60px" align="center" onClick="setEditMode(this); "> 
+													<a id="divShift5SunStart" style="font-weight:bold; ">$tr.get(19)</a><input 
+        												name="shift_5_sun_start" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="5" value="$tr.get(19)">
+													<input type="hidden" name="sun_shift5_workty_id" value="$tr.get(17)"> 
+													<input type="hidden" name="sun_shift5_shift_id" value="$tr.get(18)">
+												</td>
+												<td width="60px" align="center" onClick="setEditMode(this); ">   
+													<a id="divShift5SunEnd" style="font-weight:bold; ">$tr.get(20)</a><input 
+        												name="shift_5_sun_end" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="6" value="$tr.get(20)"> 
+												</td>
+												## mon 조2
+        										<td width="60px" align="center" onClick="setEditMode(this); "> 
+													<a id="divShift1MonStart" style="font-weight:bold; ">$tr.get(23)</a><input 
+        												name="shift_1_mon_start" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="7" value="$tr.get(23)">  
+													<input type="hidden" name="mon_shift1_workty_id" value="$tr.get(21)"> 
+													<input type="hidden" name="mon_shift1_shift_id" value="$tr.get(22)">
+        										</td>
+												<td width="60px" align="center" onClick="setEditMode(this); ">   
+													<a id="divShift1MonEnd" style="font-weight:bold; ">$tr.get(24)</a><input 
+        												name="shift_1_mon_end" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="8" value="$tr.get(24)"> 
+												</td>
+												## mon 주2
+        										<td width="60px" align="center" onClick="setEditMode(this); "> 
+													<a id="divShift3MonStart" style="font-weight:bold; ">$tr.get(27)</a><input 
+        												name="shift_3_mon_start" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="9" value="$tr.get(27)">
+													<input type="hidden" name="mon_shift3_workty_id" value="$tr.get(25)"> 
+													<input type="hidden" name="mon_shift3_shift_id" value="$tr.get(26)">
+        										</td>
+												<td width="60px" align="center" onClick="setEditMode(this); ">   
+													<a id="divShift3MonEnd" style="font-weight:bold; ">$tr.get(28)</a><input 
+        												name="shift_3_mon_end" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="10" value="$tr.get(28)"> 
+												</td>
+												## mon 야2
+        										<td width="60px" align="center" onClick="setEditMode(this); "> 
+													<a id="divShift5MonStart" style="font-weight:bold; ">$tr.get(31)</a><input 
+        												name="shift_5_mon_start" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="11" value="$tr.get(31)"> 
+													<input type="hidden" name="mon_shift5_workty_id" value="$tr.get(29)"> 
+													<input type="hidden" name="mon_shift5_shift_id" value="$tr.get(30)">
+												</td>
+												<td width="60px" align="center" onClick="setEditMode(this); ">   
+													<a id="divShift5MonEnd" style="font-weight:bold; ">$tr.get(32)</a><input 
+        												name="shift_5_mon_end" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="12" value="$tr.get(32)"> 
+												</td>
+												## tue 조3
+        										<td width="60px" align="center" onClick="setEditMode(this); "> 
+													<a id="divShift1TueStart" style="font-weight:bold; ">$tr.get(35)</a><input 
+        												name="shift_1_tue_start" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="13" value="$tr.get(35)">  
+													<input type="hidden" name="tue_shift1_workty_id" value="$tr.get(33)"> 
+													<input type="hidden" name="tue_shift1_shift_id" value="$tr.get(34)">
+												</td>
+												<td width="60px" align="center" onClick="setEditMode(this); ">   
+													<a id="divShift1TueEnd" style="font-weight:bold; ">$tr.get(36)</a><input  
+        												name="shift_1_tue_end" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="14" value="$tr.get(36)"> 
+												</td>
+												## tue 주3
+        										<td width="60px" align="center" onClick="setEditMode(this); "> 
+													<a id="divShift3TueStart" style="font-weight:bold; ">$tr.get(39)</a><input 
+        												name="shift_3_tue_start" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="15" value="$tr.get(39)"> 
+													<input type="hidden" name="tue_shift3_workty_id" value="$tr.get(37)"> 
+													<input type="hidden" name="tue_shift3_shift_id" value="$tr.get(38)">
+        										</td>
+												<td width="60px" align="center" onClick="setEditMode(this); ">   
+													<a id="divShift3TueEnd" style="font-weight:bold; ">$tr.get(40)</a><input 
+        												name="shift_3_tue_end" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="16" value="$tr.get(40)"> 
+												</td>
+												## tue 야3
+        										<td width="60px" align="center" onClick="setEditMode(this); "> 
+													<a id="divShift5TueStart" style="font-weight:bold; ">$tr.get(43)</a><input 
+        												name="shift_5_tue_start" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="17" value="$tr.get(43)"> 
+													<input type="hidden" name="tue_shift5_workty_id" value="$tr.get(41)"> 
+													<input type="hidden" name="tue_shift5_shift_id" value="$tr.get(42)">
+												</td>
+												<td width="60px" align="center" onClick="setEditMode(this); ">   
+													<a id="divShift5TueEnd" style="font-weight:bold; ">$tr.get(44)</a><input 
+        												name="shift_5_tue_end" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="18" value="$tr.get(44)"> 
+												</td>
+												## wed 조4
+        										<td width="60px" align="center" onClick="setEditMode(this); "> 
+													<a id="divShift1WedStart" style="font-weight:bold; ">$tr.get(47)</a><input 
+        												name="shift_1_wed_start" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="19" value="$tr.get(47)">
+													<input type="hidden" name="wed_shift1_workty_id" value="$tr.get(45)"> 
+													<input type="hidden" name="wed_shift1_shift_id" value="$tr.get(46)">
+												</td>
+												<td width="60px" align="center" onClick="setEditMode(this); ">   
+													<a id="divShift1WedEnd" style="font-weight:bold; ">$tr.get(48)</a><input 
+        												name="shift_1_wed_end" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="20" value="$tr.get(48)"> 
+												</td>
+												## wed 주4
+        										<td width="60px" align="center" onClick="setEditMode(this); "> 
+													<a id="divShift3WedStart" style="font-weight:bold; ">$tr.get(51)</a><input 
+        												name="shift_3_wed_start" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="21" value="$tr.get(51)"> 
+													<input type="hidden" name="wed_shift3_workty_id" value="$tr.get(49)"> 
+													<input type="hidden" name="wed_shift3_shift_id" value="$tr.get(50)">
+												</td>
+												<td width="60px" align="center" onClick="setEditMode(this); ">   
+													<a id="divShift3WedEnd" style="font-weight:bold; ">$tr.get(52)</a><input 
+        												name="shift_3_wed_end" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="1" value="$tr.get(52)"> 
+												</td>
+												## wed 야4
+        										<td width="60px" align="center" onClick="setEditMode(this); "> 
+													<a id="divShift5WedStart" style="font-weight:bold; ">$tr.get(55)</a><input 
+        												name="shift_5_wed_start" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="22" value="$tr.get(55)">
+													<input type="hidden" name="wed_shift5_workty_id" value="$tr.get(53)"> 
+													<input type="hidden" name="wed_shift5_shift_id" value="$tr.get(54)">
+												</td>
+												<td width="60px" align="center" onClick="setEditMode(this); ">   
+													<a id="divShift5WedEnd" style="font-weight:bold; ">$tr.get(56)</a><input 
+        												name="shift_5_wed_end" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="23" value="$tr.get(56)"> 
+												</td>
+												## thu 조5
+        										<td width="60px" align="center" onClick="setEditMode(this); "> 
+													<a id="divShift1ThuStart" style="font-weight:bold; ">$tr.get(59)</a><input 
+        												name="shift_1_thu_start" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="24" value="$tr.get(59)">
+													<input type="hidden" name="thu_shift1_workty_id" value="$tr.get(57)"> 
+													<input type="hidden" name="thu_shift1_shift_id" value="$tr.get(58)">
+												</td>
+												<td width="60px" align="center" onClick="setEditMode(this); ">   
+													<a id="divShift1ThuEnd" style="font-weight:bold; ">$tr.get(60)</a><input 
+        												name="shift_1_thu_end" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="25" value="$tr.get(60)"> 
+												</td>
+												## thu 주5
+        										<td width="60px" align="center" onClick="setEditMode(this); "> 
+													<a id="divShift1ThuStart" style="font-weight:bold; ">$tr.get(63)</a><input 
+        												name="shift_3_thu_start" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="26" value="$tr.get(63)">
+													<input type="hidden" name="thu_shift3_workty_id" value="$tr.get(61)"> 
+													<input type="hidden" name="thu_shift3_shift_id" value="$tr.get(62)">
+												</td>
+												<td width="60px" align="center" onClick="setEditMode(this); ">   
+													<a id="divShift3ThuEnd" style="font-weight:bold; ">$tr.get(64)</a><input 
+        												name="shift_3_thu_end" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="27" value="$tr.get(64)"> 
+												</td>
+												## thu 야5
+        										<td width="60px" align="center" onClick="setEditMode(this); "> 
+													<a id="divShift5ThuStart" style="font-weight:bold; ">$tr.get(67)</a><input 
+        												name="shift_5_thu_start" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="28" value="$tr.get(67)">
+													<input type="hidden" name="thu_shift5_workty_id" value="$tr.get(65)"> 
+													<input type="hidden" name="thu_shift5_shift_id" value="$tr.get(66)">
+												</td>
+												<td width="60px" align="center" onClick="setEditMode(this); ">   
+													<a id="divShift5ThuEnd" style="font-weight:bold; ">$tr.get(68)</a><input 
+        												name="shift_5_thu_end" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="29" value="$tr.get(68)"> 
+												</td>
+												## fri 조6
+        										<td width="60px" align="center" onClick="setEditMode(this); "> 
+													<a id="divShift1Fristart" style="font-weight:bold; ">$tr.get(71)</a><input 
+        												name="shift_1_fri_start" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="30" value="$tr.get(71)">
+													<input type="hidden" name="fri_shift1_workty_id" value="$tr.get(69)"> 
+													<input type="hidden" name="fri_shift1_shift_id" value="$tr.get(70)">
+												</td>
+												<td width="60px" align="center" onClick="setEditMode(this); ">   
+													<a id="divShift1FriEnd" style="font-weight:bold; ">$tr.get(72)</a><input 
+        												name="shift_1_fri_end" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="31" value="$tr.get(72)"> 
+												</td>
+												## fri 주6
+        										<td width="60px" align="center" onClick="setEditMode(this); "> 
+													<a id="divShift3FriStart" style="font-weight:bold; ">$tr.get(75)</a><input 
+        												name="shift_3_fri_start" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="32" value="$tr.get(75)">
+													<input type="hidden" name="fri_shift3_workty_id" value="$tr.get(73)"> 
+													<input type="hidden" name="fri_shift3_shift_id" value="$tr.get(74)">
+												</td>
+												<td width="60px" align="center" onClick="setEditMode(this); ">   
+													<a id="divShift3FriEnd" style="font-weight:bold; ">$tr.get(76)</a><input 
+        												name="shift_3_fri_end" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="33" value="$tr.get(76)"> 
+												</td>
+												## fri 야6
+        										<td width="60px" align="center" onClick="setEditMode(this); "> 
+													<a id="divShift5FriStart" style="font-weight:bold; ">$tr.get(79)</a><input 
+        												name="shift_5_fri_start" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="34" value="$tr.get(79)">
+													<input type="hidden" name="fri_shift5_workty_id" value="$tr.get(77)"> 
+													<input type="hidden" name="fri_shift5_shift_id" value="$tr.get(78)">
+												</td>
+												<td width="60px" align="center" onClick="setEditMode(this); ">   
+													<a id="divShift5FriEnd" style="font-weight:bold; ">$tr.get(80)</a><input 
+        												name="shift_5_fri_end" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="35" value="$tr.get(80)"> 
+												</td>
+												## sat 조7
+        										<td width="60px" align="center" onClick="setEditMode(this); "> 
+													<a id="divShift1SatStart" style="font-weight:bold; ">$tr.get(83)</a><input 
+        												name="shift_1_sat_start" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="36" value="$tr.get(83)">
+													<input type="hidden" name="sat_shift1_workty_id" value="$tr.get(81)"> 
+													<input type="hidden" name="sat_shift1_shift_id" value="$tr.get(82)">
+												</td>
+												<td width="60px" align="center" onClick="setEditMode(this); ">   
+													<a id="divShift1SatEnd" style="font-weight:bold; ">$tr.get(84)</a><input 
+        												name="shift_1_sat_end" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="37" value="$tr.get(84)"> 
+												</td>
+												## sat 주7
+        										<td width="60px" align="center" onClick="setEditMode(this); "> 
+													<a id="divShift3SatStart" style="font-weight:bold; ">$tr.get(87)</a><input 
+        												name="shift_3_sat_start" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="38" value="$tr.get(87)"> 
+													<input type="hidden" name="sat_shift3_workty_id" value="$tr.get(85)"> 
+													<input type="hidden" name="sat_shift3_shift_id" value="$tr.get(86)">
+												</td>
+												<td width="60px" align="center" onClick="setEditMode(this); ">   
+													<a id="divShift3SatEnd" style="font-weight:bold; ">$tr.get(88)</a><input 
+        												name="shift_3_sat_end" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="39" value="$tr.get(88)"> 
+												</td>
+												## sat 야7 
+        										<td width="60px" align="center" onClick="setEditMode(this); "> 
+													<a id="divShift5SatStart" style="font-weight:bold; ">$tr.get(91)</a><input 
+        												name="shift_5_sat_start" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="40" value="$tr.get(91)"> 
+													<input type="hidden" name="sat_shift5_workty_id" value="$tr.get(89)"> 
+													<input type="hidden" name="sat_shift5_shift_id" value="$tr.get(90)">
+												</td>
+												<td width="60px" align="center" onClick="setEditMode(this); " class="right">   
+													<a id="divShift5SatEnd" style="font-weight:bold; ">$tr.get(92)</a><input 
+        												name="shift_5_sat_end" type="text" class="normal" onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+														style="width:100%; text-align:center; display:none; " tabindex="41" value="$tr.get(92)"> 
+												</td>
+											</tr> 
+										#end
+										</tbody>
+									</table>
+								</div>
+							</td>
+						</tr>
+					</table>
+					
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+					
+					<input type="hidden" name="_moon_service">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+										
+				</div>
+			</div> 
+		</td>
+	</tr>
+</table>
+
+<script> 
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 조 운영 캘린더의 근무 착수 시간과 완료 시간을 조정할 수 있습니다.";
+	helpStr += "<br>◈ 작업장별, 일자별, SHIFT별, 착수/완료 시간을 수정한 후 좌측 상단의 저장 버튼을 클릭하면 저장이 됩니다.";
+	helpStr += "<br>◈ 일괄 적용하기 위해서는 .";
+	helpStr += "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1) 일괄적용을 적용할 라인의 체크박스(화면 좌측)를 선택합니다.";
+	helpStr += "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2) 화면 상단의 일괄적용 항목의 조건을 선택하고 변경할 시간을 입력한 후  적용 버튼을 클릭합니다.";
+	helpStr += "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ex) 월, 조, 착수, 090000 을 선택하면 월요일 조간 착수 시간을 090000로 변경.";
+	helpStr += "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3) 적용버튼을 클릭하면 화면만 반영된 상태이므로 상단의 저장 버튼을 클릭하여 저장합니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;	
+		
+</script>

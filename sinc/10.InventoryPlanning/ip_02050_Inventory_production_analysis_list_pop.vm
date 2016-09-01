@@ -1,0 +1,232 @@
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+##set( $resizeFuncCallCode = "setGridAutoResize('117', '177')" )
+#set( $resizeFuncCallCode = "setGridAutoResize('140', '680')" )
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## TAB 영역
+	<tr>
+    	<td align="right">
+			<input type="text" name="simul_data" size="60" class="normal" onKeyPress="enterCheck('$_moon_service'); " 
+				style="width:60px; padding-left:1px; " onBlur="strCheck(); " onClick="select(); " 
+				onChange="strCheck(this); " value="$commonUtil.replaceQuot($!{simul_data})">
+			<input type="button" name="btnSearch" value="Simulation"  onClick="refresh('simul'); "  class="btn2_on">
+			<input type="button" name="btnSearch" value="3주평균"  onClick="refresh('3week'); "  class="btn1_on">
+			<input type="button" name="btnSearch" value="1주평균"  onClick="refresh('1week'); "  class="btn1_on">
+			<input type="button" name="btnSearch" value="(3+1)/2" onClick="refresh('31week'); " class="btn1_on">
+		</td>
+	</tr>
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()	## 세로축 스크롤 바			
+				<div class="tab-page" id="tabPage1" style="overflow:auto; 
+					scrollbar-face-color:#FFFFFF; scrollbar-base-color:#FFFFFF;
+					scrollbar-highlight-color:#666666; scrollbar-3dlight-color: #FFFFFF;
+					scrollbar-shadow-color:#666666; scrollbar-darkshadow-color: #FFFFFF;
+					scrollbar-track-color: #FFFFFF; scrollbar-arrow-color: #666666; ">
+					##<h2 class="tab">${_moon_title}</h2>
+					<h2 class="tab">  $!{item_id} - $!{item_name}  </h2>
+					<input type="hidden" name="item_id" value ="$!{item_id}">								
+					<input type="hidden" name="item_name" value ="$!{item_name}">								
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>					
+    					
+						<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+    						<tr>
+    							<td>
+    								<textarea id="txt1" style="display:none;" rows="0" cols="0">
+										##품목번호 : $!{item_id} - $!{item_name}
+    									1. 계획 재고 일수
+    									<object height="95px"
+											#set( $gh = $ip_02050_Inventory_production_analysis_list_header)
+            								#set( $header = "구분!%!$gh.get(0).get(0)!%!$gh.get(0).get(1)!%!$gh.get(0).get(2)!%!$gh.get(0).get(3)!%!$gh.get(0).get(4)!%!$gh.get(0).get(5)!%!$gh.get(0).get(6)!%!$gh.get(0).get(7)!%!$gh.get(0).get(8)!%!$gh.get(0).get(9)!%!$gh.get(0).get(10)")                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+            								##set( $header = "품목번호!%!품목명!%!구분!%!D!%!D+1!%!D+2!%!D+3!%!D+4!%!D+5!%!D+6!%!D+7!%!D+8!%!D+9" )                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+            								#set( $headerType = "TEXT!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER" )                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+            								#set( $colwidth = "70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70" )                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+            								#set( $colalign = "CENTER!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT" )                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+            								##set( $colCor = "8=eeeeee&9=eeeeee&10=eeeeee&11=eeeeee&15=eeeeee&16=eeeeee&17=eeeeee&21=eeeeee&22=eeeeee&23=eeeeee&27=eeeeee&28=eeeeee&29=eeeeee" )                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+            								            								
+            								#set( $data = $zlattice.getBody($!{ip_02050_Inventory_production_analysis_list_pop_plan},"!%!", "/%/") )
+            										
+    										classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93" width="100%" height="375"
+    										##codebase="http://java.sun.com/update/1.5.0/jinstall-1_5_0_03-windows-i586.cab#Version=1,5,3,0">
+    										codebase="http://javadl.sun.com/webapps/download/AutoDL?BundleId=19588#Version=6,0,050,13">
+    										<!--Necessary--> 
+    										<param name="code" value="com.zionex.t3sinc.ui.ZLattice">
+    										<param name="archive" value="zLattice.jar">
+    										<param name="headertypes" value= "$headerType">
+    										<param name="headers"  value= "$header">
+    										<param name="data" value= "$data">
+    										<!--Necessary for Modification Grid -->
+    										<param name="names" value= "" >
+    										<!--Necessary for Cookie -->
+    										<param name="identity" value="ip_02050_Inventory_production_analysis_list_pop_plan">
+    										<!--Necessary in TYPE COMBO 
+    										<param name="combo9" value="DATA1!%!DATA2!%!DATA3">-->
+    										<!--optional - Default Value 있음-->
+    										<param name="columndelimeter" value="!%!"> <!-- defalut : !%! -->
+    										<param name="rowdelimeter" value="/%/"> <!-- defalut : /%/ -->
+    										<param name="showgroupingfunction" value="false">  <!-- defalut : true -->
+    										<param name="showprintingfunction" value="false">   <!-- defalut : true -->
+    										<param name="showlockingfunction" value="false"> <!-- defalut : true -->
+    										<param name="showpagingfunction" value="false"> <!-- defalut : true -->
+    										<param name="enablesorting" value="false">   <!-- defalut : true -->
+    										<param name="groupingcolumn" value="0"> <!-- defalut : 그루핑 없음 -->
+    										<param name="groupsumcolumn" value="0"> <!-- defalut : 그루핑 없음 -->
+    										<param name="lockedcolumn" value="3"> <!-- defalut : 락킹 없음 -->
+    										<param name="presentpage" value="$_moon_pagenumber">   <!-- defalut : 1 -->
+    										<param name="listinpage" value="$_moon_perpage">   <!-- defalut : 40 -->
+    										<param name="bordertype" value="PLANE"> <!-- default - PLANE -->
+    										<param name="indateformat" value="yyyy-MM-dd"> <!-- default - yyyyMMdd -->
+    										<param name="outdateformat" value="yyyy-MM-dd">  <!-- default - yyyyMMdd -->									
+    										<param name="outnumberformat" value="&#035;,&#035;&#035;0.0"> 					 
+    										<param name="columnwidth" value="$colwidth"> <!-- default -80 -->
+    										<param name="hasverticaltotal" value="false"> <!-- default -true -->
+    										<param name="hashorizontaltotal" value="false"> <!-- default -true -->
+    										<param name="totalrowcolor" value="909090"> <!-- default ? E6E6FA -->
+    										<param name="totalverticalrowcolor" value="909090"> <!-- default ? E6E6FF -->
+    										<param name="totalhorizontalrowcolor" value="a1a1a1"> <!-- default ? E6E6FF -->
+    										<param name="hascookie" value="false"> <!-- default -false -->
+    										<param name="enableinserting" value="false"> <!-- default -false -->
+    										<param name="enabledeleting" value="false"> <!-- default -false -->
+    										<param name="enableediting" value="false"> <!-- default -false -->
+    										<!--optional - Default Value 없음-->
+    										##set( $colCor = "12=dfdfdf&13=dfdfdf&14=dfdfdf&18=dfdfdf&19=dfdfdf&20=dfdfdf" ) 
+    										<param name="columncolor" value="$!{colCor}">
+    										<param name="rowcolor" value="$!{rowCol}">
+    										<!--<param name="onclickrowfunc" value="onclickfunc">-->
+    										<param name="callingfunction" value="DOUBLECLICKED_CALLING">
+    										<param name="disablecolumns" value="">
+    										<param name="columnalign" value="$colalign">
+    										<param name="font" value="굴림">
+    										<param name="fontsize" value="12">
+    										<param name="columnheight" value="25"> 
+    										<param name="headertype" value="HORIZONTAL_HEADER">
+    										
+    										## 이중 헤더
+    										<param name="hasnestedsubheader" value="true"> 
+    										<param name="topheaders" value="$!{topheader}">
+    										<param name="topheaderposition" value="$!{topheaderPosition}">
+    										<param name="enabledragging" value="true">
+    									</object>										
+										    									
+    									<table><tr><td height="4px">
+                    					</td></tr></table>
+    									2. 실적 재고일수
+    									<object height="95px"   										
+            								#set( $header = "구분!%!$gh.get(0).get(0)!%!$gh.get(0).get(1)!%!$gh.get(0).get(2)!%!$gh.get(0).get(3)!%!$gh.get(0).get(4)!%!$gh.get(0).get(5)!%!$gh.get(0).get(6)!%!$gh.get(0).get(7)!%!$gh.get(0).get(8)!%!$gh.get(0).get(9)!%!$gh.get(0).get(10)")                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+            								##set( $header = "품목번호!%!품목명!%!구분!%!D!%!D+1!%!D+2!%!D+3!%!D+4!%!D+5!%!D+6!%!D+7!%!D+8!%!D+9" )                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+            								#set( $headerType = "TEXT!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER" )                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+            								#set( $colwidth = "70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70" )                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+            								#set( $colalign = "CENTER!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT" )                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+            								##set( $colCor = "8=eeeeee&9=eeeeee&10=eeeeee&11=eeeeee&15=eeeeee&16=eeeeee&17=eeeeee&21=eeeeee&22=eeeeee&23=eeeeee&27=eeeeee&28=eeeeee&29=eeeeee" )                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+											
+            								#set( $data = $zlattice.getBody($!{ip_02050_Inventory_production_analysis_list_pop_act},"!%!", "/%/") )
+    										
+    										classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93" width="100%" height="375"
+    										##codebase="http://java.sun.com/update/1.5.0/jinstall-1_5_0_03-windows-i586.cab#Version=1,5,3,0">
+    										codebase="http://javadl.sun.com/webapps/download/AutoDL?BundleId=19588#Version=6,0,050,13">
+    										<!--Necessary--> 
+    										<param name="code" value="com.zionex.t3sinc.ui.ZLattice">
+    										<param name="archive" value="zLattice.jar">
+    										<param name="headertypes" value= "$headerType">
+    										<param name="headers"  value= "$header">
+    										<param name="data" value= "$data">
+    										<!--Necessary for Modification Grid -->
+    										<param name="names" value= "" >
+    										<!--Necessary for Cookie -->
+    										<param name="identity" value="ip_02050_Inventory_production_analysis_list_pop_act">
+    										<!--Necessary in TYPE COMBO 
+    										<param name="combo9" value="DATA1!%!DATA2!%!DATA3">-->
+    										<!--optional - Default Value 있음-->
+    										<param name="columndelimeter" value="!%!"> <!-- defalut : !%! -->
+    										<param name="rowdelimeter" value="/%/"> <!-- defalut : /%/ -->
+    										<param name="showgroupingfunction" value="false">  <!-- defalut : true -->
+    										<param name="showprintingfunction" value="false">   <!-- defalut : true -->
+    										<param name="showlockingfunction" value="false"> <!-- defalut : true -->
+    										<param name="showpagingfunction" value="false"> <!-- defalut : true -->
+    										<param name="enablesorting" value="false">   <!-- defalut : true -->
+    										<param name="groupingcolumn" value="3"> <!-- defalut : 그루핑 없음 -->
+    										<param name="groupsumcolumn" value="0"> <!-- defalut : 그루핑 없음 -->
+    										<param name="lockedcolumn" value="3"> <!-- defalut : 락킹 없음 -->
+    										<param name="presentpage" value="$_moon_pagenumber">   <!-- defalut : 1 -->
+    										<param name="listinpage" value="$_moon_perpage">   <!-- defalut : 40 -->
+    										<param name="bordertype" value="PLANE"> <!-- default - PLANE -->
+    										<param name="indateformat" value="yyyy-MM-dd"> <!-- default - yyyyMMdd -->
+    										<param name="outdateformat" value="yyyy-MM-dd">  <!-- default - yyyyMMdd -->									
+    										<param name="outnumberformat" value="&#035;,&#035;&#035;0.0">  
+    										<param name="columnwidth" value="$colwidth"> <!-- default -80 -->
+    										<param name="hasverticaltotal" value="false"> <!-- default -true -->
+    										<param name="hashorizontaltotal" value="false"> <!-- default -true -->
+    										<param name="totalrowcolor" value="909090"> <!-- default ? E6E6FA -->
+    										<param name="totalverticalrowcolor" value="909090"> <!-- default ? E6E6FF -->
+    										<param name="totalhorizontalrowcolor" value="a1a1a1"> <!-- default ? E6E6FF -->
+    										<param name="hascookie" value="false"> <!-- default -false -->
+    										<param name="enableinserting" value="false"> <!-- default -false -->
+    										<param name="enabledeleting" value="false"> <!-- default -false -->
+    										<param name="enableediting" value="false"> <!-- default -false -->
+    										<!--optional - Default Value 없음-->
+    										##set( $colCor = "12=dfdfdf&13=dfdfdf&14=dfdfdf&18=dfdfdf&19=dfdfdf&20=dfdfdf" ) 
+    										<param name="columncolor" value="$!{colCor}">
+    										<param name="rowcolor" value="$!{rowCol}">
+    										<param name="onclickrowfunc" value="onclickfunc">
+    										<param name="callingfunction" value="DOUBLECLICKED_CALLING">
+    										<param name="disablecolumns" value="">
+    										<param name="columnalign" value="$colalign">
+    										<param name="font" value="굴림">
+    										<param name="fontsize" value="12">
+    										<param name="columnheight" value="25"> 
+    										<param name="headertype" value="HORIZONTAL_HEADER">
+    										
+    										## 이중 헤더
+    										<param name="hasnestedsubheader" value="true"> 
+    										<param name="topheaders" value="$!{topheader}">
+    										<param name="topheaderposition" value="$!{topheaderPosition}">
+    										<param name="enabledragging" value="true">
+    									</object>
+    							
+    								</textarea>
+    								<script language="javascript" src="${project}/object_activity.jsp?txtID=txt1"></script>    								
+    							</td>
+    						</tr>
+    					</table>
+					
+					<table height="5"><tr><td></td></tr></table>
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>						
+						<input type="hidden" name="_moon_service" value="${_moon_service}">
+						<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+						<input type="hidden" name="_user_id" value="$!{_user_id}">
+					</td></tr></table> 
+					
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	//$!{resizeFuncCallCode};
+	//function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 기준정보Check 조회는 ITEM ID을 반드시 입력하고 조회해야 합니다.";
+	helpStr += "<br>◈ 2.품목 디테일 조회에서 각 공장을 더블클릭하면 3.BOM 정보에 대한 상세내용이 표시 됩니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0; 
+	
+	//document.cookie = "webfxtab_tabPane1=1";
+	
+</script>

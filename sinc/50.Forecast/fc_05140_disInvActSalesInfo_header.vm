@@ -1,0 +1,191 @@
+#*-----------------------------------------------------------------------
+ @path    /sinc/50.Forecast/script/fc_05140_disInvActSalesInfo_header.vm
+ @Creator    김규철 
+ @version    1.0
+ @date        2008-11-26 
+ @description : 유통재고/실판매정보  조회 화면     
+ -------------------------------------------------------------------------
+*#
+ 
+## 비정상적 접근 방지 
+#loginCheck()
+  
+<script type='text/javascript' src='$!{project}/dwr/interface/nongshim.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/engine.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/util.js'></script>
+  
+<!-- 기간구분  Flag, KIMKC start -->
+<input type="hidden" name="periodGB" value="">
+	
+<table id="dataArea" border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	<tr>
+		<td height="25" align="right" bgcolor="${toolbar_bgcolor}" class="line">
+			<table align="right" width="100%" height="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+				<tr>
+					<td align="right"> 
+						<input type="button" name="btnSearch" value=" 조회" onClick="searchIFrameData(document.frm.periodGB.value);" class="btn_search_on">
+						#toolbar_nscm($_moon_toolbar "" "" "" "")
+					</td>
+				</tr>
+			</table>
+		</td>                                                                                                                                                                                                                  
+	</tr>
+	##조회 영역 start  
+	<tr id="search_menu">
+		<td height="20" valign="top" bgcolor="${search_bgcolor}" class="line">			
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr id="mainTrArea">
+					<td width="100%" align="">
+						<table height="21" border="0" cellpadding="0" cellspacing="0">					
+           				<tr>      
+							<td width="25%"> 
+								 &nbsp;구분1:       
+								<input type="checkbox" name="periodGB1" value = "" onClick="changeCheckBox(this);"  #if($!{periodGB1} == "M") checked #else #end>월</input>
+								<input type="checkbox" name="periodGB2" value = ""  onClick="changeCheckBox(this);" #if($!{periodGB2} == "W") checked #else #end>주</input>
+								<input type="checkbox" name="periodGB3" value = ""  onClick="changeCheckBox(this);" #if($!{periodGB2} == "W") checked #else #end>일</input>
+							</td>								 
+							<td width="20%" align="center"> 
+								<div id = "changGubun1">
+								조회기간(월) :
+        						#date_sole_no_title("create_month" "7" "normal" "btnC" "$date.get('yyyy-MM')")		 
+								</div>
+								<div id = "changGubun2" style="display:none">
+								조회기간(주/일) : 
+        						#date_sole_no_title( "sdate" "10" "normal" "startBtn" $date.get('yyyy-MM-dd')) 
+        						<input type="hidden" name="edate" size="10" class="normal" value="" disabled>            							  
+        						<script>  
+									sumDate(document.frm.sdate);
+        							document.frm.sdate.onchange = function(){ sumDate(this); };            							
+        						</script>  
+								</div>  
+							</td>  
+							<td width="5%"></td>
+							<td width="15%" align="">
+								<input type="radio" name="checked_site1" value="" 
+        							onClick="changeCheckRadio(this)" #if($!{checked_site1} == "Y") checked #else #end>거래처</input>&nbsp;
+        						<input type="radio" name="checked_site2" value="" 
+        							onClick="changeCheckRadio(this)" #if($!{checked_site2} == "Y") checked #else #end>본부</input>	
+							</td>		   
+ 							
+							<td width="20%" align="">	   
+								## 거래처 input box
+								<div id = "changGubunSite1" style="display:">  
+									<input name="customer1_id" class="normal" style="width:70px; " onChange="fc_openCusoNoMultiPop('checked_site1'); "
+										onkeypress="enterCheck('${_moon_service}'); " value="$!{customer1_id}"> 	
+									<input name="customer1_name" class="normal" readOnly style="width:120px; " value="$!{customer1_name}">
+										<img name="imgItem" src="sinc/template/basic/skin/nongshim/images/common/icon_search.gif"
+										align="absmiddle" border="0" style="cursor:pointer;"
+										onClick="fc_openCusoNoMultiPop('checked_site1'); ">	 
+								</div>   	
+								## 본부 input box
+								<div id = "changGubunSite2" style="display:none">									
+									<input name="customer2_id" class="normal" style="width:70px; " onChange="fc_openCusoNoMultiPop('checked_site2'); "
+										onkeypress="enterCheck('${_moon_service}'); " value="$!{customer2_id}"> 	
+									<input name="customer2_name" class="normal" readOnly style="width:120px; " value="$!{customer2_name}">
+										<img name="imgItem" src="sinc/template/basic/skin/nongshim/images/common/icon_search.gif"
+										align="absmiddle" border="0" style="cursor:pointer;"
+										onClick="fc_openCusoNoMultiPop('checked_site2'); ">	 
+								</div>       
+								## 거래처 N 선택시 리턴값들
+								<input name="cust_query"    type= "hidden"  value="$!{cust_query}" >
+								## 본부 N   선택시 리턴값들
+								<input name="mart_query"    type= "hidden"  value="$!{mart_query}" >
+        					</td>    
+						</tr> 
+						<tr>			 			 		
+							<td width="25%" colspan="2">&nbsp;제품 :
+								<input type="hidden" name="martName" value="$!{martName}">									  
+								<input name="item_id" class="normal" style="width:70px; " onChange="getItemName(this); "
+									onkeypress="enterCheck('${_moon_service}'); " value="$!{item_id}"> 	
+								<input name="item_name" class="normal" readOnly style="width:120px; " value="$!{item_name}"><img
+									name="imgItem" src="sinc/template/basic/skin/nongshim/images/common/icon_search.gif"
+									align="absmiddle" border="0" style="cursor:pointer;" 
+									onClick="fc_openCodeSearchMultiPop('item_id', 'item_name', '600', '440'); ">	 
+								 
+								## item_query 존재유무 
+								<input name="item_query" type= "hidden" value="$!{item_query}" >
+        					</td> 	    
+							<td width="5%" align="right"></td>
+        					<td width="20%" colspan="2">단위 :
+								<input type="radio" name="checked_uom" value="cnt" checked="on" 
+        							onClick="this.checked" #if($!{checked_uom} == "cnt") checked #else #end>수량</input>&nbsp;
+        						<input type="radio" name="checked_uom" value="amount" 
+        							onClick="this.checked" #if($!{checked_uom} == "amount") checked #else #end>금액</input>									
+        					</td> 
+            			</tr> 
+					</table>
+				</td>							
+			 </tr>
+		  </table>    			
+		</td>   
+	 </tr>	    
+	 <tr>
+	 	 <td valign="top">   
+				<iframe name="iframe01" src="service.do?_moon_service=fc_05140_disInvActSalesInfo_tailer&amp&amp;_moon_perpage=20&amp;_moon_pagenumber=1" width="100%" height="100%" scrolling="no" topmargin="0" leftmargin="0" frameborder="NO" border="0" framespacing="0"></iframe>			
+		 </td> 
+	 </tr>	  
+	 <input type="hidden" name="_moon_service" value="${_moon_service}">
+	 <input type="hidden" name="_moon_pagenumber" value="${_moon_pagenumber}">
+</table>
+					 
+<script>		   
+	// window start시 초기화
+	function window.onload(){    
+
+	    //기간구분
+	    var p_GB1 = "$!{periodGB1}";
+	    var p_GB2 = "$!{periodGB2}"; 
+	    var p_GB3 = "$!{periodGB3}";
+				
+		//기간구분 
+	    if(p_GB1 == ""){
+					  
+			if(p_GB2 == "" || p_GB3 == ""){
+	    		document.frm.periodGB1.checked = true;
+	    		document.frm.periodGB1.value   = "M";								
+			}else{     
+	    		document.frm.periodGB1.value   = "";
+	    		document.frm.periodGB1.checked = false;	
+			    
+				document.getElementById("changGubun1").style.display = "none";
+	            document.getElementById("changGubun2").style.display = "";
+			} 		  
+		} 
+ 
+		//거래처/본부구분
+	    var siteGB1 = "$!{checked_site1}";
+	    var siteGB2 = "$!{checked_site2}";
+		
+	    if(siteGB1 == ""){
+					  
+			if(siteGB2 == ""){
+	    		document.frm.checked_site1.checked = true;
+	    		document.frm.checked_site1.value   = "Y";	
+
+				document.getElementById("changGubunSite1").style.display = "";
+	            document.getElementById("changGubunSite2").style.display = "none";
+				
+			}else{     
+	    		document.frm.checked_site1.value   = "";
+	    		document.frm.checked_site1.checked = false;
+				
+	    		document.frm.checked_site2.value   = "Y";
+	    		document.frm.checked_site2.checked = true;
+			    
+				document.getElementById("changGubunSite1").style.display = "none";
+	            document.getElementById("changGubunSite2").style.display = "";
+			} 		  
+		} 
+	} 
+
+	// 도움말 내용 입력 
+	var helpStr  = "◈  유통재고 실판매정보를  조회하는 화면입니다.";
+    	helpStr += "<br>◈ 구분1 : 기간(월:조회월+11개처월, 주:조회주+11주, 일:조회일+30일) ";
+		helpStr += "<br>◈ 거래처 및 본부의 선택에  따라 N개의 팝업 조회 및 선택이  가능합니다."; 
+		helpStr += "<br>◈ 제품을  N개의 팝업 조회 및 선택이  가능합니다.";
+		helpStr += "<br>◈ 각 항목을 조회 후 상단의 조회 버튼을 클릭하여 조회합니다.";   		
+	helpCont.innerHTML = helpStr; 
+	// 도움말 zoomOut 높이 조절 변수   
+	hDynamicHeight = 0;	
+</script>
+   

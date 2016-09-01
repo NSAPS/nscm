@@ -1,0 +1,188 @@
+############################################################
+## 프로그램ID      : sc_13010_set_prod_order_reg_pop.vm
+## 프로그램명      : 유통가공 생산오더 등록 pop_up
+## 개발자          : 권용찬
+## 개발일자        : 2009-10-13
+##
+## 관련 job file   : job_sinc_10_inventoryPlanning_03.xml
+## 관련 query file : query_sinc_10_inventoryPlanning_03.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2009-10-13  권용찬      create
+##
+############################################################
+  
+      
+## 비정상적 접근 방지    
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setGridAutoResize('79', '148')" ) ###set( $resizeFuncCallCode = "setGridAutoResize('79', '60')" )
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/scheduling.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+    ## 조회 영역
+	## TAB 영역   
+	##<br>
+	<tr>
+    	<td width="100%" valign="top" align="left" rowspown="3">    
+			##idu_mode:$!{idu_mode}-IF_FLAG:$!{if_flag}-idu_flag:$!{idu_flag}
+			#if($!{idu_flag} == "삭제")  ## 등록화면        체크완
+			<font color="black"><b>생산오더번호 : $!{prod_po} - 생성상태 : $!{idu_flag} - $!{if_flag}</b></font>
+    		#elseif($!{idu_mode} == "REG")  ## IF전  등록화면    체크완
+    		<input type="button" name="btnReg" 	value="  등록" onClick="GoReg();" class="btn_reg_on" >
+			#elseif($!{idu_mode} == "MOD" && $!{if_flag}  == '')  ## IF전 수정화면	 체크완
+			<input type="button" name="btnDel" 	value="  삭제" onClick="GoDelete();" class="btn_del_on" >
+			<input type="button" name="btnReg" 	value="  수정" onClick="GoMod();" 	class="btn_reg_on" >
+			#elseif($!{if_flag}  == '전송전'||$!{if_flag}  == '전송중') ## 수정화면(IF 후)
+			<font color="black"><b>ERP IF 진행중</b></font>  
+			#elseif($!{if_flag}  == '전송완료'&&$!{idu_flag} == "생성") ## 수정화면(IF 후)
+			<input type="button" name="btnDelIf" 	value="  삭제" onClick="GoDeleteIf();" class="btn_del_on" >
+			<font color="black"><b>생산오더번호 : $!{prod_po} - 생성상태 : $!{idu_flag} - $!{if_flag}</b></font>
+    		#else						## 수정화면(IF 전 )
+			##<input type="button" name="btnReg" 	value="  삭제" onClick="GoDelete();" class="btn_del_on" >
+			##<input type="button" name="btnReg" 	value="  수정" onClick="GoMod();" 	class="btn_reg_on" >
+			#end  
+			 
+			<input type="text" name="test" class="normal" style="width:0px; text-align:left; font:12px/15px 맑은 고딕 bold; ">			
+			<input type="hidden" name="idu_mode"	value ="$!{idu_mode}">
+			<input type="hidden" name="wo_id"		value ="$!{wo_id}">
+			<input type="hidden" name="if_flag"		value ="$!{if_flag}">
+			<input type="hidden" name="idu_flag"	value ="$!{idu_flag}">
+			<input type="hidden" name="prod_po"		value ="$!{prod_po}">
+
+		</td>
+	</tr>
+	<tr>
+        <td width="100%" valign="top">
+            <table border="0" width="100%" cellpading="0" cellspacing="0">
+                <tr height="3">  
+                    <td colspan="3" style="background-color:#d0d0d0; " ></td>
+                </tr>
+                <tr height="3">
+					<td colspan="3" style="background-color:#d0d0d0; " ></td>
+				</tr>
+            </table>
+        </td> 
+    </tr>
+    <tr>
+        <td align="left" width="100%">    
+
+			<table width="100%" border="1px" cellpading="0" cellspacing="0" class="normal-table">
+				<tr>
+					<td width="8%" align="right" style="background-color:#f2f2f2;">플 랜 트 :</td>
+					<td width="30%" align="left" >
+						<input type="text" name="plant_id" style="width:60px; text-align:center;" class="normal" value="1300"  readonly > 
+					</td> 
+					<td width="8%" align="right" style="background-color:#f2f2f2;">품 목 :</td>
+					<td width="30%" align="left" >
+							<input name="item_id" class="normal" style="width:70px; " onChange="getItemName(this);"
+								onkeypress="checkForNumber(this);" value="$!{item_id_sel}" #if($!{idu_mode} == "MOD") readonly #end>
+							<input name="item_name" class="normal" style="width:160px; " value="$!{item_name_sel}" 
+								onClick="document.frm.item_id.value=''" #if($!{idu_mode} == "MOD") readonly #end>
+							<img name="imgItem" src="sinc/template/basic/skin/nongshim/images/common/icon_search.gif"
+								align="absmiddle" border="0" style="cursor:pointer;"  
+								onClick="openItemSearchPop('item_id', '450', '300'); " >
+							<input type="hidden" name="item_id_sel" value="$!{item_id_sel}" >
+							<input type="hidden" name="item_name_sel" value="$!{item_name_sel}" >
+					</td> 
+				</tr>
+				<tr>
+					<td width="8%" align="right" style="background-color:#f2f2f2;">생산버전 :</td>
+					<td width="30%" align="left"  >
+    					<a id="divProdVerCombo" align="left" style="width:20%; ">
+    						##품목
+    						<select name="prod_ver" onChange="" #if($!{idu_mode} == "MOD") readonly #end>
+    							<option value=""  selected  >선택</option>
+    						</select>
+    					</a>
+						<script>
+							//getProdVer();
+						</script>								
+						<input type="hidden"	name="inpt_prod_ver"	style="width:1%; " class="normal" value="$!{prod_ver}" #if($!{idu_mode} == "MOD") readonly #end> 
+						<input type="hidden"	name="proc_id"	style="width:1%; " class="normal" value="$!{proc_id}" 		#if($!{idu_mode} == "MOD") readonly #end> 
+						<input type="text"		name="hid_name"	style="width:50%; " class="normal" value="$!{proc_id_name}" readonly > 
+						<input type="hidden"	name="oper_id"	style="width:1%; " class="normal" value="$!{oper_id}" 		#if($!{idu_mode} == "MOD") readonly #end> 
+						<input type="hidden"	name="loc_id"	style="width:1%; " class="normal" value="$!{loc_id}" 		#if($!{idu_mode} == "MOD") readonly #end> 
+						<input type="text"		name="dc_name"	style="width:100%; " class="normal" value="$!{loc_name}" 	readonly > 
+					</td> 
+					<td width="8%" align="right" style="background-color:#f2f2f2;">수 량 :</td>
+					<td width="30%" align="left" >
+						<input type="text" name="qty"		style="width:43%; " class="normal" value="$!{qty}"  
+							onChange="" onkeyup="getBom();" onkeypress="checkForNumber(this);"/>  
+						<input type="text" name="qty_uom"	style="width:43%; " class="normal" value="BOX" readonly > 
+					</td> 
+				</tr> 
+				<tr>
+					<td width="8%" align="right" style="background-color:#f2f2f2;">시작일자 :</td>
+					<td width="20%" align="left" >
+						#date_sole_no_title("start_date" "10" "normal" "btnS" "$date.get('yyyy-MM-dd')")
+						<input type="text" name="start_time" style="width:20%; ime-mode:disabled;" maxlength='6' class="normal" value="060000"  readonly> 
+					</td> 
+					<td width="8%" align="right" style="background-color:#f2f2f2;">종료일자 :</td>
+					<td width="20%" align="left" >
+						#date_sole_no_title("end_date" "10" "normal" "btnE" "$date.get('yyyy-MM-dd')")
+						<input type="text" name="end_time" style="width:20%;  ime-mode:disabled; " maxlength='6' class="normal" value="175959"  readonly> 
+					</td> 
+				</tr>						
+			</table>
+        </td>
+	</tr>
+	<tr>
+        <td width="100%" valign="top">
+            <table border="0" width="100%" cellpading="0" cellspacing="0">
+                <tr height="3">
+                    <td colspan="3" style="background-color:#d0d0d0; " ></td>
+                </tr>
+                <tr height="3">  
+					<td colspan="3" style="background-color:#d0d0d0; " ></td>
+				</tr>
+            </table>
+        </td> 
+    </tr>
+	<input name="search_h" type="hidden" value="45"> ## search 조건 부분 높이 
+    <tr>
+        <td align="left" width="100%" height="80px">
+            <script>initWiseGrid("WiseGrid", "100%", "100%");</script>
+        </td>
+	</tr>
+	## TAB 영역
+    <tr>
+        <td valign="top">
+        ## tab 좌측 여백
+        ##tabLeft()               
+            <table height="5"><tr><td></td></tr></table>
+            <table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+                <input type="hidden" name="_moon_service" value="${_moon_service}">
+                <input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+                <input type="hidden" name="_user_id" value="$!{_user_id}">
+            </td></tr></table>
+            
+            
+        </td>
+    </tr>
+</table>
+
+<script>
+    
+    // 화면 resize
+    $!{resizeFuncCallCode};
+    function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	#if($!{idu_mode} == "MOD")  ## 등록화면
+	getProdVer();
+	#end		
+	
+	
+    
+    // 도움말 내용 입력
+    var helpStr = " ";    
+    helpCont.innerHTML = helpStr;
+    hDynamicHeight = 0; 
+           
+</script> 

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+<!--
+=====================================================================================================
+	공통
+=====================================================================================================
+-->
+	
+	<!--
+	======================================================================
+		CODE SEARCH POPUP
+	======================================================================
+	-->
+	
+	<!-- ITEM SEARCH POPUP : PAGING : 생산계획 미 반영 작업장 화면 용 -->
+	<job id="item_search_popup_for_notuse_proc" job_type="single">
+		<path>/sinc/00.common</path>
+		<navigation>제품 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>제품 조회</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="item_search_popup_for_notuse_proc" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+</jobs>	

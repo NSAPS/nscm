@@ -1,0 +1,214 @@
+## 비정상적 접근 방지 
+#loginCheck() 
+## 화면 resizing 을 위한 function 호출 코드
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize2('112', '142')" )
+##쿼리 결과 값 저장 
+#set( $item_list = $!{sc_10030_dailyPlantAllocationPlanAnalysis_popup})
+
+## 전달 받은 변수 저장( refreash 할때 필요 )
+#if(${selected_plant})
+	<input type="hidden" name="plant_id" value="$!{plant_id}">
+#end
+##<input type="hidden" name="item_id" value="$!{item_id}">
+<input type="hidden" name="version" value="$!{version}">
+<input type="hidden" name="sdate" value="$!{sdate}">
+<input type="hidden" name="plant_id" value="$!{plant_id}">
+<input type="hidden" name="due_date" value="$!{due_date}">
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<script>
+		areaBtn.innerHTML = " &nbsp; <input type=\"button\" name=\"btnSave\" value=\"  저장\" onClick=\"GoSave('sc_10030_dailyPlantAllocationPlanAnalysis_popup_save_comp')\" class=\"btn_sav_on\" >";
+	</script>
+	## 조회 영역
+	<tr>
+		<td width="90%" valign="top"> 
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2">
+					<td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" 
+							id="search_menu" style="background-color:#f2f2f2; display:block; ">
+            				<tr>
+								<td width="14%" align="right"> 
+									제품코드: 
+								</td> 
+								<td width="25%" align="left"> 
+									<input type="text" name="item_id" size="10"  style="text-align:center; " class="normal" 
+										#if($item_list.size() == 0) value="" #else value="$item_list.get(0).get(4)" #end readOnly>
+								</td>
+								<td width="13%" align="right">  
+									제품명 : 
+								</td> 
+								<td width="48%" align="left">  
+									<input type="text" name="item_name" size="100"  style="width:260px; text-align:center; " class="normal" 
+										#if($item_list.size() == 0) value="" #else value="$item_list.get(0).get(5)" #end readOnly>            						
+								</td> 
+							</tr> 
+							<tr>
+								<td width="14%" align="right">  
+									납기일 :
+								</td>
+								<td width="25%" align="left">  
+									#date_sole_no_title( "selected_date" "10" "normal" "startBtn" "$!{sdate}")
+									<input name="btn_batch_date" type="button" value="적용" style="width:40px; text-align:center; " onClick="prodDatesBatch(); " 
+            							class="button1_1" onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'">
+								</td>
+								<td width="13%" align="right">  
+									공장 : 
+								</td>  
+								<td width="48%" align="left">       
+									<select name="selected_plant" style="width:220px; ">			 							
+									#foreach( $condition in $plant_alloc_analysis_combo_plant_list )
+										<option value="$condition.get(0)" #if( $!{selected_plant} == "$condition.get(0)" ) selected #end>$condition.get(1)</option>
+									#end
+									</select><input 
+										name="btn_batch_plant" type="button" value="적용" style="width:40px; text-align:center; " onClick="procBatch(); " 
+            							class="button1_1" onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'">
+								</td>								
+            				</tr> 
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr> 
+	<input name="search_h" type="hidden" value="47"> ## search 조건 부분 높이  
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr> 
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()
+				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>#page_info2()</td>
+						</tr>
+					</table>
+					
+					<table id="tbMain" border="0" width="100%" cellpadding="0" cellspacing="0" ><tr><td>
+						##우측상단헤더
+						<div id="topLine" style="height:40px; width:626px;overflow:hidden;">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<thead>	
+									<tr height="40px">
+										<td width="5%">번호</td>
+										<td width="5%">전체<br><input type="checkbox" name="checked_all" value="N" onClick="checkAll(this);"/></td>
+										<td width="31%">오더 번호</td>
+										<td width="31%">공장</td>
+										<td width="14%">납기일</td>
+										<td width="14%" class="right">생산량</td>
+									</tr>									
+			   					 </thead>
+			   				</table>
+			   			</div>
+					</td></tr>	
+					<tr>
+					<td valign="top"> 
+						## 우측 하단 로우
+						<div id="mainDisplay" class="ns_scroll" style="border:0; width:645px; overflow-y:scroll; ">
+							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+								<tbody id="main_tbody">
+								#if( $item_list.size() == 0)
+									<tr height="1"><td colspan="6" width="100%"></td></tr>
+								#end
+								#foreach( $tr in $item_list )
+									<tr id="main_tr" height="22px" onMouseOver="bgOver2(this); " onMouseOut="bgOut2(this); ">
+										## 번호
+										<td width="5%" align="center" style="background-color:${search_bgcolor}; ">
+											<a id="divRowNo">$velocityCount</a>
+										</td>	
+										## 체크박스
+										<td width="5%" align="center">
+											<input name="check_modify" type="checkbox" value="N" class="normal" style="" onClick="checkEvent(this)">
+											<input name="checkModify" type="hidden" value="N">
+										</td>
+										## 오더 번호(9)
+										<td width="31%" align="center">
+											<a id="divOrderInfo">$tr.get(9)</a>
+										</td>
+										##공장(2)(3)
+										<td width="31%" align="center" onClick="setEditMode(this); ">
+											<a id="divPlant">&nbsp;$tr.get(3)</a><select name="input_plant_id"
+												onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+												style="width:100%; display:none; " tabindex="1" >
+													<optin value="$tr.get(2)" selected >$tr.get(3)</optin>
+												#foreach( $condition in $plant_alloc_analysis_combo_plant_list )
+													<option value="$condition.get(0)" #if( "$tr.get(2)" == "$condition.get(0)" ) selected #end>$condition.get(1)</option>
+												#end
+												</select> 
+										</td>
+										##납기일(6)
+										<td width="14%" align="center" onClick="setEditMode(this); ">
+											<a id="divDueDate">$tr.get(6)</a><input
+												type="text" name="input_due_date" class="normal" size="100" value="$tr.get(6)" tabindex="2"
+												onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+												style="width:100%; text-align:center; display:none; " onDblClick="this.select(); ">
+										</td>
+										##생산량(7)
+										<td width="14%" align="right" onClick="setEditMode(this); " class="right"> 
+											<a id="divQty">$tr.get(7)&nbsp;</a><input
+												type="text" name="input_qty" class="normal" size="100" value="$tr.get(7)" tabindex="3"
+												onFocusOut="setViewMode(this); " onKeyDown="moveNextBox(this); "
+												style="width:100%; text-align:right; display:none; " onDblClick="this.select(); ">
+										</td>
+										## DATA 저장 변수					
+										<input type="hidden" name="s_version" value="$tr.get(0)">
+										<input type="hidden" name="s_seq" value="$tr.get(1)">
+										<input type="hidden" name="s_plant_id" value="$tr.get(2)">
+										<input type="hidden" name="s_item_id" value="$tr.get(4)">
+										<input type="hidden" name="s_due_date" value="$tr.get(6)">
+										<input type="hidden" name="s_qty" value="$tr.get(7)">
+										<input type="hidden" name="s_qty_uom" value="$tr.get(8)">		
+										<input type="hidden" name="s_order_info" value="$tr.get(9)">
+									</tr>
+								#end
+								</tbody>
+							</table>
+						</div>
+					</td></tr></table> 	
+					
+					</td></tr></table>
+					
+					## waiting 표시영역
+					#waitingArea()
+						
+					<input type="hidden" name="_moon_service">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">
+					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 수정 할 행의 좌측 체크박스를 선택하고 공장, 납기일 항목을 수정 후 상단의 저장 버튼을 클릭하면 저장 됩니다.";
+	helpStr += "<br>◈ 수정할 복수 행의 체크박스를 선택후 상단의 납기일과 공장 항목을 선택 후 각각의 적용 버튼을 클릭하면 일괄 적용이<br>&nbsp;&nbsp;&nbsp;&nbsp;됩니다.";
+	helpStr += "<br>◈ 일괄 적용된 값을 저장하려면 상단의 저장 버튼을 클릭합니다.";
+	helpStr += "<br>◈ 저장시 체크박스가 선택이된 행만이 저장이 됩니다.";
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+</script> 

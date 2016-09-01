@@ -1,0 +1,541 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>	
+
+	<!-- 일간생산계획 일별근무 집계 -->
+	<query id="sc_16010_dailyWorkTotalization_list01">
+
+			SELECT  DT.PLANT_ID,                        --0 공장 코드 
+			        HR.PLANT_NAME,                      --1 공장
+			        DT.LINE_ID,                         --2 라인 코드
+			        HR.LINE_NAME,                       --3 라인
+			        DT.WEEK53_NO,                       --4 주차
+			        DT.WORK_TYPE||'교대' AS WORK_TYPE   --5 근무형태   
+			        ,MAX(TO_CHAR(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+0,'YYYYMMDD') AND DT.SHIFT_TYPE = '1' THEN DT.SHIFT_QTY ELSE 0 END ,'999,999')) D01A --6
+			        ,MAX(TO_CHAR(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+0,'YYYYMMDD') AND DT.SHIFT_TYPE = '3' THEN DT.SHIFT_QTY ELSE 0 END ,'999,999')) D01B --7
+			        ,MAX(TO_CHAR(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+0,'YYYYMMDD') AND DT.SHIFT_TYPE = '5' THEN DT.SHIFT_QTY ELSE 0 END ,'999,999')) D01C --8
+			        ,MAX(TO_CHAR(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+1,'YYYYMMDD') AND DT.SHIFT_TYPE = '1' THEN DT.SHIFT_QTY ELSE 0 END ,'999,999')) D02A --9
+			        ,MAX(TO_CHAR(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+1,'YYYYMMDD') AND DT.SHIFT_TYPE = '3' THEN DT.SHIFT_QTY ELSE 0 END ,'999,999')) D02B --10
+			        ,MAX(TO_CHAR(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+1,'YYYYMMDD') AND DT.SHIFT_TYPE = '5' THEN DT.SHIFT_QTY ELSE 0 END ,'999,999')) D02C --11
+			        ,MAX(TO_CHAR(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+2,'YYYYMMDD') AND DT.SHIFT_TYPE = '1' THEN DT.SHIFT_QTY ELSE 0 END ,'999,999')) D03A --12
+			        ,MAX(TO_CHAR(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+2,'YYYYMMDD') AND DT.SHIFT_TYPE = '3' THEN DT.SHIFT_QTY ELSE 0 END ,'999,999')) D03B --13
+			        ,MAX(TO_CHAR(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+2,'YYYYMMDD') AND DT.SHIFT_TYPE = '5' THEN DT.SHIFT_QTY ELSE 0 END ,'999,999')) D03C --14
+			        ,MAX(TO_CHAR(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+3,'YYYYMMDD') AND DT.SHIFT_TYPE = '1' THEN DT.SHIFT_QTY ELSE 0 END ,'999,999')) D04A --15
+			        ,MAX(TO_CHAR(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+3,'YYYYMMDD') AND DT.SHIFT_TYPE = '3' THEN DT.SHIFT_QTY ELSE 0 END ,'999,999')) D04B --16
+			        ,MAX(TO_CHAR(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+3,'YYYYMMDD') AND DT.SHIFT_TYPE = '5' THEN DT.SHIFT_QTY ELSE 0 END ,'999,999')) D04C --17
+			        ,MAX(TO_CHAR(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+4,'YYYYMMDD') AND DT.SHIFT_TYPE = '1' THEN DT.SHIFT_QTY ELSE 0 END ,'999,999')) D05A --18
+			        ,MAX(TO_CHAR(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+4,'YYYYMMDD') AND DT.SHIFT_TYPE = '3' THEN DT.SHIFT_QTY ELSE 0 END ,'999,999')) D05B --19
+			        ,MAX(TO_CHAR(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+4,'YYYYMMDD') AND DT.SHIFT_TYPE = '5' THEN DT.SHIFT_QTY ELSE 0 END ,'999,999')) D05C --20
+			        ,MAX(TO_CHAR(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+5,'YYYYMMDD') AND DT.SHIFT_TYPE = '1' THEN DT.SHIFT_QTY ELSE 0 END ,'999,999')) D06A --21
+			        ,MAX(TO_CHAR(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+5,'YYYYMMDD') AND DT.SHIFT_TYPE = '3' THEN DT.SHIFT_QTY ELSE 0 END ,'999,999')) D06B --22
+			        ,MAX(TO_CHAR(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+5,'YYYYMMDD') AND DT.SHIFT_TYPE = '5' THEN DT.SHIFT_QTY ELSE 0 END ,'999,999')) D06C --23
+			        ,MAX(TO_CHAR(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+6,'YYYYMMDD') AND DT.SHIFT_TYPE = '1' THEN DT.SHIFT_QTY ELSE 0 END ,'999,999')) D07A --24
+			        ,MAX(TO_CHAR(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+6,'YYYYMMDD') AND DT.SHIFT_TYPE = '3' THEN DT.SHIFT_QTY ELSE 0 END ,'999,999')) D07B --25
+			        ,MAX(TO_CHAR(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+6,'YYYYMMDD') AND DT.SHIFT_TYPE = '5' THEN DT.SHIFT_QTY ELSE 0 END ,'999,999')) D07C --26
+			        ,MAX(DT.IDX_QTY) IDX_QTY                             --27 기준물량
+			        ,DECODE(MAX(DT.PROD_METHOD),1,'●',NULL) NORMAL      --28 정상
+			        ,DECODE(MAX(DT.PROD_METHOD),2,'●',NULL) EXTENSION   --29 연장
+			        ,DECODE(MAX(DT.PROD_METHOD),3,'●',NULL) DAY_OFF     --30 휴동
+			        /* SHIFT별 정상(1),연장(2),휴동(3) 정보 */
+			        ,MAX(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+0,'YYYYMMDD') AND DT.SHIFT_TYPE = '1' THEN DT.PROD_METHOD ELSE NULL END ) DI01A --31        
+			        ,MAX(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+0,'YYYYMMDD') AND DT.SHIFT_TYPE = '3' THEN DT.PROD_METHOD ELSE NULL END ) DI01B --32
+			        ,MAX(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+0,'YYYYMMDD') AND DT.SHIFT_TYPE = '5' THEN DT.PROD_METHOD ELSE NULL END ) DI01C --33
+			        ,MAX(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+1,'YYYYMMDD') AND DT.SHIFT_TYPE = '1' THEN DT.PROD_METHOD ELSE NULL END ) DI02A --34
+			        ,MAX(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+1,'YYYYMMDD') AND DT.SHIFT_TYPE = '3' THEN DT.PROD_METHOD ELSE NULL END ) DI02B --35
+			        ,MAX(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+1,'YYYYMMDD') AND DT.SHIFT_TYPE = '5' THEN DT.PROD_METHOD ELSE NULL END ) DI02C --36
+			        ,MAX(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+2,'YYYYMMDD') AND DT.SHIFT_TYPE = '1' THEN DT.PROD_METHOD ELSE NULL END ) DI03A --37
+			        ,MAX(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+2,'YYYYMMDD') AND DT.SHIFT_TYPE = '3' THEN DT.PROD_METHOD ELSE NULL END ) DI03B --38
+			        ,MAX(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+2,'YYYYMMDD') AND DT.SHIFT_TYPE = '5' THEN DT.PROD_METHOD ELSE NULL END ) DI03C --39
+			        ,MAX(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+3,'YYYYMMDD') AND DT.SHIFT_TYPE = '1' THEN DT.PROD_METHOD ELSE NULL END ) DI04A --40
+			        ,MAX(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+3,'YYYYMMDD') AND DT.SHIFT_TYPE = '3' THEN DT.PROD_METHOD ELSE NULL END ) DI04B --41
+			        ,MAX(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+3,'YYYYMMDD') AND DT.SHIFT_TYPE = '5' THEN DT.PROD_METHOD ELSE NULL END ) DI04C --42
+			        ,MAX(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+4,'YYYYMMDD') AND DT.SHIFT_TYPE = '1' THEN DT.PROD_METHOD ELSE NULL END ) DI05A --43
+			        ,MAX(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+4,'YYYYMMDD') AND DT.SHIFT_TYPE = '3' THEN DT.PROD_METHOD ELSE NULL END ) DI05B --44
+			        ,MAX(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+4,'YYYYMMDD') AND DT.SHIFT_TYPE = '5' THEN DT.PROD_METHOD ELSE NULL END ) DI05C --45
+			        ,MAX(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+5,'YYYYMMDD') AND DT.SHIFT_TYPE = '1' THEN DT.PROD_METHOD ELSE NULL END ) DI06A --46
+			        ,MAX(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+5,'YYYYMMDD') AND DT.SHIFT_TYPE = '3' THEN DT.PROD_METHOD ELSE NULL END ) DI06B --47
+			        ,MAX(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+5,'YYYYMMDD') AND DT.SHIFT_TYPE = '5' THEN DT.PROD_METHOD ELSE NULL END ) DI06C --48
+			        ,MAX(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+6,'YYYYMMDD') AND DT.SHIFT_TYPE = '1' THEN NULL END ) DI07A --49
+			        ,MAX(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+6,'YYYYMMDD') AND DT.SHIFT_TYPE = '3' THEN NULL END ) DI07B --50
+			        ,MAX(CASE WHEN DT.PROD_DATES = TO_CHAR(WK.MON+6,'YYYYMMDD') AND DT.SHIFT_TYPE = '5' THEN NULL END ) DI07C --51
+			FROM    V_DAILY_TOTALIZATION DT,
+                    (
+                    -- DEFAULT : 차주, 차주 월요일
+                #if("$!{checked_weekly}" == "w0")
+                    SELECT  NEXT_DAY(SYSDATE-7,2) MON --금주
+                #elseif("$!{checked_weekly}" == "w2")
+                    SELECT  NEXT_DAY(SYSDATE+7,2) MON --차차주
+                #else
+                    SELECT NEXT_DAY(SYSDATE,2) MON --차주
+                #end                                  
+                    FROM   DUAL
+                    ) WK,
+			        CAL_MST CM,
+			        (
+			        /* 공장, 라인 리스트*/
+			        SELECT  DISTINCT
+			                PLANT_ID, PLANT_NAME, LINE_ID, LINE_NAME
+			        FROM    V_HRCHY_PROC
+			        ) HR
+			WHERE   [DT.PLANT_ID  = '${plant_id}'
+			AND     ]CM.YYYYMMDD  = TO_CHAR(WK.MON,'YYYYMMDD')
+			AND     DT.WEEK53_NO = CM.YYYYWW
+			AND     DT.PLANT_ID  = HR.PLANT_ID
+			AND     DT.LINE_ID   = HR.LINE_ID
+			GROUP   BY DT.PLANT_ID, HR.PLANT_NAME, DT.LINE_ID, HR.LINE_NAME, DT.WEEK53_NO, DT.WORK_TYPE	
+			ORDER	BY DT.PLANT_ID, DT.LINE_ID, DT.WEEK53_NO, DT.WORK_TYPE
+ 
+	</query>
+	
+	
+	<query id="sc_16010_dailyWorkTotalization_list02">
+ 		
+			SELECT  A.DIVISION																																	--0
+			        ,DECODE(A.DIVISION,'10','면류','20','스낵류','10_20','면류,스낵류','40','미반류','30','음료') AS DIVISION_NAME                              	--1
+			        ,MAX(TO_CHAR(CASE WHEN A.PROD_DATES = TO_CHAR(WK.MON+0,'YYYYMMDD') AND A.SHIFT_TYPE = '1' THEN A.SHIFT_QTY ELSE 0 END ,'999,999' )) D01A    --2
+			        ,MAX(TO_CHAR(CASE WHEN A.PROD_DATES = TO_CHAR(WK.MON+0,'YYYYMMDD') AND A.SHIFT_TYPE = '3' THEN A.SHIFT_QTY ELSE 0 END ,'999,999' )) D01B    --3
+			        ,MAX(TO_CHAR(CASE WHEN A.PROD_DATES = TO_CHAR(WK.MON+0,'YYYYMMDD') AND A.SHIFT_TYPE = '5' THEN A.SHIFT_QTY ELSE 0 END ,'999,999' )) D01C    --4
+			        ,MAX(TO_CHAR(CASE WHEN A.PROD_DATES = TO_CHAR(WK.MON+1,'YYYYMMDD') AND A.SHIFT_TYPE = '1' THEN A.SHIFT_QTY ELSE 0 END ,'999,999' )) D02A    --5
+			        ,MAX(TO_CHAR(CASE WHEN A.PROD_DATES = TO_CHAR(WK.MON+1,'YYYYMMDD') AND A.SHIFT_TYPE = '3' THEN A.SHIFT_QTY ELSE 0 END ,'999,999' )) D02B    --6
+			        ,MAX(TO_CHAR(CASE WHEN A.PROD_DATES = TO_CHAR(WK.MON+1,'YYYYMMDD') AND A.SHIFT_TYPE = '5' THEN A.SHIFT_QTY ELSE 0 END ,'999,999' )) D02C    --7
+			        ,MAX(TO_CHAR(CASE WHEN A.PROD_DATES = TO_CHAR(WK.MON+2,'YYYYMMDD') AND A.SHIFT_TYPE = '1' THEN A.SHIFT_QTY ELSE 0 END ,'999,999' )) D03A    --8
+			        ,MAX(TO_CHAR(CASE WHEN A.PROD_DATES = TO_CHAR(WK.MON+2,'YYYYMMDD') AND A.SHIFT_TYPE = '3' THEN A.SHIFT_QTY ELSE 0 END ,'999,999' )) D03B    --9
+			        ,MAX(TO_CHAR(CASE WHEN A.PROD_DATES = TO_CHAR(WK.MON+2,'YYYYMMDD') AND A.SHIFT_TYPE = '5' THEN A.SHIFT_QTY ELSE 0 END ,'999,999' )) D03C    --10
+			        ,MAX(TO_CHAR(CASE WHEN A.PROD_DATES = TO_CHAR(WK.MON+3,'YYYYMMDD') AND A.SHIFT_TYPE = '1' THEN A.SHIFT_QTY ELSE 0 END ,'999,999' )) D04A    --11
+			        ,MAX(TO_CHAR(CASE WHEN A.PROD_DATES = TO_CHAR(WK.MON+3,'YYYYMMDD') AND A.SHIFT_TYPE = '3' THEN A.SHIFT_QTY ELSE 0 END ,'999,999' )) D04B    --12
+			        ,MAX(TO_CHAR(CASE WHEN A.PROD_DATES = TO_CHAR(WK.MON+3,'YYYYMMDD') AND A.SHIFT_TYPE = '5' THEN A.SHIFT_QTY ELSE 0 END ,'999,999' )) D04C    --13
+			        ,MAX(TO_CHAR(CASE WHEN A.PROD_DATES = TO_CHAR(WK.MON+4,'YYYYMMDD') AND A.SHIFT_TYPE = '1' THEN A.SHIFT_QTY ELSE 0 END ,'999,999' )) D05A    --14
+			        ,MAX(TO_CHAR(CASE WHEN A.PROD_DATES = TO_CHAR(WK.MON+4,'YYYYMMDD') AND A.SHIFT_TYPE = '3' THEN A.SHIFT_QTY ELSE 0 END ,'999,999' )) D05B    --15
+			        ,MAX(TO_CHAR(CASE WHEN A.PROD_DATES = TO_CHAR(WK.MON+4,'YYYYMMDD') AND A.SHIFT_TYPE = '5' THEN A.SHIFT_QTY ELSE 0 END ,'999,999' )) D05C    --16
+			        ,MAX(TO_CHAR(CASE WHEN A.PROD_DATES = TO_CHAR(WK.MON+5,'YYYYMMDD') AND A.SHIFT_TYPE = '1' THEN A.SHIFT_QTY ELSE 0 END ,'999,999' )) D06A    --17
+			        ,MAX(TO_CHAR(CASE WHEN A.PROD_DATES = TO_CHAR(WK.MON+5,'YYYYMMDD') AND A.SHIFT_TYPE = '3' THEN A.SHIFT_QTY ELSE 0 END ,'999,999' )) D06B    --18
+			        ,MAX(TO_CHAR(CASE WHEN A.PROD_DATES = TO_CHAR(WK.MON+5,'YYYYMMDD') AND A.SHIFT_TYPE = '5' THEN A.SHIFT_QTY ELSE 0 END ,'999,999' )) D06C    --19
+			        ,MAX(TO_CHAR(CASE WHEN A.PROD_DATES = TO_CHAR(WK.MON+6,'YYYYMMDD') AND A.SHIFT_TYPE = '1' THEN A.SHIFT_QTY ELSE 0 END ,'999,999' )) D07A    --20
+			        ,MAX(TO_CHAR(CASE WHEN A.PROD_DATES = TO_CHAR(WK.MON+6,'YYYYMMDD') AND A.SHIFT_TYPE = '3' THEN A.SHIFT_QTY ELSE 0 END ,'999,999' )) D07B    --21
+			        ,MAX(TO_CHAR(CASE WHEN A.PROD_DATES = TO_CHAR(WK.MON+6,'YYYYMMDD') AND A.SHIFT_TYPE = '5' THEN A.SHIFT_QTY ELSE 0 END ,'999,999' )) D07C    --22
+			FROM    (       
+			        SELECT  --10 면류(+냉동)
+			                --20 스낵류
+			                --10+20 면류+스낵류
+			                --40 미반류
+			                --30 음료 로 집계 한다.
+			                LST.SEQ  
+			                ,NVL(DMY.DIVISION, DECODE(LST.SEQ,1,'10' ,2,'20' ,4,'40' ,5,'30') ) AS DIVISION
+			                ,LST.PROD_DATES
+			                ,LST.SHIFT_TYPE
+			                ,CASE WHEN  DMY.DIVISION='10_20' THEN SUM(CASE WHEN LST.SEQ IN (1,2) AND NVL(DMY.IDX,1)=1 THEN LST.SHIFT_QTY ELSE 0 END) OVER( PARTITION BY LST.PROD_DATES ORDER BY 1 )
+			                      ELSE  LST.SHIFT_QTY 
+			                 END  AS    SHIFT_QTY
+			         FROM   (
+			                   SELECT --SEQ로 집계한다.
+			                          IDX.SEQ ,LST.PROD_DATES, LST.SHIFT_TYPE ,SUM(LST.SHIFT_QTY) AS SHIFT_QTY
+			                    FROM (
+			                               SELECT ITM.DIVISION ,PLA.PROD_DATES, PLA.SHIFT_TYPE ,SUM(PLA.SHIFT_QTY) AS SHIFT_QTY
+			                                 FROM (
+			                                          SELECT --공장별 마지막 버젼 리스트 생성
+			                                                 PLANT_ID ,FN_GET_MAXVERSION('PS',PLANT_ID) AS MAX_VER
+			                                            FROM V_PLANT 
+			                                      ) VER
+			                                      INNER JOIN DAILY_SCH_PLAN_SHIFT PLA
+			                                      ON  PLA.CAT_ID   = 'PS'
+			                                      [AND PLA.PLANT_ID = '${plant_id}']
+			                                      AND PLA.PLANT_ID = VER.PLANT_ID
+			                                      AND PLA.VERSION  = VER.MAX_VER
+			                                      AND PLA.WO_END   = 'Y'
+			                                      ------------------------------------------------------------------
+			                                      --주차 구분 
+			                                      INNER JOIN 
+			                                      (
+			                                          SELECT    TO_CHAR(WK.MON,'yyyymmdd') AS SDATE ,TO_CHAR(WK.MON+6,'yyyymmdd') AS EDATE 
+			                                          FROM      DUAL,
+			                                                    (
+											                    -- DEFAULT : 차주, 차주 월요일
+											                #if("$!{checked_weekly}" == "w0")
+											                    SELECT  NEXT_DAY(SYSDATE-7,2) MON --금주
+											                #elseif("$!{checked_weekly}" == "w2")
+											                    SELECT  NEXT_DAY(SYSDATE+7,2) MON --차차주
+											                #else
+											                    SELECT NEXT_DAY(SYSDATE,2) MON --차주
+											                #end                                  
+											                    FROM   DUAL
+											                    ) WK
+			                                      ) WEK                     
+			                                      ON  PLA.PROD_DATES BETWEEN WEK.SDATE AND WEK.EDATE
+			                                      ------------------------------------------------------------------
+			                                      --아이템 마스터를 이용하여 제품류를 구분한다.                     
+			                                      LEFT OUTER JOIN ITEM_MST ITM
+			                                      ON  ITM.ITEM_ID = PLA.ITEM_ID
+			                                GROUP BY ITM.DIVISION ,PLA.PROD_DATES, PLA.SHIFT_TYPE
+			                         ) LST 
+			                         LEFT OUTER JOIN   
+			                         (
+			                             --화면에 집계할 구분별로 SEQ를 정의 한다.
+			                             SELECT 1 AS SEQ ,'10' AS DIVISION FROM DUAL UNION ALL --면류
+			                             SELECT 1 AS SEQ ,'50' AS DIVISION FROM DUAL UNION ALL --냉동면
+			                             SELECT 2 AS SEQ ,'20' AS DIVISION FROM DUAL UNION ALL --스낵류
+			                             SELECT 4 AS SEQ ,'40' AS DIVISION FROM DUAL UNION ALL --미반류
+			                             SELECT 5 AS SEQ ,'30' AS DIVISION FROM DUAL           --음료
+			                         ) IDX
+			                         ON IDX.DIVISION=LST.DIVISION
+			                   GROUP BY IDX.SEQ ,LST.PROD_DATES, LST.SHIFT_TYPE 
+			                ) LST
+			                ------------------------------------------------------------------
+			                --면+스낵을 만들어 준다.
+			                LEFT OUTER JOIN 
+			                (
+			                  SELECT 1 AS SEQ ,1 AS IDX ,'10'    AS DIVISION FROM DUAL UNION ALL 
+			                  SELECT 1 AS SEQ ,2 AS IDX ,'10_20' AS DIVISION FROM DUAL 
+			                ) DMY
+			                ON  DMY.SEQ = LST.SEQ
+			                ------------------------------------------------------------------
+			                --DIVISION에 대한 NAME을 가져온다.
+			                LEFT OUTER JOIN CODE_MST MST
+			                ON  MST.CD_GRP = 'DIVISION'
+			                AND MST.CD     =  DECODE(LST.SEQ,1,'10' ,2,'20' ,4,'40' ,5,'30' )
+			        ORDER   BY DECODE(DIVISION,'10',1,'20',2,'10_20',3,'40',4,'30',5) ,PROD_DATES, SHIFT_TYPE
+			        ) A,
+			        (
+                    -- DEFAULT : 차주, 차주 월요일
+                #if("$!{checked_weekly}" == "w0")
+                    SELECT  NEXT_DAY(SYSDATE-7,2) MON --금주
+                #elseif("$!{checked_weekly}" == "w2")
+                    SELECT  NEXT_DAY(SYSDATE+7,2) MON --차차주
+                #else
+                    SELECT NEXT_DAY(SYSDATE,2) MON --차주
+                #end                                  
+                    FROM   DUAL
+                    ) WK
+			GROUP   BY A.DIVISION 		
+ 		
+	</query>
+	
+	<query id="sc_16010_dailyWorkTotalization_list_header">
+	
+            with --해더 가져오는 쿼리..
+                 V_LST
+              as (
+                  select LST.COL_ID||DMY.SHIFT_TYPE as COL_ID                           
+                        ,DMY.SHIFT_NAME as COL_TEXT                           
+                        ,LST.COL_TYPE                           
+                        ,LST.COL_LENGTH                         
+                        ,LST.COL_SIZE                           
+                        ,LST.COL_EDIT_TYPE                      
+                        ,LST.COL_BG_COLOR              
+                        ,LST.HOLIDAY_FLAG        
+                        ,DMY.SHIFT_TYPE
+                        ,LST.DAY_RANK
+                        ,LST.WEEK_RANK
+                    from (
+                          select /*+ INDEX(CAL CAL_MST_IDX1) */
+                                 replace('D'||to_char(dense_rank() OVER ( order by YYYYMMDD),'09'),' ','') as COL_ID
+                                ,'t_text' as COL_TYPE
+                                ,'100'     as COL_LENGTH
+                                ,'50'     as COL_SIZE
+                                ,'false'  as COL_EDIT_TYPE
+                                ,'#ffffff' as COL_BG_COLOR
+                                ,case when CAL.WEEK_DAY='일' then 'Y' else 'N' end HOLIDAY_FLAG
+                                ,dense_rank() OVER ( order by YYYYMMDD) as DAY_RANK
+                                ,dense_rank() OVER ( order by YYYYWW) as WEEK_RANK
+                                ,YYYYMMDD
+                            from CAL_MST CAL
+                                 inner join 
+                                 (
+                                   select --조회범위가 4주를 벗어나면 시작일 기준 4주로 조회한다.
+                                          SDATE
+                                         ,case when to_date(EDATE,'YYYYMMDD')-to_date(SDATE,'YYYYMMDD') &lt;= 27 then EDATE
+                                               else to_char(to_date(SDATE,'YYYYMMDD')+27,'YYYYMMDD') end as EDATE
+                                     from (
+                                            select --시작일자의 월요일, 종료일자의 일요일을 가져온다.
+                                                   min(CAL.YYYYMMDD) as SDATE ,max(CAL.YYYYMMDD) as EDATE
+                                              from CAL_MST CAL
+                                                   inner join 
+                                                   (
+                                                    select min(YYYYWW) as SWEEK ,max(YYYYWW) as EWEEK
+                                                      from CAL_MST CAL
+                                                     where YYYYMMDD = replace('$!{sdate}','-','')
+                                                        or YYYYMMDD = replace('$!{edate}','-','')
+                                                   ) IDX
+                                                   on  CAL.YYYYWW between IDX.SWEEK and IDX.EWEEK
+                                          )
+                                 ) IDX
+                                 on  CAL.YYYYMMDD between IDX.SDATE and IDX.EDATE
+                                 order by YYYYMMDD
+                         ) LST
+                         inner join 
+                         (
+                          select 'A' as SHIFT_TYPE ,'조' as SHIFT_NAME from DUAL union all  
+                          select 'B' as SHIFT_TYPE ,'주' as SHIFT_NAME from DUAL union all  
+                          select 'C' as SHIFT_TYPE ,'야' as SHIFT_NAME from DUAL  
+                         ) DMY
+                         on  1=1
+                 )-- 1!%!PLANT_NAME!%!공장!%!t_text!%!200!%!60!%!false!%!#FFFFFF
+                 select a.HEADER_INFO
+                 from   
+                         (
+		                 select (dense_rank() over( order by DAY_RANK ,SHIFT_TYPE)+3) as LST_RANK
+		                       ,DAY_RANK||'!%!'||COL_ID||'!%!'||COL_TEXT||'!%!'||COL_TYPE||'!%!'||COL_LENGTH||'!%!'||COL_SIZE||'!%!'||COL_EDIT_TYPE||'!%!'||COL_BG_COLOR as HEADER_INFO
+		                       ,SEQ
+		                   from (
+		                         select LST.DAY_RANK 
+		                               ,case when WEK.SHIFT_TYPE is null then LST.SHIFT_TYPE 
+		                                     else case when WEK.COL_ID is null then LST.SHIFT_TYPE else 'D' end  
+		                                 end as SHIFT_TYPE
+		                               ,case when WEK.COL_ID is not null then WEK.COL_ID||LST.WEEK_RANK else  LST.COL_ID end as COL_ID
+		                               ,nvl(WEK.COL_TEXT,LST.COL_TEXT) as COL_TEXT
+		                               ,LST.COL_TYPE
+		                               ,LST.COL_LENGTH
+		                               ,LST.COL_SIZE
+		                               ,nvl(WEK.COL_EDIT_TYPE,LST.COL_EDIT_TYPE) as COL_EDIT_TYPE
+		                               ,LST.COL_BG_COLOR 
+		                               ,WEK.SEQ
+		                           from V_LST LST
+		                                left outer join  
+		                                (
+		                                 select 1 as SEQ ,'A' as SHIFT_TYPE ,'Y' as HOLIDAY_FLAG ,null        as COL_ID ,null       as COL_TEXT ,'false' as COL_EDIT_TYPE from DUAL union all 
+		                                 select 2 as SEQ ,'A' as SHIFT_TYPE ,'Y' as HOLIDAY_FLAG ,'IDX_QTY'   as COL_ID ,'기준물량' as COL_TEXT ,'true' as COL_EDIT_TYPE from DUAL union all 
+		                                 select 3 as SEQ ,'A' as SHIFT_TYPE ,'Y' as HOLIDAY_FLAG ,'NORMAL'    as COL_ID ,'정상'     as COL_TEXT ,'false' as COL_EDIT_TYPE from DUAL union all
+		                                 select 4 as SEQ ,'A' as SHIFT_TYPE ,'Y' as HOLIDAY_FLAG ,'EXTENSION' as COL_ID ,'연장'     as COL_TEXT ,'false' as COL_EDIT_TYPE from DUAL union all
+		                                 select 5 as SEQ ,'A' as SHIFT_TYPE ,'Y' as HOLIDAY_FLAG ,'DAY_OFF'   as COL_ID ,'휴동'     as COL_TEXT ,'false' as COL_EDIT_TYPE from DUAL 
+		                                ) WEK
+		                                on  WEK.HOLIDAY_FLAG = LST.HOLIDAY_FLAG
+		                                and WEK.SHIFT_TYPE=LST.SHIFT_TYPE
+		                        )
+		                  union all
+		                  select --해더를 가져온다.
+		                         dense_rank() over( order by COL_IDX) as LST_RANK       
+		                        ,COL_IDX||'!%!'||COL_ID||'!%!'||COL_TEXT||'!%!'||COL_TYPE||'!%!'||COL_LENGTH||'!%!'||COL_SIZE||'!%!'||COL_EDITTYPE||'!%!'||COL_BG_COLOR
+		                        ,COL_IDX AS SEQ
+		                    from GRID_HEADER_MST
+		                   where upper(JOB_ID) = upper('$!{job_id}')
+		                ) a
+                  order by LST_RANK, SEQ             	
+	
+	</query>
+
+	<query id="daily_header2">
+	
+			SELECT  DAILY    
+            FROM    (
+                    SELECT  DENSE_RANK() OVER(ORDER BY A.YYYYWW ) 
+                            ||'!%!'||A.YYYY     --년
+                            ||'!%!'||A.MM       --월
+                            ||'!%!'||A.DD       --일
+                            ||'!%!'||A.WEEK_DAY --주차(한글)
+                            ||'!%!'||A.WEEK_NO  --주차(숫자)
+                            ||'!%!'||A.CAL_DATE --날짜(DATE형)
+                            ||'!%!'||A.YYYYMMDD --날자(VARCHAR)
+                            ||'!%!'||A.YYYYWW   --년주차(52) 
+                            AS DAILY,
+                            DENSE_RANK() OVER(ORDER BY A.YYYYWW ) AS SEQ
+                    FROM    CAL_MST A
+                            ----------------------------------------------------------------
+                            INNER JOIN
+                            (      
+                              --SELECT  YYYYWW
+                              --FROM    CAL_MST CAL
+                              --WHERE   YYYYMMDD BETWEEN REPLACE('$!{sdate}','-','') AND REPLACE('$!{edate}','-','')  
+                              --GROUP   BY YYYYWW
+                                SELECT  YYYYWW
+                                FROM    CAL_MST CAL
+                                       ,(
+                                          select --조회범위가 4주를 벗어나면 종료일 기준 4주로 조회한다.    
+                                                 case when to_date(IDX.EDATE,'YYYYMMDD')-to_date(IDX.SDATE,'YYYYMMDD') &lt;= 27 then SDATE
+                                                      else to_char(to_date(IDX.EDATE,'YYYYMMDD')-27,'YYYYMMDD') end as SDATE
+                                                ,IDX.EDATE 
+                                            from (        
+                                                  select replace('$!{sdate}','-','') as SDATE 
+                                                        ,replace('$!{edate}','-','') as EDATE 
+                                                   from DUAL
+                                                 ) IDX
+                                        ) IDX
+                                WHERE   YYYYMMDD BETWEEN IDX.SDATE AND IDX.EDATE
+                                GROUP   BY YYYYWW
+                            ) B
+                            ON  A.YYYYWW = B.YYYYWW       
+                    ORDER   BY A.CAL_DATE
+                    )
+            WHERE   SEQ &lt; 5 	
+	
+	</query>
+	
+	<!-- 휴동 설정/해제 -->
+	<query id="daily_shift_day_off_update">
+	
+			MERGE   INTO DAILY_SHIFT_DAY_OFF SS 
+			USING   ( 
+			        SELECT  A.CAT_ID, A.PLANT_ID, A.LINE_ID, B.WEEK WEEK52_NO, B.PROD_DATES, A.SHIFT_TYPE, A.DAY_OFF, A.MADE_DTTM, A.MADE_BY 
+			        FROM    ( 
+					        SELECT  'PS' CAT_ID, 
+			                        '$!{plant_id}' PLANT_ID, 
+			                        '$!{line_id}' LINE_ID, 
+			                        '$!{shift_type}' SHIFT_TYPE, 
+			                        '$!{day_off}' DAY_OFF, 
+			                        SYSDATE MADE_DTTM, 
+			                        '$!{user_id}' MADE_BY 
+			                FROM    DUAL
+			                ) A,
+					        (                               
+			                SELECT  A.SDATE, A.PROD_DATES, B.YYYYWW AS WEEK
+			                FROM    (
+			                        SELECT  B.YYYYMMDD AS SDATE, TO_CHAR(B.CAL_DATE+ $!{date_seq},'YYYYMMDD') AS PROD_DATES
+			                        FROM    CAL_MST A,
+			                                CAL_MST B             
+                                    WHERE   A.YYYYMMDD = (
+                                                            select case --조회범위가 4주를 벗어나면 종료일 기준 4주로 조회한다
+                                                                        when EDATE-SDATE &lt;=27 then next_day(SDATE-7,2)   --시작일에 해당되는 월요일
+                                                                        else next_day(EDATE-27-7,2) end as SDATE         --시작일에 해당되는 월요일
+                                                              from (                                
+                                                                    select to_date(replace('$!{sdate}','-',''),'YYYYMMDD') as SDATE 
+                                                                          ,to_date(replace('$!{edate}','-',''),'YYYYMMDD') as EDATE 
+                                                                      from DUAL
+                                                                   )                                    
+                                                         )    
+			                        AND     A.YYYYWW = B.YYYYWW
+			                        AND     B.WEEK_DAY = '월'
+			                        ) A,
+			                        CAL_MST B
+			                WHERE   A.PROD_DATES = B.YYYYMMDD
+			                ) B                             
+			        ) TMP 
+			        ON      ( 
+			                    SS.CAT_ID     = TMP.CAT_ID 
+			                AND SS.PLANT_ID   = TMP.PLANT_ID 
+			                AND SS.LINE_ID    = TMP.LINE_ID 
+			                AND SS.WEEK52_NO  = TMP.WEEK52_NO
+			                AND SS.PROD_DATES = TMP.PROD_DATES 
+			                AND SS.SHIFT_TYPE = TMP.SHIFT_TYPE
+			                ) 
+			        WHEN MATCHED THEN 
+			          UPDATE 
+			          SET    SS.DAY_OFF   = TMP.DAY_OFF 
+			                ,SS.MADE_DTTM = TMP.MADE_DTTM 
+			                ,SS.MADE_BY   = TMP.MADE_BY 
+			        WHEN NOT MATCHED THEN 
+			        INSERT 
+			        ( 
+			         CAT_ID, PLANT_ID, LINE_ID, WEEK52_NO, PROD_DATES, SHIFT_TYPE, DAY_OFF, MADE_DTTM, MADE_BY 
+			        ) VALUES 
+			        ( 
+			         TMP.CAT_ID, TMP.PLANT_ID, TMP.LINE_ID, TMP.WEEK52_NO, TMP.PROD_DATES, TMP.SHIFT_TYPE, TMP.DAY_OFF, TMP.MADE_DTTM, TMP.MADE_BY 
+			        ) 	
+	
+	</query>
+
+
+    <query id="daily_header3">
+          select --HEADER 기준으로 데이터를 생성한다.
+                 dense_rank() over( order by LST.LINE_RANK ,NAM.COL_IDX)
+                 ||'!%!'||NAM.COL_ID||LST.LINE_RANK
+                 ||'!%!'||NAM.COL_TEXT
+                 ||'!%!'||NAM.COL_TYPE
+                 ||'!%!'||NAM.COL_LENGTH
+                 ||'!%!'||NAM.COL_SIZE
+                 ||'!%!'||NAM.COL_EDITTYPE
+                 ||'!%!'||'#ffffff'
+            from (
+                  select --공장명, 라인명을 생성한다.
+                         LIN.PLANT_NAME ,LIN.LINE_NAME
+                        ,dense_rank() over( order by LST.PLANT_ID ,LST.LINE_ID) as LINE_RANK
+                    from (
+                          select --공장에 대A한 라인 리스트를 가져온다.
+                                 /*+ INDEX(LST SCH_OPER_RANK_PK) */
+                                 distinct PLANT_ID ,LINE_ID
+                            from SCH_OPER_RANK LST
+                           where PLANT_ID = '$!{plant_id}'
+                             and ITEM_ID  != 'X'
+                             and PROD_VER != 'X'
+                             and OPER_RANK=MAX_RANK
+                         ) LST
+                           inner join V_LINE LIN
+                           on  LIN.PLANT_ID =LST.PLANT_ID
+                           and LIN.LINE_ID  =LST.LINE_ID
+                         order by LINE_RANK
+                 ) LST
+                ,(
+                  select COL_IDX ,COL_ID ,COL_TEXT ,COL_LENGTH ,COL_SIZE ,COL_EDITTYPE ,COL_TYPE
+                    from GRID_HEADER_MST 
+                   where JOB_ID='sc_16010_dailyWorkTotalization_popup'
+                   order by COL_IDX
+                 ) NAM
+             order by LST.LINE_RANK ,NAM.COL_IDX             
+             
+    </query>
+    
+    
+    <query id="daily_header3_name">
+          select LINE_NAME
+            from (
+                      select --공장명, 라인명을 생성한다.
+                             LIN.PLANT_NAME ,LIN.LINE_NAME
+                            ,dense_rank() over( order by LST.PLANT_ID ,LST.LINE_ID) as LINE_RANK
+                        from (
+                              select --공장에 대한 라인 리스트를 가져온다.
+                                     /*+ INDEX(LST SCH_OPER_RANK_PK) */
+                                     distinct PLANT_ID ,LINE_ID
+                                from SCH_OPER_RANK LST
+                               where PLANT_ID = '$!{plant_id}'
+                                 and ITEM_ID  != 'X'
+                                 and PROD_VER != 'X'
+                                 and OPER_RANK=MAX_RANK
+                             ) LST
+                             inner join V_LINE LIN
+                             on  LIN.PLANT_ID =LST.PLANT_ID
+                             and LIN.LINE_ID  =LST.LINE_ID
+                 )
+               order by LINE_RANK
+    </query>
+    
+    
+</queries>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

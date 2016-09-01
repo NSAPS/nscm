@@ -1,0 +1,241 @@
+<script type='text/javascript' src='$!{project}/dwr/interface/nongshim.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/engine.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/util.js'></script> 
+
+<script language="JavaScript" type="text/javascript">
+	window.onload = function() { setSize(); }
+	window.onresize = function() { setSize(); }
+	window.oncontextmenu="return $!{_moon_refresh_detect}"
+
+	function setSize() {
+		var leftDisplayWidth = leftDisplay.style.width.split("px")[0];
+		var currentWidth = document.body.clientWidth;
+		var currentHeight = document.body.clientHeight;
+		var widthBalancing = currentWidth - leftDisplayWidth;
+
+		if (widthBalancing > 82) {
+			tbMain.width = widthBalancing - 35;  
+    		topLine.style.width = widthBalancing - 22;
+    		mainDisplay.style.width = widthBalancing - 5; 
+		}
+
+		if (currentHeight > 167) {
+			leftDisplay.style.height = currentHeight - 167;
+			mainDisplay.style.height = currentHeight - 150;
+		}
+	}
+</script> 
+ <table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="removeOutlierTbp">				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>#page_info()</td>
+							<td align="right">#table_display()</td>
+						</tr>
+					</table>
+					  
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0">
+						<tr>
+							<td>					
+            					<table id="tbMain" border="0" width="100%" cellpadding="0" cellspacing="0" >
+        							<tr>
+        								<td>
+                    						<div id="topLeft" style="height:50px; width:200px; overflow:hidden; ">
+                    							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+                    								<thead> 
+                    									<tr height="50px"> 
+                    										<td width="30px">번호</td>
+                    										<td width="30px">전체<br><input type="checkbox" name="checked_all" value="N" onClick="checkAll(this);"/></td>
+                    										<td width="60px">품목<br>코드</td>
+                    										<td width="80px">품목명</td>										
+                    									</tr> 
+                    			   					 </thead>
+                    			   				</table>
+                    			   			</div>
+            							</td>								
+                    					<td> 
+                    						<div id="topLine" style="height:50px; width:645px;overflow:hidden;"> 
+                    							<table width="645px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+                    								<thead> 
+                    									<tr height="50px">
+                    										<td width="30px">영업<br>지점<br>코드</td>
+                    										<td width="100px">영업지점</td>
+                    										<td width="30px">배송<br>지점<br>코드</td>
+                    										<td width="130px">배송지점</td>
+                    										<td width="60px">이상기간</td> 
+                    										<td width="40px">판매<br>실적</td>
+                    										<td width="50px">조정된<br>판매<br>실적</td>
+                    										<td width="70px">적합값</td> 
+                    										<td width="40px">이전<br>기간<br>실적</td>
+                    										<td width="40px">다음<br>기간<br>실적</td>
+                    										<td width="70px">조정값</td>
+                    										<td width="40px">조정<br>여부</td>                    																		
+                    									</tr>									
+                    			   					 </thead>
+                    			   				</table>
+                    			   			</div>
+                    					</td>
+        							</tr>
+        							<tr>
+        								<td valign="top">
+        									<div id="leftDisplay" style="width:200px; overflow:hidden; ">
+                    							<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+                    								<tbody id="left_tbody">
+                    								## 조회 결과데이터가 없는 경우, 빈 라인 생성
+                    								#if( $fc_02030_removeOutlier_list.size() == 0 )
+                    									<tr height="1"><td colspan="3" width="170px"></td></tr>
+													#end
+													
+													<input type="hidden" name="title">
+                    								#foreach( $tr in $fc_02030_removeOutlier_list )
+														#set( $title = "${tr.get(0)}-${tr.get(1)}/${tr.get(2)}-${tr.get(3)}/${tr.get(4)}-${tr.get(5)}/이상기간-${tr.get(6)}")
+                    									<tr id="left_tr" height="30px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this);" ondblClick="displayLineChart('${tr.get(0)}', '${tr.get(2)}', '${tr.get(4)}', '${title}');" style="cursor:hand;">
+															
+                    										## 번호
+                    										<td width="30px" align="center" style="background-color:${search_bgcolor}; ">
+                    											<a id="divRowNo">$velocityCount</a>
+                    										</td>
+                    										## 체크박스
+                    										<td width="30px" align="center">
+                    											<input name="check_modify" type="checkbox" value="N" class="normal" style="" onClick="checkEvent(this)">
+                    											<input name="checkModify" type="hidden" value="N">
+                    										</td>
+                    										## 품목코드
+                    										<td width="60px" align="center" >
+                    											<a id="divItemCd">$tr.get(0)</a><input
+                    												type="text" name="item_cd" class="normal" value="$tr.get(0)"												
+                    												style="width:100%; display:none; "> 											
+                    										</td>
+                    										## 품목 명
+                    										<td width="80px" align="left" >
+                    											<a id="divItemName">&nbsp;$tr.get(1)</a><input
+                    												type="text" name="item_name" class="normal" value="$tr.get(1)"												
+                    												style="width:100%; display:none; "> 
+                    										</td>										
+                    									</tr>
+                    								#end
+                    								</tbody> 
+                    							</table> 
+        									</div> 
+        								</td>   
+                    					<td valign="top"> 
+                    						<div id="mainDisplay" class="ns_scroll" style="border:0; width:645px; overflow-y:scroll; overflow-x:scroll; " onscroll="scrollX(); scrollY(); ">
+                    							<table width="645px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+                    								<tbody id="main_tbody"> 
+                    								## 조회 결과데이터가 없는 경우, 빈 라인 생성 
+                    						 		#if( $fc_02030_removeOutlier_list.size() == 0 )
+                    									<tr height="1"><td colspan="6" width="985"></td></tr>									
+                    								#end  
+                    								#foreach( $tr in $fc_02030_removeOutlier_list )
+														#set( $title = "${tr.get(0)}-${tr.get(1)}/${tr.get(2)}-${tr.get(3)}/${tr.get(4)}-${tr.get(5)}/이상기간-${tr.get(6)}")
+                    									<tr id="main_tr" height="30px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); " ondblClick="displayLineChart('${tr.get(0)}', '${tr.get(2)}', '${tr.get(4)}', '${title}');" style="cursor:hand;">
+                    										## 영업지점 코드
+                    										<td width="30px" align="left" >
+                    											<a id="divSiteCd">&nbsp;$tr.get(2)</a><input
+                    												type="text" name="site_cd" class="normal" value="$tr.get(2)"												
+                    												style="width:100%; display:none; "> 
+                    										</td>
+                    										## 영업지점
+                    										<td width="100px" align="left" >
+                    											<a id="divSiteName">&nbsp;$tr.get(3)</a><input
+                    												type="text" name="site_name" class="normal" value="$tr.get(3)"												
+                    												style="width:100%; display:none; "> 
+                    										</td>
+                    										## 배송지점코드
+                    										<td width="30px" align="center" >
+                    											<a id="divDcCd">$tr.get(4)</a><input
+                    												type="text" name="dc_cd" class="normal" value="$tr.get(4)"												
+                    												style="width:100%; display:none; "> 
+                    										</td>
+                    										## 배송지점 
+                    										<td width="130px" align="left" >
+                    											<a id="divDcName">&nbsp;$tr.get(5)</a><input
+                    												type="text" name="dc_name" class="normal" value="$tr.get(5)"												
+                    												style="width:100%; display:none; "> 
+                    										</td>
+                    										## 이상기간
+                    										<td width="60px" align="left" >
+                    											<a id="divSalesMonth">&nbsp;$tr.get(6)</a><input
+                    												type="text" name="sales_month" class="normal" value="$tr.get(6)"												
+                    												style="width:100%; display:none; "> 
+                    										</td>
+                    										## 판매실적
+                    										<td width="40px" align="right" >
+                    											<a id="divSalesQty">$tr.get(7)&nbsp;</a><input
+                    												type="text" name="sales_qty" class="normal" value="$tr.get(7)"												
+                    												style="width:100%; display:none; "> 											
+                    										</td>
+                    										## 조정된 판매실적
+                    										<td width="50px" align="right" >
+                    											<a id="divAdjSalesQty">$tr.get(8)&nbsp;</a><input 
+                    												type="text" name="adj_sales_qty" class="normal" value="$tr.get(8)"												
+                    												style="width:100%; display:none; "> 											
+                    										</td>
+                    										## 적합값
+                    										<td width="70px" align="right" >
+                    											<a id="divFittedQty">$tr.get(9)&nbsp;</a><input
+                    												type="text" name="fitted_qty" class="normal" value="$tr.get(9)"												
+                    												style="width:100%; display:none; "> 											
+                    										</td>
+                    										## 이전 기간실적
+                    										<td width="40px" align="right" >
+                    											<a id="divBeforeHistQty">$tr.get(10)&nbsp;</a><input
+                    												type="text" name="before_hist_qty" class="normal" value="$tr.get(10)"												
+                    												style="width:100%; display:none; "> 											
+                    										</td>
+                    										## 다음 기간실적
+                    										<td width="40px" align="right" >
+                    											<a id="divAfterHistQty">$tr.get(11)&nbsp;</a><input
+                    												type="text" name="after_hist_qty" class="normal" value="$tr.get(11)"												
+                    												style="width:100%; display:none; "> 											
+                    										</td>
+                    										## 조정값
+                    										<td width="70px" align="right" onClick="setEditMode(this); ">
+                    											<a id="divAdjFitted" style="color:blue;">$tr.get(12)&nbsp;</a><a id="divItemIdSelect" 
+                    												style="width:100%; display:none;" ><input
+                    												type="text" name="adj_fitted" class="normal" size="100" value="$tr.get(12)"
+                    												onFocusOut="setViewMode(this); " onKeyPress="onlynumber();"
+                    												style="width:100%; padding-right:5px; text-align:right; "></a>										
+                    										</td>										
+                    										## 조정여부
+                    										<td width="40px" align="center" >
+                    											<a id="divApplyCheck">$tr.get(13)</a><input
+                    												type="text" name="apply_check" class="normal" size="20" value="$tr.get(13)"												
+                    												style="width:100%; display:none; "> 											
+                    										</td>                    															
+                    									</tr>
+                    								#end
+                    								</tbody>
+                    							</table>
+                    						</div>
+                    					</td>
+        							</tr>
+        						</table>
+        					
+        						<table border="0" width="100%" cellpadding="0" cellspacing="0" height="5px"><tr><td></td></tr></table>
+        					</td>
+        				</tr>
+        			</table>
+											
+					<table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+        						$moon.paging($_moon_service, $_moon_service_count, $_moon_perpage, $_moon_pagenumber, $request.getContextPath())
+        						<input type="hidden" name="_moon_service" value="${_moon_service}">
+        						<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+								<input type="hidden" name="project" value="$!{project}">
+        						##<input type="hidden" name="_user_id" value="$!{_user_id}">
+        					</td>
+						</tr>
+					</table>					
+					<table height="5"><tr><td></td></tr></table>
+				</div>			
+			</div>
+		</td>
+	</tr>
+</table>

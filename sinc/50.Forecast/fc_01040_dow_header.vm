@@ -1,0 +1,188 @@
+<script type='text/javascript' src='$!{project}/dwr/interface/nongshim.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/engine.js'></script>
+<script type='text/javascript' src='$!{project}/dwr/util.js'></script>
+	
+<table id="dataArea" border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	<tr>
+		<td height="25" align="right" bgcolor="${toolbar_bgcolor}" class="line">
+			<table align="right" width="100%" height="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+				<tr>
+					<td align="left">
+						<input type="button" name="btnReg1" value="재생성" onClick="recreateDow('fc_01040_dow_recreation_action');" class="btn1_on">				
+					</td>
+					<td align="right">
+						<input type="button" name="btnSearch" value=" 조회" onClick="searchIFrameData('fc_01040_dow_tailer');" class="btn_search_on">
+						#toolbar_nscm_iframe($_moon_toolbar "" "" "fc_01040_dow_tailer_update" "")
+					</td>
+				</tr>
+			</table>
+		</td>                                                                                                                                                                                                                  
+	</tr>
+	<tr id="search_menu" style="DISPLAY:block">
+		<td height="20" valign="top" bgcolor="${search_bgcolor}" class="line">		
+			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; display:block;">
+				<tr>
+					<td height="10"></td>
+				</tr>
+				<tr>
+					<td width="70%" align="center">
+						<table height="21" border="0" cellpadding="0" cellspacing="0">
+							<tr>        								
+								<td width="80" align="center" class="td1">
+									<span>-</span>
+								</td>
+								<td width="200" align="center" class="td1"> 
+									<span>코드 - 명</span>
+								</td>
+								<td width="80" align="center" class="td1">
+									<span>검색 코드</span>
+                                </td>
+								<td width="120" align="center" class="td1">
+									<span>검색 명</span>
+                                </td>
+								<td width="20" align="center"></td>
+							</tr>
+							<tr>        								
+								<td width="80" align="center" class="td1"> 
+									<span>품목</span>
+								</td>
+								<td width="200" align="center">
+									<input name="item_cd" type="hidden" value="$!{item_cd}">
+									<select name="selected_item" style="width:202;" onChange="splitCodeName(this, item_cd, item_code, item_name);">
+										    <option value="">전체</option>
+										#foreach( $choice in $!{fc_01040_items} )
+											<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{selected_item}") selected #end >$choice.get(1)</option>
+										#end
+										
+									</select>	
+								</td>
+								<td width="80" align="center">
+									<input name="item_code" type="text" value="$!{item_code}" class="normal" style="width:82px;" onFocus="this.value='';item_name.value='';" onKeyPress="enterSearchCodeName(item_code, item_name, 'ITEM');"> 
+								</td>
+								<td width="120" align="left">
+									<input name="item_name" type="text" value="$!{item_name}" class="normal" style="width:122px;" onFocus="this.value='';item_code.value='';" onKeyPress="enterSearchCodeName(item_code, item_name, 'ITEM');">								 
+                                </td>
+								<td width="20" align="left">
+									<img name="searchBt1" src="$!{project}/sinc/template/basic/skin/nongshim/images/common/icon_search.gif" align="absmiddle" onClick="searchCodeName(item_code, item_name, 'ITEM');" style="cursor:pointer; " />
+								</td>
+								<script>
+									splitCodeName(document.frm.selected_item, document.frm.item_cd, document.frm.item_code, document.frm.item_name);
+								</script>
+							</tr>
+							<tr>        								
+								<td width="80" align="center" class="td1"> 
+									<span>영업 지점</span>
+								</td> 
+								<td width="200" align="center">
+									<input name="site_cd" type="hidden" value="$!{item_cd}">
+									<select name="selected_site" style="width:202;" onChange="splitCodeName(this, site_cd, site_code, site_name);">
+										<option value="">전체</option>
+										#foreach( $choice in $!{fc_01040_sites} )
+											<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{selected_site}") selected #end >$choice.get(1)</option>
+										#end
+									</select>	
+								</td>
+								<td width="80" align="center">
+									<input name="site_code" type="text" value="$!{site_code}" class="normal" style="width:82px;" onFocus="this.value='';site_name.value='';" onKeyPress="enterSearchCodeName(site_code, site_name, 'SITE');">
+								</td>
+								<td width="120" align="left">
+									<input name="site_name" type="text" value="$!{site_name}" class="normal" style="width:122px;" onFocus="this.value='';site_code.value='';" onKeyPress="enterSearchCodeName(site_code, site_name, 'SITE');">
+                                </td>
+								<td width="20" align="left">
+									<img name="searchBt2" src="$!{project}/sinc/template/basic/skin/nongshim/images/common/icon_search.gif" align="absmiddle" onClick="searchCodeName(site_code, site_name, 'SITE');" style="cursor:pointer; " />
+								</td>
+							</tr>
+							<tr>        								
+								<td width="80" align="center" class="td1"> 
+									<span>배송 지점</span>
+								</td>
+								<td width="200" align="center">
+									<input name="dc_cd" type="hidden" value="$!{item_cd}">
+									<select name="selected_dc" style="width:202;" onChange="splitCodeName(this, dc_cd, dc_code, dc_name);">
+										<option value="">전체</option>
+										#foreach( $choice in $!{fc_01040_dc} )
+											<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{selected_dc}") selected #end >$choice.get(1)</option>
+										#end
+									</select>	
+								</td>
+								<td width="80" align="center">
+									<input name="dc_code" type="text" value="$!{dc_code}" class="normal" style="width:82px;" onFocus="this.value='';dc_name.value='';" onKeyPress="enterSearchCodeName(dc_code, dc_name, 'DC');">
+								</td>
+								<td width="120" align="left">
+									<input name="dc_name" type="text" value="$!{dc_name}" class="normal" style="width:122px;" onFocus="this.value='';dc_code.value='';" onKeyPress="enterSearchCodeName(dc_code, dc_name, 'DC');">
+                                </td>
+								<td width="20" align="left">
+									<img name="searchBt3" src="$!{project}/sinc/template/basic/skin/nongshim/images/common/icon_search.gif" align="absmiddle" onClick="searchCodeName(dc_code, dc_name, 'DC');" style="cursor:pointer; " />
+								</td>
+							</tr>
+						</table>
+					</td>							
+					<td width="30%" align="left">
+						<table height="21" border="0" cellpadding="0" cellspacing="0">	
+							<tr height="10">
+								<td>
+								</td>
+							</tr>
+							<tr>
+								<td width="80" align="center" class="td1">
+									<span>시작월</span>
+								</td>
+								<td align="left">
+									<select name="start_month" style="width:110px;" onChange="changeEnd(this);">
+										<option value="">선택(재생성 시)</option>
+										#foreach( $choice in $!{fc_01040_start_month} )
+											<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{start_month}") selected #end >$choice.get(0)</option>
+										#end 
+									</select>									
+								</td>
+							</tr>
+							<tr> 
+								<td width="80" align="center" class="td1">
+									<span>마감월</span>
+								</td>
+								<td align="left">
+									<select name="end_month" style="width:110px;">
+										<option value="">선택(재생성 시)</option>
+										#foreach( $choice in $!{fc_01040_end_month} )
+											<option value="$choice.get(0)" #if( "$choice.get(0)" == "$!{end_month}") selected #end >$choice.get(1)</option>
+										#end
+									</select>									
+								</td>
+							</tr>
+							<tr>
+								<td width="80" align="center" class="td1">
+									<span>최대허용변폭</span>
+								</td>
+								<td align="left">
+									<input name="max_rate" type="text" value="$!{max_rate}" class="normal" style="width:30px;" maxlength="3" onKeyPress="onlynumber();">
+								</td>
+							</tr>
+						</table>
+					</td>
+				 </tr>	
+		  		 <tr height="10"><td></td></tr>
+		     </table>			
+		 </td>   
+	 </tr>
+	 <tr class="line" height="10"><td></td></tr>
+	 <tr>
+	 	 <td valign="top">
+			<iframe id="child" name="iframe" src="service.do?_moon_service=fc_01040_dow_tailer&amp;_moon_perpage=100&amp;_moon_pagenumber=1" width="100%" height="100%" scrolling="no" topmargin="0" leftmargin="0" frameborder="NO" border="0" framespacing="0"></iframe>
+		 </td>
+	 </tr>
+	 <input type="hidden" name="_user_id" value="$!{_user_id}">
+	 <input type="hidden" name="_moon_service" value="${_moon_service}">
+	 <input type="hidden" name="_moon_pagenumber" value="${_moon_pagenumber}">
+</table>
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력  
+	var helpStr = "실적구간 내 실적의 각 주별 요일 판매비율의 평균을 가지고  최대 변폭을 감안하여  요일지수를 생성한다.<br><br>";	
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;	
+				
+</script>

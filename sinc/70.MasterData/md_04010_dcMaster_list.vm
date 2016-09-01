@@ -1,0 +1,324 @@
+############################################################
+## 프로그램ID : md_04010_dcMaster_list.vm
+## 프로그램명 : DC 기준정보
+## 개발자  : 이동주
+## 개발일자 : 2008-11-25 화요일
+##
+##관련 job file : job_sinc_70_masterData_00.xml
+##
+##관련 query file : query_sinc_70_masterData_00.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2008-11-25  이동주    md_04010_dcMaster_list.vm 개발
+##
+##
+############################################################
+
+## 비정상적 접근 방지 
+#loginCheck()
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setHtmlGridAutoResize('125', '155')" )
+
+
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+	## 기능 버튼 영역
+	<tr>
+		<td height="25" align="right">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
+            	<tr>
+                	<td align="right">
+						#button("search")						
+						#toolbar_nscm($_moon_toolbar "" "" "md_04010_dcMaster_list_save_comp" "")
+					</td>
+            	</tr>
+        	</table>
+		</td>
+	</tr>
+	## 조회 영역
+	<tr>
+		<td width="100%" valign="top">
+			<table border="0" width="100%" cellpading="0" cellspacing="0">
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+				<tr>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+					<td width="100%">
+            			<table border="0" width="100%" cellpading="0" cellspacing="0" style="background-color:#f2f2f2; ">
+            				<tr id="search_menu" style="display:block; ">
+            					<td width="10%" align="right">
+            						물류거점 :
+            					</td>
+            					<td width="90%" align="left">
+									<select name="dc_loc" style="width:90px; ">
+									<option value="">전체</option>
+									#foreach( $tr in $dc_loc_list )
+										<option value="${tr.get(0)}" 
+											#if ( "$!{dc_loc}" == "${tr.get(0)}" ) selected #end> ${tr.get(1)}</option>
+									#end
+									</select>									
+            					</td>
+            				</tr> 
+            			</table>
+					</td>
+					<td width="2" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
+				</tr>
+				<tr height="2"><td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td></tr>
+			</table>
+		</td>
+	</tr>
+	<input name="search_h" type="hidden" value="23"> ## search 조건 부분 높이
+	<tr><td height="5"></td></tr>
+	## TAB 영역
+	<tr>
+		<td valign="top">
+			<div class="tab-pane" id="tabPane1">
+				## tab 좌측 여백
+				#tabLeft()				
+				<div class="tab-page" id="tabPage1" style="overflow:hidden; ">
+					<h2 class="tab">${_moon_title}</h2>
+					<table id="gridArea" width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td>
+					
+					## 데이터 갯수 출력			
+					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
+						<tr>
+							<td>
+								<img src="/nscm/sinc/template/basic/skin/nongshim/images/common/dot_sub6.gif" width="16" height="13">Total :
+								<span id="areaTot" class="f_color_o b">$!{_moon_service_count}</span>
+							</td>
+						</tr>
+					</table>
+					<table id="tbMain" border="0" width="715" cellpadding="0" cellspacing="0" >
+						<tr>
+							<td> 
+								<div id="topLeft" style="height:35px; width:310px; overflow:hidden; "> 
+									<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>
+											<tr align="center" height="35px">
+												<td width="30px">번호</td>
+												<td width="45px">거점</td>
+												<td width="70px">거점명</td>
+												<td width="45px">구분</td>
+												<td width="60px">CDC기능</td>
+												<td width="60px">RDC기능</td>
+											</tr> 
+					   					 </thead>
+					   				</table>
+					   			</div>
+							</td>
+							<td> 
+								<div id="topLine" style="height:35px; width:626px; overflow:hidden;"> 
+									<table width="590px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<thead>
+											<tr height="35px">
+												<td width="80px">보유창고구분</td>
+												<td width="75px">중계수송<br>CDC1</td>
+												<td width="75px">중계수송<br>CDC2</td>
+												<td width="75px">중계수송<br>CDC3</td>
+												<td width="70px">보관능력1</td>
+												<td width="70px">보관능력2</td>
+												<td width="70px" class="right">보관능력3</td>
+											</tr>
+					   					 </thead>
+					   				</table>
+					   			</div>
+							</td>
+						</tr>
+						<tr>
+							<td valign="top"> 
+								<div id="leftDisplay" style="width:310px; overflow:hidden; ">
+									<table width="100%" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="left_tbody">
+										#foreach( $tr in $md_04010_dcMaster_list )
+											<tr id="left_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">
+												<td width="30px" align="center" style="background-color:${search_bgcolor}; "> ## 번호
+													<a id="divRowNo">$velocityCount</a>
+												</td>
+												<td width="45px" align="center"> ## 거점
+													<a id="div_id" align="center">
+														$tr.get(0)
+													</a><input type="hidden" name="dc_id"  value="$tr.get(0)">													
+												</td>
+												<td width="70px" align="left"> ## 거점명
+													<a id="div_src_name" align="center">
+														&nbsp;$tr.get(1)
+													</a>
+												</td>
+												<td width="45px" align="center"> ## 구분
+													<a id="div_type" align="center">
+														$tr.get(2)
+													</a>
+												</td>
+												<td width="60px" align="center" onClick="setEditMode(this); "> ## cdc 기능
+													<a id="div_cdc_flag" align="center">
+														#if ("$tr.get(3)" == "Y")
+															YES
+														#else 
+															NO
+														#end
+													</a><select name="cdc_flag" style="width:100%; display:none; " onFocusOut="setViewMode(this); "
+														onKeyDown="moveNextBox(this); " onChange="alt(this); " tabindex="1">
+														<option value="Y" #if( "$!{tr.get(3)}" == "Y" ) selected #end>YES&nbsp;</option>	
+														<option value="N" #if( "$!{tr.get(3)}" == "N" ) selected #end>NO&nbsp;</option>	
+                									</select>																	
+												</td>
+												<td width="60px" align="center" onClick="setEditMode(this); "> ## rdc 기능
+													<a id="div_rdc_flag" align="center">
+														#if ("$tr.get(4)" == "Y")
+															YES
+														#else 
+															NO
+														#end													
+													</a><select name="rdc_flag" style="width:100%; display:none; " onFocusOut="setViewMode(this); "
+														onKeyDown="moveNextBox(this); " onChange="alt(this); " tabindex="1">														                										
+														<option value="Y" #if( "$!{tr.get(4)}" == "Y" ) selected #end>YES&nbsp;</option>	
+														<option value="N" #if( "$!{tr.get(4)}" == "N" ) selected #end>NO&nbsp;</option>	
+                									</select>												
+												</td>												
+											</tr>
+										#end
+										</tbody> 
+									</table> 
+								</div> 	
+							</td>
+							<td valign="top"> 
+								<div id="mainDisplay" class="ns_scroll" style="border:0; width:626px; overflow-y:scroll; overflow-x:scroll; " onscroll="scrollX(); scrollY(); ">
+									<table width="590px" class="ns-table" style="table-layout:fixed; border-collapse:collapse; ">
+										<tbody id="main_tbody">
+										#foreach( $tr in $md_04010_dcMaster_list )
+											<tr id="main_tr" height="22px" onMouseOver="bgOver(this); " onMouseOut="bgOut(this); ">												
+												<td width="80px" align="center" onClick="setEditMode(this); "> ## sl_cat
+													<a>&nbsp;$tr.get(5)</a><select name="sl_cat" style="width:110%; display:none; " onFocusOut="setViewMode(this); "
+														onKeyDown="moveNextBox(this); " onChange="alt(this); " tabindex="1">														
+														#foreach( $tr2 in $sl_cat_list )                										
+														<option value="${tr2.get(1)}" 
+															#if( "$!{tr.get(5)}" == "$!{tr2.get(1)}" ) selected #end>$tr2.get(1)</option>              										
+														#end														
+                									</select>													
+												</td>												
+												<td width="75px" align="left" onClick="setEditMode(this); "> ## cdc1
+													<a>&nbsp;$tr.get(7)</a><select name="cdc1" style="width:108%; display:none; " onFocusOut="setViewMode(this); "
+														onKeyDown="moveNextBox(this); " onChange="alt(this); " tabindex="1">
+														<option value="">선택</option>
+														#foreach( $tr2 in $dc_loc_list )                										
+														<option value="${tr2.get(0)}" 
+															#if( "$!{tr.get(6)}" == "$!{tr2.get(0)}" ) selected #end>$tr2.get(1)</option>              										
+														#end														
+                									</select>													
+												</td>												
+												<td width="75px" align="left" onClick="setEditMode(this); "> ## cdc2
+													<a>&nbsp;$tr.get(9)</a><select name="cdc2" style="width:108%; display:none; " onFocusOut="setViewMode(this); " 
+														onKeyDown="moveNextBox(this); " onChange="alt(this); " tabindex="1">
+                    									<option value="">선택</option>
+                    									#foreach( $tr2 in $dc_loc_list )
+                    										<option value="${tr2.get(0)}"
+                    											#if( "$!{tr.get(8)}" == "${tr2.get(0)}" ) selected #end>$tr2.get(1)</option>                										
+														#end														
+                    								</select>													
+												</td>
+												<td width="75px" align="left" onClick="setEditMode(this); "> ## cdc3
+													<a>&nbsp;$tr.get(11)</a><select name="cdc3" style="width:108%; display:none; " onFocusOut="setViewMode(this); " 
+															onKeyDown="moveNextBox(this); " onChange="alt(this); " tabindex="1">
+                    									<option value="">선택</option>
+                    									#foreach( $tr2 in $dc_loc_list )                										
+                    										<option value="${tr2.get(0)}"
+                    											#if( "$!{tr.get(10)}" == "${tr2.get(0)}" ) selected #end>$tr2.get(1)</option>                										
+														#end														
+                    								</select>													
+                            					</td>																								
+												<td width="70px" align="right" onClick="setEditMode(this); "> ## CAPA1
+													<a id="div_capa1">
+														#if( "$tr.get(12)" == "" )
+            												$tr.get(12)
+            											#else
+            												$number.format($tr.get(12))
+														#end
+													</a><input 
+														type="text" name="capa1" class="normal" size="20" tabindex="1"
+														onKeyDown="moveNextBox(this); " onFocusOut="setViewMode(this);" 
+														style="width:106%; text-align:right; display:none;"
+														#if( "$tr.get(12)" == "" )
+            												value = "$tr.get(12)"
+            											#else
+            												value = "$number.format($tr.get(12))"
+														#end>
+													</input>
+												</td>
+												<td width="70px" align="right" onClick="setEditMode(this); "> ## CAPA2
+													<a id="div_capa2">
+														#if( "$tr.get(13)" == "" )
+            												$tr.get(13)
+            											#else
+            												$number.format($tr.get(13))
+														#end
+													</a><input
+														type="text" name="capa2" class="normal" size="20" tabindex="1"
+														onKeyDown="moveNextBox(this); " onFocusOut="setViewMode(this); "
+														style="width:106%; text-align:right; display:none;"
+														#if( "$tr.get(13)" == "" )
+            												value = "$tr.get(13)"
+            											#else
+            												value = "$number.format($tr.get(13))"
+														#end>
+													</input>
+												</td>
+												<td width="70px" align="right" onClick="setEditMode(this); "> ## CAPA3
+													<a id="div_capa3">
+														#if( "$tr.get(14)" == "" )
+            												$tr.get(14)
+            											#else
+            												$number.format($tr.get(14))
+														#end
+													</a><input
+														type="text" name="capa3" class="normal" size="20" tabindex="1"
+														onKeyDown="moveNextBox(this); " onFocusOut="setViewMode(this); "
+														style="width:106%; text-align:right; display:none;"
+														#if( "$tr.get(14)" == "" )
+            												value = "$tr.get(14)"
+            											#else
+            												value = "$number.format($tr.get(14))"
+														#end>
+													</input>
+												</td>
+											</tr>
+										#end
+										</tbody>
+									</table>
+								</div>								
+							</td></tr></table>
+							
+					</td></tr></table>	
+							
+					## waiting 표시영역
+					#waitingArea()
+					
+					<input type="hidden" name="_moon_service">
+					<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+					<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
+					## 번호 배경색
+					<input name="searchBgcolor" type="hidden" value="${search_bgcolor}">					
+				</div>
+			</div>
+		</td>
+	</tr>
+</table>
+
+<script>
+	
+	// 화면 resize
+	$!{resizeFuncCallCode};
+	function window.onresize() { $!{resizeFuncCallCode}; }
+	
+	// 도움말 내용 입력
+	var helpStr = "◈ 물류거점 선택하고 조회 버튼을 클릭하여 DC기준정보를 조회합니다.";
+	helpStr += "<br>◈ 조회후 보유창고구분, 중계수송, 보관능력 항목을 원하는 데이터로 수정후 저장 버튼을 클릭하여 수정 내용을 저장합니다.";
+	helpStr += "<br>◈ 거점명에 대한 각각의 중계수송 항목들은 서로 중복이 않되게 입력합니다.";
+	helpStr += "<br>◈ 각각의 보관능력 항목들은 숫자로만 입력합니다.";	
+	helpCont.innerHTML = helpStr;
+	hDynamicHeight = 0;
+	
+	// 최초 화면 로드 시, 5 LINE DISPLAY
+	//addRows(5);
+	
+</script>
