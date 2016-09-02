@@ -61,6 +61,7 @@
 											<option value="$condition.get(0)"  #if( "$!{search_type}" == "$condition.get(0)" ) selected #end>$condition.get(1)</option>
 										#end
 											<option value="T86"#if( "$!{search_type}" == "T86" ) selected #end>包缴 前格</option>	
+											<option value="T87"#if( "$!{search_type}" == "T87" ) selected #end>包缴 前格-II</option>
 									</select>
             					</td>
 								<td width="50px" align="right">

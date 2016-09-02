@@ -121,45 +121,48 @@ public class ip_01050_inventoryPlanAnalysis_02_list_new extends HttpServlet {
 				gdRes.getHeader("SALES_CAT03"       ).addValue(qResult.get(i).get(1), "");
 				gdRes.getHeader("ITEM_ID" 	        ).addValue(qResult.get(i).get(2), "");
 				gdRes.getHeader("ITEM_NAME"	        ).addValue(qResult.get(i).get(3), "");
-				gdRes.getHeader("SPEC"        		).addValue(qResult.get(i).get(4), "");                                     
-				gdRes.getHeader("BASE_STOCK"        ).addValue(qResult.get(i).get(5), "");                               
-				gdRes.getHeader("STOCK_DAY"         ).addValue(qResult.get(i).get(6), "");
-				gdRes.getHeader("PROD_TERM"			).addValue(qResult.get(i).get(7), "");
-				gdRes.getHeader("PROD_TERM_AVG"		).addValue(qResult.get(i).get(8), "");
-				gdRes.getHeader("STOCK_HIDDEN"		).addValue(qResult.get(i).get(9), "");
-				gdRes.getHeader("TERM_HIDDEN"		).addValue(qResult.get(i).get(10), "");
-				gdRes.getHeader("TERM_VAL"			).addValue(qResult.get(i).get(11), "");
-				gdRes.getHeader("TERM_PER"			).addValue(qResult.get(i).get(12), "");
+				gdRes.getHeader("SPEC"        		).addValue(qResult.get(i).get(4), ""); 
+				gdRes.getHeader("MTO_MTS_TYPE"		).addValue(qResult.get(i).get(5),"");
+				gdRes.getHeader("BASE_STOCK"        ).addValue(qResult.get(i).get(6), "");                               
+				gdRes.getHeader("STOCK_DAY"         ).addValue(qResult.get(i).get(7), "");
+				gdRes.getHeader("PROD_TERM"			).addValue(qResult.get(i).get(8), "");
+				gdRes.getHeader("PROD_TERM_AVG"		).addValue(qResult.get(i).get(9), "");
+				gdRes.getHeader("STOCK_HIDDEN"		).addValue(qResult.get(i).get(10), "");
+				gdRes.getHeader("TERM_HIDDEN"		).addValue(qResult.get(i).get(11), "");
+				gdRes.getHeader("TERM_VAL"			).addValue(qResult.get(i).get(12), "");
+				gdRes.getHeader("TERM_PER"			).addValue(qResult.get(i).get(13), "");
 				
-				gdRes.getHeader("SALES_PRE"	        ).addValue(qResult.get(i).get(13), "");                                     
-				gdRes.getHeader("SALES_CUR"	        ).addValue(qResult.get(i).get(14), "");
-				gdRes.getHeader("SALES_SUM"	        ).addValue(qResult.get(i).get(15),"");
-				gdRes.getHeader("PRE_MONTH_SELL"	).addValue(qResult.get(i).get(16),"");
-				gdRes.getHeader("STOCK_EXPT"		).addValue(qResult.get(i).get(17),"");				
+				gdRes.getHeader("SALES_PRE"	        ).addValue(qResult.get(i).get(14), "");                                     
+				gdRes.getHeader("SALES_CUR"	        ).addValue(qResult.get(i).get(15), "");
+				gdRes.getHeader("SALES_SUM"	        ).addValue(qResult.get(i).get(16),"");
+				gdRes.getHeader("PRE_MONTH_SELL"	).addValue(qResult.get(i).get(17),"");
+				gdRes.getHeader("STOCK_EXPT"		).addValue(qResult.get(i).get(18),"");
 				
-				
-				gdRes.getHeader("RECEIPT_EXPT"	    ).addValue(qResult.get(i).get(18),"");
-				gdRes.getHeader("RECEIPT_EXPT_REM"	).addValue(qResult.get(i).get(19),"");
-				gdRes.getHeader("RECEIPT_EXPT_NEXT"	).addValue(qResult.get(i).get(20),"");
-				gdRes.getHeader("RECEIPT_EXPT_SUM"	).addValue(qResult.get(i).get(21),"");
+				gdRes.getHeader("RECEIPT_EXPT"	    ).addValue(qResult.get(i).get(19),"");
+				gdRes.getHeader("RECEIPT_EXPT_REM"	).addValue(qResult.get(i).get(20),"");
+				gdRes.getHeader("RECEIPT_EXPT_NEXT"	).addValue(qResult.get(i).get(21),"");
+				gdRes.getHeader("TOT_SUPPLE"		).addValue(qResult.get(i).get(22),"");		//총공급량
+				gdRes.getHeader("TOT_STOCKDAY"		).addValue(qResult.get(i).get(23),"");		//총재고일수
+				gdRes.getHeader("RECEIPT_EXPT_SUM"	).addValue(qResult.get(i).get(24),"");
 			
-				gdRes.getHeader("SALES_MEAN_1WEEK"	).addValue(qResult.get(i).get(22),"");
-				gdRes.getHeader("SALES_MEAN_3WEEK"	).addValue(qResult.get(i).get(23),"");
-				gdRes.getHeader("WEEK_DEV_1_3"	    ).addValue(qResult.get(i).get(24),"");
-				gdRes.getHeader("DEV_PER"	        ).addValue(qResult.get(i).get(25),"");
-				gdRes.getHeader("SALES_SUM_PY"	    ).addValue(qResult.get(i).get(26),"");
-				gdRes.getHeader("SUB_PY_MON"	    ).addValue(qResult.get(i).get(27),"");
-				gdRes.getHeader("THIS_YEAR_SUM"	    ).addValue(qResult.get(i).get(28),"");
-				gdRes.getHeader("LAST_YEAR_SUM"		).addValue(qResult.get(i).get(29),"");				
-				gdRes.getHeader("SUB_PY_YEAR"		).addValue(qResult.get(i).get(30),"");				
-				gdRes.getHeader("GOALS_BOX"	        ).addValue(qResult.get(i).get(31),"");
-				gdRes.getHeader("GOALS_BOX_RATE"  	).addValue(qResult.get(i).get(32),"");	
-				gdRes.getHeader("BASE_STOCK_PALLET" ).addValue(qResult.get(i).get(33),"");
-				gdRes.getHeader("STOCK_EXPT_PALLET" ).addValue(qResult.get(i).get(34),"");
-				gdRes.getHeader("STOCK_USE_EXPT_RATE" ).addValue(qResult.get(i).get(35),"");
-				gdRes.getHeader("JGC_DUE_DATE" 		  ).addValue(qResult.get(i).get(36),"");				
-				gdRes.getHeader("BASE_STOCK_2"		  ).addValue(qResult.get(i).get(37),"");
-				gdRes.getHeader("REQT_QTY"		  	  ).addValue(qResult.get(i).get(38),"");
+				gdRes.getHeader("SALES_MEAN_1WEEK"	).addValue(qResult.get(i).get(25),"");
+				gdRes.getHeader("SALES_MEAN_3WEEK"	).addValue(qResult.get(i).get(26),"");
+				gdRes.getHeader("WEEK_DEV_1_3"	    ).addValue(qResult.get(i).get(27),"");
+				gdRes.getHeader("DEV_PER"	        ).addValue(qResult.get(i).get(28),"");
+				gdRes.getHeader("SALES_SUM_PY"	    ).addValue(qResult.get(i).get(29),"");
+				gdRes.getHeader("SUB_PY_MON"	    ).addValue(qResult.get(i).get(30),"");
+				gdRes.getHeader("THIS_YEAR_SUM"	    ).addValue(qResult.get(i).get(31),"");
+				gdRes.getHeader("LAST_YEAR_SUM"		).addValue(qResult.get(i).get(32),"");				
+				gdRes.getHeader("SUB_PY_YEAR"		).addValue(qResult.get(i).get(33),"");				
+				gdRes.getHeader("GOALS_BOX"	        ).addValue(qResult.get(i).get(34),"");
+				gdRes.getHeader("GOALS_BOX_RATE"  	).addValue(qResult.get(i).get(35),"");	
+				gdRes.getHeader("BASE_STOCK_PALLET" ).addValue(qResult.get(i).get(36),"");
+				gdRes.getHeader("STOCK_EXPT_PALLET" ).addValue(qResult.get(i).get(37),"");
+				gdRes.getHeader("STOCK_USE_EXPT_RATE" ).addValue(qResult.get(i).get(38),"");
+				gdRes.getHeader("JGC_DUE_DATE" 		  ).addValue(qResult.get(i).get(39),"");				
+				gdRes.getHeader("BASE_STOCK_2"		  ).addValue(qResult.get(i).get(40),"");
+				gdRes.getHeader("REQT_QTY"		  	  ).addValue(qResult.get(i).get(41),"");
+				
 				//gdRes.getHeader("PROD_TERM"		  	).addValue(qResult.get(i).get(15),"");
 		                                                                                                          
 			}                                                                                                                
@@ -201,7 +204,7 @@ public class ip_01050_inventoryPlanAnalysis_02_list_new extends HttpServlet {
 			}
 					
 			String checked_button = gdReq.getParam("checked_button");						
-			String user_id		= gdReq.getParam("user_id");
+			String user_id		  = gdReq.getParam("user_id");
 			//해당 버젼이 있을경우에는 (MERGE INTO문  UPDATE나 INSERT를) 실행!!	
 			
 			System.out.println("test :" + checked_button);
@@ -244,42 +247,82 @@ public class ip_01050_inventoryPlanAnalysis_02_list_new extends HttpServlet {
 
 			
 			}
-			//장기체화 저장
+			//관심품목-II&장기체화 저장
 			else if(checked_button != "00"){
 				
-				sql   = "MERGE INTO ITEM_MST IM	 /*+ bypass_ujvc*/       	 \n";
-				sql  += "USING(							                     \n";
-				
-				boolean flag = false;
-				
-				// 데이터 셋팅
-				for (int i = 0; i < rowCount; i++) {
-
-					if( flag){
-							sql  += "union all \n";
+				if (checked_button.equals("40") ){//관심품목
 					
-						}
-						flag = true;
+					sql   = "MERGE INTO ITEM_MST IM	 /*+ bypass_ujvc*/       	 \n";
+					sql  += "USING(							                     \n";
+					
+					boolean flag = false;
+					
+					// 데이터 셋팅
+					for (int i = 0; i < rowCount; i++) {
+
+						if( flag){
+								sql  += "union all \n";
 						
-						//파라미터를 변수에 적용!!					
-						
-				
-						//-------------------------------------------------------------------------------------------------------------------
-						sql += "	SELECT	"		+	gdReq.getHeader("ITEM_ID"		).getValue(i) +		"	AS ITEM_ID,						\n"; 
-						sql += 							checked_button								  +		"	AS JGC_DIVISION,'				\n";
-						sql += 							gdReq.getHeader("JGC_DUE_DATE"	).getValue(i) +	 	"'	AS JGC_DUE_DATE					\n";
-						sql +="		FROM   DUAL																	   								\n";	
-						
-		               //--------------------------------------------------------------------------------------------------------------------
-					} 
+							}
+							flag = true;
 							
-				//-----------------------------Merge Into 1----------------------------------------------------------------------------------
-				sql += ") IM1 														   	\n";
-				sql += "ON (IM.ITEM_ID    = IM1.ITEM_ID)    						   	\n";
-				sql += "when matched then update set            					   	\n";
-				sql += "     IM.JGC_DIVISION      = IM1.JGC_DIVISION,   				\n";
-				sql += "     IM.JGC_DUE_DATE      = IM1.JGC_DUE_DATE   					\n";	
-				 //---------------------------------------------------------------------------------------------------------------------------	
+							//파라미터를 변수에 적용!!					
+							
+					
+							//-------------------------------------------------------------------------------------------------------------------
+							sql += "	SELECT	"		+	gdReq.getHeader("ITEM_ID"		).getValue(i) +		"	AS ITEM_ID,						\n"; 
+							sql += 				"			'Y'														AS AT_FLAG2						\n";					
+							sql +="		FROM   DUAL																	   								\n";	
+							
+			               //--------------------------------------------------------------------------------------------------------------------
+						} 
+								
+					//-----------------------------Merge Into 1----------------------------------------------------------------------------------
+					sql += ") IM1 														   	\n";
+					sql += "ON (IM.ITEM_ID    = IM1.ITEM_ID)    						   	\n";
+					sql += "when matched then update set            					   	\n";
+					sql += "     IM.AT_FLAG2      = IM1.AT_FLAG2  							\n";
+				
+					 //---------------------------------------------------------------------------------------------------------------------------						
+					
+				}else{//장기체화 저장					
+					
+					sql   = "MERGE INTO ITEM_MST IM	 /*+ bypass_ujvc*/       	 \n";
+					sql  += "USING(							                     \n";
+					
+					boolean flag = false;
+					
+					// 데이터 셋팅
+					for (int i = 0; i < rowCount; i++) {
+
+						if( flag){
+								sql  += "union all \n";
+						
+							}
+							flag = true;
+							
+							//파라미터를 변수에 적용!!					
+							
+					
+							//-------------------------------------------------------------------------------------------------------------------
+							sql += "	SELECT	"		+	gdReq.getHeader("ITEM_ID"		).getValue(i) +		"	AS ITEM_ID,						\n"; 
+							sql += 							checked_button								  +		"	AS JGC_DIVISION,				\n";
+							sql += 							gdReq.getHeader("JGC_DUE_DATE"	).getValue(i) +	 	"'	AS JGC_DUE_DATE					\n";
+							sql +="		FROM   DUAL																	   								\n";	
+							
+			               //--------------------------------------------------------------------------------------------------------------------
+						} 
+								
+					//-----------------------------Merge Into 1----------------------------------------------------------------------------------
+					sql += ") IM1 														   	\n";
+					sql += "ON (IM.ITEM_ID    = IM1.ITEM_ID)    						   	\n";
+					sql += "when matched then update set            					   	\n";
+					sql += "     IM.JGC_DIVISION      = IM1.JGC_DIVISION,   				\n";
+					sql += "     IM.JGC_DUE_DATE      = IM1.JGC_DUE_DATE   					\n";	
+					 //---------------------------------------------------------------------------------------------------------------------------	
+				}
+				
+				
 				
 				
 			}
@@ -341,40 +384,104 @@ public class ip_01050_inventoryPlanAnalysis_02_list_new extends HttpServlet {
 			
 
 			String sql;
-			
-			String user_id		= gdReq.getParam("user_id");		
+			String checked_button 	= gdReq.getParam("checked_button");
+			String user_id			= gdReq.getParam("user_id");		
 			//해당 버젼이 있을경우에는 (MERGE 문 업데이트나 인설트를) 실행!!	
 			sql   = "merge into ITEM_MST IM	          	   							\n";
 			sql  += "using (                                         	    		\n";
 			
 			boolean flag = false;
+			if (checked_button.equals("00") ){//관심품목
+				
+				// 데이터 셋팅
+				for (int i = 0; i < rowCount; i++) {
+					System.out.println("어디에서 에러 !! 1 : ");
+				
+					if( flag){
+							sql += "UNION	ALL \n"; 
+						}
+						flag = true;
+						
+						
+						//파라미터를 변수에 적용!!  
+						//-------------------------------------------------------------------------------------------------------------------
+						sql += "	SELECT	ITEM_ID,																												\n"; 
+						sql += "	SUBSTR(AT_FLAG,0,F_GET_AT_FLAG('" + user_id + "')-1)||'N'||SUBSTR(AT_FLAG,F_GET_AT_FLAG('" + user_id + "')+1,9) AS AT_FLAG		\n";
+						sql +="		FROM   ITEM_MST 																		   										\n";	
+						sql +="		WHERE  ITEM_ID ='"	+	gdReq.getHeader("ITEM_ID"		).getValue(i) +	"' 							 							\n";
+		               //--------------------------------------------------------------------------------------------------------------------
+						} 
+								
+					//-----------------------------Merge Into 1----------------------------------------------------------------------------------		
+						
+				sql += ") IM1 														   	\n";
+				sql += "ON (IM.ITEM_ID    = IM1.ITEM_ID)    						   	\n";
+				sql += "when matched then update set            					   	\n";
+				sql += "     IM.AT_FLAG      	= IM1.AT_FLAG   					   	\n";
+				
+				
+			}else if (checked_button.equals("40") ){//관심품목-II
+				
+				// 데이터 셋팅
+				for (int i = 0; i < rowCount; i++) {
+					System.out.println("어디에서 에러 !! 1 : ");
+				
+					if( flag){
+							sql += "UNION	ALL \n"; 
+						}
+						flag = true;
+						
+						
+						//파라미터를 변수에 적용!!  
+						//-------------------------------------------------------------------------------------------------------------------
+						sql += "	SELECT	ITEM_ID,																												\n"; 
+						sql += "			'N' AS AT_FLAG2																											\n";
+						sql +="		FROM   ITEM_MST 																		   										\n";	
+						sql +="		WHERE  ITEM_ID ='"	+	gdReq.getHeader("ITEM_ID"		).getValue(i) +	"' 							 							\n";
+		               //--------------------------------------------------------------------------------------------------------------------
+						} 
+								
+					//-----------------------------Merge Into 1----------------------------------------------------------------------------------		
+						
+				sql += ") IM1 														   	\n";
+				sql += "ON (IM.ITEM_ID    = IM1.ITEM_ID)    						   	\n";
+				sql += "when matched then update set            					   	\n";
+				sql += "     IM.AT_FLAG2      	= IM1.AT_FLAG2   					   	\n";
+				
+				
+				sql += "     IM.JGC_DIVISION    = ''   					   				\n";	
+				
+				
+				
+			}else{
+				
+				// 데이터 셋팅
+				for (int i = 0; i < rowCount; i++) {
+					System.out.println("어디에서 에러 !! 1 : ");
+				
+					if( flag){
+							sql += "UNION	ALL \n"; 
+						}
+						flag = true;
+						
+						
+						//파라미터를 변수에 적용!!  
+						//-------------------------------------------------------------------------------------------------------------------
+						sql += "	SELECT	ITEM_ID,																												\n"; 
+						sql += "			'' AS JGC_DIVISION																										\n";
+						sql +="		FROM   ITEM_MST 																		   										\n";	
+						sql +="		WHERE  ITEM_ID ='"	+	gdReq.getHeader("ITEM_ID"		).getValue(i) +	"' 							 							\n";
+		               //--------------------------------------------------------------------------------------------------------------------
+						} 
+								
+					//-----------------------------Merge Into 1----------------------------------------------------------------------------------		
+						
+				sql += ") IM1 														   	\n";
+				sql += "ON (IM.ITEM_ID    = IM1.ITEM_ID)    						   	\n";
+				sql += "when matched then update set            					   	\n";
+				sql += "     IM.JGC_DIVISION    = ''   					   				\n";	
+			}
 			
-			// 데이터 셋팅
-			for (int i = 0; i < rowCount; i++) {
-				System.out.println("어디에서 에러 !! 1 : ");
-			
-				if( flag){
-						sql += "UNION	ALL \n"; 
-					}
-					flag = true;
-					
-					
-					//파라미터를 변수에 적용!!  
-					//-------------------------------------------------------------------------------------------------------------------
-					sql += "	SELECT	ITEM_ID,																												\n"; 
-					sql += "	SUBSTR(AT_FLAG,0,F_GET_AT_FLAG('" + user_id + "')-1)||'N'||SUBSTR(AT_FLAG,F_GET_AT_FLAG('" + user_id + "')+1,9) AS AT_FLAG		\n";
-					sql +="		FROM   ITEM_MST 																		   										\n";	
-					sql +="		WHERE  ITEM_ID ='"	+	gdReq.getHeader("ITEM_ID"		).getValue(i) +	"' 							 							\n";
-	               //--------------------------------------------------------------------------------------------------------------------
-					} 
-							
-				//-----------------------------Merge Into 1----------------------------------------------------------------------------------		
-					
-			sql += ") IM1 														   	\n";
-			sql += "ON (IM.ITEM_ID    = IM1.ITEM_ID)    						   	\n";
-			sql += "when matched then update set            					   	\n";
-			sql += "     IM.AT_FLAG      	= IM1.AT_FLAG,   					   	\n";
-			sql += "     IM.JGC_DIVISION    = ''   					   				\n";	
 			
 			
 			

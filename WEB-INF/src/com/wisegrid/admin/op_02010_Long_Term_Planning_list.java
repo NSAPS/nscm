@@ -663,7 +663,9 @@ public class op_02010_Long_Term_Planning_list extends HttpServlet {
 					/***********************************************사용자 입력 메세지 입력 ***********************************************/
 					sql3	+=	"	SELECT	'OP_02010'	AS WD_ID, \n";
 					sql3	+=	"			'" + gdReq.getHeader("ITEM_ID"			).getValue(i) 			+ "'	AS ITEM_ID, 	\n";		       			
-					sql3	+=	"			'" + gdReq.getHeader("MSG"				).getValue(i) 			+ "'	AS MSG 			\n";
+					sql3	+=	"			'" + gdReq.getHeader("MSG"				).getValue(i) 			+ "'	AS MSG, 		\n";
+					sql3	+=	"			SYSDATE	AS MADE_DTTM, 	\n";					
+					sql3	+=	"			'" + version   													+ "'	AS VERSION      \n";					
 					sql3	+=	"	from   DUAL 																			    	\n";
 
 					/***********************************************사용자 입력 메세지 입력 ***********************************************/
@@ -762,11 +764,12 @@ public class op_02010_Long_Term_Planning_list extends HttpServlet {
 			/****************************************사용자 입력 메세지 입력 ***********************************************/
 			sql3 += ") UM1 											   	   														\n";
 			sql3 += "ON (UM.WD_ID			= UM1.WD_ID   			   	   														\n";
+			sql3 += "AND UM.VERSION      	= UM1.VERSION    						   											\n";
 			sql3 += "AND UM.ITEM_ID      	= UM1.ITEM_ID)    						   											\n";
 			sql3 += "when matched then update set            					  					 							\n";
 			sql3 += " MSG	 			= UM1.MSG           	   	   														\n";  	/* 차주 예상재고량  2013-02-13 */			
-			sql3 += "when not matched then insert(WD_ID,		ITEM_ID		,MSG		,MADE_TYPE	,MADE_DTTM)	\n";
-			sql3 += "values						 (UM1.WD_ID,	UM1.ITEM_ID	,UM1.MSG	,'AD' 		,SYSDATE)	\n";
+			sql3 += "when not matched then insert(WD_ID,	VERSION,	ITEM_ID		,MSG		,MADE_TYPE	,MADE_DTTM)	\n";
+			sql3 += "values						 (UM1.WD_ID, UM1.VERSION,	UM1.ITEM_ID	,UM1.MSG	,'AD' 		,SYSDATE)	\n";
 			
 			/****************************************사용자 입력 메세지 입력 ***********************************************/
 			

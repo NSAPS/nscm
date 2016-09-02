@@ -120,8 +120,8 @@ public class sc_20040_Production_Planning_Summary_list extends HttpServlet {
 				gdRes.getHeader("HID_NAME"       ).addValue(qResult.get(i).get(1), "");
 				gdRes.getHeader("ITEM_ID" 	     ).addValue(qResult.get(i).get(2), "");
 				gdRes.getHeader("ITEM_NAME"	     ).addValue(qResult.get(i).get(3), "");
-				gdRes.getHeader("PROC_ID"	     ).addValue(qResult.get(i).get(49), "");
-				gdRes.getHeader("PROC_NAME"	     ).addValue(qResult.get(i).get(50), "");
+				//gdRes.getHeader("PROC_ID"	     ).addValue(qResult.get(i).get(49), "");
+				//gdRes.getHeader("PROC_NAME"	     ).addValue(qResult.get(i).get(50), "");
 				gdRes.getHeader("SPEC"        	 ).addValue(qResult.get(i).get(4), "");                                     
 				gdRes.getHeader("DAY0_1"       		 ).addValue(qResult.get(i).get(5), qResult.get(i).get(27)); 
 				gdRes.getHeader("DAY0_2"       		 ).addValue(qResult.get(i).get(6), qResult.get(i).get(28));

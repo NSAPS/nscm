@@ -1,0 +1,521 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>
+	
+	<!--
+	======================================================================
+		배송지점 물동량 현황
+	======================================================================
+	-->
+	
+	<!-- 물량 적합성 Header -->
+		
+	<query id="rp_03010_supply_suitability_header" paging="false">
+		
+		SELECT  DECODE(WEEK_DAY,'일','주간 계',SUBSTR(CAL_DATE,0,2)||'-'||SUBSTR(CAL_DATE,3,2)||'('||WEEK_DAY||')'),
+	            'DAY_'||IDX
+	    FROM (
+	            SELECT  TO_CHAR(CAL_DATE,'MMDD')    		CAL_DATE,
+	                    WEEK_DAY,
+	                    RANK() OVER (ORDER BY CAL_DATE)-1 	IDX
+	            FROM    CAL_MST
+	            WHERE   WEEK_NO BETWEEN (
+	                               SELECT   WEEK_NO-1
+	                               FROM     CAL_MST
+	                               WHERE    CAL_DATE = TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'))
+	                               ) AND  (
+	                               SELECT   WEEK_NO+1
+	                               FROM     CAL_MST
+	                               WHERE    CAL_DATE = TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'))
+	                               ) 
+	            AND     YYYY = SUBSTR(TO_CHAR(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'),'YYYYMMDD'),0,4)
+	            )
+	</query> 
+		
+	
+	<!-- 물량 적합성 관리 list -->
+	<query id="rp_03010_supply_suitability">
+		
+		SELECT	T1.SALES_CAT03,
+				T1.ITEM_ID,
+				T1.ITEM_NAME,
+				T1.SALES_MEAN_1WEEK_ETC,
+				T1.SALES_MEAN_3WEEK_ETC,
+				T1.SALES_MEAN_13WEEK_ETC,
+				T1.LASTW_MON,                
+				T1.LASTW_TUE,                
+				T1.LASTW_WED,                
+				T1.LASTW_THR,                
+				T1.LASTW_FRI,                
+				T1.LASTW_SAT,                
+				T1.LASTW_TOT,
+				/* 금주 판매량의 경우 과거는 SALES_ACT 판매량, 미래는 13주평균, 오늘은 일계 */
+				CASE WHEN '$!{cnfm_date}' > TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'),'IW'),'YYYYMMDD')
+					 THEN T1.CURW_MON
+					 ELSE DECODE('$!{cnfm_date}',TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'),'IW'),'YYYYMMDD'),T5.ISSUE,T1.NEXT_1)
+				END,
+				CASE WHEN '$!{cnfm_date}' > TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'),'IW')+1,'YYYYMMDD')
+					 THEN T1.CURW_TUE
+					 ELSE DECODE('$!{cnfm_date}',TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'),'IW')+1,'YYYYMMDD'),T5.ISSUE,T1.NEXT_2)
+				END,
+				CASE WHEN '$!{cnfm_date}' > TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'),'IW')+2,'YYYYMMDD')
+					 THEN T1.CURW_WED
+					 ELSE DECODE('$!{cnfm_date}',TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'),'IW')+2,'YYYYMMDD'),T5.ISSUE,T1.NEXT_3)
+				END,
+				CASE WHEN '$!{cnfm_date}' > TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'),'IW')+3,'YYYYMMDD')
+					 THEN T1.CURW_THR
+					 ELSE DECODE('$!{cnfm_date}',TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'),'IW')+3,'YYYYMMDD'),T5.ISSUE,T1.NEXT_4)
+				END,
+				CASE WHEN '$!{cnfm_date}' > TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'),'IW')+4,'YYYYMMDD')
+					 THEN T1.CURW_FRI
+					 ELSE DECODE('$!{cnfm_date}',TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'),'IW')+4,'YYYYMMDD'),T5.ISSUE,T1.NEXT_5)
+				END,
+				CASE WHEN '$!{cnfm_date}' > TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'),'IW')+5,'YYYYMMDD')
+					 THEN T1.CURW_SAT
+					 ELSE DECODE('$!{cnfm_date}',TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'),'IW')+5,'YYYYMMDD'),T5.ISSUE,T1.NEXT_6)
+				END,
+				CASE WHEN '$!{cnfm_date}' > TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'),'IW'),'YYYYMMDD')
+					 THEN T1.CURW_MON
+					 ELSE DECODE('$!{cnfm_date}',TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'),'IW'),'YYYYMMDD'),T5.ISSUE,T1.NEXT_1)
+				END +
+				CASE WHEN '$!{cnfm_date}' > TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'),'IW')+1,'YYYYMMDD')
+					 THEN T1.CURW_TUE
+					 ELSE DECODE('$!{cnfm_date}',TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'),'IW')+1,'YYYYMMDD'),T5.ISSUE,T1.NEXT_2)
+				END +
+				CASE WHEN '$!{cnfm_date}' > TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'),'IW')+2,'YYYYMMDD')
+					 THEN T1.CURW_WED
+					 ELSE DECODE('$!{cnfm_date}',TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'),'IW')+2,'YYYYMMDD'),T5.ISSUE,T1.NEXT_3)
+				END +
+				CASE WHEN '$!{cnfm_date}' > TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'),'IW')+3,'YYYYMMDD')
+					 THEN T1.CURW_THR
+					 ELSE DECODE('$!{cnfm_date}',TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'),'IW')+3,'YYYYMMDD'),T5.ISSUE,T1.NEXT_4)
+				END +
+				CASE WHEN '$!{cnfm_date}' > TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'),'IW')+4,'YYYYMMDD')
+					 THEN T1.CURW_FRI
+					 ELSE DECODE('$!{cnfm_date}',TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'),'IW')+4,'YYYYMMDD'),T5.ISSUE,T1.NEXT_5)
+				END +
+				CASE WHEN '$!{cnfm_date}' > TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'),'IW')+5,'YYYYMMDD')
+					 THEN T1.CURW_SAT
+					 ELSE DECODE('$!{cnfm_date}',TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'),'IW')+5,'YYYYMMDD'),T5.ISSUE,T1.NEXT_6)
+				END,
+				T1.NEXT_1,                
+				T1.NEXT_2,                
+				T1.NEXT_3,                
+				T1.NEXT_4,                
+				T1.NEXT_5,                
+				T1.NEXT_6,                
+				T1.NEXT_7,
+				T2.QTY,
+				NVL(T3.LASTW_MON,'X'),
+				NVL(T3.LASTW_TUE,'X'),
+				NVL(T3.LASTW_WED,'X'),
+				NVL(T3.LASTW_THR,'X'),
+				NVL(T3.LASTW_FRI,'X'),
+				NVL(T3.LASTW_SAT,'X'),
+				NVL(T3.CURW_MON,'X'),
+				NVL(T3.CURW_TUE,'X'),
+				NVL(T3.CURW_WED,'X'),
+				NVL(T3.CURW_THR,'X'),
+				NVL(T3.CURW_FRI,'X'),
+				NVL(T3.CURW_SAT,'X'),
+				NVL(T3.NEXTW_MON,'X'),
+				NVL(T3.NEXTW_TUE,'X'),
+				NVL(T3.NEXTW_WED,'X'),
+				NVL(T3.NEXTW_THR,'X'),
+				NVL(T3.NEXTW_FRI,'X'),
+				NVL(T3.NEXTW_SAT,'X')				
+		FROM	( 
+				SELECT  SALES_CAT03,
+						ITEM_ID,
+				        ITEM_NAME,       
+				        MAX(SALES_MEAN_1WEEK_ETC)               SALES_MEAN_1WEEK_ETC,
+				        MAX(SALES_MEAN_3WEEK_ETC)               SALES_MEAN_3WEEK_ETC,
+				        MAX(SALES_MEAN_13WEEK_ETC)              SALES_MEAN_13WEEK_ETC,
+				        MAX(LASTW_MON)                          LASTW_MON,
+				        MAX(LASTW_TUE)                          LASTW_TUE,
+				        MAX(LASTW_WED)                          LASTW_WED,
+				        MAX(LASTW_THR)                          LASTW_THR,
+				        MAX(LASTW_FRI)                          LASTW_FRI,
+				        MAX(LASTW_SAT)                          LASTW_SAT,
+				        MAX(LASTW_MON) + MAX(LASTW_TUE) +
+				        MAX(LASTW_WED) + MAX(LASTW_THR) +
+				        MAX(LASTW_FRI) + MAX(LASTW_SAT)         LASTW_TOT,
+				        MAX(CURW_MON)                           CURW_MON,
+				        MAX(CURW_TUE)                           CURW_TUE,
+				        MAX(CURW_WED)                           CURW_WED,
+				        MAX(CURW_THR)                           CURW_THR,
+				        MAX(CURW_FRI)                           CURW_FRI,
+				        MAX(CURW_SAT)                           CURW_SAT,
+				        MAX(CURW_MON) + MAX(CURW_TUE) +
+				        MAX(CURW_WED) + MAX(CURW_THR) +
+				        MAX(CURW_FRI) + MAX(CURW_SAT)           CURW_TOT,
+				        #if("$!{gubn}" == "1week" ) 
+				        MAX(SALES_MEAN_1WEEK_ETC)				NEXT_1,
+				        MAX(SALES_MEAN_1WEEK_ETC)				NEXT_2, 
+				        MAX(SALES_MEAN_1WEEK_ETC)				NEXT_3,
+				        MAX(SALES_MEAN_1WEEK_ETC)				NEXT_4,
+				        MAX(SALES_MEAN_1WEEK_ETC)				NEXT_5,
+				        MAX(SALES_MEAN_1WEEK_ETC)				NEXT_6,
+				        MAX(SALES_MEAN_1WEEK_ETC) * 6			NEXT_7
+				        #elseif("$!{gubn}" == "3week" )
+				        MAX(SALES_MEAN_3WEEK_ETC)				NEXT_1,
+				        MAX(SALES_MEAN_3WEEK_ETC)				NEXT_2, 
+				        MAX(SALES_MEAN_3WEEK_ETC)				NEXT_3,
+				        MAX(SALES_MEAN_3WEEK_ETC)				NEXT_4,
+				        MAX(SALES_MEAN_3WEEK_ETC)				NEXT_5,
+				        MAX(SALES_MEAN_3WEEK_ETC)				NEXT_6,
+				        MAX(SALES_MEAN_3WEEK_ETC) * 6			NEXT_7
+				        #else
+				        MAX(SALES_MEAN_13WEEK_ETC)				NEXT_1,
+				        MAX(SALES_MEAN_13WEEK_ETC)				NEXT_2, 
+				        MAX(SALES_MEAN_13WEEK_ETC)				NEXT_3,
+				        MAX(SALES_MEAN_13WEEK_ETC)				NEXT_4,
+				        MAX(SALES_MEAN_13WEEK_ETC)				NEXT_5,
+				        MAX(SALES_MEAN_13WEEK_ETC)				NEXT_6,
+				        MAX(SALES_MEAN_13WEEK_ETC) * 6			NEXT_7
+				        #end
+				FROM    (
+				        SELECT  F_GET_CODE_NAME('SALES_CAT3', IM.SALES_CAT03)       						SALES_CAT03,
+				        		IM.ITEM_ID,
+				                IM.ITEM_NAME,
+				                SUM(DC.SALES_MEAN_3WEEK_ETC)                                                SALES_MEAN_3WEEK_ETC,
+				                SUM(DC.SALES_MEAN_1WEEK_ETC)                                                SALES_MEAN_1WEEK_ETC,
+				                ROUND((SUM(DC.SALES_MEAN_3WEEK_ETC) + SUM(DC.SALES_MEAN_1WEEK_ETC))/2,0)    SALES_MEAN_13WEEK_ETC,
+				                0                                                                           LASTW_MON,
+				                0                                                                           LASTW_TUE,
+				                0                                                                           LASTW_WED,
+				                0                                                                           LASTW_THR,
+				                0                                                                           LASTW_FRI,
+				                0                                                                           LASTW_SAT,
+				                0                                                                           CURW_MON,
+				                0                                                                           CURW_TUE,
+				                0                                                                           CURW_WED,
+				                0                                                                           CURW_THR,
+				                0                                                                           CURW_FRI,
+				                0                                                                           CURW_SAT                
+				        FROM    ITEM_MST IM,
+				                DC_DATAWAREHOUSE DC,
+				                DC_MST  DM
+				        WHERE   IM.ITEM_ID      = DC.ITEM_ID
+				        AND     DC.DC_ID        = DM.DC_ID
+				        AND     DC.CNFM_DATE    = '$!{cnfm_date}'
+				        AND     IM.ITYPE        = 'FERT'
+				        AND     IM.SEARCH_FLAG  = 'Y'			        
+				        AND     IM.SELL_STOP_DATE >= TO_CHAR(SYSDATE,'YYYYMMDD')
+				        AND     NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+				        AND		IM.ITEM_NAME NOT LIKE '%가공용%'
+				        AND     IM.DIVISION IN 	('10','20')
+				        AND     DM.EXPORT_FLAG IS NULL
+				        AND     DM.DC_ID    != '8922'
+				        GROUP
+				        BY      IM.ITEM_ID,
+				                IM.ITEM_NAME,
+				                IM.SALES_CAT03				               
+				        UNION ALL        
+				        SELECT  SALES_CAT03,
+				        		ITEM_ID,
+				                ITEM_NAME,
+				                0,
+				                0,
+				                0,
+				                MAX(DECODE(IDX,'1',QTY,0))      "W-1 월",   
+				                MAX(DECODE(IDX,'2',QTY,0))      "W-1 화",  
+				                MAX(DECODE(IDX,'3',QTY,0))      "W-1 수",  
+				                MAX(DECODE(IDX,'4',QTY,0))      "W-1 목", 
+				                MAX(DECODE(IDX,'5',QTY,0))      "W-1 금", 
+				                MAX(DECODE(IDX,'6',QTY,0))      "W-1 토", 
+				                MAX(DECODE(IDX,'7',QTY,0))      "W 월", 
+				                MAX(DECODE(IDX,'8',QTY,0))      "W 화", 
+				                MAX(DECODE(IDX,'9',QTY,0))      "W 수", 
+				                MAX(DECODE(IDX,'10',QTY,0))     "W 목", 
+				                MAX(DECODE(IDX,'11',QTY,0))     "W 금",   
+				                MAX(DECODE(IDX,'12',QTY,0))     "W 토"                 
+				        FROM    (       
+				                SELECT  F_GET_CODE_NAME('SALES_CAT3', IM.SALES_CAT03)      SALES_CAT03,
+				                		IM.ITEM_ID,
+				                        IM.ITEM_NAME,
+				                        CAL.CAL_DATE,
+				                        CAL.WEEK_DAY,
+				                        DENSE_RANK() OVER(ORDER BY CAL_DATE) IDX,
+				                        SUM(SA.QTY) QTY
+				                FROM    ITEM_MST IM,
+				                        SALES_ACT SA,
+				                        (
+				                        SELECT  CAL_DATE,
+				                                WEEK_DAY
+				                        FROM    CAL_MST
+				                        WHERE   WEEK_NO BETWEEN (
+				                                           SELECT   WEEK_NO-1
+				                                           FROM     CAL_MST
+				                                           WHERE    CAL_DATE = TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'))
+				                                           ) AND  (
+				                                           SELECT   WEEK_NO+1
+				                                           FROM     CAL_MST
+				                                           WHERE    CAL_DATE = TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'))
+				                                           ) 
+				                        AND     YYYY = SUBSTR(TO_CHAR(SYSDATE,'YYYYMMDD'),0,4)
+				                        AND     HOLIDAY_FLAG IS NULL
+				                        AND     CAL_DATE &lt; TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'))
+				                        )CAL,
+				                        DC_MST  DM
+				                WHERE   CAL.CAL_DATE    = SA.SALE_DATE(+)
+				                AND     SA.ITEM_ID      = IM.ITEM_ID
+				                AND     SA.DELIV_LOC    = DM.DC_ID
+				                AND     SA.DOMAIN       = 'DO'
+				                AND     IM.ITYPE        = 'FERT'
+				                AND     IM.SEARCH_FLAG  = 'Y'
+				                AND     IM.SELL_STOP_DATE>= TO_CHAR(SYSDATE,'YYYYMMDD')
+				                AND     NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+				                AND		IM.ITEM_NAME NOT LIKE '%가공용%'
+				                AND     IM.DIVISION     IN ('10','20')
+				                AND     DM.EXPORT_FLAG IS NULL
+				                AND     DM.DC_ID        != '8922'
+				                GROUP
+				                BY      IM.ITEM_ID,
+				                        IM.ITEM_NAME,
+				                        CAL.CAL_DATE,
+				                        CAL.WEEK_DAY,
+				                        IM.SALES_CAT03				                            
+				                )
+				        GROUP
+				        BY      ITEM_ID,
+				                ITEM_NAME,
+				                SALES_CAT03	                
+				        )
+				GROUP
+				BY      ITEM_ID,
+				        ITEM_NAME,
+				        SALES_CAT03
+				)T1,
+				(     
+				SELECT  ITEM_ID,
+	        			ROUND(STDDEV_POP(QTY),1)    QTY        
+	        	FROM	(
+				        SELECT  T1.SALES_CAT03,
+				                T1.ITEM_ID,
+				                T1.ITEM_NAME,
+				                T1.CAL_DATE,
+				                T1.IDX,
+				                T1.QTY,
+				                T2.CAL_DATE EVENT_DAY               
+	                	FROM	(
+			                    SELECT  F_GET_CODE_NAME('SALES_CAT3', IM.SALES_CAT03)      SALES_CAT03,
+			                            IM.ITEM_ID,
+			                            IM.ITEM_NAME,
+			                            CAL.CAL_DATE,
+			                            CAL.WEEK_DAY,
+			                            DENSE_RANK() OVER(ORDER BY CAL_DATE) IDX,
+			                            SUM(SA.QTY) QTY
+			                    FROM    ITEM_MST IM,
+			                            SALES_ACT SA,
+			                            (
+			                            SELECT  CAL_DATE,
+			                                    WEEK_DAY
+			                            FROM    CAL_MST
+			                            WHERE   CAL_DATE BETWEEN TO_DATE('$!{cnfm_date}','YYYY-MM-DD')-90 AND TO_DATE('$!{cnfm_date}','YYYY-MM-DD') 
+			                            AND		HOLIDAY_FLAG IS NULL                          
+			                            )CAL,
+			                            DC_MST  DM
+			                   	WHERE   CAL.CAL_DATE    = SA.SALE_DATE(+)
+				                AND     SA.ITEM_ID      = IM.ITEM_ID
+				                AND     SA.DELIV_LOC    = DM.DC_ID
+				                AND     SA.DOMAIN       = 'DO'
+				                AND     IM.ITYPE        = 'FERT'
+				                AND     IM.SEARCH_FLAG  = 'Y'
+				                AND     IM.SELL_STOP_DATE>= TO_CHAR(SYSDATE,'YYYYMMDD')
+				                AND     NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+				                AND		IM.ITEM_NAME NOT LIKE '%가공용%'
+				                AND     IM.DIVISION     IN ('10','20')
+				                AND     DM.EXPORT_FLAG IS NULL
+				                AND     DM.DC_ID        != '8922'
+			                    GROUP
+			                    BY      IM.ITEM_ID,
+			                            IM.ITEM_NAME,
+			                            CAL.CAL_DATE,
+			                            CAL.WEEK_DAY,
+			                            IM.SALES_CAT03 
+			                    )T1,
+			                    (
+			                    SELECT  DISTINCT
+	                                    S1.ITEM_ID,                                    
+	                                    S2.CAL_DATE                                    
+	                            FROM    EDI_EVENT_LIST S1,
+	                                    CAL_MST S2
+	                            WHERE   S2.CAL_DATE BETWEEN S1.SDATE AND S1.EDATE                         
+			                    )T2
+	                    WHERE	T1.ITEM_ID 	= T2.ITEM_ID(+)  
+	                    AND     T1.CAL_DATE = T2.CAL_DATE(+)
+	                    )
+	            WHERE	EVENT_DAY IS NULL
+	            GROUP 
+	            BY		ITEM_ID  
+				)T2,
+				(				  
+                SELECT	ITEM_ID,           
+						MAX(DECODE(IDX,'1',GUBN,0))     LASTW_MON,   
+						MAX(DECODE(IDX,'2',GUBN,0))     LASTW_TUE,  
+						MAX(DECODE(IDX,'3',GUBN,0))     LASTW_WED,  
+						MAX(DECODE(IDX,'4',GUBN,0))     LASTW_THR, 
+						MAX(DECODE(IDX,'5',GUBN,0))     LASTW_FRI, 
+						MAX(DECODE(IDX,'6',GUBN,0))     LASTW_SAT, 
+						MAX(DECODE(IDX,'7',GUBN,0))     CURW_MON, 
+						MAX(DECODE(IDX,'8',GUBN,0))     CURW_TUE, 
+						MAX(DECODE(IDX,'9',GUBN,0))     CURW_WED, 
+						MAX(DECODE(IDX,'10',GUBN,0))    CURW_THR, 
+						MAX(DECODE(IDX,'11',GUBN,0))    CURW_FRI,   
+						MAX(DECODE(IDX,'12',GUBN,0))    CURW_SAT,
+						MAX(DECODE(IDX,'13',GUBN,0))    NEXTW_MON, 
+						MAX(DECODE(IDX,'14',GUBN,0))    NEXTW_TUE, 
+						MAX(DECODE(IDX,'15',GUBN,0))    NEXTW_WED, 
+						MAX(DECODE(IDX,'16',GUBN,0))    NEXTW_THR, 
+						MAX(DECODE(IDX,'17',GUBN,0))    NEXTW_FRI,   
+						MAX(DECODE(IDX,'18',GUBN,0))    NEXTW_SAT 
+				FROM	(
+						SELECT	ITEM_ID,
+						       	CAL_DATE,
+						       	DECODE(COUNT(GUBN),1,'X','O') GUBN,
+						       	DENSE_RANK() OVER(PARTITION BY ITEM_ID ORDER BY CAL_DATE) IDX
+						FROM	(
+								SELECT  DISTINCT
+								        S2.ITEM_ID,
+								        S1.CAL_DATE,
+								        '1' GUBN
+								FROM	CAL_MST S1, 
+										EDI_EVENT_LIST S2
+								WHERE   S1.WEEK_NO BETWEEN (
+									                       SELECT   WEEK_NO-1
+									                       FROM     CAL_MST
+									                       WHERE    CAL_DATE = TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'))
+									                       ) AND  
+									                       (
+									                       SELECT   WEEK_NO+1
+									                       FROM     CAL_MST
+									                       WHERE    CAL_DATE = TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'))
+									                       ) 
+								AND		S1.YYYY = SUBSTR(TO_CHAR(SYSDATE,'YYYYMMDD'),0,4)
+								AND 	S1.HOLIDAY_FLAG IS NULL
+								UNION ALL
+								SELECT  DISTINCT
+								        S1.ITEM_ID,                                    
+								        S2.CAL_DATE  ,
+								        '2' GUBN    
+								FROM    EDI_EVENT_LIST S1,
+								        CAL_MST S2
+								WHERE   S2.CAL_DATE BETWEEN S1.SDATE AND S1.EDATE
+								AND     S2.WEEK_NO BETWEEN (
+															SELECT   WEEK_NO-1
+															FROM     CAL_MST
+															WHERE    CAL_DATE = TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'))
+															) AND  
+															(
+															SELECT   WEEK_NO+1
+															FROM     CAL_MST
+															WHERE    CAL_DATE = TRUNC(TO_DATE('$!{cnfm_date}','YYYY-MM-DD'))
+															)
+								AND     S2.YYYY = SUBSTR(TO_CHAR(SYSDATE,'YYYYMMDD'),0,4)
+								AND     S2.HOLIDAY_FLAG IS NULL
+								)
+						GROUP 
+						BY 		ITEM_ID, CAL_DATE
+						)
+				GROUP 
+				BY 		ITEM_ID			
+				)T3,
+				CODE_MST T4,
+				(
+				SELECT	DC.ITEM_ID,
+						SUM(DC.ISSUE_EXPT) + SUM(DC.ISSUE) ISSUE
+				FROM	DC_DATAWAREHOUSE DC,
+						DC_MST			 DM
+				WHERE	CNFM_DATE		= '$!{cnfm_date}'
+				AND		DC.DC_ID		= DM.DC_ID				
+				AND     DM.DC_ID       != '8922'	
+				AND     DM.EXPORT_FLAG IS NULL		
+				GROUP
+				BY		DC.ITEM_ID	
+				)T5	
+		WHERE	T1.ITEM_ID 		= T2.ITEM_ID(+)
+		AND		T1.ITEM_ID		= T3.ITEM_ID(+)
+		AND		T4.CD_GRP		= 'SALES_CAT3'
+		AND		T1.SALES_CAT03 	= T4.CD_NAME(+)		
+		AND		T1.ITEM_ID		= T5.ITEM_ID(+)
+		ORDER
+		BY		TO_NUMBER(T4.CAT01), 
+				T1.SALES_CAT03, 
+				T1.ITEM_ID
+	</query>
+		
+	<!-- 물량 적합성 관리 POP_UP -->
+	<query id="rp_03010_supply_suitability_pop">
+	
+	   SELECT	T1.SALES_CAT03,
+	            T1.ITEM_ID,
+	            T1.ITEM_NAME,
+	            TO_CHAR(T1.CAL_DATE,'YYYY-MM-DD'),
+	            T1.QTY,
+	            DECODE(T2.CAL_DATE,NULL,'X','O'),
+	            T2.CD_NAME
+	   FROM     (
+	            SELECT  F_GET_CODE_NAME('SALES_CAT3', IM.SALES_CAT03)      SALES_CAT03,
+	                    IM.ITEM_ID,
+	                    IM.ITEM_NAME,
+	                    CAL.CAL_DATE,                                    
+	                    SUM(SA.QTY) QTY
+	            FROM    ITEM_MST IM,
+	                    SALES_ACT SA,
+	                    (
+	                    SELECT  CAL_DATE,
+	                            WEEK_DAY
+	                    FROM    CAL_MST
+	                    WHERE   CAL_DATE BETWEEN TO_DATE('$!{cnfm_date}','YYYY-MM-DD')-90 AND TO_DATE('$!{cnfm_date}','YYYY-MM-DD')                                   
+	                    AND     HOLIDAY_FLAG IS NULL
+	                    )CAL,
+	                    DC_MST  DM
+	            WHERE   CAL.CAL_DATE    = SA.SALE_DATE(+)
+	            AND     SA.ITEM_ID      = IM.ITEM_ID
+	            AND     SA.DELIV_LOC    = DM.DC_ID
+	            AND     SA.DOMAIN       = 'DO'
+	            AND     IM.ITYPE        = 'FERT'
+	            AND     IM.ITEM_ID      = '$!{item_id}'
+	            AND     IM.SEARCH_FLAG  = 'Y'
+	            AND     IM.SELL_STOP_DATE>= TO_CHAR(SYSDATE,'YYYYMMDD')
+	            AND     NVL(IM.CAT03,'XX') NOT LIKE 'O%'
+	            AND     IM.DIVISION     IN ('10','20')
+	            AND     DM.EXPORT_FLAG IS NULL
+	            AND     DM.DC_ID        != '8922'
+	            GROUP
+	            BY      IM.ITEM_ID,
+	                    IM.ITEM_NAME,
+	                    CAL.CAL_DATE,
+	                    IM.SALES_CAT03
+	            )T1, 
+	            (
+	            SELECT  DISTINCT
+	                    S1.ITEM_ID,      
+	                    S3.ITEM_NAME,                              
+	                    S2.CAL_DATE,
+	                    S4.CD_NAME                                          
+	            FROM    EDI_EVENT_LIST 	S1,
+	                    CAL_MST 		S2,
+	                    ITEM_MST 		S3,
+	                    CODE_MST		S4
+	            WHERE   S2.CAL_DATE BETWEEN S1.SDATE AND S1.EDATE  
+	            AND     S2.CAL_DATE BETWEEN TO_DATE('$!{cnfm_date}','YYYY-MM-DD')-90 AND TO_DATE('$!{cnfm_date}','YYYY-MM-DD') 
+	            AND		S2.HOLIDAY_FLAG IS NULL           
+	            AND     S1.ITEM_ID = S3.ITEM_ID 
+	            AND     S1.ITEM_ID = '$!{item_id}'  
+	            AND     S4.CD_GRP  = 'EVENT_GUBN'
+            	AND     S1.GUBN     = S4.CD                            
+	            )T2
+	   WHERE 	T1.ITEM_ID 	= T2.ITEM_ID(+)
+	   AND   	T1.CAL_DATE = T2.CAL_DATE(+)  
+	   ORDER 
+	   BY 		4,7  
+	</query>
+		
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</queries>

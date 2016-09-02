@@ -151,9 +151,9 @@ public class op_02050_roh_expt_master_new extends HttpServlet {
 				gdRes.getHeader("ANYANG" 			).addValue(qResult.get(i).get(6), "");
 				gdRes.getHeader("KUMI" 				).addValue(qResult.get(i).get(7), "");
 				gdRes.getHeader("PUSAN" 			).addValue(qResult.get(i).get(8), "");
-				gdRes.getHeader("SINHYO" 			).addValue(qResult.get(i).get(9), ""); 
+				gdRes.getHeader("HJIN" 				).addValue(qResult.get(i).get(9), ""); 
 				gdRes.getHeader("SJP" 				).addValue(qResult.get(i).get(10), ""); 
-				gdRes.getHeader("HJIN" 				).addValue(qResult.get(i).get(11), "");     //당주 기준재고 = 확정재고                                
+				gdRes.getHeader("SINHYO" 			).addValue(qResult.get(i).get(11), "");     //당주 기준재고 = 확정재고                                
 				gdRes.getHeader("CNFM_STOCK" 		).addValue(qResult.get(i).get(12), "");         
 				gdRes.getHeader("SUB_TOT" 			).addValue(qResult.get(i).get(13), ""); 
 				gdRes.getHeader("ODER_QTY" 			).addValue(qResult.get(i).get(14),"");
@@ -174,6 +174,9 @@ public class op_02050_roh_expt_master_new extends HttpServlet {
 				gdRes.getHeader("SJP_EXPT" 			).addValue(qResult.get(i).get(29),"");  
 				gdRes.getHeader("HJIN_EXPT" 		).addValue(qResult.get(i).get(30),"");  
 				gdRes.getHeader("MSG"				).addValue(qResult.get(i).get(31),"");	
+				gdRes.getHeader("SINHYO_GIJUN"		).addValue(qResult.get(i).get(32),"");	
+				gdRes.getHeader("SJP_GIJUN"			).addValue(qResult.get(i).get(33),"");	
+				gdRes.getHeader("HJIN_GIJUN"		).addValue(qResult.get(i).get(34),"");	
 				
 			}                                                                                                                
                                                                                                                              
@@ -541,6 +544,9 @@ public class op_02050_roh_expt_master_new extends HttpServlet {
 					sql2	+=	"			'" + gdReq.getHeader("SINHYO_EXPT"	).getValue(i) 			+ "'	AS SINHYO_QTY, 			\n";
 					sql2	+=	"			'" + gdReq.getHeader("SJP_EXPT"		).getValue(i) 			+ "'	AS SJP_QTY, 			\n";
 					sql2	+=	"			'" + gdReq.getHeader("HJIN_EXPT"	).getValue(i) 			+ "'	AS HJIN_QTY, 			\n";
+					sql2	+=	"			'" + gdReq.getHeader("SINHYO_GIJUN"	).getValue(i) 			+ "'	AS SINHYO_GIJUN, 		\n";
+					sql2	+=	"			'" + gdReq.getHeader("SJP_GIJUN"	).getValue(i) 			+ "'	AS SJP_GIJUN, 			\n";
+					sql2	+=	"			'" + gdReq.getHeader("HJIN_GIJUN"	).getValue(i) 			+ "'	AS HJIN_GIJUN, 			\n";
 					sql2	+=	"			'" + user_id   												+ "'	AS MADE_BY      		\n";
 					sql2	+=	"	FROM   DUAL 																		          		\n";
 					/////////////////////구매팀 발주예고량 저장 SQL////////////////////////////////////////////////////////////////////////////////////
@@ -558,10 +564,13 @@ public class op_02050_roh_expt_master_new extends HttpServlet {
 			sql2 += " MF.SINHYO_QTY 	 	= MF1.SINHYO_QTY,         	   	   														\n";  	/* 신효 발주예고량  */
 			sql2 += " MF.SJP_QTY 	 		= MF1.SJP_QTY,         	   	   															\n";  	/* SJP 발주예고량  */
 			sql2 += " MF.HJIN_QTY 	 		= MF1.HJIN_QTY,         	   	   														\n";  	/* 현진 발주예고량  */
+			sql2 += " MF.SINHYO_GIJUN 	 	= MF1.SINHYO_GIJUN,         	   	   													\n";  	
+			sql2 += " MF.SJP_GIJUN 	 		= MF1.SJP_GIJUN,         	   	   														\n";  	
+			sql2 += " MF.HJIN_GIJUN 	 	= MF1.HJIN_GIJUN,         	   	   														\n";  	
 			sql2 += " MF.MADE_DTTM 	 		= SYSDATE,         	   	   																\n";  	
 			sql2 += " MF.MADE_BY 	 		= MF1.MADE_BY         	   	   															\n"; 
-			sql2 += "when not matched then insert(MF.CNFM_DATE,	MF.COM_CODE,	MF.CONS_ITEM_ID,	MF.SINHYO_QTY, MF.SJP_QTY, MF.HJIN_QTY,	MF.MADE_DTTM,	MF.MADE_BY)		\n";
-			sql2 += "values						 (MF1.CNFM_DATE, MF1.COM_CODE,	MF1.CONS_ITEM_ID,	MF1.SINHYO_QTY, MF1.SJP_QTY, MF1.HJIN_QTY,	SYSDATE,	MF1.MADE_BY)	\n";			
+			sql2 += "when not matched then insert(MF.CNFM_DATE,	MF.COM_CODE,	MF.CONS_ITEM_ID,	MF.SINHYO_QTY, MF.SJP_QTY, MF.HJIN_QTY,	MF.SINHYO_GIJUN, MF.SJP_GIJUN, MF.HJIN_GIJUN, MF.MADE_DTTM,	MF.MADE_BY)		\n";
+			sql2 += "values						 (MF1.CNFM_DATE, MF1.COM_CODE,	MF1.CONS_ITEM_ID,	MF1.SINHYO_QTY, MF1.SJP_QTY, MF1.HJIN_QTY, MF1.SINHYO_GIJUN, MF1.SJP_GIJUN, MF1.HJIN_GIJUN,	SYSDATE,	MF1.MADE_BY)	\n";			
 			///////////////////////발주예고량 저장 SQL/////////////////////////////////////////////////////////////////////////////////////////
 		
 			System.out.println("-----------------------------------------------QUERY_2: MFS_ORDER_FORECAST_PURCHASE QTY UPDATE -----------------------------------------------");

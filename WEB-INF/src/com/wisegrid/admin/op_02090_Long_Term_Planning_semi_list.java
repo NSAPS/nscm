@@ -70,6 +70,8 @@ public class op_02090_Long_Term_Planning_semi_list extends HttpServlet {
 				gdRes = doQuery2(gdReq);
 			else if (mode.equals("search3")) //                                                                               
 				gdRes = doQuery3(gdReq);
+			else if (mode.equals("search4")) //                                                                               
+				gdRes = doQuery4(gdReq);
 			else if (mode.equals("save")) //                                                                               
 				gdRes = doSave(gdReq);	
 			else if (mode.equals("save2")) //                                                                               
@@ -204,8 +206,9 @@ public class op_02090_Long_Term_Planning_semi_list extends HttpServlet {
 				gdRes.getHeader("IPGO_DATE"	).addValue(qResult.get(i).get(14), "");
 				gdRes.getHeader("READ_TIME"	).addValue(qResult.get(i).get(15), "");
 				gdRes.getHeader("TEXT"		).addValue(qResult.get(i).get(16), "");
-				
-				                                     
+				gdRes.getHeader("PR_NO"		).addValue(qResult.get(i).get(17), "");
+				gdRes.getHeader("IF_MSGS"	).addValue(qResult.get(i).get(18), "");
+				gdRes.getHeader("BASE_STOCK").addValue("0", "");                                     
 		
 				
 			}                                                                                                                
@@ -275,7 +278,58 @@ public class op_02090_Long_Term_Planning_semi_list extends HttpServlet {
 		}                                                                                                                    
 				                                                                                                             
 		return gdRes;                                                                                                        
-	}           
+	}   
+	
+	// DW 4 조회  쿼리
+	public GridData doQuery4(GridData gdReq) throws Exception {                                                               
+        
+		GridData gdRes = new GridData();		                                                                             
+		int rowCount = 0;                                                                                                    
+                                                                                                                             
+		try {                                                                                                                
+			gdRes = OperateGridData.cloneResponseGridData(gdReq);                                                            
+			                                                                                                                 
+			String item_id		=	gdReq.getParam("item_id");                                                            
+			String from_mm		=	gdReq.getParam("from_mm");                                                            
+			String to_mm		=	gdReq.getParam("to_mm");    
+			String version		= 	gdReq.getParam("version"); 
+			                                                                                                                 
+			String paramKey		=	"item_id!%!from_mm!%!to_mm!%!version";                                                                      
+			String paramCode	=	item_id+"!%!"+from_mm+"!%!"+to_mm+"!%!"+version;                                                                    
+                                                                                                                             
+			String query_id		=	"op_02090_Long_Term_Planning_list_semi_dw4";                                                             
+                                                                                                                             
+			ArrayList<ArrayList<String>> qResult = new CommonUtil().getSelQeury(paramKey, paramCode, query_id);              
+			                                                                                                                 
+			rowCount = qResult.size();                                                                                       
+                                                                                                                             
+			//                                                                                                               
+			if (rowCount == 0) {                                                                                             
+				gdRes.addParam("mode", "search4");		                                                                     
+				gdRes.setMessage("...");                                                                                     
+				gdRes.setStatus("true");                                                                                     
+				return gdRes;                                                                                                
+			}                                                                                                                
+			                                                                                                                 
+			for (int i = 0; i < rowCount; i++) {
+				gdRes.getHeader("ITEM_ID"		).addValue(qResult.get(i).get(0),"");                                      
+				gdRes.getHeader("ITEM_NAME" 	).addValue(qResult.get(i).get(1),"");                                     
+				gdRes.getHeader("DEMAND"		).addValue(qResult.get(i).get(2),"");                                      
+				gdRes.getHeader("PROD_QTY"		).addValue(qResult.get(i).get(3),"");  
+				gdRes.getHeader("USE_QTY" 		).addValue(qResult.get(i).get(4),"");
+                                     
+			}                                                                                                                
+                                                                                                                             
+			gdRes.addParam("mode", "search4");		                                                                         
+			gdRes.setMessage("");                                                                                            
+			gdRes.setStatus("true");                                                                                         
+                                                                                                                             
+		} catch (Exception e) {                                                                                              
+			throw e;                                                                                                         
+		}                                                                                                                    
+				                                                                                                             
+		return gdRes;                                                                                                        
+	}
 
 	public GridData doSave(GridData gdReq) throws Exception {
 
@@ -523,6 +577,7 @@ public class op_02090_Long_Term_Planning_semi_list extends HttpServlet {
 					sql += "		'"	+			gdReq.getHeader("PROD_4"	).getValue(i) +	 						"'	AS M_4,								\n";					
 					sql += "		'"	+			gdReq.getHeader("PROD_5"	).getValue(i) +	 						"'	AS M_5,								\n";					
 					sql += "		'"	+			gdReq.getHeader("MINMPSQTY"	).getValue(i) +	 						"'	AS MINMPSQTY,						\n";
+					sql += "		'"	+			gdReq.getHeader("BASE_STOCK").getValue(i) +	 						"'	AS BASE_STOCK,						\n";
 					sql += "		'"	+			gdReq.getHeader("IPGO_QTY"	).getValue(i) +	 						"'	AS IPGO_QTY,						\n";
 					sql += "		'"	+			gdReq.getHeader("IPGO_DATE"	).getValue(i) +	 						"'	AS IPGO_DATE,						\n";
 					sql += "		'"	+			gdReq.getHeader("READ_TIME"	).getValue(i) +	 						"'	AS READTIME,						\n";
@@ -545,6 +600,7 @@ public class op_02090_Long_Term_Planning_semi_list extends HttpServlet {
 			sql += "     BS.M_4   	= BS1.M_4,   					   				\n";
 			sql += "     BS.M_5   	= BS1.M_5,   					   				\n";
 			sql += "     BS.MINMPSQTY   = BS1.MINMPSQTY,   					   		\n";
+			sql += "     BS.BASE_STOCK  = BS1.BASE_STOCK,   					   	\n";
 			sql += "     BS.IPGO_QTY    = BS1.IPGO_QTY,   					   		\n";
 			sql += "     BS.IPGO_DATE   = BS1.IPGO_DATE,   					   		\n";
 			sql += "     BS.READTIME    = BS1.READTIME,   					   		\n";
@@ -555,10 +611,10 @@ public class op_02090_Long_Term_Planning_semi_list extends HttpServlet {
 			sql += "WHEN NOT MATCHED THEN                                           \n";
 			sql += "	INSERT                                                      \n";
 			sql += "	(                                                           \n";
-			sql += "	 BS.VERSION, BS.ITEM_ID, BS.PLANT_ID, BS.M, BS.M_1, BS.M_2, BS.M_3, BS.M_4, BS.M_5, BS.MINMPSQTY, BS.IPGO_QTY, BS.IPGO_DATE, BS.TEXT, BS.MADE_DTTM, BS.MADE_BY, BS.READTIME, BS.NTGEW  	\n";
+			sql += "	 BS.VERSION, BS.ITEM_ID, BS.PLANT_ID, BS.M, BS.M_1, BS.M_2, BS.M_3, BS.M_4, BS.M_5, BS.MINMPSQTY, BS.BASE_STOCK, BS.IPGO_QTY, BS.IPGO_DATE, BS.TEXT, BS.MADE_DTTM, BS.MADE_BY, BS.READTIME, BS.NTGEW  	\n";
 			sql += "	) VALUES                                                                             														\n";
 			sql += "	(                                                                                    														\n";
-			sql += "	BS1.VERSION, BS1.ITEM_ID, '1300', BS1.M, BS1.M_1, BS1.M_2, BS1.M_3, BS1.M_4, BS1.M_5, BS1.MINMPSQTY, BS1.IPGO_QTY, BS1.IPGO_DATE, BS1.TEXT, SYSDATE, BS1.MADE_BY, BS1.READTIME, BS1.NTGEW		\n";
+			sql += "	BS1.VERSION, BS1.ITEM_ID, '1300', BS1.M, BS1.M_1, BS1.M_2, BS1.M_3, BS1.M_4, BS1.M_5, BS1.MINMPSQTY, BS1.BASE_STOCK, BS1.IPGO_QTY, BS1.IPGO_DATE, BS1.TEXT, SYSDATE, BS1.MADE_BY, BS1.READTIME, BS1.NTGEW		\n";
 			sql += "	 )                                                                                    														\n";
 			
 			sql2   = "MERGE INTO BASE_STOCK_PLAN BS	 /*+ bypass_ujvc*/       	 \n";
@@ -593,6 +649,7 @@ public class op_02090_Long_Term_Planning_semi_list extends HttpServlet {
 					sql2 += "		'"	+			gdReq.getHeader("PROD_4"	).getValue(i) +	 						"'	AS M_4,								\n";					
 					sql2 += "		'"	+			gdReq.getHeader("PROD_5"	).getValue(i) +	 						"'	AS M_5,								\n";	
 					sql2 += "		'"	+			gdReq.getHeader("MINMPSQTY"	).getValue(i) +	 						"'	AS MINMPSQTY,						\n";
+					sql2 += "		'"	+			gdReq.getHeader("BASE_STOCK").getValue(i) +	 						"'	AS BASE_STOCK,						\n";
 					sql2 += "		'"	+			gdReq.getHeader("IPGO_QTY"	).getValue(i) +	 						"'	AS IPGO_QTY,						\n";
 					sql2 += "		'"	+			gdReq.getHeader("IPGO_DATE"	).getValue(i) +	 						"'	AS IPGO_DATE,						\n";
 					sql2 += "		'"	+			gdReq.getHeader("READ_TIME"	).getValue(i) +	 						"'	AS READTIME,						\n";
@@ -615,6 +672,7 @@ public class op_02090_Long_Term_Planning_semi_list extends HttpServlet {
 			sql2 += "     BS.M_4   	= BS1.M_4,   					   				\n";
 			sql2 += "     BS.M_5   	= BS1.M_5,   					   				\n";
 			sql2 += "     BS.MINMPSQTY   = BS1.MINMPSQTY,   					   	\n";
+			sql2 += "     BS.BASE_STOCK  = BS1.BASE_STOCK,   					   	\n";
 			sql2 += "     BS.IPGO_QTY    = BS1.IPGO_QTY,   					   		\n";
 			sql2 += "     BS.IPGO_DATE   = BS1.IPGO_DATE,   					   	\n";
 			sql2 += "     BS.READTIME    = BS1.READTIME,   					   		\n";
@@ -625,10 +683,10 @@ public class op_02090_Long_Term_Planning_semi_list extends HttpServlet {
 			sql2 += "WHEN NOT MATCHED THEN                                           \n";
 			sql2 += "	INSERT                                                      \n";
 			sql2 += "	(                                                           \n";
-			sql2 += "	 BS.VERSION, BS.ITEM_ID, BS.PLANT_ID, BS.M, BS.M_1, BS.M_2, BS.M_3, BS.M_4, BS.M_5, BS.MINMPSQTY, BS.IPGO_QTY, BS.IPGO_DATE, BS.TEXT, BS.MADE_DTTM, BS.MADE_BY, BS.READTIME, BS.NTGEW  	\n";
+			sql2 += "	 BS.VERSION, BS.ITEM_ID, BS.PLANT_ID, BS.M, BS.M_1, BS.M_2, BS.M_3, BS.M_4, BS.M_5, BS.MINMPSQTY, BS.BASE_STOCK, BS.IPGO_QTY, BS.IPGO_DATE, BS.TEXT, BS.MADE_DTTM, BS.MADE_BY, BS.READTIME, BS.NTGEW  	\n";
 			sql2 += "	) VALUES                                                                             														\n";
 			sql2 += "	(                                                                                    														\n";
-			sql2 += "	BS1.VERSION, BS1.ITEM_ID, '1300', BS1.M, BS1.M_1, BS1.M_2, BS1.M_3, BS1.M_4, BS1.M_5, BS1.MINMPSQTY, BS1.IPGO_QTY, BS1.IPGO_DATE, BS1.TEXT, SYSDATE, BS1.MADE_BY, BS1.READTIME, BS1.NTGEW		\n";
+			sql2 += "	BS1.VERSION, BS1.ITEM_ID, '1300', BS1.M, BS1.M_1, BS1.M_2, BS1.M_3, BS1.M_4, BS1.M_5, BS1.MINMPSQTY, BS1.BASE_STOCK, BS1.IPGO_QTY, BS1.IPGO_DATE, BS1.TEXT, SYSDATE, BS1.MADE_BY, BS1.READTIME, BS1.NTGEW		\n";
 			sql2 += "	 )                                                                                    														\n";
 						
 			
@@ -684,7 +742,7 @@ public class op_02090_Long_Term_Planning_semi_list extends HttpServlet {
 			sql4 +="USING( 																									\n";
 			sql4 +="SELECT	TO_CHAR(SYSDATE,'YYYYMMDD') AS VERSION, S1.PLANT_ID, S1.ITEM_ID, S1.STOCK,S1.M, S1.M_1, 		\n";
 			sql4 +="		 S1.M_2, S1.M_3, S1.M_4, S1.M_5,SYSDATE AS MADE_DTTM, '"+user_id+"' AS MADE_BY, 				\n";
-			sql4 +="		 S1.IPGO_QTY,S1.IPGO_DATE,S1.TEXT,S1.MINMPSQTY,S1.READTIME, S1.NTGEW							\n";
+			sql4 +="		 S1.IPGO_QTY,S1.IPGO_DATE,S1.TEXT,S1.MINMPSQTY,S1.READTIME, S1.NTGEW, S1.BASE_STOCK				\n";
 			sql4 +="FROM	BASE_STOCK_PLAN S1 																				\n";
 			sql4 +="WHERE	S1.VERSION = '" +	version	+"'																	\n";
 			sql4 +="AND		S1.ITEM_ID IN ( SELECT ITEM_ID FROM BASE_STOCK_PLAN WHERE VERSION = ( SELECT	VERSION			\n";
@@ -708,6 +766,7 @@ public class op_02090_Long_Term_Planning_semi_list extends HttpServlet {
 			sql4 += "     BS.MINMPSQTY   = BS1.MINMPSQTY,   					   	\n";
 			sql4 += "     BS.NTGEW    	 = BS1.NTGEW,   					   		\n";
 			sql4 += "     BS.IPGO_QTY    = BS1.IPGO_QTY,   					   		\n";
+			sql4 += "     BS.BASE_STOCK  = BS1.BASE_STOCK,   					   	\n";
 			sql4 += "     BS.IPGO_DATE   = BS1.IPGO_DATE,   					   	\n";
 			sql4 += "     BS.READTIME    = BS1.READTIME,   					   		\n";
 			sql4 += "     BS.TEXT    	= BS1.TEXT,   					   			\n";
@@ -716,10 +775,10 @@ public class op_02090_Long_Term_Planning_semi_list extends HttpServlet {
 			sql4 += "WHEN NOT MATCHED THEN                                           \n";
 			sql4 += "	INSERT                                                      \n";
 			sql4 += "	(                                                           \n";
-			sql4 += "	 BS.VERSION, BS.ITEM_ID, BS.PLANT_ID, BS.M, BS.M_1, BS.M_2, BS.M_3, BS.M_4, BS.M_5, BS.MINMPSQTY, BS.IPGO_QTY, BS.IPGO_DATE, BS.TEXT, BS.MADE_DTTM, BS.MADE_BY, BS.READTIME, BS.NTGEW  	\n";
+			sql4 += "	 BS.VERSION, BS.ITEM_ID, BS.PLANT_ID, BS.M, BS.M_1, BS.M_2, BS.M_3, BS.M_4, BS.M_5, BS.MINMPSQTY, BS.BASE_STOCK, BS.IPGO_QTY, BS.IPGO_DATE, BS.TEXT, BS.MADE_DTTM, BS.MADE_BY, BS.READTIME, BS.NTGEW  	\n";
 			sql4 += "	) VALUES                                                                             														\n";
 			sql4 += "	(                                                                                    														\n";
-			sql4 += "	BS1.VERSION, BS1.ITEM_ID, '1300', BS1.M, BS1.M_1, BS1.M_2, BS1.M_3, BS1.M_4, BS1.M_5, BS1.MINMPSQTY, BS1.IPGO_QTY, BS1.IPGO_DATE, BS1.TEXT, SYSDATE, BS1.MADE_BY, BS1.READTIME, BS1.NTGEW		\n";
+			sql4 += "	BS1.VERSION, BS1.ITEM_ID, '1300', BS1.M, BS1.M_1, BS1.M_2, BS1.M_3, BS1.M_4, BS1.M_5, BS1.MINMPSQTY, BS1.BASE_STOCK, BS1.IPGO_QTY, BS1.IPGO_DATE, BS1.TEXT, SYSDATE, BS1.MADE_BY, BS1.READTIME, BS1.NTGEW		\n";
 			sql4 += "	 )                                                                                    														\n";
 						
 			
@@ -794,7 +853,7 @@ public class op_02090_Long_Term_Planning_semi_list extends HttpServlet {
 		try {
 
 			// 화면에서 전달받은 "CRUD"의 row 수를 가져온다.
-			rowCount = gdReq.getHeader("CRUD").getRowCount();
+			rowCount = gdReq.getHeader("ITEM_ID").getRowCount();
 			
 			if(rowCount == 0) {
 				gdRes.addParam("mode", "doIf");
@@ -803,61 +862,63 @@ public class op_02090_Long_Term_Planning_semi_list extends HttpServlet {
 				return gdRes;
 			}
 
-			System.out.println("CRUD Row Count : " + rowCount);
-
-
-			String sql, inner_sql;
+			System.out.println("Row Count : " + rowCount);
 			
-			//해당 버젼이 있을경우에는 (MERGE 문 업데이트나 인설트를) 실행!!	
-			sql  = "	UPDATE  /*+ bypass_ujvc*/ 																						\n";
-			sql += "	( 																												\n";
-			sql += "	SELECT																											\n";
-			sql += "			T1.ITEM_ID, T1.VERSION, T1.SEQ, T1.IF_FLAG, T2.NEW_IF_FLAG, T1.EDIT_FLAG, T2.NEW_EDIT_FLAG						\n";
-			sql += "	FROM	APS_PR_PLAN	T1,                                                                                        	\n";
-			sql += "			(                                                                                                      	\n";
+			String version		= gdReq.getParam("version");
+			String user_id		= gdReq.getParam("user_id");
+			String sql;
+			
+			sql   = "MERGE INTO APS_PR_PLAN T1	 	/*+ bypass_ujvc*/       	 \n";
+			sql  += "USING(							                 			 \n";
 			
 			boolean flag = false;
 			
 			// 데이터 셋팅
 			for (int i = 0; i < rowCount; i++) {
-				System.out.println("어디에서 에러 !! 1 : ");
-				
-				String crud		= gdReq.getHeader("CRUD").getValue(i);
-				String version	= gdReq.getParam("version");
-				System.out.println("crud ="+crud);
 
-				
-				if(crud.equals("U")) {
-					 
-					if( flag){
-						sql += "UNION	ALL \n"; 
+				if( flag){
+						sql  += "union all \n";
+	
 					}
 					flag = true;
 					
-					
-					//파라미터를 변수에 적용!!  
-					inner_sql  = "	SELECT		'" + gdReq.getHeader("ITEM_ID").getValue(i) 		+ "'	AS ITEM_ID, 			\n";
-					inner_sql += "				'" + version										+ "'	AS VERSION,     		\n";
-					inner_sql += "				'" + gdReq.getHeader("SEQ").getValue(i) 			+ "'	AS SEQ,     			\n";
-					inner_sql += "				'I'															AS NEW_IF_FLAG,			\n";
-					inner_sql += "				'Y'															AS NEW_EDIT_FLAG		\n";
-					inner_sql += "	FROM	DUAL			                                                  													\n";
-					
-					sql += inner_sql;
-					
-					if(rowCount == 1){ // update건수가 1건인 경우 ora-01732에러가 발생한다. 이유모름. 따라서 1건인 경우 강제로 두건으로 만든다.
-						sql += "UNION	ALL \n" + inner_sql;
-					}
-				}
-									
-			}//for문 끝.
-			
-			sql += "			)			T2                                                                                      \n";
-			sql += "	WHERE	T1.ITEM_ID	= T2.ITEM_ID                                                                            \n";
-			sql += "	AND		T1.VERSION	= T2.VERSION                                                                            \n";
-			sql += "	AND		T1.SEQ		= T2.SEQ	                                                                            \n";
-			sql += "	)                                                                                                        	\n";
-			sql += "	SET		IF_FLAG = NEW_IF_FLAG, EDIT_FLAG = NEW_EDIT_FLAG													\n";
+					//파라미터를 변수에 적용!!	
+					//---------------------------------------------------------------------------------------------	----------------------
+					sql += "	SELECT	"		+	gdReq.getHeader("ITEM_ID"		).getValue(i) +		"	AS ITEM_ID,					\n";
+					sql += "				'"  + 	version								 		  + 	"' 	AS VERSION,					\n";
+					sql += " 						'1300'													AS PLANT_ID,				\n"; 
+					sql += " 						SYSDATE													AS MADE_DTTM,				\n";
+					sql += "				'"  + 	user_id								 		  + 		"' 	AS MADE_BY,				\n";
+					sql += " 				'"	+	gdReq.getHeader("MEINS"			).getValue(i) +		"'	AS PR_QTY_UOM,				\n"; 
+					sql += " 				'"	+	gdReq.getHeader("IPGO_QTY"		).getValue(i) +		"'	AS PR_QTY,					\n"; 
+					sql += " 	TO_CHAR(TO_DATE('"	+	gdReq.getHeader("IPGO_DATE"		).getValue(i) +	"'),'YYYYMMDD')	AS ENTR_DATE,	\n";
+					sql += " 						'I'														AS IF_FLAG,					\n"; 
+					sql += " 						'Y'														AS EDIT_FLAG				\n"; 
+					sql += "	FROM   DUAL																								\n";
+				} 	
+			//-----------------------------Merge Into 1----------------------------------------------------------------------------------
+			sql += ") T2 														\n";
+			sql += "ON (T1.ITEM_ID    = T2.ITEM_ID    						   	\n";
+			sql += "AND T1.VERSION    = T2.VERSION         						\n";
+			sql += "AND T1.PLANT_ID   = T2.PLANT_ID )        					\n";
+			sql += "WHEN MATCHED THEN UPDATE SET            					\n";
+			sql += "     T1.MADE_BY      	= T2.MADE_BY,   					\n";
+			sql += "     T1.MADE_DTTM      	= T2.MADE_DTTM,   					\n";
+			sql += "     T1.PR_QTY_UOM      = T2.PR_QTY_UOM,   					\n";
+			sql += "     T1.PR_QTY      	= T2.PR_QTY,   					   	\n";
+			sql += "     T1.ENTR_DATE      	= T2.ENTR_DATE,   					\n";
+			sql += "     T1.IF_FLAG      	= T2.IF_FLAG,   					\n";
+			sql += "     T1.EDIT_FLAG      	= T2.EDIT_FLAG   					\n";
+			sql += "WHEN NOT MATCHED THEN                                       \n";
+			sql += "	INSERT                                                  \n";
+			sql += "	(                                                       \n";
+			sql += "	 T1.VERSION, T1.ITEM_ID, T1.PLANT_ID, T1.MADE_BY, T1.MADE_DTTM, T1.PR_QTY_UOM, T1.PR_QTY, T1.ENTR_DATE, T1.IF_FLAG, T1.EDIT_FLAG 	\n";
+			sql += "	) VALUES                                                                             												\n";
+			sql += "	(                                                                                    												\n";
+			sql += "	T2.VERSION, T2.ITEM_ID, T2.PLANT_ID, T2.MADE_BY, T2.MADE_DTTM, T2.PR_QTY_UOM, T2.PR_QTY, T2.ENTR_DATE, T2.IF_FLAG, T2.EDIT_FLAG  	\n";
+			sql += "	 )                                                                                    												\n";
+			 //---------------------------------------------------------------------------------------------------------------------------		
+	
 
 			System.out.println("-----------------------------------------------QUERY-----------------------------------------------");
 			System.out.println(sql);

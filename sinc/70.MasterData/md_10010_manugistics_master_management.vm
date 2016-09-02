@@ -92,6 +92,7 @@
         								<option value="" #if( "$!{com_code}" == "" ) selected #end >전체</option>
 										<option value="0001000050" #if( "$!{com_code}" == "0001000050" ) selected #end >태경농산</option>
 										<option value="0001000021" #if( "$!{com_code}" == "0001000021" ) selected #end >율촌화학</option>
+										<option value="0001000010" #if( "$!{com_code}" == "0001000010" ) selected #end >외부업체</option>
         							</select>
 								</td>
 								

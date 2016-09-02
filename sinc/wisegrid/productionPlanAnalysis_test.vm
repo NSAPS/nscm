@@ -12,7 +12,7 @@
 ## VER        DATE        AUTHOR    DESCRIPTION
 ## ---------  ----------  --------  ------------------------------------
 ## 1.0        2008-11-27  정재교           sc_11020_dailyProductionPlanAnalysisNew_list.vm 개발
-##
+## 2.0		  2014-12-17  이강욱		 전체/면/스낵/기타 생산계획 엑셀 분류코드 추가
 ##
 ############################################################
 ## 비정상적 접근 방지 
@@ -106,8 +106,8 @@
 							id="search_menu" style="background-color:#f2f2f2; display:block; ">
             				<tr >            
 								#set( $week = $weekly_3_start_end_date.get(0) )
-            					<td width="5%" align="right">주차 :</td>
-            					<td width="65%">  
+            					<td width="3%" align="left">주차 :</td>
+            					<td width="75%">  
 									<input type="radio" name="checked_weekly" value="w0" style="border:0px; "
             							onClick="this.checked" #if($!{checked_weekly} == "w0") checked #else #end>당주($week.get(0)~$week.get(6))</input>&nbsp;
             						<input type="radio" name="checked_weekly" value="w1" style="border:0px; "
@@ -117,9 +117,20 @@
 									<input type="hidden" name="w0" value="$week.get(0)"/>
 									<input type="hidden" name="w1" value="$week.get(7)"/>
 									<input type="hidden" name="w2" value="$week.get(14)"/>
+									&nbsp;&nbsp;
+									엑셀구분  :
+									<input type="radio" name="checked_gubn" value="default" checked="on" style="border:0px; "
+										onClick="this.checked" #if($!{checked_gubn} == "default") checked #else #end>전체</input>&nbsp;
+									<input type="radio" name="checked_gubn" value="d10"  style="border:0px; "
+										onClick="this.checked" #if($!{checked_gubn} == "d10") checked #else #end>면</input>&nbsp;
+									<input type="radio" name="checked_gubn" value="d20" style="border:0px; "
+										onClick="this.checked" #if($!{checked_gubn} == "d20") checked #else #end>스낵</input>&nbsp;
+									<input type="radio" name="checked_gubn" value="d30" style="border:0px; "
+										onClick="this.checked" #if($!{checked_gubn} == "d30") checked #else #end>기타</input>
             					</td> 
-								<td width="10%" align="right">일반/멀티 :</td>
-            					<td width="20%">  
+							
+								<td width="5%" align="right">일반/멀티 :</td>
+            					<td width="17%">  
 									<input type="radio" name="checked_multi" value="default" checked="on" style="border:0px; "
             							onClick="this.checked" #if($!{checked_multi} == "default") checked #else #end>전체</input>&nbsp;
             						<input type="radio" name="checked_multi" value="normal"  style="border:0px; "

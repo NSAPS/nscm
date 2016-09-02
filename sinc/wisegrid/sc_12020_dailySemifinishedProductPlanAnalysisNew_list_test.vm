@@ -1,5 +1,5 @@
 ############################################################
-## 프로그램ID : sc_11020_dailyProductionPlanAnalysisNew_list.vm
+## 프로그램ID : sc_12020_dailySemifinishedProductPlanAnalysisNew_list_test.vm
 ## 프로그램명 : 일간생산계획 분석(재구성)
 ## 개발자  : 정재교
 ## 개발일자 : 2008-11-27 목요일
@@ -72,6 +72,7 @@
 						</table>						
 					</td>
 					<td align="right"> 
+						<input type="button" name="btnSelect2" value=" 소요량" onClick="MrpCheck(); " class="btn1_on">
 						<input type="button" name="btnSelect" value=" 선택" onClick="selectPlantAndVersionPopUp(); " class="btn1_on">
 						<input type="button" name="btnStockChk" value=" 검증" onClick="stockCheck(); " class="btn1_on">
 						#button("search")

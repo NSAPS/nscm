@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+	<!--
+	======================================================================
+		물량 적합성 관리
+	======================================================================
+	-->
+	
+	<!-- 물량 적합성 관리 -->
+	<job id="rp_03010_supply_suitability" job_type="single" check_permission="no">
+		<path>/sinc/40.ReplenishmentPlanning</path>
+		<navigation>공급계획 >> 분석정보 >> 물량 적합성 관리</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>물량 적합성 관리</title>
+		<authority>1</authority>		
+		<description>물량 적합성 관리</description>
+		<request_type>list</request_type>
+		<queries>
+			
+		</queries>
+	</job>
+	
+	<!-- 물량 적합성 관리 팝업-->
+	<job id="rp_03010_supply_suitability_pop" job_type="single" check_permission="no">
+		<path>/sinc/40.ReplenishmentPlanning</path>
+		<navigation>공급계획 >> 분석정보 >> 물량 적합성 관리(팝업)</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>물량 적합성 관리(팝업)</title>
+		<authority>1</authority>		
+		<description>물량 적합성 관리(팝업)</description>
+		<request_type>list</request_type>
+		<queries>
+			
+		</queries>
+	</job>
+	
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</jobs>	

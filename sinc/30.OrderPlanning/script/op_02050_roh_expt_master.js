@@ -123,22 +123,32 @@ function init7() {
   │화면 기본 설정 부분.
   └──────────────────────────────────┘*/
 function setDefault() { 
+	
+		//GridObj.bRowSelectorVisible = false;        		//로우 셀렉터를 WiseGrid에서 숨긴다,. 
+	
+	GridObj.bRowSelectorIndex = true;				//Row Selector 영역에 Row Index를 보여준다.
+	//GridObj.bHDMoving = true;		// 컬럼 헤더 위치 이동
 
-	GridObj.bRowSelectorVisible		= false;        		//로우 셀렉터를 WiseGrid에서 숨긴다,. 
-	GridObj.bRowSelectorIndex		= true;					//Row Selector 영역에 Row Index를 보여준다.
-    GridObj.nHDLineSize				= 10;					//Header Size
+    GridObj.nHDLineSize         = 10; //Header Size
     
     //헤더의 라인수를 설정한다. 
-    GridObj.nHDLines				= 2;   
-   
+    GridObj.nHDLines = 2;   
+    
+    
     //선택된 셀의 글자색 지정한다.
     GridObj.strSelectedCellFgColor	= '180|82|205';
     GridObj.strHDClickAction		= "select";        		//클릭한 컬럼의 셀을 선택가능하게 한다.
-	GridObj.strActiveRowBgColor		= "170|170|170";		//선택된 행의 배경색상을 설정한다.
+	GridObj.strActiveRowBgColor		= "232|245|213";		//선택된 행의 배경색상을 설정한다.
 	GridObj.strHDClickAction		= "sortsingle";   
     
+   
+ 
+
 	// Cell Font Setting
-	GridObj.nCellFontSize			= 8.5;					// Font Size 9
+	GridObj.nCellFontSize = 9;					// Font Size 9
+       
+	
+
 	    
 }
 
@@ -149,9 +159,10 @@ function setDefault3() {
     GridObj3.nHDLineSize			= 13;					//Header Size
     
     //선택된 셀의 글자색 지정한다.
+    GridObj3.strActiveRowBgColor		= "232|245|213";		//선택된 행의 배경색상을 설정한다.
     GridObj3.strSelectedCellFgColor = '180|82|205';
     GridObj3.strHDClickAction		= "select";        		//클릭한 컬럼의 셀을 선택가능하게 한다.
-	GridObj3.nCellFontSize			= 8.5;					// Font Size 9
+	GridObj3.nCellFontSize			= 9;					// Font Size 9
     GridObj3.bStatusbarVisible		= false;				// status bar visible 상태바 설정 
     GridObj3.nHDLines				= 2;
 
@@ -161,11 +172,11 @@ function setDefault4() {
 	GridObj4.bRowSelectorVisible	= false;        		//로우 셀렉터를 WiseGrid에서 숨긴다,. 
 	GridObj4.bRowSelectorIndex		= true;					//Row Selector 영역에 Row Index를 보여준다.
     GridObj4.nHDLineSize			= 12;					//Header Size 
-    
+    GridObj4.strActiveRowBgColor		= "232|245|213";		//선택된 행의 배경색상을 설정한다.
     //선택된 셀의 글자색 지정한다.
     GridObj4.strSelectedCellFgColor = '180|82|205';
     GridObj4.strHDClickAction		= "select";        		//클릭한 컬럼의 셀을 선택가능하게 한다.
-	GridObj4.nCellFontSize			= 8.5;					// Font Size 9
+	GridObj4.nCellFontSize			= 9;					// Font Size 9
 }
 function setDefault5() { 
 
@@ -173,11 +184,11 @@ function setDefault5() {
 	GridObj5.bRowSelectorIndex		= true;					//Row Selector 영역에 Row Index를 보여준다.
     GridObj5.nHDLineSize			= 12;					//Header Size
     GridObj5.bStatusbarVisible		= false;				// status bar visible
-    
+    GridObj5.strActiveRowBgColor		= "232|245|213";		//선택된 행의 배경색상을 설정한다.
     //선택된 셀의 글자색 지정한다.
     GridObj5.strSelectedCellFgColor = '180|82|205';
     GridObj5.strHDClickAction		= "select";        		//클릭한 컬럼의 셀을 선택가능하게 한다.
-	GridObj5.nCellFontSize			= 8.5;					// Font Size 9
+	GridObj5.nCellFontSize			= 9;					// Font Size 9
 }
 
 function setDefault7() { 
@@ -189,8 +200,8 @@ function setDefault7() {
     //선택된 셀의 글자색 지정한다.
     GridObj7.strSelectedCellFgColor = '180|82|205';
     GridObj7.strHDClickAction		= "select";        			//클릭한 컬럼의 셀을 선택가능하게 한다.
-	GridObj7.strActiveRowBgColor	= "170|170|170";    		//선택된 행의 배경색상을 설정한다.
-	GridObj7.nCellFontSize			= 8.5;							// Font Size 9
+	GridObj7.strActiveRowBgColor		= "232|245|213";		//선택된 행의 배경색상을 설정한다.
+	GridObj7.nCellFontSize			= 9;							// Font Size 9
 	GridObj7.bStatusbarVisible		= true;						// status bar visible 상태바 설정
 	
 	GridObj7.strHDClickAction		= "sortsingle";
@@ -204,35 +215,34 @@ function setHeader(GridObj) {
 
 	GridObj.AddHeader("CRUD"				,"CRUD"       		,"t_text" 		,100    ,60  ,false);
 	GridObj.AddHeader("ITEM_ID"				,"품목번호"       	,"t_text" 		,20		,60  ,false); //0   
- 	GridObj.AddHeader("ITEM_NAME"			,"품목명"      		,"t_text" 		,100	,150 ,false); //0    
+ 	GridObj.AddHeader("ITEM_NAME"			,"품목명"      		,"t_text" 		,100	,190 ,false); //0    
  	GridObj.AddHeader("BASE_UOM"			,"기본\n단위"     	,"t_text" 		,100	,40  ,false); //0
  	GridObj.AddHeader("MFS_FLAG"			,"발주\n그룹"     	,"t_text" 		,100	,0   ,false); //0	40 ->0으로 변경
  	GridObj.AddHeader("LEAD_TIME"			,"L/T"     			,"t_number" 	,100.3	,0   ,false); //0	33 ->0으로 변경
  	GridObj.AddHeader("TERM_VAL"			,"유통\n기한"     	,"t_number" 	,100.3	,40  ,false); //0   
- 	
  	GridObj.AddHeader("STOCK"				,"농심"      		,"t_number" 	,100.3	,60  ,false); //0   
  	GridObj.AddHeader("COM_STOCK"			,"업체"   			,"t_number" 	,100.3	,60  ,false); //0   
- 	GridObj.AddHeader("CNFM_STOCK"			,"기준"     			,"t_number" 	,100.3	,60   ,true); //0 당주 기준재고
+ 	GridObj.AddHeader("CNFM_STOCK"			,"기준"     			,"t_number" 	,100.3	,70   ,true); //0 당주 기준재고
  	GridObj.AddHeader("SUB_TOT"				,"소계"     			,"t_number" 	,100.3	,60  ,false); //0
  	
-	GridObj.AddHeader("ODER_QTY"			,"금주\n소요량"     	,"t_number" 	,100.3	,50  ,false); //0
-	GridObj.AddHeader("W1_STOCK"			,"차주초\n재고"     	,"t_number" 	,100.3	,50  ,false); //0 	
+	GridObj.AddHeader("ODER_QTY"			,"금주\n소요량"     	,"t_number" 	,100.3	,60  ,false); //0
+	GridObj.AddHeader("W1_STOCK"			,"차주초\n재고"     	,"t_number" 	,100.3	,60  ,false); //0 	
  	
- 	GridObj.AddHeader("SEL_DMD"				,"선택"     			,"t_combo"		,100	,75    ,true); //0	
- 	GridObj.AddHeader("DMD_QTY"				,"수량"     			,"t_number"		,100.3	,55    ,true); //0
- 	GridObj.AddHeader("DMD03"				,"3개월\n평균"     	,"t_number"		,100.3	,55   ,false); //0
+ 	GridObj.AddHeader("SEL_DMD"				,"선택"     			,"t_combo"		,100	,80    ,true); //0	
+ 	GridObj.AddHeader("DMD_QTY"				,"수량"     			,"t_number"		,100.3	,60    ,true); //0
+ 	GridObj.AddHeader("DMD03"				,"3개월\n평균"     	,"t_number"		,100.3	,70   ,false); //0
  	
- 	GridObj.AddHeader("DMD04"				,"전년\n동월"     	,"t_number"		,100.3	,50   ,false); //0
- 	GridObj.AddHeader("DMD05"				,"평균\n(12개월)"     ,"t_number"		,100.3	,55   ,false); //0
+ 	GridObj.AddHeader("DMD04"				,"전년\n동월"     	,"t_number"		,100.3	,70   ,false); //0
+ 	GridObj.AddHeader("DMD05"				,"평균\n(12개월)"     ,"t_number"		,100.3	,70   ,false); //0
  	
- 	GridObj.AddHeader("DMD06"				,"전주\n사용량"     	,"t_number"		,100.3	,50   ,false); //0
- 	GridObj.AddHeader("DMD07"				,"3주\n평균"     		,"t_number"		,100.3	,50   ,false); //0
- 	GridObj.AddHeader("DMD08"				,"사용자"     		,"t_number"		,100.3	,50    ,true); //0
+ 	GridObj.AddHeader("DMD06"				,"전주\n사용량"     	,"t_number"		,100.3	,70   ,false); //0
+ 	GridObj.AddHeader("DMD07"				,"3주\n평균"     		,"t_number"		,100.3	,70   ,false); //0
+ 	GridObj.AddHeader("DMD08"				,"사용자"     		,"t_number"		,100.3	,60    ,true); //0
  	   
  	GridObj.AddHeader("USE_DAY"				,"가용일"     		,"t_number"		,100.3	,55   ,false); //0
- 	GridObj.AddHeader("USE_QTY"				,"발주\n필요량"     	,"t_number"		,100.3	,55   ,false); //0
+ 	GridObj.AddHeader("USE_QTY"				,"발주\n필요량"     	,"t_number"		,100.3	,60   ,false); //0
  	GridObj.AddHeader("MIN_LOT_SIZE"		,"발주\n단위"     	,"t_number"		,100.3	,50    ,true); //0
- 	GridObj.AddHeader("FC_QTY"				,"발주\n예고량"     	,"t_number"		,100.3	,55    ,true); //0
+ 	GridObj.AddHeader("FC_QTY"				,"발주\n예고량"     	,"t_number"		,100.3	,60    ,true); //0
  	GridObj.AddHeader("MSG"					,"비고"				,"t_text" 		,100	,90    ,true); //0   저장을 위함
  	
 
@@ -265,7 +275,7 @@ function setHeader(GridObj) {
 	GridObj.SetColCellAlign('SUB_TOT',		 'right');       
 	GridObj.SetColCellAlign('ODER_QTY',		 'right');
 	GridObj.SetColCellAlign('W1_STOCK',		 'right');     
-    GridObj.SetColCellAlign('SEL_DMD',		'center');
+    GridObj.SetColCellAlign('SEL_DMD',		'left');
     GridObj.SetColCellAlign('DMD_QTY',		 'right');    
     GridObj.SetColCellAlign('DMD03',		 'right');
     GridObj.SetColCellAlign('DMD04',		 'right');
@@ -608,6 +618,8 @@ function GridEndQuery(){
     {
         if(GridObj.GetStatus() == "true") 
         {           
+        	
+        	
         		//EDIT_FLAG
 			for(var i=0;i<GridObj.GetRowCount();i++) {
 				// cell색깔 변경
@@ -668,6 +680,8 @@ function GridEndQuery(){
 				use_day_qty_cal(i)				
 			
 			}  
+			
+			
     	// 마지막 변경한 Row로 이동
 			if( (rFirst > -1) && (rFirst < GridObj.GetRowCount())){
 				
@@ -809,64 +823,65 @@ function GridCellClick(strColumnKey, nRow) {
 /*┌──────────────────────────────────┐
   │하부 그리드 조회 WD1 더블클릭
   └──────────────────────────────────┘*/
-function GridCellDblClick(strColumnKey, nRow){     
-	
-	if( strColumnKey == "SELECTED"){
-		return;
-	}else if(strColumnKey == "BASE_STOCK" || strColumnKey == "PROG_STOCK" ||strColumnKey == "TOT_STOCK" ){
-		
-		var item_id		= GridObj.GetCellValue("ITEM_ID", 	nRow);
-		var	item_name	= GridObj.GetCellValue("ITEM_NAME", nRow);		
-		var service_url = "service.do?_moon_service=op_02050_even_item_list_dw7";
-		
-		service_url += "&item_id=" + item_id + "&item_name=" + item_name;
-		var pop_win_style = "titlebar=no, menubar=no, toolbar=no, status=yes, scrollbars=no, resizable=yes, width=895, height=320, top=320, left=200";
-		var newWin = window.open(service_url, "", pop_win_style);  
-		newWin.focus();
-		
-		return;		
-	}
-	
+function GridCellDblClick(strColumnKey, nRow){  	
 
+		
+		if( strColumnKey == "SELECTED"){
+			return;
+		}else if(strColumnKey == "BASE_STOCK" || strColumnKey == "PROG_STOCK" ||strColumnKey == "TOT_STOCK" ){
+			
+			var item_id		= GridObj.GetCellValue("ITEM_ID", 	nRow);
+			var	item_name	= GridObj.GetCellValue("ITEM_NAME", nRow);		
+			var service_url = "service.do?_moon_service=op_02050_even_item_list_dw7";
+			
+			service_url += "&item_id=" + item_id + "&item_name=" + item_name;
+			var pop_win_style = "titlebar=no, menubar=no, toolbar=no, status=yes, scrollbars=no, resizable=yes, width=895, height=320, top=320, left=200";
+			var newWin = window.open(service_url, "", pop_win_style);  
+			newWin.focus();
+			
+			return;		
+		}
+		
 	
-	document.all.week_flag.value	= 'M'
+		
+		document.all.week_flag.value	= 'M'
+		    
+	    var sel_item_id			= GridObj.GetCellValue("ITEM_ID", 				nRow);
+	    var sel_item_name		= GridObj.GetCellValue("ITEM_NAME", 			nRow);
+	
+		var use_qty				= strToNum(GridObj.GetCellValue("USE_QTY", 		nRow));
+		var min_lot_size		= strToNum(GridObj.GetCellValue("MIN_LOT_SIZE", nRow));
+		var fc_qty				= strToNum(GridObj.GetCellValue("FC_QTY", 		nRow));
+		
 	    
-    var sel_item_id			= GridObj.GetCellValue("ITEM_ID", 				nRow);
-    var sel_item_name		= GridObj.GetCellValue("ITEM_NAME", 			nRow);
-
-	var use_qty				= strToNum(GridObj.GetCellValue("USE_QTY", 		nRow));
-	var min_lot_size		= strToNum(GridObj.GetCellValue("MIN_LOT_SIZE", nRow));
-	var fc_qty				= strToNum(GridObj.GetCellValue("FC_QTY", 		nRow));
-	
-    
-				if(min_lot_size ==  0){
-	
-					min_lot_size=1;
-				}	else{
-						}    
-    
-    if(strColumnKey=="USE_QTY" && use_qty > 0){
+					if(min_lot_size ==  0){
 		
-		if(use_qty >= min_lot_size){ // 
-				fc_qty	=	min_lot_size * Math.ceil(use_qty / min_lot_size);	
+						min_lot_size=1;
+					}	else{
+							}    
+	    
+	    if(strColumnKey=="USE_QTY" && use_qty > 0){
+			
+			if(use_qty >= min_lot_size){ // 
+					fc_qty	=	min_lot_size * Math.ceil(use_qty / min_lot_size);	
+			}else{
+					fc_qty	=	min_lot_size;
+			}		
+			GridObj.SetCellValue("FC_QTY", nRow,	fc_qty);
+			
+			return;		
+			
 		}else{
-				fc_qty	=	min_lot_size;
-		}		
-		GridObj.SetCellValue("FC_QTY", nRow,	fc_qty);
+		}
 		
-		return;		
+	
+		// doQuery3 은 다이나믹 해더 때문에 DW5 번 종료후 실행
 		
-	}else{
-	}
-	
-
-	// doQuery3 은 다이나믹 해더 때문에 DW5 번 종료후 실행
-	
-	doQuery3(nRow);	//실행 정지	
-	
-	doQuery5(nRow); //실행 정지
-	
-	doQuery7(nRow);	//실행 정지
+		doQuery3(nRow);	//실행 정지	
+		
+		doQuery5(nRow); //실행 정지
+		
+		doQuery7(nRow);	//실행 정지
 
 }        
    

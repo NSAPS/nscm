@@ -365,7 +365,7 @@ function CallPop(){
 	
 	var service_url = "service.do?_moon_service=ip_07090_EDI_eCvan_Analysis_pop_all";
 		service_url += "&start_date=" + start_date + "&end_date=" + end_date + "&itype=" + itype ;  
-		var pop_win_style = "titlebar=no, menubar=no, toolbar=no, status=yes, scrollbars=no, resizable=yes, width=1235, height=740, top=50, left=150";
+		var pop_win_style = "titlebar=no, menubar=no, toolbar=no, status=yes, scrollbars=no, resizable=yes, width=1335, height=740, top=50, left=150";
 		var newWin = window.open(service_url, "", pop_win_style);
 		newWin.focus();	
 }		
@@ -381,7 +381,7 @@ function GridCellDblClick(strColumnKey, nRow){
 		gubn	= 1;
 		var service_url = "service.do?_moon_service=ip_07090_EDI_eCvan_Analysis_pop";
 		service_url += "&cnfm_date=" + cnfm_date + "&itype=" + itype + "&gubn=" + gubn  ;  
-		var pop_win_style = "titlebar=no, menubar=no, toolbar=no, status=yes, scrollbars=no, resizable=yes, width=1185, height=740, top=50, left=150";
+		var pop_win_style = "titlebar=no, menubar=no, toolbar=no, status=yes, scrollbars=no, resizable=yes, width=1285, height=740, top=50, left=150";
 		var newWin = window.open(service_url, "", pop_win_style);
 		newWin.focus();	
 	}
@@ -390,18 +390,18 @@ function GridCellDblClick(strColumnKey, nRow){
 		gubn	= 2;
 		var service_url = "service.do?_moon_service=ip_07090_EDI_eCvan_Analysis_pop";
 		service_url += "&cnfm_date=" + cnfm_date + "&itype=" + itype + "&gubn=" + gubn  ;  
-		var pop_win_style = "titlebar=no, menubar=no, toolbar=no, status=yes, scrollbars=no, resizable=yes, width=1185, height=740, top=50, left=150";
+		var pop_win_style = "titlebar=no, menubar=no, toolbar=no, status=yes, scrollbars=no, resizable=yes, width=1285, height=740, top=50, left=150";
 		var newWin = window.open(service_url, "", pop_win_style);
 		newWin.focus();	
 		
 	}else{
 		
-		gubn	= 3;
-		var service_url = "service.do?_moon_service=ip_07090_EDI_eCvan_Analysis_pop";
-		service_url += "&cnfm_date=" + cnfm_date + "&itype=" + itype + "&gubn=" + gubn  ;  
-		var pop_win_style = "titlebar=no, menubar=no, toolbar=no, status=yes, scrollbars=no, resizable=yes, width=1185, height=740, top=50, left=150";
-		var newWin = window.open(service_url, "", pop_win_style);
-		newWin.focus();	
+//		gubn	= 3;
+//		var service_url = "service.do?_moon_service=ip_07090_EDI_eCvan_Analysis_pop_ecv";
+//		service_url += "&cnfm_date=" + cnfm_date + "&itype=" + itype + "&gubn=" + gubn  ;  
+//		var pop_win_style = "titlebar=no, menubar=no, toolbar=no, status=yes, scrollbars=no, resizable=yes, width=1285, height=740, top=50, left=150";
+//		var newWin = window.open(service_url, "", pop_win_style);
+//		newWin.focus();	
 	}
 	
 	

@@ -63,6 +63,20 @@
 			<query idref="ip_01130_import_md_PlanAnalysis_list_combo" datasource="t3sinc"/>			
 		</queries>
 	</job>
+	 
+	<!-- 수입상품 발주관리 월 --> 
+	<job id="ip_01180_import_md_PlanAnalysis_list_month" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>상품정보시스템 >> 상품분석 >> 수입상품 발주관리(월)</navigation>
+		<toolbars>0010</toolbars>
+		<title>수입상품 발주관리(월)</title>
+		<authority>1</authority>		
+		<description>수입상품 발주관리(월)</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_01130_import_md_PlanAnalysis_list_combo" datasource="t3sinc"/>			
+		</queries>
+	</job> 
 	
 	<job id="ip_01130_import_md_PlanAnalysis_list_pop" job_type="single" check_permission="no">
 		<path>/sinc/10.InventoryPlanning</path>
@@ -104,6 +118,19 @@
 		<title>수입상품 재고관리</title>
 		<authority>1</authority>		
 		<description>수입상품 재고관리</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="ip_01130_import_md_PlanAnalysis_list_combo" datasource="t3sinc"/>		
+		</queries>
+	</job>
+	
+	<job id="ip_01140_inventoryPlanAnalysis_md_list_new" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>상품정보시스템 >> 상품분석 >> 수입상품 재고관리(소분)</navigation>
+		<toolbars>0010</toolbars>
+		<title>수입상품 재고관리(소분)</title>
+		<authority>1</authority>		
+		<description>수입상품 재고관리(소분)</description>
 		<request_type>list</request_type>
 		<queries> 
 			<query idref="ip_01130_import_md_PlanAnalysis_list_combo" datasource="t3sinc"/>		

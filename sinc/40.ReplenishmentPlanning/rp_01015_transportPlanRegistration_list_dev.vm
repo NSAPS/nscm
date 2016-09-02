@@ -12,6 +12,7 @@
 <input type="hidden" name="plan_version" value="20000000.01.01">
 <input type="hidden" name="version" value="20000000.01.01">
 <input type="hidden" name="seq" value="1">
+<input type="hidden" name="run_seq" value="">
 ##<input type="hidden"name="truck_seq" class="normal"  value="">
 
 
@@ -21,11 +22,16 @@
 		<td height="25" align="right">
 			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
             	<tr>
-                	<td align="left" width="50%">
+                	<td align="left" width="50%">						
 						<input type="button" name="btnBack" value=" 발 행"  
 							onClick="makeBrand('rp_01015_transBillPublishment_list_save_comp'); " class="btn1_on">
 						<input type="button" name="btnBack" value="대량전표등록"  
 							onClick="mass_plan_reg('rp_01015_mass_trans_plan_reg'); " class="btn3_on"> 
+						#if("$!{_user_id}" == "9510206" || "$!{_user_id}" == "2009549"||"$!{_user_id}" == "admin") 
+						<input type="button" name="btnBack" value=" 발 행(부 산)"  
+							onClick="makeBrand2('rp_01015_transBillPublishment_list_save_comp'); " class="btn3_on">
+						#end
+						
 					</td>
                 	<td align="right" width="50%">
 						#button("search")
@@ -163,11 +169,11 @@
 								  
 								#set( $headerType = "TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT" )
 								#set( $headerType = "$!{headerType}!%!TEXT!%!TEXT!%!NUMBER!%!NUMBER!%!NUMBER!%!TEXT!%!TEXT!%!TEXT" )
-								#set( $colwidth = "0!%!60!%!80!%!0!%!60!%!0!%!60!%!40" ) 
+								#set( $colwidth = "60!%!60!%!80!%!60!%!60!%!60!%!60!%!40" ) 
 								#set( $colwidth = "$!{colwidth}!%!70!%!250!%!60!%!50!%!50!%!80!%!50!%!70" )
 								#set( $colalign = "LEFT!%!CENTER!%!CENTER!%!LEFT!%!LEFT!%!LEFT!%!LEFT!%!CENTER" )
 								#set( $colalign = "$!{colalign}!%!CENTER!%!LEFT!%!RIGHT!%!RIGHT!%!RIGHT!%!CENTER!%!CENTER!%!CENTER" )
-								#set( $data = $zlattice.getBody($!{rp_01015_transportPlanRegistration_list_dev},"!%!", "/%/") ) 
+								#set( $data = $zlattice.getBody($!{rp_01015_transportPlanRegistration_list_dev},"!%!", "/row/") ) 
 								
 								<textarea id="txt1" style="display:none;" rows="0" cols="0"> 
 									<object name='grid'
@@ -188,7 +194,7 @@
 										<param name="combo9" value="DATA1!%!DATA2!%!DATA3">-->
 										<!--optional - Default Value 있음-->
 										<param name="columndelimeter" value="!%!"> <!-- defalut : !%! -->
-										<param name="rowdelimeter" value="/%/"> <!-- defalut : /%/ -->
+										<param name="rowdelimeter" value="/row/"> <!-- defalut : /%/ -->
 										<param name="showgroupingfunction" value="false">  <!-- defalut : true -->
 										<param name="showprintingfunction" value="false">   <!-- defalut : true -->
 										<param name="showlockingfunction" value="false"> <!-- defalut : true -->
@@ -245,6 +251,7 @@
 						<input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
 						##<input type="hidden" name="_moon_perpage" value="$!{_moon_perpage}">
 						<input type="hidden" name="_user_id" value="$!{_user_id}">
+						
 					</td></tr></table>
 					
 					</td></tr></table>
@@ -260,7 +267,12 @@
 </table>
 
 <script>
-	
+	function call_pop(){
+		var service_url = "service.do?_moon_service=ip_02090_hawastockSupportPlan_list_popup_calog";
+		var pop_win_style = "titlebar=no, menubar=no, toolbar=no, status=yes, scrollbars=no, resizable=yes, width=895, height=650, top=150, left=200";
+		var newWin = window.open(service_url, "", pop_win_style);
+		newWin.focus();
+	}
 	// 화면 resize
 	$!{resizeFuncCallCode};
 	function window.onresize() { $!{resizeFuncCallCode}; }

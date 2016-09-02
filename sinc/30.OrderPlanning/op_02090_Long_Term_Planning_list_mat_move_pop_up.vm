@@ -1,0 +1,110 @@
+############################################################
+## 프로그램ID      : op_02090_Long_Term_Planning_list_mat_move_pop_up.vm
+## 프로그램명      : SCM주문추적조회
+## 개발자          : 남웅용
+## 개발일자        : 2009-10-13
+##
+## 관련 job file   : job_sinc_10_inventoryPlanning_04.xml  
+## 관련 query file : query_sinc_10_inventoryPlanning_04.xml
+##
+## REVISIONS
+## VER        DATE        AUTHOR    DESCRIPTION
+## ---------  ----------  --------  ------------------------------------
+## 1.0        2009-10-13  남웅용      create
+##
+############################################################
+
+   
+## 비정상적 접근 방지 
+#loginCheck()      
+## 화면 resizing 을 위한 size 변수 
+#set( $resizeFuncCallCode = "setGridAutoResize('79', '70')" )  ## ('79', '60')" )           
+
+<script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
+<script type='text/javascript' src='${project}/dwr/interface/scheduling.js'></script>
+<script type='text/javascript' src='${project}/dwr/engine.js'></script>
+<script type='text/javascript' src='${project}/dwr/util.js'></script>
+
+
+## 두번째 와이즈 그리드 설정을 위한 변수 선언 
+<script language="javascript" for="WiseGrid2" event="Initialize()">
+	init2();
+</script>
+<!--  	서버와의 통신이 정상적으로 완료되면 발생한다.   -->
+<script language="javascript" for="WiseGrid2" event="EndQuery()">
+	GridEndQuery2();
+</script>	
+	
+## 두번째 와이즈 그리드 설정을 위한 변수 선언 
+<script language="javascript" for="WiseGrid3" event="Initialize()">
+	init3();
+</script>
+<!--  	서버와의 통신이 정상적으로 완료되면 발생한다.   -->
+<script language="javascript" for="WiseGrid3" event="EndQuery()">
+	GridEndQuery3();
+</script>		
+
+<table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
+    ## 조회 영역
+	## TAB 영역
+	##<br>
+	<tr>
+    	<td width="80%" valign="top" align="left">
+			<font color="black">
+			<input type="text" name="test" class="normal" style="width:0px; text-align:left; font:12px/15px 맑은 고딕 bold; ">			
+				<b>$!{item_id} - $!{item_name}</b></font>
+			<input type="hidden" name="item_id" value ="$!{item_id}">								
+			<input type="hidden" name="item_name" value ="$!{item_name}">
+			<input type="hidden" name="gubn" value ="$!{gubn}">	
+			<input type="hidden" name="version" value ="$!{version}">	
+		</td>
+	</tr>
+	<tr>
+        <td width="100%" valign="top">
+            <table border="0" width="100%" cellpading="0" cellspacing="0">
+                <tr height="2">
+                    <td colspan="3" style="background-color:#d0d0d0; " ></td>
+                </tr>
+                <tr height="2">  
+					<td colspan="3" style="background-color:#d0d0d0; " ></td>
+				</tr>
+            </table>
+        </td> 
+    </tr>
+    <tr>
+        <td align="left" width="100%" height="52px">    
+            <script>initWiseGrid("WiseGrid", "100%", "100%");</script>
+        </td>
+	</tr>
+	<input name="search_h" type="hidden" value="45"> ## search 조건 부분 높이 
+	## TAB 영역
+    <tr>
+        <td valign="top">
+        ## tab 좌측 여백
+        ##tabLeft()               
+            <table height="5"><tr><td></td></tr></table>
+            <table align="center" border="0" cellpading="0" cellspacing="0" class="normal-table"><tr><td>
+                <input type="hidden" name="_moon_service" value="${_moon_service}">
+                <input type="hidden" name="_moon_pagenumber" value="$!{_moon_pagenumber}">
+                <input type="hidden" name="_user_id" value="$!{_user_id}">
+            </td></tr></table>
+            
+            
+        </td>
+    </tr>
+</table>
+
+<script>
+    
+    // 화면 resize
+    $!{resizeFuncCallCode};
+    function window.onresize() { $!{resizeFuncCallCode}; }
+	//init();
+	//GoSearch();
+    
+    // 도움말 내용 입력
+    var helpStr = "◈ ";    
+    helpCont.innerHTML = helpStr;
+    hDynamicHeight = 0; 
+           
+</script> 

@@ -20,7 +20,8 @@
 var class_path = "com.wisegrid.admin.";							// 서블릿 패키지(class 파일 경로)
 var job_id = 'ip_07090_EDI_eCvan_Analysis_pop_all';
 
-var GridObj ; 													// WiseGrid 객체
+var GridObj ; 	
+var GridObj2 ;												// WiseGrid 객체
 var color_tot 		 = '234|234|234';			//합계 라인 배경색
 var color_edit_col   = '255|253|208';
 var color_sp 		 = '230|222|230'; 			//컬럼 구분선 배경색
@@ -67,7 +68,7 @@ var colBg02 	     = '255|255|255';
           
         //tabPage1.style.height = tabHeightValue + "px"; 
 
-        document.WiseGrid.height = tableHeightValue + "px"; 
+        document.WiseGrid2.height = tableHeightValue - document.WiseGrid.height + "px"; 
         //document.WiseGrid2.height = tableHeightValue - document.WiseGrid.height + "px";
     }  
 
@@ -82,6 +83,14 @@ function init() {
 	setDefault();        	//화면 기본 설정 
 	
 }   
+
+function init2() { 
+	GridObj2 = document.WiseGrid2;
+	setProperty(GridObj2);	//WiseGrid Default설정 부분 (WiseGrid_Property.js파일 내에 선언되어 있다.)
+	setHeader2(GridObj2);  	//해더생성 
+	setDefault2();        	//화면 기본 설정 
+	
+}
 /*┌──────────────────────────────────┐
   │화면 기본 설정 부분.
   └──────────────────────────────────┘*/
@@ -94,10 +103,7 @@ function setDefault() {
     GridObj.nHDLineSize         = 10; //Header Size
     
     //헤더의 라인수를 설정한다. 
-    GridObj.nHDLines = 2;   
-    
-    
-    
+    GridObj.nHDLines = 2;  
    
     //선택된 셀의 글자색 지정한다.
 	GridObj.strSelectedCellFgColor = '0|0|0';
@@ -110,23 +116,44 @@ function setDefault() {
 	GridObj.nCellFontSize = 9;					// Font Size 9
        
 }
+
+function setDefault2() { 
+
+	//GridObj.bRowSelectorVisible = false;        		//로우 셀렉터를 WiseGrid에서 숨긴다,. 
+	
+	GridObj2.bRowSelectorIndex = true;				//Row Selector 영역에 Row Index를 보여준다.
+
+    GridObj2.nHDLineSize         = 10; //Header Size
+    
+    //헤더의 라인수를 설정한다. 
+    GridObj2.nHDLines = 2;  
+    //선택된 셀의 글자색 지정한다.
+	GridObj2.strSelectedCellFgColor = '0|0|0';
+	GridObj2.strSelectedCellBgColor = '232|232|255'; //Drag로 선택된 셀의 배경색상을 변경할 수 있다
+	GridObj2.strActiveRowBgColor    = "232|245|213";    //선택된 행의 배경색상을 설정한다.	
+    GridObj2.strHDClickAction 	   = "select";        	//클릭한 컬럼의 셀을 선택가능하게 한다.
+    GridObj2.strMouseWheelAction='page';
+
+	// Cell Font Setting
+	GridObj2.nCellFontSize = 9;					// Font Size 9
+       
+}
        
 /*┌──────────────────────────────────┐
   │해더생성
   └──────────────────────────────────┘*/ 
-function setHeader(GridObj) {        
+function setHeader(GridObj) {
 	
+	GridObj.AddHeader("CNFM_DATE"		,"일자"			,"t_text"	,100	,80  ,false); //0   
 	
-	GridObj.AddHeader("CNFM_DATE"		,"일자"			,"t_text"	,100	,80  ,false); //0   	
  	GridObj.AddHeader("ITEM_ID"			,"품목코드"		,"t_text"	,100	,65 ,false); //0
  	GridObj.AddHeader("ITEM_NAME"		,"품목명"		,"t_text" 	,100	,170 ,false); //0    
- 	GridObj.AddHeader("SPEC"			,"SPEC"			,"t_text" 	,100	,0 ,false); //0   
  	GridObj.AddHeader("CUST_CODE"		,"거래처코드"		,"t_text" 	,100	,80  ,false); //0   
  	GridObj.AddHeader("CUST_NAME"		,"거래처명"		,"t_text" 	,100	,190  ,false); //0
  	GridObj.AddHeader("EDI_BOX"			,"발주량"		,"t_number" ,100.3	,50  ,false); //0
  	GridObj.AddHeader("SELL_BOX"		,"판매량"		,"t_number" ,100.3	,50  ,false); //0
  	GridObj.AddHeader("DEFAULT_BOX"		,"미납량"		,"t_number" ,100.3	,50  ,false); //0
- 	GridObj.AddHeader("DEFAULT_CODE_NS"	,"사유명"     	,"t_combo" 	,100	,120  ,true); //0   
+ 	GridObj.AddHeader("DEFAULT_CODE_NS"	,"사유명"     	,"t_combo" 	,100	,120  ,true); //0   	
  	GridObj.AddHeader("DC_ID"			,"배송지점"		,"t_text" 	,100	,0  ,false); //0   
  	GridObj.AddHeader("DC_NAME"			,"배송지점"		,"t_text" 	,100	,80  ,false); //0   
  	GridObj.AddHeader("DEPT_CODE"		,"영업지점코드"	,"t_text" 	,100	,0  ,false); //0   
@@ -139,22 +166,57 @@ function setHeader(GridObj) {
     GridObj.SetColCellAlign('CNFM_DATE','center'); 
     
     GridObj.SetColCellAlign('ITEM_ID','center'); 
-    GridObj.SetColCellAlign('SPEC','center'); 
     
     GridObj.SetColCellAlign('DC_NAME','center');
     GridObj.SetColCellAlign('CUST_CODE','center');
     GridObj.SetColCellAlign('DEPT_NAME','center');
     GridObj.SetColCellAlign('HAN_NAME','center');
     GridObj.SetColCellAlign('BIGO','left');
-
+	
+	GridObj.SetNumberFormat("EDI_BOX",       	"###,###.#");
+	GridObj.SetNumberFormat("SELL_BOX",       	"###,###.#");
+	GridObj.SetNumberFormat("DEFAULT_BOX",      "###,###.#");
 	GridObj.SetColCellBgColor('DEFAULT_CODE_NS',color_edit_col);
-	
-
-	doQuery();
-	
 
 }
+
+function setHeader2(GridObj2) {
 	
+	GridObj2.AddHeader("CNFM_DATE"		,"일자"			,"t_text"	,100	,80  ,false); //0   
+	
+ 	GridObj2.AddHeader("ITEM_ID"		,"품목코드"		,"t_text"	,100	,65 ,false); //0
+ 	GridObj2.AddHeader("ITEM_NAME"		,"품목명"			,"t_text" 	,100	,170 ,false); //0    
+ 	GridObj2.AddHeader("CUST_CODE"		,"거래처코드"		,"t_text" 	,100	,80  ,false); //0   
+ 	GridObj2.AddHeader("CUST_NAME"		,"거래처명"		,"t_text" 	,100	,190  ,false); //0
+ 	GridObj2.AddHeader("EDI_BOX"		,"발주량"			,"t_number" ,100.3	,50  ,false); //0
+ 	GridObj2.AddHeader("SELL_BOX"		,"판매량"			,"t_number" ,100.3	,50  ,false); //0
+ 	GridObj2.AddHeader("DEFAULT_BOX"	,"미납량"			,"t_number" ,100.3	,50  ,false); //0
+ 	GridObj2.AddHeader("DEFAULT_CODE_NS","사유명"     	,"t_combo" 	,100	,120  ,true); //0   	
+ 	GridObj2.AddHeader("DC_ID"			,"배송지점"		,"t_text" 	,100	,0  ,false); //0   
+ 	GridObj2.AddHeader("DC_NAME"		,"배송지점"		,"t_text" 	,100	,80  ,false); //0   
+ 	GridObj2.AddHeader("DEPT_CODE"		,"영업지점코드"	,"t_text" 	,100	,0  ,false); //0   
+ 	GridObj2.AddHeader("DEPT_NAME"		,"영업지점"		,"t_text" 	,100	,100  ,false); //0   
+ 	GridObj2.AddHeader("HAN_NAME"		,"담당자"			,"t_text" 	,100	,50  ,false); //0  
+ 	GridObj2.AddHeader("BIGO"			,"비고"			,"t_text" 	,100	,140  ,false); //0   
+
+	GridObj2.BoundHeader();	
+
+    GridObj2.SetColCellAlign('CNFM_DATE','center'); 
+    
+    GridObj2.SetColCellAlign('ITEM_ID','center'); 
+    
+    GridObj2.SetColCellAlign('DC_NAME','center');
+    GridObj2.SetColCellAlign('CUST_CODE','center');
+    GridObj2.SetColCellAlign('DEPT_NAME','center');
+    GridObj2.SetColCellAlign('HAN_NAME','center');
+    GridObj2.SetColCellAlign('BIGO','left');
+	
+	GridObj2.SetNumberFormat("EDI_BOX",       	"###,###.#");
+	GridObj2.SetNumberFormat("SELL_BOX",       	"###,###.#");
+	GridObj2.SetNumberFormat("DEFAULT_BOX",      "###,###.#");
+	GridObj2.SetColCellBgColor('DEFAULT_CODE_NS',color_edit_col);
+
+}	
 
 /*┌──────────────────────────────────┐
   │데이터 조회가 정상적으로 완료되면 발생되는 Event에 대한 Fnc
@@ -168,9 +230,7 @@ function setHeader(GridObj) {
         if(endMode == "search") //조회가 완료된 경우
         {
             if(GridObj.GetStatus() == "true") 
-            {        
-            	
-            
+            {   
             	
             	GridSetMerge();
              
@@ -185,7 +245,31 @@ function setHeader(GridObj) {
      
 		
     }
-
+	
+	function GridEndQuery2() 
+    {
+    	
+        var endMode = GridObj2.GetParam("mode2");
+        var error_msg = '';
+          
+        if(endMode == "search2") //조회가 완료된 경우
+        {
+            if(GridObj2.GetStatus() == "true") 
+            {   
+            	
+            	GridSetMerge2();
+             
+            } else    
+            { 
+            	
+                error_msg = GridObj2.GetMessage(); 
+                alert(error_msg);            
+			}
+        }
+    
+     
+		
+    }
 
 /*┌──────────────────────────────────┐
   │그리드의 원 클릭 이벤트
@@ -197,8 +281,8 @@ function setHeader(GridObj) {
    function GoSearch(service) 
    {
     	
-    	
-    
+    	   doQuery();  
+    	   doQuery2();  
    }
 
 /*┌──────────────────────────────────┐
@@ -213,25 +297,49 @@ function setHeader(GridObj) {
   │DW 1 조회 쿼리를 호출 Fnc
   └──────────────────────────────────┘*/
    function doQuery() 
-   {
-   		
-       var start_date	= document.frm.start_date.value;  
-       var end_date		= document.frm.end_date.value;       
-       start_date 		= start_date.replace(/-/g,"");
-       end_date 		= end_date.replace(/-/g,"");
-       var itype		= document.frm.itype.value;
-         	
+   {   		
+   	   var start_date	    = document.all.start_date.value;     
+       start_date 			= start_date.replace(/-/g,"");     
+       var end_date			= document.all.end_date.value.replace(/-/g,"");
+       end_date 			= end_date.replace(/-/g,"");       
+	   var user_id			= document.all._user_id.value;     
+       var item_type		= document.all.item_type.value;
+       var default_code_ns	= document.all.default_code_ns.value; 
        var servlet_url      = Project_name+"/servlet/com.wisegrid.admin."+job_id;
-       
+              	
+      
       //넘겨줄 값들을만든다.( 파라미터 정의 부분 )
        GridObj.SetParam("mode",           "search");
        GridObj.SetParam("start_date",   start_date);
        GridObj.SetParam("end_date",   end_date);
-       GridObj.SetParam("itype",   itype);
-	  
+       GridObj.SetParam("item_type",   item_type);
+       GridObj.SetParam("default_code_ns", default_code_ns);
+	 
 	   GridObj.DoQuery(servlet_url);       
    }
-
+	
+ function doQuery2() 
+   {   		
+   	   var start_date	    = document.all.start_date.value;     
+       start_date 			= start_date.replace(/-/g,"");     
+       var end_date			= document.all.end_date.value.replace(/-/g,"");
+       end_date 			= end_date.replace(/-/g,"");       
+	   var user_id			= document.all._user_id.value;     
+       var item_type		= document.all.item_type.value;
+       var default_code_ns	= document.all.default_code_ns.value; 
+       var servlet_url      = Project_name+"/servlet/com.wisegrid.admin."+job_id;
+              	
+      
+      //넘겨줄 값들을만든다.( 파라미터 정의 부분 )
+       GridObj2.SetParam("mode",           "search2");
+       GridObj2.SetParam("start_date",   start_date);
+       GridObj2.SetParam("end_date",   end_date);
+       GridObj2.SetParam("item_type",   item_type);
+       GridObj2.SetParam("default_code_ns", default_code_ns);
+	 
+	   GridObj2.DoQuery(servlet_url);       
+   }
+	
 
 	// 셀 저장 전역변수
 	var objTdG;
@@ -273,500 +381,22 @@ function setHeader(GridObj) {
 //
 //	}
 
-/*Sort 변수 선언 */
-
-	var flag_item_id = '1';	
-	var flag_item_name = '1';
-	var flag_base_stock = '1';
-	var flag_stock_day = '1';
-	var flag_prod_term = '1';
-	var flag_term_val = '1';
-	var flag_term_per = '1';
-	var flag_sales_pre = '1';
-	var flag_sales_cur = '1';
+function GridSetMerge(){
 	
-	var flag_sales_sum = '1';
-	var flag_stock_expt = '1';
-	var flag_pre_month_sell = '1';
-	//var flag_receipt_expt = '1';
-	var flag_receipt_expt_sum = '1';
-	var flag_receipt_expt_sum_1 = '1';
-	var flag_receipt_expt_sum_2 = '1';
-	var flag_receipt_expt_sum_3 = '1';
-	var flag_sales_mean_1week = '1';
-	var flag_sales_mean_3week = '1';
-	var flag_week_dev_1_3 = '1';
-	var flag_dev_per = '1';
-	var flag_sales_sum_py = '1';
-	
-	var flag_this_year_sum = '1';
-	var flag_last_year_sum = '1';
-	var flag_sum_py_mon = '1';
-	var flag_sum_py_year = '1';
-	var flag_base_stock_pallet = '1';
-	var flag_stock_expt_pallet = '1';
-
-	function HeaderClick(strColumnKey){
-	
-	GridObj.SetColCellSortEnable('ITEM_ID'			,true);
-	GridObj.SetColCellSortEnable('ITEM_NAME'		,true);
-	GridObj.SetColCellSortEnable('BASE_STOCK'		,true);
-	GridObj.SetColCellSortEnable('STOCK_DAY'		,true);
-	GridObj.SetColCellSortEnable('PROD_TERM'		,true);
-	GridObj.SetColCellSortEnable('TERM_VAL'			,true);
-	GridObj.SetColCellSortEnable('TERM_PER'			,true);
-	GridObj.SetColCellSortEnable('SALES_PRE'		,true);
-	GridObj.SetColCellSortEnable('SALES_CUR'		,true);
-	
-	GridObj.SetColCellSortEnable('SALES_SUM'		,true);
-	GridObj.SetColCellSortEnable('STOCK_EXPT'		,true);
-	GridObj.SetColCellSortEnable('PRE_MONTH_SELL'	,true);
-	//GridObj.SetColCellSortEnable('RECEIPT_EXPT'		,true);
-	GridObj.SetColCellSortEnable('RECEIPT_EXPT_SUM'	,true);
-	GridObj.SetColCellSortEnable('RECEIPT_EXPT_SUM_1'	,true);
-	GridObj.SetColCellSortEnable('RECEIPT_EXPT_SUM_2'	,true);
-	GridObj.SetColCellSortEnable('RECEIPT_EXPT_SUM_3'	,true);
-	GridObj.SetColCellSortEnable('SALES_MEAN_1WEEK'	,true);
-	GridObj.SetColCellSortEnable('SALES_MEAN_3WEEK'	,true);
-	GridObj.SetColCellSortEnable('WEEK_DEV_1_3'		,true);
-	GridObj.SetColCellSortEnable('DEV_PER'			,true);
-	
-	GridObj.SetColCellSortEnable('SALES_SUM_PY'		,true);
-	GridObj.SetColCellSortEnable('THIS_YEAR_SUM'	,true);
-	GridObj.SetColCellSortEnable('LAST_YEAR_SUM'	,true);
-	GridObj.SetColCellSortEnable('SUB_PY_MON'		,true);
-	GridObj.SetColCellSortEnable('SUB_PY_YEAR'		,true);
-	GridObj.SetColCellSortEnable('BASE_STOCK_PALLET',true);
-	GridObj.SetColCellSortEnable('STOCK_EXPT_PALLET',true);
-	
-	GridObj.ClearGroupMerge();
-	
-	if(strColumnKey == 'ITEM_ID') {
-		
-		if(flag_item_id =='1'){
-			
-			GridObj.SetColCellSort('ITEM_ID','descending');
-		
-			flag_item_id++;
-		}
-		else if(flag_item_id =='2'){
-			
-			GridObj.SetColCellSort('ITEM_ID','asceding');
-		
-			flag_item_id--;
-		}
-	}
-	if(strColumnKey == 'ITEM_NAME') {
-		
-		if(flag_item_name =='1'){
-		
-			GridObj.SetColCellSort('ITEM_NAME','descending');
-			flag_item_name++;
-		}
-		else if(flag_item_name =='2'){
-			
-			GridObj.SetColCellSort('ITEM_NAME','asceding');
-			
-			flag_item_name--;	
-			
-		}
-	}
-	if(strColumnKey == 'BASE_STOCK') {
-		
-		if(flag_base_stock =='1'){
-		
-			GridObj.SetColCellSort('BASE_STOCK','descending');
-			flag_base_stock++;
-		}
-		else if(flag_base_stock =='2'){
-			
-			GridObj.SetColCellSort('BASE_STOCK','asceding');
-			
-			flag_base_stock--;	
-			
-		}
-	}
-	if(strColumnKey == 'STOCK_DAY') {
-		
-		if(flag_stock_day =='1'){
-		
-			GridObj.SetColCellSort('STOCK_DAY','descending');
-			flag_stock_day++;
-		}
-		else if(flag_stock_day =='2'){
-			
-			GridObj.SetColCellSort('STOCK_DAY','asceding');
-			
-			flag_stock_day--;	
-			
-		}
-	}
-	if(strColumnKey == 'PROD_TERM') {
-		
-		if(flag_prod_term =='1'){
-		
-			GridObj.SetColCellSort('PROD_TERM','descending');
-			flag_prod_term++;
-		}
-		else if(flag_prod_term =='2'){
-			
-			GridObj.SetColCellSort('PROD_TERM','asceding');
-			
-			flag_prod_term--;	
-			
-		}
-	}
-	if(strColumnKey == 'TERM_VAL') {
-		
-		if(flag_term_val =='1'){
-		
-			GridObj.SetColCellSort('TERM_VAL','descending');
-			flag_term_val++;
-		}
-		else if(flag_term_val =='2'){
-			
-			GridObj.SetColCellSort('TERM_VAL','asceding');
-			
-			flag_term_val--;	
-			
-		}
-	}
-	if(strColumnKey == 'TERM_PER') {
-		
-		if(flag_term_per =='1'){
-		
-			GridObj.SetColCellSort('TERM_PER','descending');
-			flag_term_per++;
-		}
-		else if(flag_term_per =='2'){
-			
-			GridObj.SetColCellSort('TERM_PER','asceding');
-			
-			flag_term_per--;	
-			
-		}
-	}
-	if(strColumnKey == 'SALES_PRE') {
-		
-		if(flag_sales_pre =='1'){
-		
-			GridObj.SetColCellSort('SALES_PRE','descending');
-			flag_sales_pre++;
-		}
-		else if(flag_sales_pre =='2'){
-			
-			GridObj.SetColCellSort('SALES_PRE','asceding');
-			
-			flag_sales_pre--;	
-			
-		}
-	}
-	if(strColumnKey == 'SALES_CUR') {
-		
-		if(flag_sales_cur =='1'){
-		
-			GridObj.SetColCellSort('SALES_CUR','descending');
-			flag_sales_cur++;
-		}
-		else if(flag_sales_cur =='2'){
-			
-			GridObj.SetColCellSort('SALES_CUR','asceding');
-			
-			flag_sales_cur--;	
-			
-		}
-	}
-	if(strColumnKey == 'SALES_SUM') {
-		
-		if(flag_sales_sum =='1'){
-		
-			GridObj.SetColCellSort('SALES_SUM','descending');
-			flag_sales_sum++;
-		}
-		else if(flag_sales_sum =='2'){
-			
-			GridObj.SetColCellSort('SALES_SUM','asceding');
-			
-			flag_sales_sum--;	
-			
-		}
-	}
-	if(strColumnKey == 'STOCK_EXPT') {
-		
-		if(flag_stock_expt =='1'){
-		
-			GridObj.SetColCellSort('STOCK_EXPT','descending');
-			flag_stock_expt++;
-		}
-		else if(flag_stock_expt =='2'){
-			
-			GridObj.SetColCellSort('STOCK_EXPT','asceding');
-			
-			flag_stock_expt--;	
-			
-		}
-	}
-	if(strColumnKey == 'PRE_MONTH_SELL') {
-		
-		if(flag_pre_month_sell =='1'){
-		
-			GridObj.SetColCellSort('PRE_MONTH_SELL','descending');
-			flag_pre_month_sell++;
-		}
-		else if(flag_pre_month_sell =='2'){
-			
-			GridObj.SetColCellSort('PRE_MONTH_SELL','asceding');
-			
-			flag_pre_month_sell--;	
-			
-		}
-	}
-
-	if(strColumnKey == 'RECEIPT_EXPT_SUM') {
-		
-		if(flag_receipt_expt_sum =='1'){
-		
-			GridObj.SetColCellSort('RECEIPT_EXPT_SUM','descending');
-			flag_receipt_expt_sum++;
-		}
-		else if(flag_receipt_expt_sum =='2'){
-			
-			GridObj.SetColCellSort('RECEIPT_EXPT_SUM','asceding');
-			
-			flag_receipt_expt_sum--;	
-			
-		}
-	}
-	
-	if(strColumnKey == 'RECEIPT_EXPT_SUM_1') {
-		
-		if(flag_receipt_expt_sum_1 =='1'){
-		
-			GridObj.SetColCellSort('RECEIPT_EXPT_SUM_1','descending');
-			flag_receipt_expt_sum_1++;
-		}
-		else if(flag_receipt_expt_sum_1 =='2'){
-			
-			GridObj.SetColCellSort('RECEIPT_EXPT_SUM_1','asceding');
-			
-			flag_receipt_expt_sum_1--;	
-			
-		}
-	}
-	
-	if(strColumnKey == 'RECEIPT_EXPT_SUM_2') {
-		
-		if(flag_receipt_expt_sum_2 =='1'){
-		
-			GridObj.SetColCellSort('RECEIPT_EXPT_SUM_2','descending');
-			flag_receipt_expt_sum_2++;
-		}
-		else if(flag_receipt_expt_sum_2 =='2'){
-			
-			GridObj.SetColCellSort('RECEIPT_EXPT_SUM_2','asceding');
-			
-			flag_receipt_expt_sum_2--;	
-			
-		}
-	}
-	
-	if(strColumnKey == 'RECEIPT_EXPT_SUM_3') {
-		
-		if(flag_receipt_expt_sum_3 =='1'){
-		
-			GridObj.SetColCellSort('RECEIPT_EXPT_SUM_3','descending');
-			flag_receipt_expt_sum_3++;
-		}
-		else if(flag_receipt_expt_sum_3 =='2'){
-			
-			GridObj.SetColCellSort('RECEIPT_EXPT_SUM_3','asceding');
-			
-			flag_receipt_expt_sum_3--;	
-			
-		}
-	}
-	
-	if(strColumnKey == 'SALES_MEAN_1WEEK') {
-		
-		if(flag_sales_mean_1week =='1'){
-		
-			GridObj.SetColCellSort('SALES_MEAN_1WEEK','descending');
-			flag_sales_mean_1week++;
-		}
-		else if(flag_sales_cur =='2'){
-			
-			GridObj.SetColCellSort('SALES_MEAN_1WEEK','asceding');
-			
-			flag_sales_mean_1week--;	
-			
-		}
-	}
-	if(strColumnKey == 'SALES_MEAN_3WEEK') {
-		
-		if(flag_sales_mean_3week =='1'){
-		
-			GridObj.SetColCellSort('SALES_MEAN_3WEEK','descending');
-			flag_sales_mean_3week++;
-		}
-		else if(flag_sales_mean_3week =='2'){
-			
-			GridObj.SetColCellSort('SALES_MEAN_3WEEK','asceding');
-			
-			flag_sales_mean_3week--;	
-			
-		}
-	}
-	if(strColumnKey == 'WEEK_DEV_1_3') {
-		
-		if(flag_dev_per =='1'){
-		
-			GridObj.SetColCellSort('WEEK_DEV_1_3','descending');
-			flag_week_dev_1_3++;
-		}
-		else if(flag_dev_per =='2'){
-			
-			GridObj.SetColCellSort('WEEK_DEV_1_3','asceding');
-			
-			flag_week_dev_1_3--;	
-			
-		}
-	}
-	if(strColumnKey == 'DEV_PER') {
-		
-		if(flag_dev_per =='1'){
-		
-			GridObj.SetColCellSort('DEV_PER','descending');
-			flag_dev_per++;
-		}
-		else if(flag_dev_per =='2'){
-			
-			GridObj.SetColCellSort('DEV_PER','asceding');
-			
-			flag_dev_per--;	
-			
-		}
-	}
-	if(strColumnKey == 'SALES_SUM_PY') {
-		
-		if(flag_sales_sum_py =='1'){
-		
-			GridObj.SetColCellSort('SALES_SUM_PY','descending');
-			flag_sales_sum_py++;
-		}
-		else if(flag_sales_sum_py =='2'){
-			
-			GridObj.SetColCellSort('SALES_SUM_PY','asceding');
-			
-			flag_sales_sum_py--;	
-			
-		}
-	}
-	if(strColumnKey == 'THIS_YEAR_SUM') {
-		
-		if(flag_this_year_sum =='1'){
-		
-			GridObj.SetColCellSort('THIS_YEAR_SUM','descending');
-			flag_this_year_sum++;
-		}
-		else if(flag_this_year_sum =='2'){
-			
-			GridObj.SetColCellSort('THIS_YEAR_SUM','asceding');
-			
-			flag_this_year_sum--;	
-			
-		}
-	}
-	if(strColumnKey == 'LAST_YEAR_SUM') {
-		
-		if(flag_last_year_sum =='1'){
-		
-			GridObj.SetColCellSort('LAST_YEAR_SUM','descending');
-			flag_last_year_sum++;
-		}
-		else if(flag_last_year_sum =='2'){
-			
-			GridObj.SetColCellSort('LAST_YEAR_SUM','asceding');
-			
-			flag_last_year_sum--;	
-			
-		}
-	}
-	if(strColumnKey == 'SUB_PY_MON') {
-		
-		if(flag_sum_py_mon =='1'){
-		
-			GridObj.SetColCellSort('SUB_PY_MON','descending');
-			flag_sum_py_mon++;
-		}
-		else if(flag_sum_py_mon =='2'){
-			
-			GridObj.SetColCellSort('SUB_PY_MON','asceding');
-			
-			flag_sum_py_mon--;	
-			
-		}
-	}
-	if(strColumnKey == 'SUB_PY_YEAR') {
-		
-		if(flag_sum_py_year =='1'){
-		
-			GridObj.SetColCellSort('SUB_PY_YEAR','descending');
-			flag_sum_py_year++;
-		}
-		else if(flag_sum_py_year =='2'){
-			
-			GridObj.SetColCellSort('SUB_PY_YEAR','asceding');
-			
-			flag_sum_py_year--;	
-			
-		}
-	}
-	
-	if(strColumnKey == 'BASE_STOCK_PALLET') {
-		
-		if(flag_base_stock_pallet =='1'){
-		
-			GridObj.SetColCellSort('BASE_STOCK_PALLET','descending');
-			flag_base_stock_pallet++;
-		}
-		else if(flag_base_stock_pallet =='2'){
-			
-			GridObj.SetColCellSort('BASE_STOCK_PALLET','asceding');
-			
-			flag_base_stock_pallet--;	
-			
-		}
-	}
-	if(strColumnKey == 'STOCK_EXPT_PALLET') {
-		
-		if(flag_stock_expt_pallet =='1'){
-		
-			GridObj.SetColCellSort('STOCK_EXPT_PALLET','descending');
-			flag_stock_expt_pallet++;
-		}
-		else if(flag_stock_expt_pallet =='2'){
-			
-			GridObj.SetColCellSort('STOCK_EXPT_PALLET','asceding');
-			
-			flag_stock_expt_pallet--;	
-			
-		}
-	}
-	
-		GridSetMerge();
-		
+	var rowCount = GridObj.GetRowCount();		
+		if (rowCount == 0) return;
+     	 	
+	   	GridObj.AddSummaryBar('SUMMARY2', '합계', 'summaryall', 'sum', 'EDI_BOX,SELL_BOX,DEFAULT_BOX'); 
+ 		GridObj.SetSummaryBarColor('SUMMARY2', '0|153|0', '152|251|152');		//녹색
+				 
 }
 
-function GridSetMerge(){
-		
-		var rowCount = GridObj.GetRowCount();		
+function GridSetMerge2(){
+	
+	var rowCount = GridObj2.GetRowCount();		
 		if (rowCount == 0) return;
-				
-		
-		GridObj.SetGroupMerge('CNFM_DATE');
-        GridObj.AddSummaryBar('SUMMARY1', '합계', 'summaryall', 'sum', 'EDI_BOX,SELL_BOX,DEFAULT_BOX'); 
-        GridObj.SetSummaryBarColor('SUMMARY1', '0|153|0', '152|251|152');
-         	   
-        
+     	 	
+	   	GridObj2.AddSummaryBar('SUMMARY2', '합계', 'summaryall', 'sum', 'EDI_BOX,SELL_BOX,DEFAULT_BOX'); 
+ 		GridObj2.SetSummaryBarColor('SUMMARY2', '0|153|0', '152|251|152');		//녹색
 				 
 }

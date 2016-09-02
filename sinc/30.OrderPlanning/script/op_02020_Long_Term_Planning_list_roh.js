@@ -140,10 +140,10 @@ function setDefault() {
     //선택된 셀의 글자색 지정한다.
     GridObj.strSelectedCellFgColor	= '180|82|205';
     GridObj.strHDClickAction		= "select";        		//클릭한 컬럼의 셀을 선택가능하게 한다.
-	GridObj.strActiveRowBgColor		= "170|170|170";		//선택된 행의 배경색상을 설정한다.
+	GridObj.strActiveRowBgColor		= "232|245|213";    //선택된 행의 배경색상을 설정한다.
 	GridObj.strHDClickAction		= "sortsingle";   
 	// Cell Font Setting
-	GridObj.nCellFontSize			= 8.5;					// Font Size 9
+	GridObj.nCellFontSize			= 9;					// Font Size 9
 	//GridObj.strCellFontName = '맑은 고딕'; 
     //GridObj.bStatusbarVisible = false;					// status bar visible 상태바 설정 
 
@@ -159,9 +159,10 @@ function setDefault2() {
     GridObj2.nHDLines				= 2;        
     //선택된 셀의 글자색 지정한다.
     GridObj2.strSelectedCellFgColor = '180|82|205';
+    GridObj2.strActiveRowBgColor		= "232|245|213";    //선택된 행의 배경색상을 설정한다.
     GridObj2.strHDClickAction		= "select";        		//클릭한 컬럼의 셀을 선택가능하게 한다.
 	// Cell Font Setting
-	GridObj2.nCellFontSize			= 8.5;					// Font Size 9 
+	GridObj2.nCellFontSize			= 9;					// Font Size 9 
 	GridObj2.bStatusbarVisible		= false;				// status bar visible 상태바 설정 
 
 }
@@ -172,8 +173,9 @@ function setDefault3() {
     GridObj3.nHDLineSize			= 13;					//Header Size    
     //선택된 셀의 글자색 지정한다.
     GridObj3.strSelectedCellFgColor = '180|82|205';
+    GridObj3.strActiveRowBgColor		= "232|245|213";    //선택된 행의 배경색상을 설정한다.
     GridObj3.strHDClickAction		= "select";        		//클릭한 컬럼의 셀을 선택가능하게 한다.	
-	GridObj3.nCellFontSize			= 8.5;					// Font Size 9
+	GridObj3.nCellFontSize			= 9;					// Font Size 9
     GridObj3.bStatusbarVisible		= false;				// status bar visible 상태바 설정 
 
 }
@@ -184,8 +186,9 @@ function setDefault4() {
     GridObj4.nHDLineSize			= 12;					//Header Size    
     //선택된 셀의 글자색 지정한다.
     GridObj4.strSelectedCellFgColor = '180|82|205';
+    GridObj4.strActiveRowBgColor		= "232|245|213";    //선택된 행의 배경색상을 설정한다.
     GridObj4.strHDClickAction		= "select";        		//클릭한 컬럼의 셀을 선택가능하게 한다.	
-	GridObj4.nCellFontSize			= 8.5;					// Font Size 9
+	GridObj4.nCellFontSize			= 9;					// Font Size 9
 }
 function setDefault5() { 
 
@@ -195,8 +198,9 @@ function setDefault5() {
     GridObj5.bStatusbarVisible		= false;				// status bar visible    
     //선택된 셀의 글자색 지정한다.
     GridObj5.strSelectedCellFgColor = '180|82|205';
+    GridObj5.strActiveRowBgColor		= "232|245|213";    //선택된 행의 배경색상을 설정한다.
     GridObj5.strHDClickAction		= "select";        		//클릭한 컬럼의 셀을 선택가능하게 한다.	
-	GridObj5.nCellFontSize			= 8.5;					// Font Size 9
+	GridObj5.nCellFontSize			= 9;					// Font Size 9
 }
 function setDefault6() { 
 
@@ -206,8 +210,9 @@ function setDefault6() {
     GridObj6.bStatusbarVisible		= false;				// status bar visible
     //선택된 셀의 글자색 지정한다.
     GridObj6.strSelectedCellFgColor = '180|82|205';
+    GridObj6.strActiveRowBgColor		= "232|245|213";    //선택된 행의 배경색상을 설정한다.
     GridObj6.strHDClickAction		= "select";        		//클릭한 컬럼의 셀을 선택가능하게 한다.	
-	GridObj6.nCellFontSize			= 8.5;					// Font Size 9
+	GridObj6.nCellFontSize			= 9;					// Font Size 9
 }
 function setDefault7() { 
 
@@ -217,8 +222,8 @@ function setDefault7() {
     //선택된 셀의 글자색 지정한다.
     GridObj7.strSelectedCellFgColor = '180|82|205';
     GridObj7.strHDClickAction		= "select";        			//클릭한 컬럼의 셀을 선택가능하게 한다.
-	GridObj7.strActiveRowBgColor	= "170|170|170";    		//선택된 행의 배경색상을 설정한다.
-	GridObj7.nCellFontSize			= 8.5;							// Font Size 9
+	GridObj7.strActiveRowBgColor		= "232|245|213";    //선택된 행의 배경색상을 설정한다.
+	GridObj7.nCellFontSize			= 9;							// Font Size 9
 	GridObj7.bStatusbarVisible		= true;						// status bar visible 상태바 설정	
 	GridObj7.strHDClickAction		= "sortsingle";
 }

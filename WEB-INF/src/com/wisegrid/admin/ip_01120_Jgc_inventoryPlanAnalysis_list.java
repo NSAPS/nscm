@@ -114,26 +114,30 @@ public class ip_01120_Jgc_inventoryPlanAnalysis_list extends HttpServlet {
 				gdRes.getHeader("ITEM_ID" 	        ).addValue(qResult.get(i).get(2),"");
 				gdRes.getHeader("ITEM_NAME"	        ).addValue(qResult.get(i).get(3),"");
 				gdRes.getHeader("SPEC"        		).addValue(qResult.get(i).get(4),"");                                     
-				gdRes.getHeader("JGC_STOCK"        	).addValue(qResult.get(i).get(5),"");                               
-				gdRes.getHeader("SALES_PRE"	        ).addValue(qResult.get(i).get(6),"");                                     
-				gdRes.getHeader("SALES_CUR"	        ).addValue(qResult.get(i).get(7),"");
-				gdRes.getHeader("SALES_SUM"	        ).addValue(qResult.get(i).get(8),"");
-				gdRes.getHeader("REMAIN_STOCK"      ).addValue(qResult.get(i).get(9),"");
-				gdRes.getHeader("REMAIN_DAY"		).addValue(qResult.get(i).get(10),"");
-				gdRes.getHeader("EXPIRY_VERSION"	).addValue(qResult.get(i).get(11),"");
-				gdRes.getHeader("PROD_TERM"			).addValue(qResult.get(i).get(12),"");
-				gdRes.getHeader("TERM_PER"			).addValue(qResult.get(i).get(13),"");
-				gdRes.getHeader("DUE_DATE"			).addValue(qResult.get(i).get(14),"");
-				gdRes.getHeader("STOCK_USE_PER"		).addValue(qResult.get(i).get(15),"");				
-				gdRes.getHeader("REGISTER_AGO"		).addValue(qResult.get(i).get(16),"");
-				gdRes.getHeader("EXPECT_QTY"	    ).addValue(qResult.get(i).get(17),"");
-				gdRes.getHeader("EXPECT_QTY2"		).addValue(qResult.get(i).get(18),"");
-				gdRes.getHeader("EXPECT_QTY3"		).addValue(qResult.get(i).get(19),"");
-				gdRes.getHeader("EXPECT_QTY4"		).addValue(qResult.get(i).get(20),"");
-				gdRes.getHeader("TERM_VAL"	    	).addValue(qResult.get(i).get(21),"");
-				gdRes.getHeader("STOCK_DAY"	        ).addValue(qResult.get(i).get(22),"");
-				gdRes.getHeader("SALES_MEAN_3WEEK"	).addValue(qResult.get(i).get(23),"");
-				gdRes.getHeader("REGISTER_DAY"	    ).addValue(qResult.get(i).get(24),"");
+				gdRes.getHeader("JGC_STOCK"        	).addValue(qResult.get(i).get(5),""); 
+				gdRes.getHeader("USE_PLAN"        	).addValue(qResult.get(i).get(6),"");
+				gdRes.getHeader("SALES_PRE"	        ).addValue(qResult.get(i).get(7),"");                                     
+				gdRes.getHeader("SALES_CUR"	        ).addValue(qResult.get(i).get(8),"");
+				gdRes.getHeader("SALES_CUM"	    	).addValue(qResult.get(i).get(9),"");
+				gdRes.getHeader("MONTH_RATE"	    ).addValue(qResult.get(i).get(10),"");
+				gdRes.getHeader("SALES_SUM"	        ).addValue(qResult.get(i).get(11),"");
+				gdRes.getHeader("REMAIN_STOCK"      ).addValue(qResult.get(i).get(12),"");
+				gdRes.getHeader("REMAIN_PRICE"      ).addValue(qResult.get(i).get(13),"");
+				gdRes.getHeader("REMAIN_DAY"		).addValue(qResult.get(i).get(14),"");
+				gdRes.getHeader("EXPIRY_VERSION"	).addValue(qResult.get(i).get(15),"");
+				gdRes.getHeader("PROD_TERM"			).addValue(qResult.get(i).get(16),"");
+				gdRes.getHeader("TERM_PER"			).addValue(qResult.get(i).get(17),"");
+				gdRes.getHeader("DUE_DATE"			).addValue(qResult.get(i).get(18),"");
+				gdRes.getHeader("STOCK_USE_PER"		).addValue(qResult.get(i).get(19),"");				
+				gdRes.getHeader("REGISTER_AGO"		).addValue(qResult.get(i).get(20),"");
+				gdRes.getHeader("EXPECT_QTY"	    ).addValue(qResult.get(i).get(21),"");
+				gdRes.getHeader("EXPECT_QTY2"		).addValue(qResult.get(i).get(22),"");
+				gdRes.getHeader("EXPECT_QTY3"		).addValue(qResult.get(i).get(23),"");
+				gdRes.getHeader("EXPECT_QTY4"		).addValue(qResult.get(i).get(24),"");
+				gdRes.getHeader("TERM_VAL"	    	).addValue(qResult.get(i).get(25),"");
+				gdRes.getHeader("STOCK_DAY"	        ).addValue(qResult.get(i).get(26),"");
+				gdRes.getHeader("SALES_MEAN_3WEEK"	).addValue(qResult.get(i).get(27),"");
+				gdRes.getHeader("REGISTER_DAY"	    ).addValue(qResult.get(i).get(28),"");
 				
 		                                                                                                          
 			}                                                                                                                
@@ -173,6 +177,8 @@ public class ip_01120_Jgc_inventoryPlanAnalysis_list extends HttpServlet {
 				return gdRes;
 			}
 					
+			System.out.println("Rowcount : " + rowCount);
+			
 			String start_date 	= gdReq.getParam("start_date");						
 			String user_id		= gdReq.getParam("user_id");
 			String search_type  = gdReq.getParam("search_type");
@@ -202,19 +208,19 @@ public class ip_01120_Jgc_inventoryPlanAnalysis_list extends HttpServlet {
 					sql += "				'"  + 		 	start_date							  			+ 	"' 	AS CNFM_DATE,					\n";
 					sql += "				'"  + 		 	user_id								  			+ 	"' 	AS MADE_BY,						\n";
 					sql += " 				'"	+	gdReq.getHeader("EXPIRY_VERSION"		).getValue(i) +		"'	AS EXPIRY_VERSION,				\n"; 
-					sql += " 				'"	+	gdReq.getHeader("JGC_STOCK"		).getValue(i) +		"'	AS STOCK,				\n"; 
-					sql += " 				'"	+	gdReq.getHeader("DUE_DATE"		).getValue(i) +		"'	AS DUE_DATE,				\n"; 
-					sql += " 				'"	+	gdReq.getHeader("PROD_TERM"		).getValue(i) +		"'	AS PROD_TERM,				\n"; 
-					sql += " 				'"	+	gdReq.getHeader("TERM_VAL"		).getValue(i) +		"'	AS TERM_VAL,				\n";
+					sql += " 				'"	+	gdReq.getHeader("JGC_STOCK"		).getValue(i) +		"'	AS STOCK,								\n"; 
+					sql += " 				'"	+	gdReq.getHeader("DUE_DATE"		).getValue(i) +		"'	AS DUE_DATE,							\n"; 
+					sql += " 				'"	+	gdReq.getHeader("PROD_TERM"		).getValue(i) +		"'	AS PROD_TERM,							\n"; 
+					sql += " 				'"	+	gdReq.getHeader("USE_PLAN"		).getValue(i) +		"'	AS USE_PLAN,							\n";
+					sql += " 				'"	+	gdReq.getHeader("TERM_VAL"		).getValue(i) +		"'	AS TERM_VAL,							\n";
+					sql += " 				'HAWA'	AS ITYPE,																						\n"; 
+					sql += " 				SYSDATE	AS MADE_DTTM,																					\n"; 
+					sql += " 				'"	+	gdReq.getHeader("SALES_SUM"		).getValue(i) +		"'	AS SELL_BOX_CUM,						\n"; 
+					sql += " 				'Y'	AS SEARCH_FLAG,																						\n"; 
+					sql += " 				'"	+	gdReq.getHeader("SALES_PRE"		).getValue(i) +		"'	AS SALES_PRE,							\n"; 
 					
-					sql += " 				'HAWA'	AS ITYPE,				\n"; 
-					sql += " 				SYSDATE	AS MADE_DTTM,				\n"; 
-					sql += " 				'"	+	gdReq.getHeader("SALES_SUM"		).getValue(i) +		"'	AS SELL_BOX_CUM,				\n"; 
-					sql += " 				'Y'	AS SEARCH_FLAG,				\n"; 
-					sql += " 				'"	+	gdReq.getHeader("SALES_PRE"		).getValue(i) +		"'	AS SALES_PRE,				\n"; 
-					
-					sql += " 				'"	+	gdReq.getHeader("SALES_CUR"		).getValue(i) +		"'	AS ISSUE,				\n"; 
-					sql += " 				'"	+	gdReq.getHeader("REMAIN_STOCK"		).getValue(i) +		"'	AS REMAIN_STOCK,				\n"; 
+					sql += " 				'"	+	gdReq.getHeader("SALES_CUR"		).getValue(i) +		"'	AS ISSUE,								\n"; 
+					sql += " 				'"	+	gdReq.getHeader("REMAIN_STOCK"		).getValue(i) +		"'	AS REMAIN_STOCK,					\n"; 
 					sql += " 				TO_CHAR(TO_DATE('"	+	gdReq.getHeader("REGISTER_DAY"		).getValue(i) +		"'),'YYYY-MM-DD')	AS REGISTER_DAY				\n"; 
 					sql += "		FROM   DUAL											\n"	;						
 				
@@ -223,29 +229,30 @@ public class ip_01120_Jgc_inventoryPlanAnalysis_list extends HttpServlet {
 			//-----------------------------Merge Into 1----------------------------------------------------------------------------------
 			sql += ") JGC1 														   	\n";
 			sql += "ON (JGC.ITEM_ID    = JGC1.ITEM_ID    						   	\n";
-			sql += "AND JGC.CNFM_DATE    = JGC1.CNFM_DATE         						\n";
+			sql += "AND JGC.CNFM_DATE    = JGC1.CNFM_DATE         					\n";
 			sql += "AND JGC.EXPIRY_VERSION   = JGC1.EXPIRY_VERSION )        		\n";
 			sql += "WHEN MATCHED THEN UPDATE SET            					   	\n";
-			sql += "     JGC.MADE_BY      = JGC1.MADE_BY,   					   		\n";
-			sql += "     JGC.STOCK      = JGC1.STOCK,   					   		\n";
-			sql += "     JGC.DUE_DATE      = JGC1.DUE_DATE,   					   		\n";
-			sql += "     JGC.PROD_TERM      = JGC1.PROD_TERM,   					   		\n";
-			sql += "     JGC.TERM_VAL      = JGC1.TERM_VAL,   					   		\n";
-			sql += "     JGC.ITYPE      = JGC1.ITYPE,   					   		\n";
-			sql += "     JGC.MADE_DTTM      = JGC1.MADE_DTTM,   					   		\n";
-			sql += "     JGC.SELL_BOX_CUM      = JGC1.SELL_BOX_CUM,   					   		\n";
-			sql += "     JGC.SEARCH_FLAG      = JGC1.SEARCH_FLAG,   					   		\n";
-			sql += "     JGC.SALES_PRE      = JGC1.SALES_PRE,   					   		\n";
-			sql += "     JGC.ISSUE      = JGC1.ISSUE,   					   		\n";
-			sql += "     JGC.REMAIN_STOCK      = JGC1.REMAIN_STOCK,   					   		\n";
-			sql += "     JGC.REGISTER_DAY      = JGC1.REGISTER_DAY  					   		\n";	
+			sql += "     JGC.MADE_BY      	= JGC1.MADE_BY,   					   	\n";
+			sql += "     JGC.STOCK      	= JGC1.STOCK,   					   	\n";
+			sql += "     JGC.DUE_DATE      	= JGC1.DUE_DATE,   					   	\n";
+			sql += "     JGC.PROD_TERM      = JGC1.PROD_TERM,   					\n";
+			sql += "     JGC.USE_PLAN       = JGC1.USE_PLAN,   						\n";
+			sql += "     JGC.TERM_VAL      	= JGC1.TERM_VAL,   					   	\n";
+			sql += "     JGC.ITYPE      	= JGC1.ITYPE,   					   	\n";
+			sql += "     JGC.MADE_DTTM      = JGC1.MADE_DTTM,   					\n";
+			sql += "     JGC.SELL_BOX_CUM   = JGC1.SELL_BOX_CUM,   					\n";
+			sql += "     JGC.SEARCH_FLAG    = JGC1.SEARCH_FLAG,   					\n";
+			sql += "     JGC.SALES_PRE      = JGC1.SALES_PRE,   					\n";
+			sql += "     JGC.ISSUE      	= JGC1.ISSUE,   					   	\n";
+			sql += "     JGC.REMAIN_STOCK   = JGC1.REMAIN_STOCK,   					\n";
+			sql += "     JGC.REGISTER_DAY   = JGC1.REGISTER_DAY  					\n";	
 			sql += "WHEN NOT MATCHED THEN                                           \n";
 			sql += "	INSERT                                                      \n";
 			sql += "	(                                                           \n";
-			sql += "	 JGC.CNFM_DATE, JGC.ITEM_ID, JGC.EXPIRY_VERSION, JGC.MADE_BY, JGC.STOCK, JGC.DUE_DATE, JGC.PROD_TERM, JGC.TERM_VAL, JGC.ITYPE, JGC.MADE_DTTM, JGC.SELL_BOX_CUM, JGC.SEARCH_FLAG, JGC.SALES_PRE, JGC.ISSUE, JGC.REMAIN_STOCK, JGC.REGISTER_DAY  	\n";
+			sql += "	 JGC.CNFM_DATE, JGC.ITEM_ID, JGC.EXPIRY_VERSION, JGC.MADE_BY, JGC.STOCK, JGC.USE_PLAN, JGC.DUE_DATE, JGC.PROD_TERM, JGC.TERM_VAL, JGC.ITYPE, JGC.MADE_DTTM, JGC.SELL_BOX_CUM, JGC.SEARCH_FLAG, JGC.SALES_PRE, JGC.ISSUE, JGC.REMAIN_STOCK, JGC.REGISTER_DAY  	\n";
 			sql += "	) VALUES                                                                             														\n";
 			sql += "	(                                                                                    														\n";
-			sql += "	JGC1.CNFM_DATE, JGC1.ITEM_ID, JGC1.EXPIRY_VERSION, JGC1.MADE_BY, JGC1.STOCK, JGC1.DUE_DATE, JGC1.PROD_TERM, JGC1.TERM_VAL, JGC1.ITYPE, JGC1.MADE_DTTM, JGC1.SELL_BOX_CUM, JGC1.SEARCH_FLAG, JGC1.SALES_PRE, JGC1.ISSUE, JGC1.REMAIN_STOCK, JGC1.REGISTER_DAY  \n";
+			sql += "	JGC1.CNFM_DATE, JGC1.ITEM_ID, JGC1.EXPIRY_VERSION, JGC1.MADE_BY, JGC1.STOCK, JGC1.USE_PLAN, JGC1.DUE_DATE, JGC1.PROD_TERM, JGC1.TERM_VAL, JGC1.ITYPE, JGC1.MADE_DTTM, JGC1.SELL_BOX_CUM, JGC1.SEARCH_FLAG, JGC1.SALES_PRE, JGC1.ISSUE, JGC1.REMAIN_STOCK, JGC1.REGISTER_DAY  \n";
 			sql += "	 )                                                                                    														\n";
 			 //---------------------------------------------------------------------------------------------------------------------------		
 

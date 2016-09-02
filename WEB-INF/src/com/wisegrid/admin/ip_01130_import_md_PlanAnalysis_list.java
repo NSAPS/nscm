@@ -120,6 +120,7 @@ public class ip_01130_import_md_PlanAnalysis_list extends HttpServlet {
 				//gdRes.getHeader("EXP_STOCK"     ).addValue(qResult.get(i).get(6), "");
 				gdRes.getHeader("GUBN"			).addValue(qResult.get(i).get(4), "");
 				gdRes.getHeader("GUBN_IDX"		).addValue(qResult.get(i).get(5), "");
+				gdRes.getHeader("BOX_CUM"		).addValue("0", "");
 				gdRes.getHeader("NO_FLAG"		).addValue(qResult.get(i).get(6), "");
 				gdRes.getHeader("THREE_MON"		).addValue(qResult.get(i).get(7), "");
 				gdRes.getHeader("MONTH_5"		).addValue(qResult.get(i).get(8), "");

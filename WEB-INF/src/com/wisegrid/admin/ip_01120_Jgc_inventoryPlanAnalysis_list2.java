@@ -118,23 +118,24 @@ public class ip_01120_Jgc_inventoryPlanAnalysis_list2 extends HttpServlet {
 				gdRes.getHeader("JGC_STOCK"        	).addValue(qResult.get(i).get(5),"");                               
 				gdRes.getHeader("SALES_PRE"	        ).addValue(qResult.get(i).get(6),"");                                     
 				gdRes.getHeader("SALES_CUR"	        ).addValue(qResult.get(i).get(7),"");
-				gdRes.getHeader("SALES_SUM"	        ).addValue(qResult.get(i).get(8),"");
-				gdRes.getHeader("REMAIN_STOCK"      ).addValue(qResult.get(i).get(9),"");
-				gdRes.getHeader("REMAIN_DAY"		).addValue(qResult.get(i).get(10),"");
-				gdRes.getHeader("EXPIRY_VERSION"	).addValue(qResult.get(i).get(11),"");
-				gdRes.getHeader("PROD_TERM"			).addValue(qResult.get(i).get(12),"");
-				gdRes.getHeader("TERM_PER"			).addValue(qResult.get(i).get(13),"");
-				gdRes.getHeader("DUE_DATE"			).addValue(qResult.get(i).get(14),"");
-				gdRes.getHeader("STOCK_USE_PER"		).addValue(qResult.get(i).get(15),"");				
-				gdRes.getHeader("REGISTER_AGO"		).addValue(qResult.get(i).get(16),"");
-				gdRes.getHeader("EXPECT_QTY"	    ).addValue(qResult.get(i).get(17),"");
-				gdRes.getHeader("EXPECT_QTY2"		).addValue(qResult.get(i).get(18),"");
-				gdRes.getHeader("EXPECT_QTY3"		).addValue(qResult.get(i).get(19),"");
-				gdRes.getHeader("EXPECT_QTY4"		).addValue(qResult.get(i).get(20),"");
-				gdRes.getHeader("TERM_VAL"	    	).addValue(qResult.get(i).get(21),"");
-				gdRes.getHeader("STOCK_DAY"	        ).addValue(qResult.get(i).get(22),"");
-				gdRes.getHeader("SALES_MEAN_3WEEK"	).addValue(qResult.get(i).get(23),"");
-				gdRes.getHeader("REGISTER_DAY"	    ).addValue(qResult.get(i).get(24),"");
+				gdRes.getHeader("SALES_CUM"	    	).addValue(qResult.get(i).get(8),"");
+				gdRes.getHeader("SALES_SUM"	        ).addValue(qResult.get(i).get(9),"");
+				gdRes.getHeader("REMAIN_STOCK"      ).addValue(qResult.get(i).get(10),"");
+				gdRes.getHeader("REMAIN_DAY"		).addValue(qResult.get(i).get(11),"");
+				gdRes.getHeader("EXPIRY_VERSION"	).addValue(qResult.get(i).get(12),"");
+				gdRes.getHeader("PROD_TERM"			).addValue(qResult.get(i).get(13),"");
+				gdRes.getHeader("TERM_PER"			).addValue(qResult.get(i).get(14),"");
+				gdRes.getHeader("DUE_DATE"			).addValue(qResult.get(i).get(15),"");
+				gdRes.getHeader("STOCK_USE_PER"		).addValue(qResult.get(i).get(16),"");				
+				gdRes.getHeader("REGISTER_AGO"		).addValue(qResult.get(i).get(17),"");
+				gdRes.getHeader("EXPECT_QTY"	    ).addValue(qResult.get(i).get(18),"");
+				gdRes.getHeader("EXPECT_QTY2"		).addValue(qResult.get(i).get(19),"");
+				gdRes.getHeader("EXPECT_QTY3"		).addValue(qResult.get(i).get(20),"");
+				gdRes.getHeader("EXPECT_QTY4"		).addValue(qResult.get(i).get(21),"");
+				gdRes.getHeader("TERM_VAL"	    	).addValue(qResult.get(i).get(22),"");
+				gdRes.getHeader("STOCK_DAY"	        ).addValue(qResult.get(i).get(23),"");
+				gdRes.getHeader("SALES_MEAN_3WEEK"	).addValue(qResult.get(i).get(24),"");
+				gdRes.getHeader("REGISTER_DAY"	    ).addValue(qResult.get(i).get(25),"");
 				
 		                                                                                                          
 			}                                                                                                                

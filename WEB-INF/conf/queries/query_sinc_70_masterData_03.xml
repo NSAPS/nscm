@@ -172,7 +172,10 @@
                     F_GET_ITEM_NAME(IM.REFE_ITEM1) REFE_ITEM1_NAME ,
                     SEARCH_FLAG,
                     DECODE(IM.MTO_MTS_TYPE,'0001','MTO','0002','MTS','±‚≈∏')  ,
-                    IM.EX_NATION	EX_NATION                  
+                    IM.EX_NATION	EX_NATION,
+                    IM.MOQ,
+                    NVL(IM.SAFETY_STOCK ,0),
+                    IM.MTO_MTS_SCM                 
         FROM        ITEM_MST	IM,
                     HRCHY		HR,
                     (

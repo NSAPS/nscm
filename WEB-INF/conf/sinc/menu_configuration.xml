@@ -40,22 +40,35 @@
 	
 	<menu name="상품정보시스템" parent="" url="" icon="" openicon="" separator="">
 		<menu name="상품분석" parent="상품정보시스템" url="" icon="" openicon="" separator="">
-			<menu job="ip_01130_import_md_PlanAnalysis_list"		name="수입상품 발주관리"					parent="상품분석" url="service.do?_moon_service=ip_01130_import_md_PlanAnalysis_list&amp;_moon_perpage=-1&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
+			<menu job="ip_01130_import_md_PlanAnalysis_list"		name="수입상품 발주관리(주)"					parent="상품분석" url="service.do?_moon_service=ip_01130_import_md_PlanAnalysis_list&amp;_moon_perpage=-1&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
+			<menu job="ip_01180_import_md_PlanAnalysis_list_month"	name="수입상품 발주관리(월)"				parent="상품분석" url="service.do?_moon_service=ip_01180_import_md_PlanAnalysis_list_month&amp;_moon_perpage=-1&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
 			<menu job="ip_01160_PurchaseRequest_Plan"				name="발주내역 및GAP분석"					parent="상품분석" url="service.do?_moon_service=ip_01160_PurchaseRequest_Plan&amp;_moon_perpage=-1&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
 			<menu job="ip_01140_inventoryPlanAnalysis_md_list"		name="수입상품 재고관리"					parent="상품분석" url="service.do?_moon_service=ip_01140_inventoryPlanAnalysis_md_list&amp;_moon_perpage=-1&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
-			<menu job="ip_01150_inventoryPlanAnalysis_md_list"		name="국내매입상품 재고관리"				parent="상품분석" url="service.do?_moon_service=ip_01150_inventoryPlanAnalysis_md_list&amp;_moon_perpage=-1&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
+			<menu job="ip_01140_inventoryPlanAnalysis_md_list_new"	name="수입상품 재고관리(소분)"				parent="상품분석" url="service.do?_moon_service=ip_01140_inventoryPlanAnalysis_md_list_new&amp;_moon_perpage=-1&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
+			<menu job="ip_01150_inventoryPlanAnalysis_md_list"		name="국내매입상품 재고관리"					parent="상품분석" url="service.do?_moon_service=ip_01150_inventoryPlanAnalysis_md_list&amp;_moon_perpage=-1&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
 			<menu job="ip_01170_inventoryPlanAnalysis_md_semi_list"	name="소분 유통가공 현황"					parent="상품분석" url="service.do?_moon_service=ip_01170_inventoryPlanAnalysis_md_semi_list&amp;_moon_perpage=-1&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
 			<menu job="ip_01120_Jgc_inventoryPlanAnalysis_list"		name="장기체화 품목분석"					parent="상품분석" url="service.do?_moon_service=ip_01120_Jgc_inventoryPlanAnalysis_list&amp;_moon_perpage=-1&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
 			<menu job="ip_01120_Jgc_inventoryPlanAnalysis_list2"	name="판매부진 품목분석(장기체화 예상)"		parent="상품분석" url="service.do?_moon_service=ip_01120_Jgc_inventoryPlanAnalysis_list2&amp;_moon_perpage=-1&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
 			<menu job="ip_07060_EDI_Group_Analysis_Hawa" 			name="상품 일자별 유통본부별 EDI정보조회"  	parent="상품분석" url="service.do?_moon_service=ip_07060_EDI_Group_Analysis_Hawa&amp;_moon_perpage=-1&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
+			<menu job="ip_03010_Lead_Time_Planning" 				name="상품 리드타임 관리"  					parent="상품분석" url="service.do?_moon_service=ip_03010_Lead_Time_Planning&amp;_moon_perpage=-1&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
+			<menu job="ip_03020_Gift_Set_list" 						name="선물세트 현황"  						parent="상품분석" url="service.do?_moon_service=ip_03020_Gift_Set_list&amp;_moon_perpage=-1&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
+			<menu job="op_02010_Long_Term_Planning_list_Hawa"		name="중장기 상품발주계획(구)" 				parent="분석정보" url="service.do?_moon_service=op_02010_Long_Term_Planning_list_Hawa&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
+			<menu job="ip_03030_Long_Term_Hawa_Planning"			name="중장기 상품발주계획(신규)" 			parent="분석정보" url="service.do?_moon_service=ip_03030_Long_Term_Hawa_Planning&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
+			<menu job="ip_03060_Ex_Order"							name="정기발주계획" 						parent="분석정보" url="service.do?_moon_service=ip_03060_Ex_Order&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
+			<menu job="ip_03070_Ex_Order_Cur"						name="정기발주계획(요약)" 					parent="분석정보" url="service.do?_moon_service=ip_03070_Ex_Order_Cur&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
 		</menu>
 	</menu>
 	
 	<menu name="해외영업시스템" parent="" url="" icon="" openicon="" separator="">
 		<menu name="해외영업" parent="해외영업시스템" url="" icon="" openicon="" separator="">
 			<menu job="ip_01120_Jgc_inventoryPlanAnalysis_list_expert"				name="수출 장기체화 품목분석"			parent="상품분석" url="service.do?_moon_service=ip_01120_Jgc_inventoryPlanAnalysis_list_expert&amp;_moon_perpage=-1&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
-			<menu job="ip_02110_Cy_stock_list" 										name="수출 제품 품목별 재고추이" 				parent="운영정보" url="service.do?_moon_service=ip_02110_Cy_stock_list&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
-			<menu job="sc_01120_plantAllocationPlanResult_export" 					name="차주 수출판매계획등록" 				parent="운영정보" url="service.do?_moon_service=sc_01120_plantAllocationPlanResult_export&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
+			<menu job="ip_02110_Cy_stock_list" 										name="수출 제품 품목별 재고추이" 			parent="운영정보" url="service.do?_moon_service=ip_02110_Cy_stock_list&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
+			<menu job="sc_01120_plantAllocationPlanResult_export" 					name="차주 수출판매계획등록" 			parent="운영정보" url="service.do?_moon_service=sc_01120_plantAllocationPlanResult_export&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
+			<menu job="ip_08020_Expert_Order_list" 									name="주문접수 및 1차검증" 				parent="운영정보" url="service.do?_moon_service=ip_08020_Expert_Order_list&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
+			<menu job="ip_08030_Expert_prod_check" 									name="생산계획 검증" 					parent="운영정보" url="service.do?_moon_service=ip_08030_Expert_prod_check&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
+			<menu job="ip_08040_Expert_Order_cust" 									name="거래선별 주문관리" 				parent="운영정보" url="service.do?_moon_service=ip_08040_Expert_Order_cust&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
+			<menu job="ip_08050_Booking_list" 										name="Booking 리스트" 				parent="운영정보" url="service.do?_moon_service=ip_08050_Booking_list&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
+			<menu job="ip_08060_ExOrder_list" 										name="해외주문 리스트" 					parent="운영정보" url="service.do?_moon_service=ip_08060_ExOrder_list&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
 		</menu>
 	</menu>
 	
@@ -75,7 +88,6 @@
 			<menu job="ip_02050_Inventory_production_analysis_list" name="공급 적합성 사전 분석"  			parent="운영정보" url="service.do?_moon_service=ip_02050_Inventory_production_analysis_list&amp;_moon_perpage=-1&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
 		<!--<menu job="op_02010_Long_Term_Planning_list"			name="중장기 자재발주계획" 			parent="운영정보" url="service.do?_moon_service=op_02010_Long_Term_Planning_list&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />-->
 
-			<menu job="op_02010_Long_Term_Planning_list_Hawa"		name="중장기 상품발주계획" 			parent="분석정보" url="service.do?_moon_service=op_02010_Long_Term_Planning_list_Hawa&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
 			<menu job="ip_02090_hawastockSupportPlan_list2"		 	name="상품재고 보충계획 생성(테스트)"  	parent="기준정보" url="service.do?_moon_service=ip_02090_hawastockSupportPlan_list2&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
 			<menu job="ip_02090_hawastockSupportPlan_list"		 	name="상품재고 보충계획 생성"  		parent="기준정보" url="service.do?_moon_service=ip_02090_hawastockSupportPlan_list&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
 			<menu job="ip_02070_Edi_Default_List"					name="유통본부 미납 추적 분석" 		parent="분석정보" url="service.do?_moon_service=ip_02070_Edi_Default_List&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
@@ -114,6 +126,10 @@
 			<menu job="ip_07090_EDI_eCvan_Analysis" 					name="EDI eCvan 분석 조회"  			parent="분석정보" url="service.do?_moon_service=ip_07090_EDI_eCvan_Analysis&amp;_moon_perpage=-1&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
 			<menu job="ip_02120_Edi_NS_Analysis"						name="유통본부 미납 추적 분석(농심)" 	parent="분석정보" url="service.do?_moon_service=ip_02120_Edi_NS_Analysis&amp;_moon_perpage=-1&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
 			<menu job="ip_05040_WMS_CloseInfo_Scm_list"					name="WMS 출고마감별 사유관리" 		parent="분석정보" url="service.do?_moon_service=ip_05040_WMS_CloseInfo_Scm_list&amp;_moon_perpage=-1&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
+			<menu job="ip_08010_EDI_iput_list"							name="EDI 마감 후 입력내역 조회" 	parent="분석정보" url="service.do?_moon_service=ip_08010_EDI_iput_list&amp;_moon_perpage=-1&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
+			<menu job="ip_03040_Pos_Singlelist"							name="품목별 POS DATA분석" 		parent="분석정보" url="service.do?_moon_service=ip_03040_Pos_Singlelist&amp;_moon_perpage=-1&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
+			<menu job="ip_03050_Pos_Doublelist"							name="POS DATA 비교분석" 			parent="분석정보" url="service.do?_moon_service=ip_03050_Pos_Doublelist&amp;_moon_perpage=-1&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
+			<menu job="ip_09010_intergrated_stock_manage"				name="통합재고관리" 				parent="분석정보" url="service.do?_moon_service=ip_09010_intergrated_stock_manage&amp;_moon_perpage=-1&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
 		</menu>
 	</menu>
 	
@@ -214,7 +230,9 @@
 			<menu job="rp_08050_dc_item_stock_list" 					name="배송지점별 재고 조회" 				parent="분석정보" url="service.do?_moon_service=rp_08050_dc_item_stock_list&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
 			<menu job="rp_08070_part_issue" 							name="파트별 이슈 관리" 					parent="분석정보" url="service.do?_moon_service=rp_08070_part_issue&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
 			<menu job="rp_01180_trans_plan_if_time_list" 				name="수송계획  WMS I/F 시간 조회" 		parent="분석정보" url="service.do?_moon_service=rp_01180_trans_plan_if_time_list&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
-			<menu job="rp_01190_EXP_Stock_Info_list" 				name="수출출고장 재고분석" 		parent="분석정보" url="service.do?_moon_service=rp_01190_EXP_Stock_Info_list&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />	
+			<menu job="rp_01110_returningProduct_list" 					name="반품 수송계획" 			parent="운영정보" url="service.do?_moon_service=rp_01110_returningProduct_list&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
+			<menu job="rp_01190_EXP_Stock_Info_list" 					name="수출출고장 재고분석" 		parent="분석정보" url="service.do?_moon_service=rp_01190_EXP_Stock_Info_list&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />	
+			<menu job="rp_03010_supply_suitability" 					name="물량 적합성 관리" 		parent="분석정보" url="service.do?_moon_service=rp_03010_supply_suitability&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />	
 		</menu>
 	</menu>
 	
@@ -275,6 +293,7 @@
 			<menu job="sc_02170_dailySchResultVsDemandByItem_list"		name="Demand대비 주일간결과 검증(품목기준)"	parent="결과검증" url="service.do?_moon_service=sc_02170_dailySchResultVsDemandByItem_list&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
 			<menu job="sc_02180_erpPoInfo_list" 						name="ERP_PO 리스트"  					parent="생산계획" url="service.do?_moon_service=sc_02180_erpPoInfo_list&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
 			<menu job="sc_02190_planVsActualResultByPlant_list"			name="공장별 생산계획 대비 실적 조회"		parent="분석정보" url="service.do?_moon_service=sc_02190_planVsActualResultByPlant_list&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
+			<menu job="sc_02190_planVsActualResultByPlant_list_new"		name="공장별 생산계획 대비 실적 조회(신규)"	parent="분석정보" url="service.do?_moon_service=sc_02190_planVsActualResultByPlant_list_new&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
 			<menu job="sc_20010_ProdSellAnal_list"						name="제품별 생산/판매 실적조회"			parent="분석정보" url="service.do?_moon_service=sc_20010_ProdSellAnal_list&amp;_moon_perpage=-1&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
 		<!--<menu job="sc_20020_Mat_Scrap_Monthly_Info"					name="폐기자재 실적현황관리"				parent="분석정보" url="service.do?_moon_service=sc_20020_Mat_Scrap_Monthly_Info&amp;_moon_perpage=-1&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />-->
 			<menu job="sc_11020_dailyProductionPlan_List"				name="주간생산계획조회(배포용)" 			parent="분석정보" url="service.do?_moon_service=sc_11020_dailyProductionPlan_List&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />
@@ -294,11 +313,13 @@
 			<menu job="op_02020_Long_Term_Planning_list_roh"		name="자재현황조회" 				parent="" url="service.do?_moon_service=op_02020_Long_Term_Planning_list_roh&amp;_moon_perpage=100&amp;_moon_pagenumber=1"	icon="" openicon="" separator="" />
 			<menu job="op_02030_Material_Refreshing_List"			name="제품별 자재현황 조회" 		parent="" url="service.do?_moon_service=op_02030_Material_Refreshing_List&amp;_moon_perpage=100&amp;_moon_pagenumber=1"		icon="" openicon="" separator="" />
 			<menu job="op_02040_Mfs_Stock_Info"						name="계열사 재고정보 등록"	 	parent="" url="service.do?_moon_service=op_02040_Mfs_Stock_Info&amp;_moon_perpage=100&amp;_moon_pagenumber=1" 				icon="" openicon="" separator="" />
+			<menu job="op_02040_Mfs_Stock_Info_new"					name="계열사 재고정보 등록(구매)"	parent="" url="service.do?_moon_service=op_02040_Mfs_Stock_Info_new&amp;_moon_perpage=100&amp;_moon_pagenumber=1" 				icon="" openicon="" separator="" />
 			<menu job="op_02050_roh_expt_master"					name="발주예시 Main화면"	 		parent="" url="service.do?_moon_service=op_02050_roh_expt_master&amp;_moon_perpage=100&amp;_moon_pagenumber=1" 				icon="" openicon="" separator="" />
+			<menu job="op_02050_roh_expt_master_new"				name="발주예시 Main화면(구매)"	 	parent="" url="service.do?_moon_service=op_02050_roh_expt_master_new&amp;_moon_perpage=100&amp;_moon_pagenumber=1" 			icon="" openicon="" separator="" />
+			<menu job="op_02050_roh_expt_master_yong"				name="발주예시 Main화면(용기)"	 	parent="" url="service.do?_moon_service=op_02050_roh_expt_master_yong&amp;_moon_perpage=100&amp;_moon_pagenumber=1" 			icon="" openicon="" separator="" />
+			<menu job="op_02050_roh_expt_master_sw"					name="발주예시 Main화면(세우)"	 	parent="" url="service.do?_moon_service=op_02050_roh_expt_master_sw&amp;_moon_perpage=100&amp;_moon_pagenumber=1" 			icon="" openicon="" separator="" />
 			<menu job="op_02070_evnet_plan_info"					name="유통본부 판촉계획 등록"		parent="" url="service.do?_moon_service=op_02070_evnet_plan_info&amp;_moon_perpage=100&amp;_moon_pagenumber=1" 				icon="" openicon="" separator="" />
-			  
 			<menu job="op_02060_com_roh_cnfm_list"					name="계열사 발주예고량 조회"		parent="" url="service.do?_moon_service=op_02060_com_roh_cnfm_list&amp;_moon_perpage=100&amp;_moon_pagenumber=1" 			icon="" openicon="" separator="" />
-			
 			<menu job="op_02010_Long_Term_Planning_list"			name="중장기 자재발주계획" 		parent="" url="service.do?_moon_service=op_02010_Long_Term_Planning_list&amp;_moon_perpage=100&amp;_moon_pagenumber=1" 		icon="" openicon="" separator="" />
 			<menu job="sc_20020_Mat_Scrap_Monthly_Info"				name="폐기자재 실적현황관리"		parent="" url="service.do?_moon_service=sc_20020_Mat_Scrap_Monthly_Info&amp;_moon_perpage=-1&amp;_moon_pagenumber=1"		icon="" openicon="" separator="" />
 			<menu job="op_02090_Long_Term_Planning_semi_list"		name="웰치 자재수급계획" 			parent="" url="service.do?_moon_service=op_02090_Long_Term_Planning_semi_list&amp;_moon_perpage=100&amp;_moon_pagenumber=1" icon="" openicon="" separator="" />

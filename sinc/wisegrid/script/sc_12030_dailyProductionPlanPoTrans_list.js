@@ -163,16 +163,6 @@ function defaultHeader(result)
 	GridObj.AppendHeader("REASON_MSG", "REASON02");
 	
 	GridObj.BoundHeader(); //AddHeader를 완료한 후 헤더를 그리드에 바인딩한다. 
-
-    GridObj.SetColCellAlign('ITEM_ID','center'); 
-    GridObj.SetColCellAlign('PROD_DATES','center'); 
-    GridObj.SetColCellAlign('ORD_NO','center'); 
-    GridObj.SetColCellAlign('ORD_ITEM_NO','center'); 
-    GridObj.SetColCellAlign('TRANS_TYPE','center'); 
-    GridObj.SetColCellAlign('MADE_DTTM','center'); 
-    GridObj.SetColCellAlign('MADE_BY','center'); 
-    GridObj.SetColCellAlign('PO_NO','center'); 
-    GridObj.SetColCellAlign('REL_STAT','center'); 
 	
 	GridObj.SetNumberFormat("FROM_QTY", "###,###,###"); // 숫자 형식
 	GridObj.SetNumberFormat("TO_QTY"  , "###,###,###");

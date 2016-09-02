@@ -474,12 +474,14 @@
 		<request_type>list</request_type>
 		<queries> 
 			<query idref="ip_02020_combo_search_type" datasource="t3sinc"/>
+			<query idref="rp_01160_SCM_CHARGE_list" datasource="t3sinc"/>
 			<query idref="md_04100_combo_plant" datasource="t3sinc"/>
 			<query idref="md_01060_combo_multi" datasource="t3sinc"/>
 			<query idref="get_CAT06_list" datasource="t3sinc"/>
 			<query idref="ip_02050_get_line_id" datasource="t3sinc"/>
 			<query idref="ip_02050_Inventory_production_analysis_list_header" datasource="t3sinc"/>
 			<query idref="ip_02050_Inventory_production_analysis_list" datasource="t3sinc"/>
+			<query idref="ip_02050_Inventory_production_analysis_list_combo" datasource="t3sinc"/>
 			<!-- 
 			<query idref="ip_02050_Inventory_production_analysis_list_count" datasource="t3sinc"/>
 			-->

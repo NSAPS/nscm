@@ -824,9 +824,9 @@ function execIFErp( objBtn ) {
 				if(erp_if_available =="N") { // ERP I/F 사용중...
 					alert("현재 다른 ERP인터페이스가 진행중입니다. 잠시후 다시 진행하세요..."); 
 				}
-//				else if(erp_if_available =="A") { // ERP I/F 생산오더 이미 생성됨...
-//					alert("ERP에 이미 생산오더가 생성되었습니다! [일간생산오더 변경] 화면에서 작업해주십시오..."); 
-//				}				else {		
+				else if(erp_if_available =="A") { // ERP I/F 생산오더 이미 생성됨...
+					alert("ERP에 이미 생산오더가 생성되었습니다! [일간생산오더 변경] 화면에서 작업해주십시오..."); 
+				}				else {		
 					// PLAN_VERSION_LOG 상태 업데이트(25) : ERP 전송 진행중
 					controlBoard.updateStat(period_type, run_date, run_seq, plan_step, '25', user_id, { 
 						callback:function(result){
@@ -861,7 +861,7 @@ function execIFErp( objBtn ) {
 							}
 						}
 					});
-				//}
+				}
 			}
 		});		
 		

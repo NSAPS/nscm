@@ -128,15 +128,12 @@ public class sc_13050_set_prod_planVsActualResultByPlant_list extends HttpServle
 				gdRes.getHeader("ITEM_NAME"		).addValue(qResult.get(i).get(1), "");
 				gdRes.getHeader("SPEC" 			).addValue(qResult.get(i).get(2), "");
 				gdRes.getHeader("GUBN" 			).addValue(qResult.get(i).get(3), "");
- 				gdRes.getHeader("MTS_AN_QTY"	).addValue(qResult.get(i).get(4), "");  
- 				gdRes.getHeader("AS_QTY"		).addValue(qResult.get(i).get(5), "");
- 				gdRes.getHeader("MTS_PO_QTY" 	).addValue(qResult.get(i).get(6), "");
-				gdRes.getHeader("WINE_QTY"		).addValue(qResult.get(i).get(7), "");
-				gdRes.getHeader("DY_QTY"		).addValue(qResult.get(i).get(8), "");
-				gdRes.getHeader("MIRE_QTY"		).addValue(qResult.get(i).get(9), "");         
-				gdRes.getHeader("TK_QTY"		).addValue(qResult.get(i).get(10), "");
-				gdRes.getHeader("HS_QTY"		).addValue(qResult.get(i).get(11),"");
-				gdRes.getHeader("TOT"			).addValue(qResult.get(i).get(12),"");					
+ 				gdRes.getHeader("MTS_AN_QTY"	).addValue(qResult.get(i).get(4), "");  				
+ 				gdRes.getHeader("MTS_PO_QTY" 	).addValue(qResult.get(i).get(5), "");				
+				gdRes.getHeader("DY_QTY"		).addValue(qResult.get(i).get(6), "");			      
+				gdRes.getHeader("TK_QTY"		).addValue(qResult.get(i).get(7),"");
+				gdRes.getHeader("SAMBO_QTY"		).addValue(qResult.get(i).get(8),"");
+				gdRes.getHeader("TOT"			).addValue(qResult.get(i).get(9),"");					
 			}                                                                                                                
                                                                                                                              
 			gdRes.addParam("mode", "search");		                                                                         
@@ -191,15 +188,12 @@ public class sc_13050_set_prod_planVsActualResultByPlant_list extends HttpServle
 				gdRes.getHeader("SALES_CAT03" 	).addValue(qResult.get(i).get(0), "");
 				gdRes.getHeader("CD_NAME"		).addValue(qResult.get(i).get(1), "");
 				gdRes.getHeader("GUBN" 			).addValue(qResult.get(i).get(2), "");
- 				gdRes.getHeader("MTS_AN_QTY" 	).addValue(qResult.get(i).get(3), "");    
- 				gdRes.getHeader("AS_QTY"	 	).addValue(qResult.get(i).get(4), "");
-				gdRes.getHeader("MTS_PO_QTY" 	).addValue(qResult.get(i).get(5), "");
-				gdRes.getHeader("WINE_QTY"		).addValue(qResult.get(i).get(6), "");
-				gdRes.getHeader("DY_QTY"		).addValue(qResult.get(i).get(7), "");
-				gdRes.getHeader("MIRE_QTY"		).addValue(qResult.get(i).get(8), "");         
-				gdRes.getHeader("TK_QTY"		).addValue(qResult.get(i).get(9), "");
-				gdRes.getHeader("HS_QTY"		).addValue(qResult.get(i).get(10), "");
-				gdRes.getHeader("TOT"			).addValue(qResult.get(i).get(11),"");                                           
+ 				gdRes.getHeader("MTS_AN_QTY" 	).addValue(qResult.get(i).get(3), "");
+				gdRes.getHeader("MTS_PO_QTY" 	).addValue(qResult.get(i).get(4), "");				
+				gdRes.getHeader("DY_QTY"		).addValue(qResult.get(i).get(5), "");			       
+				gdRes.getHeader("TK_QTY"		).addValue(qResult.get(i).get(6), "");
+				gdRes.getHeader("SAMBO_QTY"		).addValue(qResult.get(i).get(7), "");
+				gdRes.getHeader("TOT"			).addValue(qResult.get(i).get(8),"");                                           
 			}                                                                                                                
                                                                                                                              
 			gdRes.addParam("mode", "search");		                                                                         
@@ -254,15 +248,12 @@ public class sc_13050_set_prod_planVsActualResultByPlant_list extends HttpServle
 				gdRes.getHeader("SALES_CAT01" 	).addValue(qResult.get(i).get(0), "");
 				gdRes.getHeader("CD_NAME"		).addValue(qResult.get(i).get(1), "");
 				gdRes.getHeader("GUBN" 			).addValue(qResult.get(i).get(2), "");
-				gdRes.getHeader("MTS_AN_QTY" 	).addValue(qResult.get(i).get(3), "");
-				gdRes.getHeader("AS_QTY"	 	).addValue(qResult.get(i).get(4), "");
-				gdRes.getHeader("MTS_PO_QTY" 	).addValue(qResult.get(i).get(5), "");
-				gdRes.getHeader("WINE_QTY"		).addValue(qResult.get(i).get(6), "");
-				gdRes.getHeader("DY_QTY"		).addValue(qResult.get(i).get(7), "");
-				gdRes.getHeader("MIRE_QTY"		).addValue(qResult.get(i).get(8), "");         
-				gdRes.getHeader("TK_QTY"		).addValue(qResult.get(i).get(9), "");
-				gdRes.getHeader("HS_QTY"		).addValue(qResult.get(i).get(10), "");
-				gdRes.getHeader("TOT"			).addValue(qResult.get(i).get(11),"");                                           
+				gdRes.getHeader("MTS_AN_QTY" 	).addValue(qResult.get(i).get(3), "");				
+				gdRes.getHeader("MTS_PO_QTY" 	).addValue(qResult.get(i).get(4), "");				
+				gdRes.getHeader("DY_QTY"		).addValue(qResult.get(i).get(5), "");				   
+				gdRes.getHeader("TK_QTY"		).addValue(qResult.get(i).get(6), "");
+				gdRes.getHeader("SAMBO_QTY"		).addValue(qResult.get(i).get(7), "");
+				gdRes.getHeader("TOT"			).addValue(qResult.get(i).get(8),"");                                           
 			}                                                                                                                
                                                                                                                              
 			gdRes.addParam("mode", "search");		                                                                         

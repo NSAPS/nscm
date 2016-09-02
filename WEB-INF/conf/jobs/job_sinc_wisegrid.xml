@@ -212,6 +212,18 @@
 		</queries>
 	</job>
 	
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNew_list_test_pop" job_type="single" check_permission="no">
+		<path>/sinc/wisegrid</path>
+		<navigation>생산계획 >> 운영정보 >> 차주 반제품 소요량 조회</navigation>
+		<toolbars>1010</toolbars><!--(등록/수정/저장/삭제)-->
+		<title>차주 반제품 소요량 조회</title>
+		<authority>1</authority>		
+		<description>차주 반제품 소요량 조회</description>
+		<request_type>list</request_type>
+		<queries>
+		</queries>
+	</job>
+	
 	<!-- 일간 반제품 생산계획 분석(재구성) : POPUP : 공장, 버전 선택 화면 --> 
 	<job id="sc_12020_dailySemifinishedProductPlanAnalysisNewSelectPlantAndVersion_popup_test" job_type="single">
 		<path>/sinc/wisegrid</path>

@@ -61,6 +61,8 @@
 												#if("$!{insel_dc_id}" == "$condition.get(0)" ) selected #end
 											>$condition.get(1)</option>
 										#end
+										<option value="8913"#if( "$!{insel_dc_id}" == "8913" ) selected #end>동우</option>
+										<option value="8938"#if( "$!{insel_dc_id}" == "8938" ) selected #end>디에스제이</option>
             						</select> 
             					</td>		
             				</tr>

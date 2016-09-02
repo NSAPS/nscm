@@ -61,7 +61,7 @@
             					</td>   
             					<td width="17%" align="right">물류거점 :</td>  
             					<td width="38%">  
-                					<select name="selected_dc" >
+                					<select name="selected_dc" style="width:189px; ">
 										<option value="">전체</option>
                 					#foreach( $condition in $combo_dc_list ) 
 										<option value="$condition.get(0)" #if($!{selected_dc} == "$condition.get(0)") selected #else #end >$condition.get(1)</option>											

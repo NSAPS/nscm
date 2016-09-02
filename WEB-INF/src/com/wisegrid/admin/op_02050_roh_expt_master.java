@@ -590,7 +590,9 @@ public class op_02050_roh_expt_master extends HttpServlet {
 
 					/***********************************************사용자 입력 메세지 입력 ***********************************************/
 					sql4	+=	"	SELECT	'OP_02050'	AS WD_ID, \n";
-					sql4	+=	"			'" + gdReq.getHeader("ITEM_ID"			).getValue(i)		+ "'	AS ITEM_ID, 			\n";		       			
+					sql4	+=	"			'" + gdReq.getHeader("ITEM_ID"			).getValue(i)		+ "'	AS ITEM_ID, 			\n";
+					sql4	+=	"			'" + cnfm_date   											+ "'	AS VERSION,      		\n";
+					sql4	+=	"			SYSDATE	AS MADE_DTTM, 	\n";					
 					sql4	+=	"			'" + gdReq.getHeader("MSG"				).getValue(i)		+ "'	AS MSG 					\n";
 					sql4	+=	"	from   DUAL 																			    		\n";
 
@@ -659,11 +661,12 @@ public class op_02050_roh_expt_master extends HttpServlet {
 			/****************************************사용자 입력 메세지 입력 ***********************************************/
 			sql4 += ") UM1 											   	   											\n";
 			sql4 += "ON (UM.WD_ID			= UM1.WD_ID   			   	   											\n";
+			sql4 += "AND UM.VERSION			= UM1.VERSION															\n";
 			sql4 += "AND UM.ITEM_ID      	= UM1.ITEM_ID)    						   								\n";
 			sql4 += "when matched then update set            					  					 				\n";
 			sql4 += " MSG	 				= UM1.MSG           	   	   											\n";  	/* 차주 예상재고량  2013-02-13 */			
-			sql4 += "when not matched then insert(WD_ID,		ITEM_ID		,MSG		,MADE_TYPE	,MADE_DTTM)		\n";
-			sql4 += "values						 (UM1.WD_ID,	UM1.ITEM_ID	,UM1.MSG	,'AD' 		,SYSDATE)		\n";
+			sql4 += "when not matched then insert(WD_ID,	VERSION,		ITEM_ID		,MSG		,MADE_TYPE	,MADE_DTTM)		\n";
+			sql4 += "values						 (UM1.WD_ID, UM1.VERSION,	UM1.ITEM_ID	,UM1.MSG	,'AD' 		,SYSDATE)		\n";
 			
 			/****************************************사용자 입력 메세지 입력 ***********************************************/
 			

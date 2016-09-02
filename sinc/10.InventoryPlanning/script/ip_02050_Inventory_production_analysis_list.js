@@ -216,8 +216,8 @@ function GoSave  (service) {
        var cat06   		= document.all.cat06.value;
        var prod_chk   	= document.all.prod_chk.value;
        var stock_day_flag   	= document.all.stock_day_flag.value;
-       
-       
+       var scm_charge		 = document.frm.scm_charge.value;       
+       var sales_cat02		 = document.frm.sales_cat02.value;      
        
        //넘겨줄 값들을만든다.( 파라미터 정의 부분 )
        GridObj.SetParam("user_id", user_id);
@@ -233,9 +233,10 @@ function GoSave  (service) {
        GridObj.SetParam("search_item", search_item);
        GridObj.SetParam("multi_flag", multi_flag);
        GridObj.SetParam("cat06", cat06);
+       GridObj.SetParam("scm_charge", scm_charge);
        GridObj.SetParam("prod_chk", prod_chk);
        GridObj.SetParam("stock_day_flag", stock_day_flag);
-
+	   GridObj.SetParam("sales_cat02", sales_cat02);
        GridObj.DoQuery(servlet_url);
    }
 

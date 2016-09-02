@@ -54,13 +54,14 @@
 									<select name="search_type">
                               			<option value="">선택</option> 
                               			<option value="1020"#if( "$!{search_type}" == "1020" ) selected #end>면/스낵</option> 
-											<option value="10V"#if( "$!{search_type}" == "10V" ) selected #end>면(Visual구분)</option>
+											##<option value="10V"#if( "$!{search_type}" == "10V" ) selected #end>면(Visual구분)</option>
 										#foreach( $condition in $ip_02020_combo_search_type )
 											<option value="$condition.get(0)"  #if( "$!{search_type}" == "$condition.get(0)" ) selected #end>$condition.get(1)</option>
 										#end
                               			<option value="P40"#if( "$!{search_type}" == "P40" ) selected #end>유통가공품</option> 
 										<option value="310"#if( "$!{search_type}" == "310" ) selected #end>용기면(VISUAL)</option>
 										<option value="T86"#if( "$!{search_type}" == "T86" ) selected #end>관심 품목</option>
+										<option value="T87"#if( "$!{search_type}" == "T87" ) selected #end>관심 품목-II</option>
 										<option value="O1020"#if( "$!{search_type}" == "O1020" ) selected #end>수출 면/스낵</option>
 										<option value="O10"#if( "$!{search_type}" == "O10" ) selected #end>수출 면</option>
 										<option value="O20"#if( "$!{search_type}" == "O20" ) selected #end>수출 스낵</option>
@@ -125,10 +126,10 @@
 					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
 						<tr>	
 							<td>
-								#set( $header 	  = "자재그룹1!%!자재그룹3!%!품목코드!%!품목명!%!규격!%!기초재고!%!재고일수!%!유통기한\n경과일수!%!경과일수히든!%!유통기한히든!%!유통기한!%!유통기한\n경과율!%!전일계!%!일계!%!누계!%!예상재고!%!전월계!%!생산/매입\n계획!%!생산/매입\n실적누계!%!1주평균판매!%!3주평균판매!%!1/3주평균\n편차!%!편차비율!%!전년동월\n누계!%!년누계!%!전년누계!%!전년동월\n대비!%!전년누계\n대비!%!판매목표!%!판매목표\n달성률!%!기초재고\n(PALLET)!%!예상재고\n(PALLET)!%!재고소진완료\n경과율!%!장기체화\n처리기한!%!사외창고!%!생산의뢰량" )
-								#set( $headerType = "TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!TEXT!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!TEXT!%!NUMBER!%!NUMBER!%!NUMBER!%!TEXT!%!NUMBER!%!NUMBER" ) 
-								#set( $colwidth   = "0!%!80!%!80!%!150!%!100!%!70!%!70!%!70!%!0!%!0!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!100!%!70!%!70!%!80!%!100!%!70!%!70" ) 
-								#set( $colalign   = "CENTER!%!CENTER!%!CENTER!%!LEFT!%!LEFT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT" )
+								#set( $header 	  = "자재그룹1!%!자재그룹3!%!제품코드!%!제품명!%!규격!%!구분!%!기초재고!%!재고일수!%!유통기한\n경과일수!%!유통기한\n평균경과!%!경과일수히든!%!유통기한히든!%!유통기한!%!유통기한\n경과율!%!전일계!%!일계!%!누계!%!전월계!%!예상재고!%!금일생산계획!%!금주잔여\n생산계획!%!차주생산계획!%!총공급량!%!총재고일수!%!생산누계!%!1주평균판매!%!3주평균판매!%!1/3주평균\n편차!%!편차비율!%!전년동월\n누계!%!전년동월\n대비!%!년누계!%!전년누계!%!전년누계\n대비!%!판매목표!%!판매목표\n달성률!%!기초재고\n(PALLET)!%!예상재고\n(PALLET)!%!재고소진완료\n경과율!%!장기체화\n처리기한!%!사외창고!%!생산의뢰량" )
+								#set( $headerType = "TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!TEXT!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!TEXT!%!NUMBER!%!NUMBER!%!NUMBER!%!TEXT!%!NUMBER!%!NUMBER" ) 
+								#set( $colwidth   = "0!%!80!%!80!%!150!%!100!%!60!%!70!%!70!%!70!%!0!%!0!%!0!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!70!%!100!%!70!%!70!%!0!%!0!%!0!%!0" ) 
+								#set( $colalign   = "CENTER!%!CENTER!%!CENTER!%!LEFT!%!LEFT!%!CENTER!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT" )
 								##set( $colCor = "8=eeeeee&9=eeeeee&10=eeeeee&11=eeeeee&15=eeeeee&16=eeeeee&17=eeeeee&21=eeeeee&22=eeeeee&23=eeeeee&27=eeeeee&28=eeeeee&29=eeeeee" )
 								
 								## 이중헤더

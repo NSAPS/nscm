@@ -55,7 +55,7 @@
 				<b>$!{item_id} - $!{item_name}</b></font>
 			<input type="hidden" name="item_id" value ="$!{item_id}">								
 			<input type="hidden" name="item_name" value ="$!{item_name}">
-							
+			<input type="hidden" name="gubn" value ="$!{gubn}">				
 		</td>
 	</tr>
 	<tr>

@@ -145,11 +145,11 @@ function setDefault() {
     //선택된 셀의 글자색 지정한다.
     GridObj.strSelectedCellFgColor	= '180|82|205';
     GridObj.strHDClickAction		= "select";        	//클릭한 컬럼의 셀을 선택가능하게 한다.
-	GridObj.strActiveRowBgColor		= "170|170|170";    //선택된 행의 배경색상을 설정한다.
+	GridObj.strActiveRowBgColor		= "232|245|213";    //선택된 행의 배경색상을 설정한다.
 	GridObj.strHDClickAction		= "sortsingle";   
     
 	// Cell Font Setting
-	GridObj.nCellFontSize			= 8.5;					// Font Size 9
+	GridObj.nCellFontSize			= 9;					// Font Size 9
 	
 	///* Context Menu 사용자 MENU 추가 */
     GridObj.AddUserContextMenuItem("MENU_CELL","MENU01","Row 추가");   
@@ -167,9 +167,10 @@ function setDefault2() {
     //선택된 셀의 글자색 지정한다.
     GridObj2.strSelectedCellFgColor = '180|82|205';
     GridObj2.strHDClickAction		= "select";        	//클릭한 컬럼의 셀을 선택가능하게 한다.
+    GridObj2.strActiveRowBgColor	= "232|245|213";    //선택된 행의 배경색상을 설정한다.
 
 	// Cell Font Setting
-	GridObj2.nCellFontSize			= 8.5;					// Font Size 9
+	GridObj2.nCellFontSize			= 9;					// Font Size 9
 	GridObj2.bStatusbarVisible		= false;				// status bar visible 상태바 설정 
 
 }
@@ -181,7 +182,8 @@ function setDefault3() {
     //선택된 셀의 글자색 지정한다.
     GridObj3.strSelectedCellFgColor = '180|82|205';
     GridObj3.strHDClickAction		= "select";        	//클릭한 컬럼의 셀을 선택가능하게 한다.
-	GridObj3.nCellFontSize			= 8.5;					// Font Size 9
+    GridObj3.strActiveRowBgColor	= "232|245|213";    //선택된 행의 배경색상을 설정한다.
+	GridObj3.nCellFontSize			= 9;					// Font Size 9
     GridObj3.bStatusbarVisible		= false;				// status bar visible 상태바 설정 
 
 }
@@ -190,11 +192,11 @@ function setDefault4() {
 	GridObj4.bRowSelectorVisible	= false;        		//로우 셀렉터를 WiseGrid에서 숨긴다,. 
 	GridObj4.bRowSelectorIndex		= true;				//Row Selector 영역에 Row Index를 보여준다.
     GridObj4.nHDLineSize			= 12; //Header Size
-    
+    GridObj4.strActiveRowBgColor	= "232|245|213";    //선택된 행의 배경색상을 설정한다.
     //선택된 셀의 글자색 지정한다.
     GridObj4.strSelectedCellFgColor = '180|82|205';
     GridObj4.strHDClickAction		= "select";        	//클릭한 컬럼의 셀을 선택가능하게 한다.
-	GridObj4.nCellFontSize			= 8.5;					// Font Size 9
+	GridObj4.nCellFontSize			= 9;					// Font Size 9
 }
 function setDefault5() { 
 
@@ -204,9 +206,10 @@ function setDefault5() {
     GridObj5.bStatusbarVisible		= false;				// status bar visible
     
     //선택된 셀의 글자색 지정한다.
+    GridObj5.strActiveRowBgColor	= "232|245|213";    //선택된 행의 배경색상을 설정한다.
     GridObj5.strSelectedCellFgColor = '180|82|205';
     GridObj5.strHDClickAction		= "select";        	//클릭한 컬럼의 셀을 선택가능하게 한다.
-	GridObj5.nCellFontSize			= 8.5;					// Font Size 9
+	GridObj5.nCellFontSize			= 9;					// Font Size 9
 }
 function setDefault6() { 
 
@@ -217,7 +220,8 @@ function setDefault6() {
     //선택된 셀의 글자색 지정한다.
     GridObj6.strSelectedCellFgColor = '180|82|205';
     GridObj6.strHDClickAction		= "select";        	//클릭한 컬럼의 셀을 선택가능하게 한다.
-	GridObj6.nCellFontSize			= 8.5;					// Font Size 9
+    GridObj6.strActiveRowBgColor	= "232|245|213";    //선택된 행의 배경색상을 설정한다.
+	GridObj6.nCellFontSize			= 9;					// Font Size 9
 }
 function setDefault7() { 
 
@@ -227,8 +231,8 @@ function setDefault7() {
     //선택된 셀의 글자색 지정한다.
     GridObj7.strSelectedCellFgColor = '180|82|205';
     GridObj7.strHDClickAction		= "select";        	//클릭한 컬럼의 셀을 선택가능하게 한다.
-	GridObj7.strActiveRowBgColor	= "170|170|170";    //선택된 행의 배경색상을 설정한다.
-	GridObj7.nCellFontSize			= 8.5;					// Font Size 9
+	GridObj7.strActiveRowBgColor	= "232|245|213";    //선택된 행의 배경색상을 설정한다.
+	GridObj7.nCellFontSize			= 9;					// Font Size 9
 	GridObj7.bStatusbarVisible		= true;				// status bar visible 상태바 설정
 	GridObj7.strHDClickAction		= "sortsingle";
 }
@@ -247,13 +251,13 @@ function setHeader(GridObj) {
  	GridObj.AddHeader("TERM_VAL"			,"유통\n기한"     	,"t_number" 	,100.3	,33  ,false); //0   
  	GridObj.AddHeader("LEAD_TIME"			,"리드\n타임"     	,"t_number" 	,100.3	,33  ,false); //0
  	//TOT_LEAD_TIME 리드타임의 일자 환산 
- 	GridObj.AddHeader("TOT_LEAD_TIME"		,"리드\n타임"     	,"t_number" 	,100.3	,0   ,false); //0
+ 	GridObj.AddHeader("TOT_LEAD_TIME"		,"리드\n타임"     	,"t_number" 	,100.3	,50   ,false); //0
  	GridObj.AddHeader("BASE_UOM"			,"기본\n단위"     	,"t_text" 		,100	,33  ,false); //0
- 	GridObj.AddHeader("BASE_STOCK"			,"현재고"      		,"t_number" 	,100.3	,55  ,false); //0   
- 	GridObj.AddHeader("PROG_STOCK"			,"진행중\n재고"   	,"t_number" 	,100.3	,55  ,false); //0   
- 	GridObj.AddHeader("TOT_STOCK"			,"총재고"      		,"t_number" 	,100.3	,65  ,false); //0
+ 	GridObj.AddHeader("BASE_STOCK"			,"현재고"      		,"t_number" 	,100.3	,65  ,false); //0   
+ 	GridObj.AddHeader("PROG_STOCK"			,"진행중\n재고"   	,"t_number" 	,100.3	,65  ,false); //0   
+ 	GridObj.AddHeader("TOT_STOCK"			,"총재고"      		,"t_number" 	,100.3	,75  ,false); //0
  	GridObj.AddHeader("SEL_DMD"				,"선택\n구분"     	,"t_combo"		,100	,65   ,true); //0	
- 	GridObj.AddHeader("STD_STOCK"			,"기준\n재고"     	,"t_number" 	,100.3	,70   ,true); //0   
+ 	GridObj.AddHeader("STD_STOCK"			,"기준재고"     		,"t_number" 	,100.3	,80   ,true); //0   
  	GridObj.AddHeader("SAFETY_STOCK"		,"안전\n재고"     	,"t_number" 	,100.3	,55  ,false); //0   
  	GridObj.AddHeader("SAFETY_FACTOR"		,"안전\n계수"     	,"t_number" 	,100.3	,0    ,true); //0   
  	GridObj.AddHeader("AVG_QTY"				,"평균\n(12개월)" 	,"t_number" 	,100.3	,55  ,false); //0   
@@ -263,7 +267,7 @@ function setHeader(GridObj) {
  	GridObj.AddHeader("USE_CUM_MONTH"		,"당월\n누계"     	,"t_number" 	,100.3	,55  ,false); //0   
  	GridObj.AddHeader("MIN_LOT_SIZE"		,"최소\n발주량"   	,"t_number" 	,100.3	,50   ,true); //0   
  	GridObj.AddHeader("PR_DATE_NO"			,"발주\n시기" 		,"t_number" 	,100.3	,38   ,true); //0   
- 	GridObj.AddHeader("PR_QTY"				,"PR\n수량"      	,"t_number" 	,100.3	,70   ,true); //0   
+ 	GridObj.AddHeader("PR_QTY"				,"PR 수량"      		,"t_number" 	,100.3	,80   ,true); //0   
  	GridObj.AddHeader("ENTR_DATE"			,"입고일"      		,"t_text" 		,100	,65   ,true); //0   
  	GridObj.AddHeader("EDIT_FLAG"			,"EDIT_FLAG"    	,"t_text" 		,100	,0    ,true); //0 
  	GridObj.AddHeader("PR_NO"				,"PR\n번호"     		,"t_text" 		,100	,60   ,true); //0   
@@ -500,15 +504,14 @@ function GridChangeCell(strColumnKey, nRow, nOldValue, nNewValue) {  //pr_qty
 
 
 
-function Grid3ChangeCell(strColumnKey, nRow, nOldValue, nNewValue) {
-	
+function Grid3ChangeCell(strColumnKey, nRow, nOldValue, nNewValue) {	
 	
 	if(nRow == 0){
 		alert("재고 정보는 수정할수 없습니다");
 		GridObj3.SetCellValue(strColumnKey, nRow,  nOldValue);
 	}
 	
-	cal_dw3()
+	cal_dw3();
 }
 
 
@@ -524,14 +527,16 @@ function setHeader2(GridObj2) {
   	GridObj2.AddHeader("PO_SEQ"		,"PO\n품목번호"	,"t_text" 	,100		,0  ,false); //0   화면 감춤
   	GridObj2.AddHeader("PO_DATE"	,"PO일자"       	,"t_text" 	,100		,67  ,false); //0   
   	GridObj2.AddHeader("PO_QTY"		,"PO수량"       	,"t_number" ,100.3		,67  ,false); //0   
-  	GridObj2.AddHeader("CREDIT"		,"선적일" 		,"t_text" 	,100		,67  ,false); //0   
+  	GridObj2.AddHeader("BL_DATE"	,"BL일자\n(선적일)"       	,"t_number" ,100.3		,67  ,false); //0 
+  	GridObj2.AddHeader("CREDIT"		,"BL번호" 		,"t_text" 	,100		,0  ,false); //0   
   	GridObj2.AddHeader("UNSHIP_QTY"	,"미선적량"      	,"t_number" ,100.3		,67  ,false); //0   
   	GridObj2.AddHeader("SHIP_QTY"	,"선적량"       	,"t_number" ,100.3		,67  ,false); //0   
   	GridObj2.AddHeader("BL_NO"		,"HOUSE\nBL_NO" ,"t_text" 	,100		,0  ,false); //0   화면 감춤
   	GridObj2.AddHeader("PORT"		,"입항일" 		,"t_text" 	,100		,67  ,false); //0   
   	GridObj2.AddHeader("TONG"		,"통관일"       	,"t_text" 	,100		,67  ,false); //0   
-  	GridObj2.AddHeader("IPGO"		,"입고\n요청일"   ,"t_text" 	,100		,67 ,false); //0   
-  	GridObj2.AddHeader("DATE_FLAG"	,"DATE_FLAG"    ,"t_text" 	,100		,0 ,false); //0   
+  	GridObj2.AddHeader("IPGO"		,"입고\n요청일"   ,"t_text" 	,100		,67 ,false); //0 
+  	GridObj2.AddHeader("REAL_IPGO"	,"입고\n요청일"   ,"t_text" 	,100		,0  ,false); //0   
+  	GridObj2.AddHeader("DATE_FLAG"	,"DATE_FLAG"    ,"t_text" 	,100		,0  ,false); //0   
   	GridObj2.AddHeader("STATUS"		,"입고\n진행상태" ,"t_text" 	,100		,67 ,false); //0   
 	 	    
 	GridObj2.BoundHeader();	
@@ -546,6 +551,8 @@ function setHeader2(GridObj2) {
     GridObj2.SetColCellAlign('PORT',	'center'); 
     GridObj2.SetColCellAlign('TONG',	'center'); 
     GridObj2.SetColCellAlign('IPGO',	'center'); 
+    GridObj2.SetColCellAlign('BL_DATE',	'center'); 
+    GridObj2.SetColCellAlign('REAL_IPGO', 'center'); 
     
     GridObj2.SetNumberFormat("PR_QTY",		"#,##0");
     GridObj2.SetNumberFormat("PO_QTY",		"#,##0");
@@ -574,15 +581,15 @@ function setHeader3(GridObj3) {
 
 			for(var i=0 ; i < 22 ; i++){  //19
 				if(i < result.length) {
-					GridObj3.AddHeader(result[i][1]	,result[i][0]       	,"t_number" 	,100.3	,result[i][2]  ,false);    
+					GridObj3.AddHeader(result[i][1]	,result[i][0]       	,"t_number" 	,100.3	,result[i][2]  ,true);    
 				} 	
 				else {
 					j = strToNum(i)+strToNum(1);
 					if(i < 22) { //19
-						GridObj3.AddHeader(result[i][1]	,result[i][0]     	,"t_number" 	,100.3	,78  ,false);
+						GridObj3.AddHeader(result[i][1]	,result[i][0]     	,"t_number" 	,100.3	,78  ,true);
 					}
 					else {
-						GridObj3.AddHeader(result[i][1]	,result[i][0]       ,"t_number" 	,100.3	,78  ,false);
+						GridObj3.AddHeader(result[i][1]	,result[i][0]       ,"t_number" 	,100.3	,78  ,true);
 					}
 				}
 			}
@@ -870,12 +877,15 @@ function GridEndQuery3() {
 	
 	var mode		= GridObj3.GetParam("mode");
 	var error_msg	= '';
-	          
+	  
 	if(mode == "search3") {
 		if(GridObj3.GetStatus() == "true") { 
-			document.all.btn_2.value = "축소";
-			colExtension()		
 			
+			var btn = document.all.btn_2.value;
+			btn = "축소";
+			
+			colExtension(btn)	;	
+			  
 			cal_dw3();
 			
 			
@@ -892,7 +902,7 @@ function GridEndQuery3() {
 
 	/* TP_FLAG 확인후 세팅 */
 	var item_id			= document.all.sel_item_id.value;
-
+	
 	if(GridObj3.GetRowCount() < 1  ) return;	//2013-02-27 조회할 데이터가 없으면 미실행 우종균
 	
 	commonUtil.getSelQeury( "item_id", item_id, "op_02010_Long_Term_Planning_list_dw3_header",{
@@ -925,6 +935,7 @@ function GridEndQuery3() {
 	}
 	}
 	);
+	
 	
 	
 }
@@ -1071,7 +1082,7 @@ function colExtension(obj){
 	var GridObj3	= document.WiseGrid3;
 	
 	var value		= document.all.btn_2.value 
-
+	
 	if(value == "확대"){// true => 숨김 상태
 		document.all.btn_2.value = "축소";
 		// 숨김 모드 해제
@@ -1093,7 +1104,7 @@ function colExtension(obj){
 
 	}
 	else{
-		//alert(22);
+		
 		document.all.btn_2.value = "확대";
 		//숨김모드
 		GridObj3.SetColHide("MON_P15", true);
@@ -1279,11 +1290,24 @@ function doQuery4(nRow) {
 	var itype		= document.all.sel_itype.value;
 	var week_flag	= document.all.week_flag.value;
 	
-	if(week_flag =="M"){ //월간
+	if(item_id =='12000721' || item_id =='12000720' || item_id =='11000028') {
+		
+		if(week_flag =="M"){ //월간
+		GridObj4.SetParam("query_id", "op_02010_Long_Term_Planning_list_dw4_except");	
+		}else{//W 주간 
+			GridObj4.SetParam("query_id", "op_02010_Long_Term_Planning_list_dw4_weekly");	
+		}	
+		
+	}else{
+		
+		if(week_flag =="M"){ //월간
 		GridObj4.SetParam("query_id", "op_02010_Long_Term_Planning_list_dw4");	
-	}else{//W 주간 
-		GridObj4.SetParam("query_id", "op_02010_Long_Term_Planning_list_dw4_weekly");	
-	}	
+		}else{//W 주간 
+			GridObj4.SetParam("query_id", "op_02010_Long_Term_Planning_list_dw4_weekly");	
+		}	
+	}
+	
+	
 	
 	//넘겨줄 값들을만든다.( 파라미터 정의 부분 )
 	GridObj4.SetParam("itype",		itype);
@@ -1745,7 +1769,7 @@ function test(){
 
 function HeaderClick_DW2(strColumnKey){ /* HeaderClick_DW2 */
 
-
+	
 	var item_id		= document.all.sel_item_id.value;
 	var	item_name	= document.all.sel_item_name.value;
 	
@@ -1841,6 +1865,8 @@ function colExtension2(obj){
 	var GridObj = document.WiseGrid;
 	
 	if(GridObj.GetColWidth('BASE_STOCK')== 40){// true => 숨김 상태
+		//if(obj.value == "축소"){
+		
 		obj.value = "축소";
 		// 숨김 모드 해제
 		
@@ -1862,6 +1888,7 @@ function colExtension2(obj){
 
 	}
 	else{
+		
 		obj.value = "확대";
 		//숨김모드
 		

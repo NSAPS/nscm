@@ -562,6 +562,7 @@ function doQuery()
 	var no_flag		= document.frm.no_flag.value;
 	var three_mon	= document.frm.three_mon.value;
 	
+	
 	var checked_button ;
 	
 	if(document.frm.checked_button[0].checked){

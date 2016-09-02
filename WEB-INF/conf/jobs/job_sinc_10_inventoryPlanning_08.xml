@@ -2,7 +2,6 @@
 
 <jobs>
 
-
 	<!-- 수출 CY 재고 관리 -->
 	<job id="ip_02110_Cy_stock_list" job_type="single" check_permission="no">
 		<path>/sinc/10.InventoryPlanning</path>
@@ -12,12 +11,233 @@
 		<authority>1</authority>		
 		<description>수출 제품 품목별 재고추이</description>
 		<request_type>list</request_type>
-		<queries> 		
-			
+		<queries> 
 			<query idref="ip_02110_combo_search_type" datasource="t3sinc"/>
 		</queries>
 	</job>
-
-
+	
+	<!-- 상품 리드타임 관리 -->
+	<job id="ip_03010_Lead_Time_Planning" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>상품정보시스템 >> 상품분석 >> 상품 리드타임 관리</navigation>
+		<toolbars>1000</toolbars>
+		<title>상품 리드타임 관리</title>
+		<authority>1</authority>		
+		<description>상품 리드타임 관리</description>
+		<request_type>list</request_type>
+		<queries> 		
+			<query idref="Aps_Pr_version_list_hawa" datasource="t3sinc"/>
+			<query idref="ip_01130_import_md_PlanAnalysis_list_combo" datasource="t3sinc"/>
+			<query idref="sel_dmd_list" datasource="t3sinc"/>	
+			<query idref="cdc_id_and_name_list_hawa" datasource="t3sinc"/>	
+		</queries>
+	</job>
+	
+	<!-- 선물세트 현황 -->
+	<job id="ip_03020_Gift_Set_list" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>상품정보시스템 >> 상품분석 >> 선물세트 현황</navigation>
+		<toolbars>1000</toolbars>
+		<title>선물세트 현황</title>
+		<authority>1</authority>		
+		<description>선물세트 현황</description>
+		<request_type>list</request_type>
+		<queries> 		
+			<query idref="ip_02020_combo_search_type" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- EDI 마감 후 입력내역 조회  -->
+	<job id="ip_08010_EDI_iput_list" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고정책 >> 분석정보 >> EDI 마감 후 입력내역 조회</navigation>
+		<toolbars>1000</toolbars>
+		<title>EDI 마감 후 입력내역 조회</title>
+		<authority>1</authority>		
+		<description>EDI 마감 후 입력내역 조회</description>
+		<request_type>list</request_type>
+		<queries> 		
+			
+		</queries>
+	</job>
+	
+	<!-- 중장기 상품발주 계획(신규) -->
+	<job id="ip_03030_Long_Term_Hawa_Planning" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>상품정보시스템 >> 상품분석 >> 중장기 상품발주 계획(신규)</navigation>
+		<toolbars>1000</toolbars>
+		<title>중장기 상품발주 계획(신규)</title>
+		<authority>1</authority>		
+		<description>중장기 상품발주 계획(신규)</description>
+		<request_type>list</request_type>
+		<queries> 		
+			<query idref="Aps_Pr_version_list_hawa" datasource="t3sinc"/>
+			<query idref="ip_01130_import_md_PlanAnalysis_list_combo" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 주문접수 및 1차 검증  -->
+	<job id="ip_08020_Expert_Order_list" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>해외영업시스템 >> 해외영업 >>주문접수 및 1차 검증</navigation>
+		<toolbars>1000</toolbars>
+		<title>주문접수 및 1차 검증</title>
+		<authority>1</authority>		
+		<description>주문접수 및 1차 검증</description>
+		<request_type>list</request_type>
+		<queries> 		
+			<query idref="ip_08020_Expert_Order_version" datasource="t3sinc"/>
+			<query idref="ip_08020_Expert_Order_max_version" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<job id="ip_08020_Expert_Order_list_pop" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>해외영업시스템 >> 해외영업 >>주문접수 및 1차 검증(팝업)</navigation>
+		<toolbars>0010</toolbars>
+		<title>주문접수 및 1차 검증(팝업)</title>
+		<authority>1</authority>		
+		<description>주문접수 및 1차 검증(팝업)</description>
+		<request_type>list</request_type>
+		<queries> 		
+			
+		</queries>
+	</job>
+	
+	<!-- 생산계획 검증  -->
+	<job id="ip_08030_Expert_prod_check" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>해외영업시스템 >> 해외영업 >>생산계획 검증</navigation>
+		<toolbars>1000</toolbars>
+		<title>생산계획 검증</title>
+		<authority>1</authority>		
+		<description>생산계획 검증</description>
+		<request_type>list</request_type>
+		<queries> 		
+			<query idref="ip_08020_Expert_Order_version" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 거래선별 주문 관리  -->
+	<job id="ip_08040_Expert_Order_cust" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>해외영업시스템 >> 해외영업 >>거래선별 주문 관리</navigation>
+		<toolbars>1000</toolbars>
+		<title>거래선별 주문 관리</title>
+		<authority>1</authority>		
+		<description>거래선별 주문 관리</description>
+		<request_type>list</request_type>
+		<queries> 		
+			<query idref="ip_08020_Expert_Order_version" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<job id="ip_08040_Expert_Order_cust_pop" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>해외영업시스템 >> 해외영업 >>거래선별 주문 관리(팝업)</navigation>
+		<toolbars>0010</toolbars>
+		<title>거래선별 주문 관리(팝업)</title>
+		<authority>1</authority>		
+		<description>거래선별 주문 관리(팝업)</description>
+		<request_type>list</request_type>
+		<queries> 		
+			
+		</queries>
+	</job>
+	
+	<job id="ip_08050_Booking_list" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>해외영업시스템 >> 해외영업 >>Booking 리스트</navigation>
+		<toolbars>0010</toolbars>
+		<title>Booking 리스트</title>
+		<authority>1</authority>		
+		<description>Booking 리스트</description>
+		<request_type>list</request_type>
+		<queries> 		
+			
+		</queries>
+	</job>
+	
+	<job id="ip_08060_ExOrder_list" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>해외영업시스템 >> 해외영업 >>해외주문 리스트</navigation>
+		<toolbars>0010</toolbars>
+		<title>해외주문 리스트</title>
+		<authority>1</authority>		
+		<description>해외주문 리스트</description>
+		<request_type>list</request_type>
+		<queries> 		
+			
+		</queries>
+	</job>
+	
+	<!-- POS DATA 분석  -->
+	<job id="ip_03040_Pos_Singlelist" job_type="single" >
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고정책 >> 분석정보 >>품목별 POS DATA 분석</navigation>
+		<toolbars>1000</toolbars>
+		<title>품목별 POS DATA 분석</title>
+		<authority>1</authority>		
+		<description>품목별 POS DATA 분석</description>
+		<request_type>list</request_type>
+		<queries> 		
+			
+		</queries>
+	</job>
+	
+	<job id="ip_03050_Pos_Doublelist" job_type="single" >
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고정책 >> 분석정보 >>POS DATA 비교분석</navigation>
+		<toolbars>1000</toolbars>
+		<title>POS DATA 비교분석</title>
+		<authority>1</authority>		
+		<description>POS DATA 비교분석</description>
+		<request_type>list</request_type>
+		<queries> 		
+			
+		</queries>
+	</job>
+	
+	<!-- 정기발주계획  -->
+	<job id="ip_03060_Ex_Order" job_type="single" >
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>상품정보시스템 >> 상품분석 >> 정기발주계획</navigation>
+		<toolbars>1000</toolbars>
+		<title>정기발주계획</title>
+		<authority>1</authority>		
+		<description>정기발주계획</description>
+		<request_type>list</request_type>
+		<queries> 		
+			<query idref="ip_01130_import_md_PlanAnalysis_list_combo" datasource="t3sinc"/>	
+		</queries>
+	</job>
+	
+	<!-- 정기발주계획-II  -->
+	<job id="ip_03070_Ex_Order_Cur" job_type="single" >
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>상품정보시스템 >> 상품분석 >> 정기발주계획(요약)</navigation>
+		<toolbars>1000</toolbars>
+		<title>정기발주계획(요약)</title>
+		<authority>1</authority>		
+		<description>정기발주계획(요약)</description>
+		<request_type>list</request_type>
+		<queries> 		
+			<query idref="ip_01130_import_md_PlanAnalysis_list_combo" datasource="t3sinc"/>	
+		</queries>
+	</job>
+	
+	<!-- 통합재고관리  -->
+	<job id="ip_09010_intergrated_stock_manage" job_type="single" >
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고정책 >> 분석정보 >> 통합재고관리</navigation>
+		<toolbars>1000</toolbars>
+		<title>통합재고관리</title>
+		<authority>1</authority>		
+		<description>통합재고관리</description>
+		<request_type>list</request_type>
+		<queries> 		
+			
+		</queries>
+	</job>
 
 </jobs>	

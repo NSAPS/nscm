@@ -82,18 +82,21 @@ function setHeader(GridObj) {
 	GridObj.AddHeader("CRUD"			,"CRUD"       		,"t_text" 		,100    ,60  ,false);
 	GridObj.AddHeader("ITEM_ID"			,"품목코드"       	,"t_text" 		,100    ,60  ,false);
 	GridObj.AddHeader("ITEM_NAME"		,"품목명"       		,"t_text" 		,200	,200 ,false); //0
+	GridObj.AddHeader("MHDHB"			,"총저장수명"       	,"t_text" 		,100	,70   ,true); //0
  	GridObj.AddHeader("MFS_FLAG"		,"발주그룹"       	,"t_combo" 		,10		,90   ,true); //0	//2013-04-18 추가
  	GridObj.AddHeader("USE_PR_PLAN"		,"발주그룹"       	,"t_checkbox" 	,10		,40   ,true); //0
  	GridObj.AddHeader("PR_FLAG"			,"발주관리"       	,"t_checkbox" 	,10		,40   ,true); //0
  	GridObj.AddHeader("ST_FLAG"			,"재고관리"       	,"t_checkbox" 	,10		,40   ,true); //0
  	GridObj.AddHeader("RC_FLAG"			,"국내매입"       	,"t_checkbox" 	,10		,40   ,true); //0
  	GridObj.AddHeader("SEMI_FLAG"		,"소분\n유통"     	,"t_checkbox" 	,10		,40   ,true); //0
+ 	GridObj.AddHeader("SB_FLAG"			,"재고(소분)"     	,"t_checkbox" 	,10		,40   ,true); //0
  	
  	GridObj.AddHeader("BS_FLAG1"		,"상품"       	,"t_checkbox" 	,10		,40   ,true); //0 
  	GridObj.AddHeader("BS_FLAG3"		,"베이스"       	,"t_checkbox" 	,10		,40   ,true); //0
  	GridObj.AddHeader("BS_FLAG2"		,"상품"     		,"t_checkbox" 	,10		,40   ,true); //0
  	GridObj.AddHeader("BS_FLAG4"		,"베이스"     	,"t_checkbox" 	,10		,40   ,true); //0
- 	   
+ 	
+ 	GridObj.AddHeader("SW_FLAG"			,"세우공통"       	,"t_checkbox" 	,10		,40   ,true); //0   
  	GridObj.AddHeader("PR_TO_PO"		,"PR~PO"       		,"t_number" 	,10.2	,60   ,true); //0   
  	GridObj.AddHeader("PO_TO_LC"		,"PO~선적"       	,"t_number" 	,10.2	,60   ,true); //0   
  	GridObj.AddHeader("LC_TO_PORT"		,"선적~입항"       	,"t_number" 	,10.2	,60   ,true); //0   
@@ -209,15 +212,17 @@ function setHeader(GridObj) {
 	GridObj.SetColCellAlign('ITEM_ID',		'center');
 	GridObj.SetColCellAlign('USE_DP_DATE',	'center');
 	GridObj.SetColCellAlign('USE_FF_DATE',	'center');
-	GridObj.SetColCellAlign('DOMAIN',		'center');
+	GridObj.SetColCellAlign('DOMAIN',		'center');	
 	GridObj.SetColCellAlign('MFS_FLAG',		'center');
+	GridObj.SetColCellAlign('MHDHB',		'right');
 
 	GridObj.SetColCellBgColor('USE_PR_PLAN',	color_edit_col);
 	GridObj.SetColCellBgColor('PR_FLAG',		color_edit_col);
 	GridObj.SetColCellBgColor('ST_FLAG',		color_edit_col);
 	GridObj.SetColCellBgColor('RC_FLAG',		color_edit_col);
 	GridObj.SetColCellBgColor('SEMI_FLAG',		color_edit_col);
-	
+	GridObj.SetColCellBgColor('SB_FLAG',		color_edit_col);
+	GridObj.SetColCellBgColor('SW_FLAG',		color_edit_col);
 	GridObj.SetColCellBgColor('BS_FLAG1',		color_edit_col);
 	GridObj.SetColCellBgColor('BS_FLAG2',		color_edit_col);
 	GridObj.SetColCellBgColor('BS_FLAG3',		color_edit_col);

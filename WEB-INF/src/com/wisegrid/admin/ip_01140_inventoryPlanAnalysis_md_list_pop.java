@@ -81,11 +81,12 @@ public class ip_01140_inventoryPlanAnalysis_md_list_pop extends HttpServlet {
 			gdRes = OperateGridData.cloneResponseGridData(gdReq);                                                            
 	        
 			String cnfm_date  = gdReq.getParam("cnfm_date");                                                            
-			String item_id    = gdReq.getParam("item_id");          
+			String item_id    = gdReq.getParam("item_id"); 
+			String gubn		  = gdReq.getParam("gubn");
 			 
 			                                                                                                              
-			String paramKey   = "cnfm_date!%!item_id";                                                                      
-			String paramCode  = cnfm_date+"!%!"+item_id;                                                                   
+			String paramKey   = "cnfm_date!%!item_id!%!gubn";                                                                      
+			String paramCode  = cnfm_date+"!%!"+item_id+"!%!"+gubn;                                                                   
 		
 			                                                                 
 			

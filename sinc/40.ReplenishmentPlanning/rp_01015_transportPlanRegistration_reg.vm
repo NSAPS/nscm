@@ -49,7 +49,7 @@
             						출고사업장 :
             					</td>
             					<td width="160px" align="left">
-									<select name="src_loc" style="width:160px; ">
+									<select name="src_loc" style="width:160px; " >
 										<option value="">선택</option>
 									#foreach( $tr in $dc_id_and_short_name_list )
 										<option value="${tr.get(0)}" 
@@ -61,7 +61,7 @@
             						입고사업장 :
             					</td>
             					<td width="160px" align="left">
-									<select name="tgt_loc" style="width:160px;">
+									<select name="tgt_loc" style="width:160px;" onChange="changeValue(this); ">
 										<option value="">선택</option>
 									#foreach( $tr in $dc_id_and_short_name_list )
 										<option value="${tr.get(0)}" 
@@ -79,6 +79,7 @@
             					<td width="160px" align="left">
 									<select name="plan_type" style="width:160px; ">
 										##<option value="">선택</option>
+									
 									#foreach( $tr in $rp_01015_trans_class_list )
 										<option value="${tr.get(0)}"
 											#if( "$!{plan_type}" == "${tr.get(0)}" ) selected #end)>${tr.get(1)}</option>

@@ -126,22 +126,27 @@ function setHeader(GridObj) {
  	GridObj.AddHeader("BASE_STOCK"	       ,"기초재고"			,"t_number"    ,100.3	,70     ,false); //0
  	GridObj.AddHeader("BASE_STOCK2"	       ,"기초재고"			,"t_number"    ,100.3	,70     ,false); //0
  	GridObj.AddHeader("CY_STOCK"	       ,"CY재고"	    		,"t_number"    ,100.3	,70     ,false); //0  	
- 	GridObj.AddHeader("MI_ORDER"	       ,"미출오더"	    	,"t_number"    ,100.3	,0     ,false); //0
- 	GridObj.AddHeader("DONGU_STOCK"	       ,"동우"				,"t_number"    ,100.3	,70     ,false); //0
+ 	GridObj.AddHeader("MI_ORDER"	       ,"CY미출재고"	    	,"t_number"    ,100.3	,0     ,false); //0
+ 	GridObj.AddHeader("DONGU_STOCK"	       ,"동우북항"			,"t_number"    ,100.3	,70     ,false); //0
+ 	GridObj.AddHeader("DONGU_STOCK_NEW"	   ,"동우신항"			,"t_number"    ,100.3	,70     ,false); //0
  	GridObj.AddHeader("DSJ_STOCK"	       ,"DSJ"				,"t_number"    ,100.3	,70     ,false); //0
  	GridObj.AddHeader("PS_STOCK"	       ,"부산제품"			,"t_number"    ,100.3	,70     ,false); //0
  	GridObj.AddHeader("GITA_STOCK"	       ,"기타"				,"t_number"    ,100.3	,70     ,false); //0
- 	GridObj.AddHeader("SALES_CUR"	       ,"일계"       		,"t_number"    ,100.3	,0      ,false); //0
+ 	GridObj.AddHeader("SALES_CUR"	       ,"일계"       		,"t_number"    ,100.3	,70      ,false); //0
     GridObj.AddHeader("SALES_SUM"	       ,"누계"	    		,"t_number"    ,100.3	,60     ,false); //0
-    GridObj.AddHeader("STOCK_EXPT"	       ,"예상재고"       	,"t_number"    ,100.3	,60     ,false); //0
+    GridObj.AddHeader("STOCK_EXPT"	       ,"예상재고"       		,"t_number"    ,100.3	,60     ,false); //0
     GridObj.AddHeader("WEEK_STOCK"	       ,"주초\n기초재고"     	,"t_number"    ,100.3	,60     ,false); //0
+    GridObj.AddHeader("PRE_CHGO"	       ,"선출고량"     		,"t_number"    ,100.3	,60     ,false); //0
+    GridObj.AddHeader("MI_CHGO"	       	   ,"전주\n미출고량"     	,"t_number"    ,100.3	,60     ,false); //0
     GridObj.AddHeader("CHGO_PLAN"	       ,"W\n출고계획량"	    ,"t_number"    ,100.3	,70     ,false); //0
-    GridObj.AddHeader("PROD_PLAN"	       ,"W\n생산계획"	    ,"t_number"    ,100.3	,70     ,false); //0
+    GridObj.AddHeader("BK_ORDER"	       ,"W\n부킹데이터"	    ,"t_number"    ,100.3	,0     ,false); //0
+    GridObj.AddHeader("PROD_PLAN"	       ,"W\n생산계획"	    	,"t_number"    ,100.3	,70     ,false); //0
     GridObj.AddHeader("AVL_STOCK"	       ,"W+1\n가용재고"	    ,"t_number"    ,100.3	,70     ,false); //0
     GridObj.AddHeader("CHGO_PLAN2"	       ,"W+1\n출고계획량"	    ,"t_number"    ,100.3	,70     ,false); //0
+     GridObj.AddHeader("BK2_ORDER"	       ,"W+1\n부킹데이터"	    ,"t_number"    ,100.3	,0     ,false); //0
     GridObj.AddHeader("PROD_PLAN2"	       ,"W+1\n생산계획"	    ,"t_number"    ,100.3	,70     ,false); //0
     GridObj.AddHeader("AVL_STOCK2"	       ,"W+2\n가용재고"	    ,"t_number"    ,100.3	,70     ,false); //0
-    GridObj.AddHeader("CHGO_PLAN3"	       ,"W+2\n출고계획량"	    ,"t_number"    ,100.3	,70     ,false); //0
+    GridObj.AddHeader("CHGO_PLAN3"	       ,"W+2\n출고계획량"	    ,"t_number"    ,100.3	,0     ,false); //0
     
     GridObj.AddHeader("RECEIPT_EXPT"	   ,"금일\n생산계획"	    ,"t_number"    ,100.3	,70     ,false); //0
     GridObj.AddHeader("RECEIPT_EXPT_SUM"   ,"생산누계"	    	,"t_number"    ,100.3	,70     ,false); //0
@@ -179,6 +184,7 @@ function setHeader(GridObj) {
     GridObj.SetNumberFormat("BASE_STOCK",      	"###,###.#");  
     GridObj.SetNumberFormat("DSJ_STOCK",      	"###,###.#");  
     GridObj.SetNumberFormat("DONGU_STOCK",      "###,###.#");  
+    GridObj.SetNumberFormat("DONGU_STOCK_NEW",  "###,###.#");
     GridObj.SetNumberFormat("PS_STOCK",      	"###,###.#");  
     GridObj.SetNumberFormat("GITA_STOCK",      	"###,###.#");  
     GridObj.SetNumberFormat("SALES_CUR",       	"###,###.#");
@@ -193,10 +199,13 @@ function setHeader(GridObj) {
     GridObj.SetNumberFormat("CHGO_PLAN3",       "###,###.#");
     GridObj.SetNumberFormat("WEEK_STOCK",       "###,###.#");
     GridObj.SetNumberFormat("MI_ORDER",      	"###,###.#"); 
-   
+    GridObj.SetNumberFormat("BK_ORDER",       	"###,###.#");
+    GridObj.SetNumberFormat("BK2_ORDER",       	"###,###.#");
     GridObj.SetNumberFormat("CY_STOCK",       	"###,###.#");
     GridObj.SetNumberFormat("RECEIPT_EXPT",     "###,###.#");
     GridObj.SetNumberFormat("RECEIPT_EXPT_SUM", "###,###.#");
+    GridObj.SetNumberFormat("PRE_CHGO",      	"###,###.#");  
+    GridObj.SetNumberFormat("MI_CHGO",      	"###,###.#");  
     GridObj.SetNumberFormat("M_1", "###,###.#");
     GridObj.SetNumberFormat("M_2", "###,###.#");
     GridObj.SetNumberFormat("M_3", "###,###.#");
@@ -212,6 +221,7 @@ function setHeader(GridObj) {
 	GridObj.SetColCellBgColor('CHGO_PLAN3',	'178|235|244');
 	GridObj.SetColHide("BASE_STOCK2", 	true);
 	GridObj.SetColHide("DONGU_STOCK", 	true);
+	GridObj.SetColHide("DONGU_STOCK_NEW", 	true);
 	GridObj.SetColHide("DSJ_STOCK", 	true);
 	GridObj.SetColHide("PS_STOCK", 		true);
     GridObj.SetColHide("GITA_STOCK", 	true);
@@ -392,18 +402,22 @@ function HeaderClick(strColumnKey){
 				
 			}else if (base_stock_idx == 1){
 				
+				if(i==0) GridObj.SetColHDText("BASE_STOCK",GridObj.GetColHDText("DONGU_STOCK_NEW"));
+				GridObj.SetCellValue('BASE_STOCK',i,GridObj.GetCellValue("DONGU_STOCK_NEW", i));
+			}else if (base_stock_idx == 2){
+				
 				if(i==0) GridObj.SetColHDText("BASE_STOCK",GridObj.GetColHDText("DSJ_STOCK"));
 				GridObj.SetCellValue('BASE_STOCK',i,GridObj.GetCellValue("DSJ_STOCK", i));
-			}else if (base_stock_idx == 2){
+			}else if (base_stock_idx == 3){
 				
 				if(i==0) GridObj.SetColHDText("BASE_STOCK",GridObj.GetColHDText("PS_STOCK"));
 				GridObj.SetCellValue('BASE_STOCK',i,GridObj.GetCellValue("PS_STOCK", i));
-			}else if (base_stock_idx == 3){
+			}else if (base_stock_idx == 4){
 				
 				if(i==0) GridObj.SetColHDText("BASE_STOCK",GridObj.GetColHDText("GITA_STOCK"));
 				GridObj.SetCellValue('BASE_STOCK',i,GridObj.GetCellValue("GITA_STOCK", i));
 			}	
-			else if (base_stock_idx == 4){
+			else if (base_stock_idx == 5){
 				
 				if(i==0) GridObj.SetColHDText("BASE_STOCK",GridObj.GetColHDText("BASE_STOCK2"));
 				GridObj.SetCellValue('BASE_STOCK',i,GridObj.GetCellValue("BASE_STOCK2", i));
@@ -411,7 +425,7 @@ function HeaderClick(strColumnKey){
 							
 		}
 		base_stock_idx++;
-		if(base_stock_idx == 5)	base_stock_idx = 0;
+		if(base_stock_idx == 6)	base_stock_idx = 0;
 		
 	}else{
 		
@@ -765,11 +779,11 @@ function GridGYR(){
 function GridSetMerge(){	
 				
 		GridObj.SetGroupMerge('SALES_CAT03,ITEM_ID,ITEM_NAME,SPEC');
-      	GridObj.AddSummaryBar('SUMMARY1', '소계', 'SALES_CAT03', 'sum', 'BASE_STOCK,DONGU_STOCK,DSJ_STOCK,PS_STOCK,GITA_STOCK,SALES_CUR,SALES_SUM,STOCK_EXPT,WEEK_STOCK,CHGO_PLAN,PROD_PLAN,' +
-      			'AVL_STOCK,CHGO_PLAN2,PROD_PLAN2,AVL_STOCK2,CHGO_PLAN3,CY_STOCK,MI_ORDER,RECEIPT_EXPT,RECEIPT_EXPT_SUM,M_1,M_2,M_3,M_4,M_5,M_6'); 
+      	GridObj.AddSummaryBar('SUMMARY1', '소계', 'SALES_CAT03', 'sum', 'BASE_STOCK,DONGU_STOCK,DONGU_STOCK_NEW,DSJ_STOCK,PS_STOCK,GITA_STOCK,SALES_CUR,SALES_SUM,STOCK_EXPT,PRE_CHGO,MI_CHGO,WEEK_STOCK,CHGO_PLAN,' +
+      			'BK_ORDER,PROD_PLAN,AVL_STOCK,CHGO_PLAN2,BK2_ORDER,PROD_PLAN2,AVL_STOCK2,CHGO_PLAN3,CY_STOCK,MI_ORDER,RECEIPT_EXPT,RECEIPT_EXPT_SUM,M_1,M_2,M_3,M_4,M_5,M_6'); 
      	 	
-	   	GridObj.AddSummaryBar('SUMMARY2', '합계', 'summaryall', 'sum', 'BASE_STOCK,DONGU_STOCK,DSJ_STOCK,PS_STOCK,GITA_STOCK,SALES_CUR,SALES_SUM,STOCK_EXPT,WEEK_STOCK,CHGO_PLAN,PROD_PLAN,' +
-      			'AVL_STOCK,CHGO_PLAN2,PROD_PLAN2,AVL_STOCK2,CHGO_PLAN3,CY_STOCK,MI_ORDER,RECEIPT_EXPT,RECEIPT_EXPT_SUM,M_1,M_2,M_3,M_4,M_5,M_6'); 
+	   	GridObj.AddSummaryBar('SUMMARY2', '합계', 'summaryall', 'sum', 'BASE_STOCK,DONGU_STOCK,DONGU_STOCK_NEW,DSJ_STOCK,PS_STOCK,GITA_STOCK,SALES_CUR,SALES_SUM,STOCK_EXPT,PRE_CHGO,MI_CHGO,WEEK_STOCK,CHGO_PLAN,' +
+      			'BK_ORDER,PROD_PLAN,AVL_STOCK,CHGO_PLAN2,BK2_ORDER,PROD_PLAN2,AVL_STOCK2,CHGO_PLAN3,CY_STOCK,MI_ORDER,RECEIPT_EXPT,RECEIPT_EXPT_SUM,M_1,M_2,M_3,M_4,M_5,M_6'); 
         
     	GridObj.SetSummaryBarColor('SUMMARY1', '0|153|0', '230|230|250');
  		GridObj.SetSummaryBarColor('SUMMARY2', '0|153|0', '152|251|152');		//녹색

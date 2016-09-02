@@ -1,5 +1,5 @@
 //## 프로그램ID      : ip_01130_import_md_PlanAnalysis_list.js
-//## 프로그램명       : 수입 상품 재고 관리
+//## 프로그램명       : 수입 상품 발주 관리
 //## 변경자           : 이강욱
 //## 개발일자         : 2015-03-18 
 //## 관련 job file   : job_sinc_10_inventoryPlanning_07.xml
@@ -75,7 +75,7 @@ var colBg02 	     = '255|255|255';
   │JavaScript Event인 Initialize()를 받아 그리드의 헤더를 셋팅한다.			│
   └─────────────────────────────────────────────────────────────────────┘*/
 function init() { 
-	
+		
 	GridObj = document.WiseGrid;
 	setProperty(GridObj);	//WiseGrid Default설정 부분 (WiseGrid_Property.js파일 내에 선언되어 있다.)
 	setHeader(GridObj);  	//해더생성 
@@ -129,7 +129,8 @@ function setHeader(GridObj) {
 	 	GridObj.AddHeader("GUBN"  		      ,"구분"				,"t_text"      ,100		,80     ,false); //0
 	 	GridObj.AddHeader("GUBN_IDX"  		  ,"구분순서"			,"t_text"      ,100		,0      ,false); //0
 	 	GridObj.AddHeader("NO_FLAG"  		  ,"제품구분"			,"t_text"      ,100		,0      ,false); //0
-	 	GridObj.AddHeader("THREE_MON"  		  ,"3개월평균"			,"t_text"      ,100		,0      ,false); //0		
+	 	GridObj.AddHeader("THREE_MON"  		  ,"3개월평균"			,"t_text"      ,100		,0      ,false); //0
+	 	GridObj.AddHeader("BOX_CUM"  		  ,"누계"				,"t_number"    ,100.3	,60      ,false); //0		
  
 
 			for(var i=0 ; i < 32 ; i++){  
@@ -153,6 +154,7 @@ function setHeader(GridObj) {
 		//GridObj.SetNumberFormat("AVL_STOCK",       	"###,###.#");
 	    //GridObj.SetNumberFormat("NS_STOCK",     	"###,###.#");
 	    //GridObj.SetNumberFormat("EXP_STOCK",        "###,###.#");
+	    GridObj.SetNumberFormat("BOX_CUM",       	"###,###.#");
 	    GridObj.SetNumberFormat("MONTH_5",       	"###,###.#");
 	    GridObj.SetNumberFormat("MONTH_4",       	"###,###.#");
 	    GridObj.SetNumberFormat("MONTH_3",       	"###,###.#");
@@ -229,7 +231,8 @@ function setHeader(GridObj) {
             	SetThreeMonth();            	
             	GridSetStock();
             	SetTimeFence();
-            	CheckStock();            	           	
+            	CheckStock(); 
+            	CalBoxCum();           	           	
              
             } else    
             { 
@@ -258,7 +261,7 @@ function setHeader(GridObj) {
 //		return;
 //	}   	
    	
-   	
+   
     doQuery();
    }
 
@@ -556,6 +559,41 @@ function GridSetMerge(){
        
 	GridObj.SetSummaryBarColor('SUMMARY1', '0|153|0', color_tot);    	 		
 	GridObj.SetSummaryBarColor('SUMMARY2', '0|153|0', '152|251|152');
+}
+
+
+function CalBoxCum(){
+	
+	var rowcount = GridObj.GetMergeCount('ITEM_ID'); 
+	
+	for (var i =0; i < rowcount; i ++){		
+		
+		var start_hd_name	= 'WEEK_0';
+		var hd_name 		= start_hd_name;
+		var hd_name_1 		= start_hd_name.substr(0,5);
+		var hd_name_2 		= start_hd_name.substr(5,6);
+		
+		var idx				= GridObj.GetRowIndexFromMergeIndex('ITEM_ID',i,false);
+		var box_cum			= 0;
+		
+		
+		for(var j =0; j < 27; j++){
+			
+			cur_stock 		= GridObj.GetCellValue(hd_name,idx);
+			reciept_expt 	= GridObj.GetCellValue(hd_name,idx+1);
+			sales_expt		= GridObj.GetCellValue(hd_name,idx+2);
+			
+			box_cum	+= Number(sales_expt);
+			
+			hd_name_2 	= Number(hd_name_2)+Number(1);						
+			hd_name 	= hd_name_1+hd_name_2;
+			
+			
+			
+		}			
+		GridObj.SetCellValue('BOX_CUM', idx+2,  box_cum);
+	}
+	
 }
 
 function changeValue(obj){

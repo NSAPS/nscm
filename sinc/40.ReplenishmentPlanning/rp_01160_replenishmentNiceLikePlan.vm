@@ -200,8 +200,7 @@ HeaderClick_DW1(strColumnKey);
             			</select>
 						이벤트물량
 							<input type="text" name="event_qty" class="normal" style="width:45px; text-align:right; "  
-										style="ime-mode:disabled;" onkeypress="checkForNumber(this);"> 
-						
+										style="ime-mode:disabled;" onkeypress="checkForNumber(this);"> 						
 ##<input name="test" type="button" value="dw상태확인" style="width:80px; text-align:center;" onClick="check_status(); "  
 ##				class="button1_1" onmouseover="this.className='button1_2'" onmouseout="this.className='button1_1'">
 					</td>

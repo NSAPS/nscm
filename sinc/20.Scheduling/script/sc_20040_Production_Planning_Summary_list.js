@@ -135,8 +135,10 @@ function defaultHeader(result){
 	
 	GridObj.AddHeader("PLANT_ID"	      	  ,"공장번호"	    ,"t_text"      ,100	    ,0     ,false); //0
 	GridObj.AddHeader("HID_NAME"	      	  ,"생산공장"	    ,"t_text"      ,100	    ,80     ,false); //0
-	GridObj.AddHeader("ITEM_ID"	     		  ,"제품번호"		,"t_text"	   ,80	    ,80     ,false); //0
+	GridObj.AddHeader("ITEM_ID"	     		  ,"제품코드"		,"t_text"	   ,80	    ,80     ,false); //0
  	GridObj.AddHeader("ITEM_NAME"	          ,"제품명"			,"t_text" 	   ,100	    ,265    ,false); //0   
+ 	//GridObj.AddHeader("PROC_ID"	          	  ,"작업장코드"		,"t_text" 	   ,100	    ,0    ,false); //0 
+ 	//GridObj.AddHeader("PROC_NAME"	          ,"작업장명"		,"t_text" 	   ,100	    ,0    ,false); //0 
  	GridObj.AddHeader("SPEC"	     	  	  ,"SPEC"	        ,"t_text" 	   ,100	    ,120    ,false); //0	
  	GridObj.AddHeader("GUBN"	    	   		,"구분"	    	,"t_text"  	   ,100		,50     ,false); //0
 	
@@ -192,6 +194,7 @@ function defaultHeader(result){
     GridObj.SetColCellAlign('HID_NAME',              'center'); 
     GridObj.SetColCellAlign('ITEM_ID',               'center');
     GridObj.SetColCellAlign('ITEM_NAME',        	   'left');
+    //GridObj.SetColCellAlign('PROC_NAME',        	   'left');
     GridObj.SetColCellAlign('SPEC',        	  		 'center');
     GridObj.SetColCellAlign('WEEK_SUM',        	      'right');
     GridObj.SetColCellAlign('GUBN',              'center');  

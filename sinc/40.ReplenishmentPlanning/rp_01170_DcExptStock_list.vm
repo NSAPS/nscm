@@ -95,10 +95,10 @@
 					<table width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
 						<tr> 
 							<td> 
-								#set( $header = "dc_id!%!배송지점명!%!품목번호!%!품목명!%!기초재고!%!출고예정!%!입고예정!%!1주평균!%!익일예상재고!%!익일주문" )
-								#set( $headerType = "TEXT!%!TEXT!%!TEXT!%!TEXT!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER" )
-								#set( $colwidth = "55!%!70!%!80!%!130!%!70!%!70!%!70!%!70!%!70!%!70" )
-    							#set( $colalign = "CENTER!%!LEFT!%!CENTER!%!LEFT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT" )
+								#set( $header = "DC코드!%!배송지점명!%!품목번호!%!품목명!%!기초재고!%!출고예정!%!입고예정!%!1주평균!%!3주평균!%!익일예상재고!%!익일주문!%!전월계!%!누계" )
+								#set( $headerType = "TEXT!%!TEXT!%!TEXT!%!TEXT!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER" )
+								#set( $colwidth = "55!%!70!%!80!%!230!%!70!%!70!%!70!%!70!%!70!%!80!%!70!%!70!%!70" )
+    							#set( $colalign = "CENTER!%!LEFT!%!CENTER!%!LEFT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT" )
 								 
     							#set( $data = $zlattice.getBody($!{rp_01170_DcExptStock_list},"!%!", "/%/") )
 								

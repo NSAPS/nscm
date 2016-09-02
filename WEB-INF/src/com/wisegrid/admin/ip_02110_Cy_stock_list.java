@@ -114,44 +114,47 @@ public class ip_02110_Cy_stock_list extends HttpServlet {
 				gdRes.getHeader("BASE_STOCK"        ).addValue(qResult.get(i).get(4),"");
 				gdRes.getHeader("BASE_STOCK2"       ).addValue(qResult.get(i).get(4),"");
 				gdRes.getHeader("DONGU_STOCK"       ).addValue(qResult.get(i).get(5),"");
-				gdRes.getHeader("DSJ_STOCK"	        ).addValue(qResult.get(i).get(6),""); 
-				gdRes.getHeader("PS_STOCK"	        ).addValue(qResult.get(i).get(7),""); 
-				gdRes.getHeader("GITA_STOCK"        ).addValue(qResult.get(i).get(8),"");
-				gdRes.getHeader("SALES_CUR"	        ).addValue(qResult.get(i).get(9),"");
-				gdRes.getHeader("SALES_SUM"	        ).addValue(qResult.get(i).get(10),"");
-				gdRes.getHeader("STOCK_EXPT"      	).addValue(qResult.get(i).get(11),"");
+				gdRes.getHeader("DONGU_STOCK_NEW"   ).addValue(qResult.get(i).get(6),"");
+				gdRes.getHeader("DSJ_STOCK"	        ).addValue(qResult.get(i).get(7),""); 
+				gdRes.getHeader("PS_STOCK"	        ).addValue(qResult.get(i).get(8),""); 
+				gdRes.getHeader("GITA_STOCK"        ).addValue(qResult.get(i).get(9),"");
+				gdRes.getHeader("SALES_CUR"	        ).addValue(qResult.get(i).get(10),"");
+				gdRes.getHeader("SALES_SUM"	        ).addValue(qResult.get(i).get(11),"");
+				gdRes.getHeader("STOCK_EXPT"      	).addValue(qResult.get(i).get(12),"");
 				
-				gdRes.getHeader("CHGO_PLAN"      	).addValue(qResult.get(i).get(12),"");			//W출고계획량
-				gdRes.getHeader("PROD_PLAN"      	).addValue(qResult.get(i).get(13),"");			//W생산계획량
-				gdRes.getHeader("AVL_STOCK"      	).addValue(qResult.get(i).get(14),"");			//W+1가용재고
+				gdRes.getHeader("CHGO_PLAN"      	).addValue(qResult.get(i).get(13),"");			//W출고계획량
+				gdRes.getHeader("PROD_PLAN"      	).addValue(qResult.get(i).get(14),"");			//W생산계획량
+				gdRes.getHeader("AVL_STOCK"      	).addValue(qResult.get(i).get(15),"");			//W+1가용재고
 				
-				gdRes.getHeader("CHGO_PLAN2"      	).addValue(qResult.get(i).get(15),"");			//W+1출고계획량
-				gdRes.getHeader("PROD_PLAN2"      	).addValue(qResult.get(i).get(16),"");			//W+1생산계획량
-				gdRes.getHeader("AVL_STOCK2"      	).addValue(qResult.get(i).get(17),"");			//W+2가용재고
+				gdRes.getHeader("CHGO_PLAN2"      	).addValue(qResult.get(i).get(16),"");			//W+1출고계획량
+				gdRes.getHeader("PROD_PLAN2"      	).addValue(qResult.get(i).get(17),"");			//W+1생산계획량
+				gdRes.getHeader("AVL_STOCK2"      	).addValue(qResult.get(i).get(18),"");			//W+2가용재고
 				
-				gdRes.getHeader("CHGO_PLAN3"      	).addValue(qResult.get(i).get(18),"");			//W+2출고계획량				
+				gdRes.getHeader("CHGO_PLAN3"      	).addValue(qResult.get(i).get(19),"");			//W+2출고계획량				
 			
-				gdRes.getHeader("CY_STOCK"      	).addValue(qResult.get(i).get(19),"");			//CY재고
-				gdRes.getHeader("RECEIPT_EXPT"	    ).addValue(qResult.get(i).get(20),"");			//금일 생산계획
-				gdRes.getHeader("RECEIPT_EXPT_SUM"	).addValue(qResult.get(i).get(21),"");			//생산누계
+				gdRes.getHeader("CY_STOCK"      	).addValue(qResult.get(i).get(20),"");			//CY재고
+				gdRes.getHeader("RECEIPT_EXPT"	    ).addValue(qResult.get(i).get(21),"");			//금일 생산계획
+				gdRes.getHeader("RECEIPT_EXPT_SUM"	).addValue(qResult.get(i).get(22),"");			//생산누계
 				
-				gdRes.getHeader("M_1"				).addValue(qResult.get(i).get(22),"");			
-				gdRes.getHeader("M_2"				).addValue(qResult.get(i).get(23),"");			
-				gdRes.getHeader("M_3"				).addValue(qResult.get(i).get(24),"");			
-				gdRes.getHeader("M_4"				).addValue(qResult.get(i).get(25),"");			
-				gdRes.getHeader("M_5"				).addValue(qResult.get(i).get(26),"");			
-				gdRes.getHeader("M_6"				).addValue(qResult.get(i).get(27),"");			
-				gdRes.getHeader("TERM_VAL"			).addValue(qResult.get(i).get(28),"");
-				gdRes.getHeader("DAY"				).addValue(qResult.get(i).get(29),"");
-				gdRes.getHeader("PROD_TERM"			).addValue(qResult.get(i).get(30),"");       
-				gdRes.getHeader("MTO_MTS"			).addValue(qResult.get(i).get(31),"");    
-				gdRes.getHeader("EX_NATION"			).addValue(qResult.get(i).get(32),"");  
-				gdRes.getHeader("GYR"				).addValue(qResult.get(i).get(33),"");
-				gdRes.getHeader("WEEK_STOCK"      	).addValue(qResult.get(i).get(34),"");
-				gdRes.getHeader("MI_ORDER"      	).addValue(qResult.get(i).get(35),"");
-				gdRes.getHeader("BK_ORDER"      	).addValue(qResult.get(i).get(36),"");
-				gdRes.getHeader("BK2_ORDER"      	).addValue(qResult.get(i).get(37),"");
-				gdRes.getHeader("ROWNUM"      		).addValue(qResult.get(i).get(38),"");
+				gdRes.getHeader("M_1"				).addValue(qResult.get(i).get(23),"");			
+				gdRes.getHeader("M_2"				).addValue(qResult.get(i).get(24),"");			
+				gdRes.getHeader("M_3"				).addValue(qResult.get(i).get(25),"");			
+				gdRes.getHeader("M_4"				).addValue(qResult.get(i).get(26),"");			
+				gdRes.getHeader("M_5"				).addValue(qResult.get(i).get(27),"");			
+				gdRes.getHeader("M_6"				).addValue(qResult.get(i).get(28),"");			
+				gdRes.getHeader("TERM_VAL"			).addValue(qResult.get(i).get(29),"");
+				gdRes.getHeader("DAY"				).addValue(qResult.get(i).get(30),"");
+				gdRes.getHeader("PROD_TERM"			).addValue(qResult.get(i).get(31),"");       
+				gdRes.getHeader("MTO_MTS"			).addValue(qResult.get(i).get(32),"");    
+				gdRes.getHeader("EX_NATION"			).addValue(qResult.get(i).get(33),"");  
+				gdRes.getHeader("GYR"				).addValue(qResult.get(i).get(34),"");
+				gdRes.getHeader("PRE_CHGO"      	).addValue(qResult.get(i).get(35),"");
+				gdRes.getHeader("MI_CHGO"      		).addValue(qResult.get(i).get(36),"");
+				gdRes.getHeader("WEEK_STOCK"      	).addValue(qResult.get(i).get(37),"");
+				gdRes.getHeader("MI_ORDER"      	).addValue(qResult.get(i).get(38),"");
+				gdRes.getHeader("BK_ORDER"      	).addValue(qResult.get(i).get(39),"");
+				gdRes.getHeader("BK2_ORDER"      	).addValue(qResult.get(i).get(40),"");
+				gdRes.getHeader("ROWNUM"      		).addValue(qResult.get(i).get(41),"");
 			}                                                                                                                
                                                                                                                              
 			gdRes.addParam("mode", "search");		                                                                         

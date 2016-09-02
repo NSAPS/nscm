@@ -165,7 +165,16 @@
 				CASE
 					WHEN ST_FLAG = 'Y' THEN 1--'Y'
 					ELSE 0	--'N'
-				END		ST_FLAG				
+				END		ST_FLAG,
+				CASE
+					WHEN SW_FLAG = 'Y' THEN 1--'Y'
+					ELSE 0	--'N'
+				END		SW_FLAG,
+				T4.MHDHB,
+				CASE
+					WHEN SB_FLAG = 'Y' THEN 1--'Y'
+					ELSE 0	--'N'
+				END		SB_FLAG				
 		FROM	ITEM_MST	T1,
 				( 
 				SELECT	ITEM_ID,
@@ -180,7 +189,7 @@
 						MAX(DECODE(PLANT_ID,'1180',NVL(ALLOC_RATE,0)))	P1180
 				FROM	ITEM_DTL
 				GROUP	BY		ITEM_ID, ITYPE
-				)		T2,
+				)		T2,			
 				-- SCM팀 박경열 부장님 요청으로 추가 2013-50-14
 				(
 				SELECT	DISTINCT	MATNR
@@ -189,12 +198,17 @@
 				WHERE	name1 LIKE '%태경%'
 				#elseif ( "$!{com_code}" == "0001000021" )	--  율촌화학  변수 바인딩
 				WHERE	name1 LIKE '%율촌%'
+				#elseif ( "$!{com_code}" == "0001000010" )
+				WHERE	name1 LIKE '%에스제이피%' OR name1 LIKE '%현진제업%' OR name1 LIKE '%신효%' OR name1 LIKE '%세우%'
+				#else
 				#end
-				)	T3
+				)	T3,
+				SAPMARA T4
 		WHERE	T1.ITEM_ID	= T2.ITEM_ID
+		AND		T1.ITEM_ID	= T4.MATNR (+)
 		#if("$!{sale_code}" == "")	
 		#elseif("$!{sale_code}" == "01")	
-		AND		T1.SELL_STOP_DATE &gt;= TO_CHAR(SYSDATE,'YYYYMMDD')
+		AND		(T1.SELL_STOP_DATE &gt;= TO_CHAR(SYSDATE,'YYYYMMDD') OR T1.SELL_STOP_DATE = '00000000')
 		#else
 		AND		T1.SELL_STOP_DATE &lt; TO_CHAR(SYSDATE,'YYYYMMDD')
 		#end

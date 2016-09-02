@@ -115,7 +115,7 @@ function setDefault() {
   └──────────────────────────────────┘*/ 
 function setHeader(GridObj) {        
 	
-	GridObj.AddHeader("CNFM_DATE"	       ,"일자"				,"t_text"	   	,100	    ,90      	,false); //0
+	
 	GridObj.AddHeader("SALES_CAT03"	       ,"소분류"				,"t_text"	   	,100	    ,80     	,false); //0
  	GridObj.AddHeader("ITEM_ID"	           ,"품목코드"			,"t_text" 	   	,100	    ,70     	,false); //0   
  	GridObj.AddHeader("ITEM_NAME"	       ,"품목명"	        	,"t_text" 	   	,100	    ,140    	,false); //0
@@ -151,8 +151,9 @@ function setHeader(GridObj) {
  //	GridObj.AddHeader("WEEK_25"	       	   ,"W+25"   			,"t_number"     ,100.3		,60     	,false); //0
  	GridObj.AddHeader("GAP"	       	   	   ,"판매예상\n오차율"   	,"t_number"     ,100.3		,60     	,false); //0	
  	GridObj.AddHeader("TERM"	       	   ,"TERM"   			,"t_number"     ,100.3		,0     		,false); //0
- 	GridObj.AddHeader("TP_FLAG"	       	   ,"타임펜스"   		,"t_number"     ,100.3		,60     	,false); //0
- 	GridObj.AddHeader("REASON"	       	   ,"저장메세지"   		,"t_text"     	,100		,220     	,false); //0	
+ 	GridObj.AddHeader("TP_FLAG"	       	   ,"타임펜스"   		,"t_number"     ,100.3		,0     	,false); //0
+ 	GridObj.AddHeader("REASON"	       	   ,"저장메세지"   		,"t_text"     	,100		,0     	,false); //0
+ 	GridObj.AddHeader("CNFM_DATE"	       ,"일자"				,"t_text"	   	,100	    ,90      	,false); //0	
  	
  
 	/* 저장을 위한 히든 값 */
@@ -334,12 +335,13 @@ function SetHeader_grid1(){
 		var item_id		= GridObj.GetCellValue('ITEM_ID',nRow);
 		var	item_name	= GridObj.GetCellValue('ITEM_NAME',nRow);
 		var cnfm_date	= GridObj.GetCellValue('CNFM_DATE',nRow);
-		cnfm_date 			= cnfm_date.replace(/-/g,"");		
+		var start_date	= document.frm.start_date.value;
+		cnfm_date 			= cnfm_date.replace(/-/g,"");	
+		start_date			= start_date.replace(/-/g,"");		
 			
-			
-			
+						
 			var service_url = "service.do?_moon_service=ip_01130_import_md_PlanAnalysis_list_pop_check";
-			service_url += "&item_id=" + item_id + "&item_name=" + item_name + "&cnfm_date=" + cnfm_date;  
+			service_url += "&item_id=" + item_id + "&item_name=" + item_name + "&cnfm_date=" + start_date;  
 			var pop_win_style = "titlebar=no, menubar=no, toolbar=no, status=yes, scrollbars=no, resizable=yes, width=1135, height=790, top=20, left=200";
 			var newWin = window.open(service_url, "", pop_win_style);
 			newWin.focus();		
@@ -404,17 +406,17 @@ function HeaderClick(strColumnKey){
 
 function GridSetMerge(){		
 		
-		GridObj.SetGroupMerge('CNFM_DATE,SALES_CAT03,ITEM_ID,ITEM_NAME,SPEC,GAP,REASON');
-      	GridObj.AddSummaryBar('SUMMARY1', '소계', 'ITEM_ID', 'sum', ''); 
-	
+		GridObj.SetGroupMerge('SALES_CAT03,ITEM_ID,ITEM_NAME,SPEC,GAP,REASON');
+      	GridObj.AddSummaryBar('SUMMARY1', '소계', 'ITEM_ID', 'sum', '');
  
  	   
- 	  	GridObj.AddSummaryBar('SUMMARY2', '합계', 'summaryall', 'sum', ''); 
+ 	  	GridObj.AddSummaryBar('SUMMARY2', '합계', 'SALES_CAT03', 'sum', 'WEEK_0,WEEK_1,WEEK_2,WEEK_3,WEEK_4,WEEK_5,WEEK_6,WEEK_7,WEEK_8,WEEK_9,WEEK_10,WEEK_11,' +
+ 	 	'WEEK_12,WEEK_13,WEEK_14,WEEK_15,WEEK_16,WEEK_17,WEEK_18,WEEK_19,WEEK_20,WEEK_21,WEEK_22,WEEK_23,WEEK_24'); 
          
         GridObj.SetSummaryBarColor('SUMMARY1', '0|153|0', '230|230|250');
  		GridObj.SetSummaryBarColor('SUMMARY2', '0|153|0', '152|251|152');		//녹색
  		
- 		
+ 	
 }
 
 function GridSetGap(){
@@ -452,24 +454,27 @@ function SetGap(){
 		var mergecount 	= GridObj.GetMergeCount('ITEM_ID');
 		
 		for(var y =0 ; y < mergecount ; y++){
-			
+		
 		
 		var idx		= GridObj.GetRowIndexFromMergeIndex('ITEM_ID',y,false);			//각 merge단의 첫번째 row	
 		var term 	= Number(GridObj.GetCellValue('TERM',idx));	
-			
+		
 		
 		/*	WEEK_12가 당주이다.WEEK_0은 과거 12주전 */
 		/*  입고량 및 사용자 예측량 셋팅  */
 		for(var i =0; i <25; i++){
-			
+		
 			var hd_name = 'WEEK_'+i;			
 			array_ipgo[i] 	= GridObj.GetCellValue(hd_name,idx+1);	//입고량 배열에 담는다.
 			array_expect[i] = GridObj.GetCellValue(hd_name,idx+2);	//사용자 예측량을 배열에 담는다.
+			
 			GridObj.SetCellValue(hd_name,idx+1,0);
 			GridObj.SetCellValue(hd_name,idx+2,0);
-			
+		
 					}
 		
+		
+		if(term > 12) term = 12;
 		for(var i =0 ; i <13+Number(term); i++){
 			
 			var week_idx = 12- term + i ;				
@@ -481,7 +486,7 @@ function SetGap(){
 			GridObj.SetCellValue(hd_name,idx+2,array_expect[i]);
 			
 		}		
-		
+
 		/* 	판매량 순서 치환 - I */
 		for(var i =0; i <13; i++){
 			
@@ -508,7 +513,7 @@ function SetGap(){
 			var expt    = GridObj.GetCellValue(hd_name,idx+2);	//사용자 예측
 			var sale    = GridObj.GetCellValue(hd_name,idx+3);	//판매량
 			
-			GridObj.SetCellValue(hd_name,idx+4,expt-sale);
+			GridObj.SetCellValue(hd_name,idx+4,sale-expt);
 						
 		}
 		
@@ -528,30 +533,31 @@ function SetGap(){
 			
 		}
 		
-//		
-//		var sum_user	=0;
-//		var sum_sale	=0;
-//		var sum_min 	=0;
-//	
-//		for(var n=1; n<term+1; n++){
-//		
-//		var hd_name = 'WEEK_'+n;
-//		sum_user += Number(GridObj.GetCellValue(hd_name,idx));
-//		sum_sale += Number(GridObj.GetCellValue(hd_name,idx+1));
-//		sum_min  += Number(GridObj.GetCellValue(hd_name,idx+2));
-//		}
-//		
-//		GridObj.SetCellValue('TOTAL',idx,sum_user);
-//		GridObj.SetCellValue('TOTAL',idx+1,sum_sale);
-//		GridObj.SetCellValue('TOTAL',idx+2,sum_min);
-//		
-//		GridObj.SetCellValue('GAP',idx,Math.round(((sum_min/sum_user)*1000)/10));
+		var sum_expt = 0;
+		var sum_sale = 0;
+		
+		/* 오차율 계산을 위해 SUM값 구하기 */
+		for(var i =0 ; i <12 ; i++){
+			
+			var hd_name  = 'WEEK_' + i ;
+			var expt    = GridObj.GetCellValue(hd_name,idx+2);	//사용자 예측
+			var sale    = GridObj.GetCellValue(hd_name,idx+3);	//판매량
+			
+			sum_expt += Number(expt) ;
+			sum_sale += Number(sale) ;			
+			
+		}		
+		
+		var gap = Math.round(((sum_expt-sum_sale)/sum_expt)*1000/10) ;
+		GridObj.SetCellValue('GAP',idx,gap);
+		
 	}
 	
 	
 }
 /*타임펜스 전개*/
-function SetTimeFence(){		
+function SetTimeFence(){
+	
 	
 	var hd_name ;
 	var fence ;

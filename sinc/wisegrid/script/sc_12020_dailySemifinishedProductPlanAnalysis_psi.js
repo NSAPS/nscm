@@ -203,7 +203,7 @@
         //WiseGrid가 서버에 전송할 mode를 셋팅한다.
         GridObj.SetParam("mode", "cal");
         GridObj.SetParam("_user_id",document.all._user_id.value);
-    
+    	
         //WiseGrid가 서버와 통신시에 데이터를 전달한
         GridObj.DoQuery(servlet_url, "CRUD");
    }   

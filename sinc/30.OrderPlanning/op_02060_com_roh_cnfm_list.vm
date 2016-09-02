@@ -99,7 +99,7 @@
             <table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
                 <tr>
                     <td >
-                        <table border="0" width="30%" cellpading="0" cellspacing="0">  
+                        <table border="0" width="50%" cellpading="0" cellspacing="0">  
                             <tr height="2">
                                 <td colspan="3" style="background-color:#d0d0d0; " onClick="OpenClose(search_menu); $!{resizeFuncCallCode}; "></td>
                             </tr>
@@ -111,11 +111,41 @@
             								<td width="60px" align="left">계획일자 : </td>
                             					<td width="60px">
                             					<select name="cnfm_date" > 
-                            										#foreach( $tr in $op_02050_plan_date_mst )
+                            										#foreach( $tr in $op_02050_plan_date_mon )
                             						<option value="$tr.get(0)" #if( "$!{cnfm_date}" == "${tr.get(0)}" ) selected #end)>${tr.get(0)}</option>
                             										#end
                             					</select>
 												</td>
+												<td width="60px" align="left">업체구분  :</td>    
+                        					<td width="60px" >															
+												
+												#if("$!{_user_id}" == "oo5491704") 		##신효 이명룡
+                        							<select name="com_code">    							
+                            							<option value="0001000013"   #if( "$!{com_code}" == "0001000013")  selected #end>신효산업</option>    						
+                        							</select>
+                        						#elseif("$!{_user_id}" == "oo7898127")   ##SJP 백삼종
+                        							<select name="com_code">    							
+                            							<option value="0001000012"   #if( "$!{com_code}" == "0001000012")  selected #end>SJP</option>  						
+                        							</select>
+                        						#elseif("$!{_user_id}" == "oo9444461")   ##현진 김성민
+                        							<select name="com_code">    							
+                            						<option value="0001000011"   	#if( "$!{com_code}" == "0001000011")  selected #end>현진제업</option>				
+                        							</select>
+												#elseif("$!{_user_id}" == "oo2604735")   ##현진 김성민
+                        							<select name="com_code">    							
+                            						<option value="0001000014"   	#if( "$!{com_code}" == "0001000014")  selected #end>세우</option>				
+                        							</select>
+												#else
+													<select name="com_code" > ##cnfm_check();                                              			
+                            							<option value="0001000050"   #if( "$!{com_code}" == "0001000050")  selected #end>태경농산</option>
+                            							<option value="0001000021"   #if( "$!{com_code}" == "0001000021")  selected #end>율촌화학</option>
+														<option value="0001000010"   #if( "$!{com_code}" == "0001000010")  selected #end>종이용기</option>
+														<option value="0001000014"   #if( "$!{com_code}" == "0001000014")  selected #end>세우</option>
+                                            		</select> 
+                        						#end	
+												
+            									  							  
+											</td> 												
 												
 											<td width="60px" align="left">발주그룹  :</td>    
                         					<td width="80px" >									 

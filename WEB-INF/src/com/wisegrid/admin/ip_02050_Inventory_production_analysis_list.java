@@ -105,11 +105,13 @@ public class ip_02050_Inventory_production_analysis_list extends HttpServlet {
 			String prod_chk 	= gdReq.getParam("prod_chk");
 			String stock_day_flag 	= gdReq.getParam("stock_day_flag");
 			String user_id			= gdReq.getParam("user_id");
+			String scm_charge		= gdReq.getParam("scm_charge");
+			String sales_cat02		= gdReq.getParam("sales_cat02");
 			
 
 			
-			String paramKey   ="search_type!%!term_gubn!%!week_flag!%!plant_id!%!line_id!%!stock_day!%!stock_day_chk!%!search_period!%!search_item!%!multi_flag!%!cat06!%!prod_chk!%!stock_day_flag!%!user_id";                                                                      
-			String paramCode  = search_type+"!%!"+term_gubn+"!%!"+week_flag+"!%!"+plant_id+"!%!"+line_id+"!%!"+stock_day+"!%!"+stock_day_chk+"!%!"+search_period+"!%!"+search_item+"!%!"+multi_flag+"!%!"+cat06+"!%!"+prod_chk+"!%!"+stock_day_flag+"!%!"+user_id;                                                                   
+			String paramKey   ="search_type!%!term_gubn!%!week_flag!%!plant_id!%!line_id!%!stock_day!%!stock_day_chk!%!search_period!%!search_item!%!multi_flag!%!cat06!%!prod_chk!%!stock_day_flag!%!user_id!%!scm_charge!%!sales_cat02";                                                                      
+			String paramCode  = search_type+"!%!"+term_gubn+"!%!"+week_flag+"!%!"+plant_id+"!%!"+line_id+"!%!"+stock_day+"!%!"+stock_day_chk+"!%!"+search_period+"!%!"+search_item+"!%!"+multi_flag+"!%!"+cat06+"!%!"+prod_chk+"!%!"+stock_day_flag+"!%!"+user_id+"!%!"+scm_charge+"!%!"+sales_cat02;                                                                   
                                                                                                                              
 			String query_id   = "ip_02050_Inventory_production_analysis_list";                                                             
                                                                                                                              

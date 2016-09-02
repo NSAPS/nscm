@@ -2688,6 +2688,79 @@
         #end	
         		
 	</query>
+	
+	<!--  일간 반제품 생산계획 소요량 조회 -->
+	<query id="sc_12020_dailySemifinishedProductPlanAnalysisNew_list_test_pop">
+	
+		SELECT	S1.ITEM_ID,
+				S2.ITEM_NAME,
+	          	SUM(S1.QTY)
+	    FROM	(
+			   	SELECT	ITEM_ID, PRODUCT_ID, PROD_DATES, QTY
+	            FROM    (
+	                    SELECT 
+	                            A.ITEM_ID, A.PRODUCT_ID, A.PROD_DATES,
+	                            ROUND(SUM(QTY),0)   QTY
+	                    FROM    (
+	                            SELECT  B.CONS_ITEM             ITEM_ID,
+	                                    A.PROD_DATES,
+	                                    A.QTY*B.META_RATE       QTY,
+	                                    A.ITEM_ID               PRODUCT_ID
+	                            FROM    (
+	                                    SELECT  A.ITEM_ID, A.PROD_VER, A.PROD_DATES, SUM(A.SHIFT_QTY)   QTY
+	                                    FROM    (
+	                                            SELECT  A.ITEM_ID, A.PROD_VER,
+	                                                    CASE 
+	                                                    /*
+	                                              *     일요일 물량은 다음주 금요일로 GROUPING 되도록 변경 
+	                                              *  
+	                                                WHEN    TO_CHAR(TO_DATE(A.PROD_DATES, 'YYYYMMDD'), 'D') = '1'   THEN 
+	                                                        TO_DATE(A.PROD_DATES, 'YYYYMMDD')-2
+	                                              */
+	                                                    WHEN    TO_CHAR(TO_DATE(A.PROD_DATES, 'YYYYMMDD'), 'D') = '7'   THEN 
+	                                                            TO_DATE(A.PROD_DATES, 'YYYYMMDD')-1        
+	                                                    WHEN    TO_CHAR(TO_DATE(A.PROD_DATES, 'YYYYMMDD'), 'D') = '6'   THEN 
+	                                                            TO_DATE(A.PROD_DATES, 'YYYYMMDD')
+	                                                    ELSE    
+	                                                            NEXT_DAY(TO_DATE(A.PROD_DATES, 'YYYYMMDD'), 6)
+	                                                    END
+	                                                                                        PROD_DATES,
+	                                                    A.SHIFT_QTY                                    
+	                                            FROM    DAILY_SCH_PLAN_SHIFT A
+	                                            WHERE   A.CAT_ID        = 'PS' 
+	                                            AND     A.PLANT_ID      = '$!{plant_id}'
+	                                            AND     A.VERSION LIKE TO_CHAR(TRUNC(SYSDATE,'D')+2,'YYYYMMDD')||'%'
+	                                            AND     A.WO_END        = 'Y'  
+	                                            ) A      
+	                                    GROUP BY A.ITEM_ID, A.PROD_VER, A.PROD_DATES
+	                                    ) A,
+	                                    (        
+	                                    SELECT  M.PROD_VER,
+	                                            M.PROD_ITEM_ID      PROD_ITEM, 
+	                                            M.CONS_ITEM_ID      CONS_ITEM,  
+	                                            TRUNC(M.CONS_QTY/M.PROD_QTY*IMM.QTY,8)  META_RATE
+	                                    FROM    MBOM M,  ITEM_MST IM, ITEM_MST IMM
+	                                    WHERE   M.CONS_ITEM_ID      = IM.ITEM_ID
+	                                    AND     M.PROD_ITEM_ID      = IMM.ITEM_ID
+	                                    AND     IM.ITYPE            = 'HALB'  
+	                                    AND     M.PLANT_ID          = '$!{plant_id}'
+	                                    ) B
+	                            WHERE   A.ITEM_ID   = B.PROD_ITEM
+	                            AND     A.PROD_VER  = B.PROD_VER 
+	                            ) A
+	                    GROUP BY A.ITEM_ID, A.PRODUCT_ID, A.PROD_DATES
+	                    )
+	            WHERE   QTY > 0  
+	            AND PROD_DATES BETWEEN TRUNC(SYSDATE,'D')+8 AND TRUNC(SYSDATE,'D')+14      
+			    )S1, ITEM_MST S2
+		WHERE	S1.ITEM_ID = S2.ITEM_ID
+		GROUP 
+		BY 		S1.ITEM_ID,
+				S2.ITEM_NAME
+		ORDER
+		BY		S1.ITEM_ID
+	
+	</query>
 		
 <!--
 =====================================================================================================

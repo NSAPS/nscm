@@ -29,9 +29,16 @@
 
 ## 등록/수정 화면 이동한 후, 본 화면으로 이동할 때 조회조건을 기억하기 위한 parameter
 
-<script language=javascript for="WiseGrid" event="CellDblClick(strColumnKey, nRow)">
-  GridCellDblClick(strColumnKey, nRow);
+
+
+<script language=javascript for="WiseGrid5" event="CellDblClick(strColumnKey, nRow)">
+  	GridCellDblClickHandler(strColumnKey, nRow);
 </script>
+
+<script language=javascript for="WiseGrid" event="CellDblClick(strColumnKey, nRow)">
+  	GridCellDblClick(strColumnKey, nRow);
+</script>
+
 <!--  	서버와의 통신이 정상적으로 완료되면 발생한다.   -->
 <script language="javascript" for="WiseGrid2" event="Initialize()">
 	init2();
@@ -56,6 +63,13 @@
 	GridEndQuery4();
 </script>
 
+<script language="javascript" for="WiseGrid5" event="Initialize()">
+	init5();
+</script>
+<script language="javascript" for="WiseGrid5" event="EndQuery()">
+	GridEndQuery5();
+</script>
+
 
 
 ## WiseGrid의 셀을 클릭했을때 발생한다. 
@@ -68,10 +82,7 @@
   	DW4_DblClick(strColumnKey, nRow);
 </script>
 
-## DW5 의 셀을 클릭했을때 발생한다. 
-<script language=javascript for="WiseGrid5" event="CellDblClick(strColumnKey, nRow)">
-  	DW5_DblClick(strColumnKey, nRow);
-</script>
+
 
 ##  WiseGrid의 t_combo타입의 컬럼내용이 변경되었을때 발생합니다  
 <script language=javascript for="WiseGrid" event="ChangeCombo(strColumnKey,nRow,nOldIndex,nNewIndex)">
@@ -137,7 +148,8 @@
                     </td> 					
                     <td align="right">
 						
-						<input type="button" name="btnSelectedChangeRow"  value=" 일괄변경" onClick="changeChecked(this);" class="btn2_on" >	
+						<input type="button" name="btnSelectedChangeRow"  value=" 일괄변경-I" onClick="changeChecked(this);" class="btn2_on" >	
+						<input type="button" name="btnSelectedChangeRow"  value=" 일괄변경-II" onClick="changeChecked2(this);" class="btn2_on" >	
 							&nbsp;&nbsp;
                         #button("search")  
 						<input type="button" name="btnSave" 		value="  저장" onClick="GoSave();" class="btn_sav_on" >
@@ -161,9 +173,14 @@
                         <table name="grid" width="100%" border="0" cellpading="0" cellspacing="0" class="normal-table">
                             <tr>
                                 <td align="left" width="100%" > 
-                                    <script>initWiseGrid("WiseGrid", "100%", "280");</script>     
+                                    <script>initWiseGrid("WiseGrid", "100%", "260");</script>     
                                 </td> 
             				</tr>
+							<tr>   
+								<td width="100%">
+									<script>initWiseGrid("WiseGrid5", "100%", "260");</script>   
+								</td>
+							</tr> 
 							<tr>
 								<table border="0" width="100%" cellpadding="0" cellspacing="0" width="100%" height="100%">
 									<input type="text" name="sel_item_id" value="$!{sel_item_id}" disabled> -
@@ -172,12 +189,12 @@
 							</tr>
 							<tr>   
 								<td width="100%">
-									<script>initWiseGrid("WiseGrid2", "100%", "80");</script>   
+									<script>initWiseGrid("WiseGrid2", "100%", "100");</script>   
 								</td>
 							</tr> 
 							<tr>       
 								<td width="100%">
-									<script>initWiseGrid("WiseGrid4", "100%", "120");</script>
+									<script>initWiseGrid("WiseGrid4", "100%", "100");</script>
 								</td>  
 							</tr> 
 							<tr> 

@@ -32,8 +32,10 @@
                 , DECODE(IF_FLAG, NULL,'N', 'Y') IF_FLAG
         FROM    APS_PR_PLAN PR, ITEM_MST IM
         WHERE   PR.ITEM_ID = IM.ITEM_ID
-		AND ITYPE = 'HAWA'
-        ORDER BY  VERSION DESC	
+        AND     PR.VERSION BETWEEN TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE,'MM'),-3),'YYYYMMDD') AND TO_CHAR(TRUNC(SYSDATE),'YYYYMMDD')
+		AND 	ITYPE = 'HAWA'
+        ORDER 
+        BY  	VERSION DESC	
 	</query>
 	
 	<query id="cdc_id_and_name_list_hawa">
@@ -130,7 +132,7 @@
                 ,IF_MSGS
                 ,TOT_LEAD_TIME
                 ,ITYPE
-                ,F_GET_ITEM_MSG('OP_02010',ITEM_ID)MSG
+                ,F_GET_ITEM_MSG('OP_02010',ITEM_ID,TO_CHAR(TO_DATE('$!{version}'),'YYYYMMDD'))                
                 ,SEQ
 		FROM    (
 		        SELECT  ITEM_ID,
@@ -161,7 +163,8 @@
 		                IF_FLAG,
 		                PR_NO,
 		                IF_MSGS,
-		                SEQ
+		                SEQ,
+		                DO_FLAG
 		        FROM    (
 		                SELECT  S1.ITEM_ID,
 		                		S1.ITYPE,
@@ -199,7 +202,8 @@
                                 ,EDIT_FLAG
                                 ,S3.PR_NO
                                 ,S3.IF_MSGS
-                                ,S2.SEQ				                
+                                ,S2.SEQ	
+                                ,S1.DO_FLAG			                
 		                FROM    ITEM_MST    S1,
 		                        APS_PR_PLAN    S2,
                                 (
@@ -212,13 +216,18 @@
                                 GROUP   
                                 BY      VERSION, ITEM_ID, SEQ                                   
                                 ) S3		                        
-		                WHERE   S1.USE_PR_PLAN    = 'Y'
-		                AND     S1.ITEM_ID    = S2.ITEM_ID(+)
+		                WHERE   S1.ITEM_ID    = S2.ITEM_ID(+)
                         AND     S2.ITEM_ID    = S3.ITEM_ID(+)
                         AND     S2.VERSION    = S3.VERSION(+)
 		                AND     S2.VERSION    = '$!{version}'
 		                AND     S2.SEQ		  = S3.SEQ(+)
+		                #if ( "$!{domain}" == 'EX2' )
+		                AND		S1.DO_FLAG = 'EX2'
+		                AND     S1.USE_PR_PLAN    = 'Y'
+		                #else
+		                AND     S1.USE_PR_PLAN    = 'Y'
 		                AND     NVL(S1.DOMAIN,'X')	LIKE '%'||'$!{domain}'||'%'
+		                #end		                
 						#if ( "$!{edit_flag}" == 'Y' )
 		                AND		S2.EDIT_FLAG  = 'Y'
 						#else
@@ -234,6 +243,10 @@
 						#end
 		                )
 		        )
+		#if ( "$!{domain}" == 'EX2' )
+		#else
+		WHERE	DO_FLAG IS NULL
+		#end
 		ORDER BY IF_FLAG, EDIT_FLAG, PR_DATE_NO, ITEM_ID	        
 	</query>
 	
@@ -1704,7 +1717,7 @@
 	 <query id="op_02010_Long_Term_Planning_list_dw3">	
 		-- DW 3 구분별 시뮬레이션
 		-- 재고량 
-		 SELECT  ITEM_ID, 
+		 SELECT DISTINCT ITEM_ID, 
 				F_GET_ITEM_NAME(ITEM_ID) ITEM_NAME, 
 				'0' SEL_GUBN, 
 				'재고량' SEL_NAME,
@@ -3807,7 +3820,8 @@
 		AND		MADE_TYPE != 'DE'
 		AND		CD NOT LIKE '%10%'
 	</query> 
-
+	
+	
             
 	<!-- DW 5 거래처 유형별 정보 -->
 	<query id="op_02010_Long_Term_Planning_list_Hawa_dw5">
@@ -4553,9 +4567,9 @@
 	        M1.SJP_STOCK,		
 	        M1.SINHYO_STOCK,							
 	        M3.CNFM_STOCK W_STOCK,					--당주 확정재고(농심 기준재고)
-	        M1.ANYANG_STOCK +  M1.KUMI_STOCK +  M1.HJIN_STOCK + M3.CNFM_STOCK	SUB_TOT,
+	        M1.ANYANG_STOCK +  M1.KUMI_STOCK +  M1.PUSAN_STOCK + M3.CNFM_STOCK	SUB_TOT,
 	        NVL(M2.ODER_QTY,0)			ODER_QTY,	
-			M1.ANYANG_STOCK +  M1.KUMI_STOCK +  M1.HJIN_STOCK + M3.CNFM_STOCK - NVL(M2.ODER_QTY,0)  W1_STOCK,		--차주초 예상재고
+			M1.ANYANG_STOCK +  M1.KUMI_STOCK +  M1.PUSAN_STOCK + M3.CNFM_STOCK - NVL(M2.ODER_QTY,0)  W1_STOCK,		--차주초 예상재고
 			M1.SEL_DMD,
 			-- 0	DMD_QTY,								--그룹별 수량
 			CASE	WHEN	M1.SEL_DMD		=	'DMD03'	THEN	DMD03	
@@ -4578,7 +4592,10 @@
 	        M3.SINHYO_QTY,
 	        M3.SJP_QTY,
 	        M3.HJIN_QTY,
-	        F_GET_ITEM_MSG('OP_02050',M1.ITEM_ID)MSG	       
+	        F_GET_ITEM_MSG('OP_02050',M1.ITEM_ID,TO_CHAR(TO_DATE('$!{cnfm_date}'),'YYYYMMDD')),	        
+	        M3.SINHYO_GIJUN,	  
+	        M3.SJP_GIJUN,
+	        M3.HJIN_GIJUN     
 	FROM		(
 	            SELECT	DISTINCT	S1.ITEM_ID,
 	                    F_GET_ITEM_NAME(S1.ITEM_ID)ITEM_NAME,
@@ -4618,15 +4635,19 @@
 	                    (
 	                    SELECT	DISTINCT	MATNR
 						FROM	SAPZMMT0023
-						WHERE	name1 LIKE '%에스제이피%' OR name1 LIKE '%현진제업%' OR name1 LIKE '%신효포장%'
+						WHERE	name1 LIKE '%에스제이피%' OR name1 LIKE '%현진제업%' OR name1 LIKE '%신효%'
 	                    )	S4,
-	                    ERP_STOCK S5                   
+	                    (
+	                     SELECT ITEM_ID,
+                                QTY,
+                                LOC_ID
+                         FROM   ERP_STOCK
+                         WHERE  IF_DTTM    =    TO_DATE('$!{cnfm_date}','YYYY-MM-DD')
+                         )S5                    
 	            WHERE	S1.ITEM_ID	=	S2.ITEM_ID(+)
-	            AND		S1.ITEM_ID	=	S3.NS_MATR_CODE
+	            AND		S1.ITEM_ID	=	S3.NS_MATR_CODE(+)
 	            AND		S1.ITEM_ID	=	S4.MATNR
 	            AND		S1.ITEM_ID	=	S5.ITEM_ID (+)
-	            AND		S5.IF_DTTM	=	TO_DATE('$!{cnfm_date}','YYYY-MM-DD')
-	            AND		S5.LOC_TYPE	=	'PLANT'	            
 	            AND		S1.ITYPE	IN('ROH1','ROH2') --수정		
 	            AND     S2.VERSION(+)    =	TO_CHAR(TO_DATE('$!{cnfm_date}'),'YYYYMMDD')	-- 2013-09-02 달력 추가            
 	            AND		S1. ITEM_ID	NOT LIKE	'30%' -- BOX류 제외	 
@@ -4745,7 +4766,10 @@
 				        NVL(T3.CNFM_STOCK,0)	CNFM_STOCK,		--당주 확정재고      
 				        NVL(T5.SINHYO_QTY,0)	SINHYO_QTY, 
 				        NVL(T5.SJP_QTY,0)		SJP_QTY,
-				        NVL(T5.HJIN_QTY,0)		HJIN_QTY
+				        NVL(T5.HJIN_QTY,0)		HJIN_QTY,
+				        NVL(T5.SINHYO_GIJUN,0)	SINHYO_GIJUN,
+				        NVL(T5.SJP_GIJUN,0)		SJP_GIJUN,
+				        NVL(T5.HJIN_GIJUN,0)	HJIN_GIJUN
 				FROM	ITEM_MST	T1,
 				        (
 				        SELECT 	CONS_ITEM_ID,
@@ -4780,7 +4804,10 @@
 				        SELECT 	CONS_ITEM_ID,				                
 				                SINHYO_QTY,
 				                SJP_QTY,
-				                HJIN_QTY
+				                HJIN_QTY,
+				                SINHYO_GIJUN,
+				                SJP_GIJUN,
+				                HJIN_GIJUN
 				        FROM	MFS_ORDER_FORECAST_PURCHASE	
 				        WHERE	CNFM_DATE	=	TO_DATE(REPLACE('$!{cnfm_date}','-',''))	-- 2013-09-02 달력 추가				        
 				        )			T5
@@ -4810,7 +4837,9 @@
 	        M3.CNFM_STOCK W_STOCK,					--당주 확정재고(농심 기준재고)
 	        M1.STOCK + M3.CNFM_STOCK	SUB_TOT,
 	        NVL(M2.ODER_QTY,0)			ODER_QTY,	
-			M1.STOCK + M3.CNFM_STOCK - NVL(M2.ODER_QTY,0)  W1_STOCK,		--차주초 예상재고
+	        NVL(M2.ODER_QTY_W2,0)		ODER_QTY_W2,	
+			M1.STOCK + M3.CNFM_STOCK - NVL(M2.ODER_QTY,0)  						   W1_STOCK,		--차주초 예상재고
+			M1.STOCK + M3.CNFM_STOCK - NVL(M2.ODER_QTY,0) - NVL(M2.ODER_QTY_W2,0)  W2_STOCK,		--차차주초 예상재고
 			M1.SEL_DMD,
 			-- 0	DMD_QTY,								--그룹별 수량
 			CASE	WHEN	M1.SEL_DMD		=	'DMD03'	THEN	DMD03	
@@ -4830,7 +4859,7 @@
 	        0	USE_QTY,								--(전주 발주예고 = 당주 발주 필요량
 	        M1.MINMPSQTY	MIN_LOT_SIZE,				--발주단뒤
 	        M3.FC_QTY		FC_QTY,						--당주 발주예고량
-	        F_GET_ITEM_MSG('OP_02050',M1.ITEM_ID)MSG	       
+	        F_GET_ITEM_MSG('OP_02050',M1.ITEM_ID,TO_CHAR(TO_DATE('$!{cnfm_date}'),'YYYYMMDD'))MSG	               
 	FROM		(
 	            SELECT	DISTINCT	S1.ITEM_ID,
 	                    F_GET_ITEM_NAME(S1.ITEM_ID)ITEM_NAME,
@@ -4838,7 +4867,7 @@
 	                    S1.MFS_FLAG,
 	                    ROUND((NVL(S1.PR_TO_PO,0)+NVL(S1.PO_TO_LC ,0)+NVL(S1.LC_TO_PORT ,0)+NVL(S1.PORT_TO_CUST ,0))/30,1) LEAD_TIME, --   리드타임은 월단위로 정정
 	                    S1.TERMVAL,
-	                   	SUM(ROUND(NVL(S5.QTY,0),0))    		STOCK,			--농심 현재고--
+	                   	NVL(SUM(ROUND(NVL((S5.ANYANG_QTY+S5.KUMI_QTY+S5.PUSAN_QTY),0),0)),SUM(ROUND(NVL(S2.STOCK,0),0)))    		STOCK,			--농심 현재고--
 	                    SUM(ROUND(NVL(S3.COM_STOCK,0),0))    COM_STOCK,		--계열사 현재고--
 	                    S2.SEL_DMD						SEL_DMD,
 						ROUND(NVL(S2.DMD03,0)/4,0) 		DMD03,    		--3개월 평균
@@ -4866,15 +4895,22 @@
 	                    (
 	                    SELECT	DISTINCT	MATNR
 						FROM	SAPZMMT0023
-						WHERE	name1 LIKE '%에스제이피%' OR name1 LIKE '%현진제업%' OR name1 LIKE '%신효포장%'
+						WHERE	name1 LIKE '%에스제이피%' OR name1 LIKE '%현진제업%' OR name1 LIKE '%신효%'
 	                    )	S4,
-	                    ERP_STOCK S5                   
+	                    (
+	                     SELECT ITEM_ID,
+                                MAX(DECODE(LOC_ID,'1110',QTY,0))   ANYANG_QTY,
+                                MAX(DECODE(LOC_ID,'1160',QTY,0) )  KUMI_QTY,
+                                MAX(DECODE(LOC_ID,'1170',QTY,0))   PUSAN_QTY                                
+                         FROM   ERP_STOCK
+                         WHERE  IF_DTTM    =    TO_DATE('$!{cnfm_date}','YYYY-MM-DD')
+                         GROUP
+                         BY		ITEM_ID
+                         )S5              
 	            WHERE	S1.ITEM_ID	=	S2.ITEM_ID(+)
-	            AND		S1.ITEM_ID	=	S3.NS_MATR_CODE
+	            AND		S1.ITEM_ID	=	S3.NS_MATR_CODE(+)
 	            AND		S1.ITEM_ID	=	S4.MATNR
 	            AND		S1.ITEM_ID	=	S5.ITEM_ID (+)
-	            AND		S5.IF_DTTM	=	TO_DATE('$!{cnfm_date}','YYYY-MM-DD')
-	            AND		S5.LOC_TYPE	=	'PLANT'	            
 	            AND		S1.ITYPE	IN('ROH1','ROH2') --수정		
 	            AND     S2.VERSION(+)    =	TO_CHAR(TO_DATE('$!{cnfm_date}'),'YYYYMMDD')	-- 2013-09-02 달력 추가            
 	            AND		S1. ITEM_ID	NOT LIKE	'30%' -- BOX류 제외	 
@@ -4900,13 +4936,24 @@
 	            (
 	            SELECT	B.CONS_ITEM_ID				MATR_CODE,
 				/* 생산계획 * CONS_QTY / PROD_QYT */ 
-	                    ROUND(SUM(F_GETCONV_UOM(A.ITEM_ID,A.QTY_UOM,B.PROD_QTY_UOM,A.PLAN_QTY)*B.CONS_QTY/B.PROD_QTY),0)	ODER_QTY
+	                    ROUND(SUM(F_GETCONV_UOM(A.ITEM_ID,A.QTY_UOM,B.PROD_QTY_UOM,A.PLAN_QTY)*B.CONS_QTY/B.PROD_QTY),0)	ODER_QTY,
+	                    ROUND(SUM(F_GETCONV_UOM(A.ITEM_ID,A.QTY_UOM,B.PROD_QTY_UOM,A.PLAN_QTY_W2)*B.CONS_QTY/B.PROD_QTY),0)	ODER_QTY_W2
 	            FROM	(        
 	                    SELECT	K1.PLANT_ID,
 	                            K1.ITEM_ID							ITEM_ID,
 	                            K1.PROD_VER							PROD_VER,
 	                            K1.QTY_UOM							QTY_UOM,
-	                            SUM(K1.SHIFT_QTY)					PLAN_QTY
+	                            CASE WHEN K1.PROD_DATES BETWEEN     TO_CHAR(TRUNC(SYSDATE,'D')+1,'YYYYMMDD')
+                                                        AND         TO_CHAR(TRUNC(SYSDATE,'D')+7,'YYYYMMDD')
+                                     THEN SUM(K1.SHIFT_QTY) 
+                                     ELSE 0
+                                END PLAN_QTY,
+                                CASE WHEN K1.PROD_DATES BETWEEN     TO_CHAR(TRUNC(SYSDATE,'D')+8,'YYYYMMDD')
+                                                        AND         TO_CHAR(TRUNC(SYSDATE,'D')+14,'YYYYMMDD')
+                                     THEN SUM(K1.SHIFT_QTY) 
+                                     ELSE 0
+                                END PLAN_QTY_W2
+	                            --SUM(K1.SHIFT_QTY)					PLAN_QTY
 	                    FROM	(        
 	                            SELECT  t1.*
 	                            FROM    daily_sch_plan_shift t1,
@@ -4972,12 +5019,13 @@
 	                            AND     t1.item_id = t3.item_id
 	                            )	K1
 	                    WHERE	K1.prod_dates BETWEEN 	TO_CHAR(TRUNC(SYSDATE,'D')+1,'YYYYMMDD')
-	                                          AND		TO_CHAR(TRUNC(SYSDATE,'D')+7,'YYYYMMDD')		
+	                                          AND		TO_CHAR(TRUNC(SYSDATE,'D')+14,'YYYYMMDD')		
 	                    GROUP
 	                    BY		K1.PLANT_ID,
 	                            K1.ITEM_ID,
 	                            K1.PROD_VER,
-	                            K1.QTY_UOM                                        
+	                            K1.QTY_UOM,
+	                            K1.PROD_DATES                                        
 	                    )    	A,
 	                    MBOM	B
 	            WHERE   A.ITEM_ID   = B.PROD_ITEM_ID
@@ -5066,7 +5114,7 @@
 	        0	USE_QTY,								--(전주 발주예고 = 당주 발주 필요량
 	        M1.MINMPSQTY	MIN_LOT_SIZE,				--발주단뒤
 	        M3.FC_QTY		FC_QTY,						--당주 발주예고량
-	        F_GET_ITEM_MSG('OP_02050',M1.ITEM_ID)MSG,
+	        F_GET_ITEM_MSG('OP_02050',M1.ITEM_ID,TO_CHAR(TO_DATE('$!{cnfm_date}'),'YYYYMMDD'))MSG,	        
 	        ''	LOC_NAME
 	FROM		(
 	            SELECT	DISTINCT	S1.ITEM_ID,
@@ -5265,6 +5313,225 @@
 <!-- 발주 예시 Main Query-->		
 </query>
 
+<query id="op_02050_roh_expt_master_sw">
+		
+	SELECT	M1.ITEM_ID,
+	        F_GET_ITEM_NAME(M1.ITEM_ID)ITEM_NAME,
+	        M1.BASE_UOM,
+	        M1.MFS_FLAG,
+	        M1.LEAD_TIME, 							--리드타임은 월단위로 정정
+	        M1.TERMVAL,      
+	        M1.STOCK,								--농심 현재고
+	        M1.COM_STOCK,							--(업체)계열사 재고
+	        M3.CNFM_STOCK W_STOCK,					--당주 확정재고(농심 기준재고)
+	        M1.STOCK + M3.CNFM_STOCK	SUB_TOT,
+	        NVL(M2.ODER_QTY,0)			ODER_QTY,	
+			M1.STOCK + M3.CNFM_STOCK - NVL(M2.ODER_QTY,0)  W1_STOCK,		--차주초 예상재고
+			M1.SEL_DMD,
+			-- 0	DMD_QTY,								--그룹별 수량
+			CASE	WHEN	M1.SEL_DMD		=	'DMD03'	THEN	DMD03	
+	        		WHEN	M1.SEL_DMD		=	'DMD04'	THEN	DMD04
+	                WHEN	M1.SEL_DMD		=	'DMD05'	THEN	DMD05
+	                WHEN	M1.SEL_DMD		=	'DMD06'	THEN	DMD06
+	                WHEN	M1.SEL_DMD		=	'DMD07'	THEN	DMD07
+	        		WHEN	M1.SEL_DMD		=	'DMD08'	THEN	DMD08
+	        END		DMD_QTY,
+			M1.DMD03,									--3개월 평균
+			M1.DMD04,									--전년동월	
+			M1.DMD05,									--과거 12개월
+			M1.DMD06,									--전주 사용량
+			M1.DMD07,									--3주 평균
+			M1.DMD08,									--사용자
+			0	USE_DAY,								--가용일
+	        0	USE_QTY,								--(전주 발주예고 = 당주 발주 필요량
+	        M1.MINMPSQTY	MIN_LOT_SIZE,				--발주단뒤
+	        M3.FC_QTY		FC_QTY,						--당주 발주예고량
+	        F_GET_ITEM_MSG('OP_02050',M1.ITEM_ID,TO_CHAR(TO_DATE('$!{cnfm_date}'),'YYYYMMDD'))MSG,	        
+	        ''	LOC_NAME,
+	        M3.PR_FC_QTY
+	FROM		(
+	            SELECT	DISTINCT	S1.ITEM_ID,
+	                    F_GET_ITEM_NAME(S1.ITEM_ID)ITEM_NAME,
+	                    --S1.ITYPE,
+	                    S1.BASE_UOM,
+	                    S1.MFS_FLAG,
+	                    --F_GET_PROD_CUST_NAME(S1.ITEM_ID)CUST_NAME,
+	                    --TOT_LEAD_TIME (리드타임 일자 변환)
+	                    ROUND((NVL(S1.PR_TO_PO,0)+NVL(S1.PO_TO_LC ,0)+NVL(S1.LC_TO_PORT ,0)+NVL(S1.PORT_TO_CUST ,0))/30,1) LEAD_TIME, --   리드타임은 월단위로 정정
+	                    S1.TERMVAL,
+	                    --(NVL(S1.PR_TO_PO,0)+NVL(S1.PO_TO_LC ,0)+NVL(S1.LC_TO_PORT ,0)+NVL(S1.PORT_TO_CUST ,0)) TOT_LEAD_TIME,
+	                    ROUND(NVL(S2.STOCK,0),0)    					STOCK,			--농심 현재고--
+	                    ROUND(NVL(S3.COM_STOCK,0),0)    				COM_STOCK,		--계열사 현재고--
+	                    -- ROUND(NVL(S2.STOCK,0) +	NVL(S2.STD_STOCK,0),0)	SUB_TOT,			--소계--
+	                    S2.SEL_DMD	SEL_DMD,
+						ROUND(NVL(S2.DMD03,0)/4,0) 	DMD03,    						--3개월 평균
+						ROUND(NVL(S2.DMD04,0)/4,0)	DMD04,    						--전년동월
+						ROUND(NVL(S2.DMD05,0)/4,0)	DMD05,    						--과거 12개월	
+						ROUND(NVL(S2.DMD06,0),0)	DMD06,    						--전주 사용량
+						ROUND(NVL(S2.DMD07,0),0)	DMD07,    						--3주 평균
+						ROUND(NVL(S2.DMD08,0),0)	DMD08,    						--사용자									                	
+	                    S1.MINMPSQTY	MINMPSQTY									--최소 생산/발주의뢰량
+	            FROM	(
+	            		SELECT	*
+	            		FROM	ITEM_MST
+						WHERE	MFS_FLAG	=	'$!{mfs_flag}'
+	            		)					S1,
+	            		APS_PR_PLAN_ROH		S2,
+	                   (
+	                    SELECT	DISTINCT		NS_MATR_CODE,
+	                    		SUM(BASE_STOCK)	COM_STOCK
+	                    FROM	MFS_STOCK_INFO
+	                    WHERE	CNFM_DATE	=	TO_CHAR(TO_DATE('$!{cnfm_date}'),'YYYYMMDD')	-- 2013-09-02 달력 추가
+	                    AND		COM_CODE	=	'$!{com_code}'	                   
+	                    GROUP	BY	NS_MATR_CODE
+	                    )	S3,
+	                    (
+	                    SELECT	DISTINCT	MATNR
+						FROM	SAPZMMT0023						
+						WHERE	name1 LIKE '%세우%'
+	                    )	S4                   
+	            WHERE	S1.ITEM_ID	=	S2.ITEM_ID(+)
+	            AND		S1.ITEM_ID	=	S3.NS_MATR_CODE
+	            AND		S1.ITEM_ID	=	S4.MATNR
+	            AND		S1.ITYPE	IN('ROH1','ROH2') --수정		
+	            AND     S2.VERSION(+)    =	TO_CHAR(TO_DATE('$!{cnfm_date}'),'YYYYMMDD')	-- 2013-09-02 달력 추가            
+	            AND		S1. ITEM_ID	NOT LIKE	'30%' -- BOX류 제외
+				)	M1,
+				--금주 소요량--
+	            (
+	            SELECT	B.CONS_ITEM_ID				MATR_CODE,
+				/* 생산계획 * CONS_QTY / PROD_QYT */ 
+	                    ROUND(SUM(F_GETCONV_UOM(A.ITEM_ID,A.QTY_UOM,B.PROD_QTY_UOM,A.PLAN_QTY)*B.CONS_QTY/B.PROD_QTY),0)	ODER_QTY
+	            FROM	(        
+	                    SELECT	K1.PLANT_ID,
+	                            K1.ITEM_ID							ITEM_ID,
+	                            K1.PROD_VER							PROD_VER,
+	                            K1.QTY_UOM							QTY_UOM,
+	                            SUM(K1.SHIFT_QTY)					PLAN_QTY
+	                    FROM	(        
+	                            SELECT  t1.*
+	                            FROM    daily_sch_plan_shift t1,
+	                                    (
+	                                    /* 3주전부터 생산계획 확정 VERSION정보(완제품)*/
+	                                    SELECT  k1.cat_id, k2.plant_id, k1.VERSION,
+	                                            TO_CHAR(TRUNC(TO_DATE(SUBSTR(k1.VERSION,1,8),'YYYY-MM-DD')+7,'D')+1,'YYYYMMDD')    s_date,		--2015-10-07 수정
+	                                            TO_CHAR(TRUNC(TO_DATE(SUBSTR(k1.VERSION,1,8),'YYYY-MM-DD')+14,'D'),'YYYYMMDD')      e_date
+	                                    FROM    plan_version_log    k1,
+	                                            (
+	                                            SELECT  cat_id, sub_cat, plant_id
+	                                            FROM    engn_bat_mst
+	                                            WHERE   period_type = 'DAILY' AND cat_id = 'PS'
+	                                            )                   k2
+	                                    WHERE   k1.period_type = 'DAILY'
+	                                    AND     k1.cat_id = 'PS'
+	                                    --AND     k1.run_date BETWEEN TRUNC(SYSDATE-21)  AND  TRUNC (SYSDATE)
+	                                    AND     k1.run_date >= TRUNC(SYSDATE-21)
+	                                    AND     TRIM (VERSION) IS NOT NULL
+	                                    AND     k1.status >= '23' -- 상태가 계획확정 이상인 것 중에서 찾는다
+	                                    AND     k1.cat_id = k2.cat_id
+	                                    AND     k1.sub_cat = k2.sub_cat
+	                                    )                   t2,
+	                                    /* 마지막 공정(투입공정) 추출 */
+	                                    V_LAST_PROC_PRODVER     t3         
+	                            WHERE   t1.cat_id = t2.cat_id
+	                            AND     t1.plant_id = t2.plant_id
+	                            AND     t1.VERSION = t2.VERSION
+	                            AND     t1.prod_dates BETWEEN t2.s_date AND t2.e_date
+	                            AND     t1.plant_id = t3.plant_id
+	                            AND     t1.proc_id = t3.proc_id
+	                            AND     t1.item_id = t3.item_id
+	                            UNION ALL
+	                            /* 반제품  */
+	                            SELECT  t1.*
+	                            FROM    daily_sch_plan_shift    t1,
+	                                    (
+	                                    /* 3주전부터 생산계획 확정 VERSION정보(반제품)*/
+	                                    SELECT  k1.cat_id, k1.VERSION,
+	                                            TO_CHAR(TRUNC(TO_DATE(SUBSTR(k1.VERSION,1,8),'YYYY-MM-DD')+ 7,'D')+1,'YYYYMMDD')    s_date,
+	                                            TO_CHAR(TRUNC(TO_DATE(SUBSTR(k1.VERSION,1,8),'YYYY-MM-DD')+14,'D'),'YYYYMMDD')      e_date
+	                                    FROM    plan_version_log    k1,
+	                                            (
+	                                            SELECT cat_id, sub_cat, plant_id
+	                                            FROM engn_bat_mst
+	                                            WHERE period_type = 'DAILY' AND cat_id = 'SS'
+	                                            )                   k2
+	                                    WHERE   k1.period_type = 'DAILY'
+	                                    AND     k1.cat_id = 'SS'
+	                                    AND     k1.run_date >= TRUNC(SYSDATE-21)
+	                                    AND     TRIM (VERSION) IS NOT NULL
+	                                    AND     k1.status >= '23' -- 상태가 계획확정 이상인 것 중에서 찾는다
+	                                    AND     k1.cat_id = k2.cat_id
+	                                    AND     k1.sub_cat = k2.sub_cat
+	                                    )                       t2,
+	                                    /* 마지막 공정(투입공정) 추출 */
+	                                    V_LAST_PROC_PRODVER     t3
+	                            WHERE   t1.cat_id = t2.cat_id
+	                            AND     t1.VERSION = t2.VERSION
+	                            AND     t1.prod_dates BETWEEN t2.s_date AND t2.e_date
+	                            AND     t1.plant_id = t3.plant_id
+	                            AND     t1.proc_id = t3.proc_id
+	                            AND     t1.item_id = t3.item_id
+	                            )	K1
+	                    WHERE	K1.prod_dates BETWEEN 	TO_CHAR(TRUNC(SYSDATE,'D')+1,'YYYYMMDD')
+	                                          AND		TO_CHAR(TRUNC(SYSDATE,'D')+7,'YYYYMMDD')		
+	                    GROUP
+	                    BY		K1.PLANT_ID,
+	                            K1.ITEM_ID,
+	                            K1.PROD_VER,
+	                            K1.QTY_UOM                                        
+	                    )    	A,
+	                    MBOM	B
+	            WHERE   A.ITEM_ID   = B.PROD_ITEM_ID
+	            AND		A.PLANT_ID	= B.PLANT_ID
+	            AND		A.PROD_VER	= B.PROD_VER
+	            GROUP BY	B.CONS_ITEM_ID
+	            )	M2,
+				<!--기준재고 및 확정재고 설정-->
+				(
+				SELECT	T1.ITEM_ID,
+						F_GET_ITEM_NAME(T1.ITEM_ID)ITEM_NAME,
+						NVL(T2.PRE_STOCK,0)		PRE_STOCK,		--전주 기준재고
+				        NVL(T4.FC_QTY,0)		FC_QTY,			--당주 발주예고 0
+				        NVL(T3.CNFM_STOCK,0)	CNFM_STOCK,		--당주 확정재고   
+				        NVL(T4.PR_FC_QTY,0)		PR_FC_QTY    
+				FROM	ITEM_MST	T1,
+				        (
+				        SELECT 	CONS_ITEM_ID,
+				                F_GET_ITEM_NAME(CONS_ITEM_ID)ITEM_NAME,
+				                SUM(CNFM_STOCK)		PRE_STOCK	--전주 기준재고
+				        FROM	MFS_STD_STOCK	
+				        WHERE	CNFM_DATE	=	TRUNC(TO_DATE(REPLACE('$!{cnfm_date}','-',''))-7,'D')+1	-- 2013-09-02 달력 추가
+				        GROUP	BY	CONS_ITEM_ID
+				        )			T2,
+				        (
+				        SELECT 	CONS_ITEM_ID,
+				                F_GET_ITEM_NAME(CONS_ITEM_ID)ITEM_NAME,
+				                SUM(CNFM_STOCK)	CNFM_STOCK		--당주 확정재고
+				        FROM	MFS_STD_STOCK	
+				        WHERE	CNFM_DATE	=	TO_DATE(REPLACE('$!{cnfm_date}','-',''))	-- 2013-09-02 달력 추가
+				        GROUP	BY	CONS_ITEM_ID
+				        )			T3,
+						--전주 발주예고
+				        (
+				        SELECT 	CONS_ITEM_ID,
+				                F_GET_ITEM_NAME(CONS_ITEM_ID)ITEM_NAME,
+				                SUM(FC_QTY)	FC_QTY,		--당주 발주예고
+				                SUM(NVL(PR_FC_QTY,0))	PR_FC_QTY
+				        FROM	MFS_ORDER_FORECAST	
+				        WHERE	CNFM_DATE	=	TO_DATE(REPLACE('$!{cnfm_date}','-',''))	-- 2013-09-02 달력 추가
+				        -- WHERE	CNFM_DATE	=	TRUNC(SYSDATE,'D')+1
+				        GROUP	BY	CONS_ITEM_ID
+				        )			T4
+				WHERE	T1.ITEM_ID	=	T2.CONS_ITEM_ID(+)
+				AND		T1.ITEM_ID	=	T3.CONS_ITEM_ID(+)
+				AND		T1.ITEM_ID	=	T4.CONS_ITEM_ID(+)
+				AND     T1.ITYPE IN ( 'ROH1','ROH2')
+				)	M3            
+	WHERE	M1.ITEM_ID	=	M2.MATR_CODE(+) 
+	AND		M1.ITEM_ID		=	M3.ITEM_ID(+)
+	ORDER	BY	1           
+	
+</query>
 
 <query id="op_02050_even_item_list_dw7">
 		<!-- 행사계획 품목 리스트--> 
@@ -5989,18 +6256,21 @@
 		        MI.COM_MATR_NAME, 
 		        IM.ITEM_ID,
 		        IM.BASE_UOM,
-		        MI.BASE_STOCK
+		        MI.BASE_STOCK,
+		        DECODE(IM.SW_FLAG,NULL,'N',IM.SW_FLAG) SW_FLAG
 		FROM    ITEM_MST		IM,
 				MFS_STOCK_INFO	MI				
 		WHERE	IM.ITEM_ID		=	MI.NS_MATR_CODE
 		AND   	MI.CNFM_DATE	=   TO_CHAR(NEXT_DAY(TRUNC(TO_DATE('$!{cnfm_date}'),'D')-5,2),'YYYYMMDD')
-		AND		MI.COM_CODE		=	'0001000010'		-- 업체는 0001000010 으로 통일
+		AND		MI.COM_CODE		IN	('0001000010','0001000014')		-- 업체는 0001000010 으로 통일
 		#if ("$!{com_code}" == '0001000011')			--  현진제업
 		AND	COM_MATR_CODE LIKE 'HJ%'
 		#elseif ("$!{com_code}" == '0001000012')		--  SJP
 		AND	COM_MATR_CODE LIKE 'SJP%'
-		#elseif ("$!{com_code}" == '0001000013')		--  신효포장
+		#elseif ("$!{com_code}" == '0001000013')		--  신효
 		AND	COM_MATR_CODE LIKE 'SH%'
+		#elseif ("$!{com_code}" == '0001000014')		--  세우
+		AND	COM_MATR_CODE LIKE 'SW%'
 		#end
 	</query>
 	
@@ -6114,6 +6384,16 @@
 	AND		T2.WEEK_DAY	=	'월'
 	GROUP	BY	T1.CNFM_DATE     
 	ORDER	BY	1	DESC	
+
+	</query>
+	
+	<query id="op_02050_plan_date_mon">
+	SELECT	YYYYMMDD
+	FROM    CAL_MST
+	WHERE   CAL_DATE BETWEEN TRUNC(SYSDATE,'MM')-90 AND  TO_CHAR(SYSDATE,'YYYYMMDD')
+	AND     WEEK_DAY='월'
+	ORDER
+	BY		YYYYMMDD DESC
 
 	</query>
 
@@ -6289,7 +6569,7 @@
 <query id="op_02060_com_roh_cnfm_list">
 		<!-- 계열사 발주예고량 조회 리스트-->
 SELECT	M1.ITEM_ID,
-		M1.COM_MATR_CODE,
+		''	COM_MATR_CODE,
         F_GET_ITEM_NAME(M1.ITEM_ID)ITEM_NAME,
         M1.BASE_UOM,
         --M1.MFS_FLAG,
@@ -6300,13 +6580,13 @@ SELECT	M1.ITEM_ID,
         NVL(M2.ODER_QTY,0)			ODER_QTY,	
 		M1.STOCK + M3.CNFM_STOCK - NVL(M2.ODER_QTY,0)  W1_STOCK,		--차주초 예상재고
         M3.FC_QTY		FC_QTY,						--당주 발주예고량
-        F_GET_ITEM_MSG('OP_02050',M1.ITEM_ID)MSG	--2013-09-09 SCM팀 정승용 사원 요청
+        F_GET_ITEM_MSG('OP_02050',M1.ITEM_ID,TO_CHAR(TO_DATE('$!{cnfm_date}'),'YYYYMMDD'))MSG        
 FROM		(
             SELECT	DISTINCT	
             		REPLACE('$!{cnfm_date}','-','')	CNFM_DATE,
             		S4.COM_CODE,
             		S1.ITEM_ID,
-            		S3.COM_MATR_CODE,
+            		--S3.COM_MATR_CODE,
                     F_GET_ITEM_NAME(S1.ITEM_ID)ITEM_NAME,
                     S1.BASE_UOM,
                     S1.MFS_FLAG,
@@ -6320,12 +6600,20 @@ FROM		(
                     APS_PR_PLAN_ROH		S2,
                     (
                     SELECT	DISTINCT		NS_MATR_CODE,
-                    						COM_MATR_CODE,
+                    						--COM_MATR_CODE,
                     		SUM(BASE_STOCK)	COM_STOCK
                     FROM	MFS_STOCK_INFO
                     WHERE	CNFM_DATE	=	TO_DATE(REPLACE('$!{cnfm_date}','-',''))	-- 2013-09-02 달력 추가
-                    --AND		MADE_BY	=	'$!{user_id}'
-                    GROUP	BY	NS_MATR_CODE,	COM_MATR_CODE
+                    #if ("$!{com_code}" == '0001000011')
+                    	AND		COM_MATR_CODE LIKE 'HJ%'
+                    #elseif ("$!{com_code}" == '0001000012')
+                    	AND		COM_MATR_CODE LIKE 'SJP%'
+                    #elseif ("$!{com_code}" == '0001000013')
+                    	AND		COM_MATR_CODE LIKE 'SH%'
+                    #elseif ("$!{com_code}" == '0001000014')
+                    	AND		COM_MATR_CODE LIKE 'SW%'
+                    #end
+                    GROUP	BY	NS_MATR_CODE	--,	COM_MATR_CODE
                     )	S3,
                     (
                     SELECT	COM_CODE, MATNR
@@ -6340,18 +6628,26 @@ FROM		(
 							UNION ALL
                             SELECT 	DISTINCT '0001000010' COM_CODE, MATNR
 							FROM 	SAPZMMT0023	
-                            WHERE	name1 LIKE '%에스제이피%' OR name1 LIKE '%현진제업%' OR name1 LIKE '%신효포장%'
+                            WHERE	name1 LIKE '%에스제이피%' OR name1 LIKE '%현진제업%' OR name1 LIKE '%신효%' 
+                            UNION ALL
+                            SELECT 	DISTINCT '0001000014' COM_CODE, MATNR
+							FROM 	SAPZMMT0023	
+                            WHERE 	name1 LIKE '%세우%'
 							)
 					#if ("$!{user_id}" == '1931013')	--  태경농산
 					WHERE	COM_CODE = '0001000050'
 					#elseif ("$!{user_id}" == '210012')	--  율촌
 					WHERE	COM_CODE = '0001000021'
 					#elseif ("$!{user_id}" == 'admin')	--  율촌
-					WHERE	COM_CODE IN ('0001000021','0001000010')
+					WHERE	COM_CODE IN ('0001000021','0001000010','0001000014')
+					#elseif ("$!{user_id}" == 'oo2604735')	--  세우
+					WHERE	COM_CODE IN ('0001000014')
+					#elseif ("$!{user_id}" == 'oo9444461'||"$!{user_id}" == 'oo7898127'||"$!{user_id}" == 'oo5491704')	
+					WHERE	COM_CODE IN ('0001000010')
 					#end
                     )	S4
             WHERE	S1.ITEM_ID	=	S2.ITEM_ID(+)
-            AND		S1.ITEM_ID	=	S3.NS_MATR_CODE(+)
+            AND		S1.ITEM_ID	=	S3.NS_MATR_CODE
             AND		S1.ITEM_ID	=	S4.MATNR
             --  AND		S1.MFS_FLAG	=	'$!{mfs_flag}'
             AND		S1.ITYPE	IN('ROH1','ROH2') --수정		
@@ -6361,7 +6657,7 @@ FROM		(
 			)	M1,
 			--금주 소요량--
             (
-                        SELECT	B.CONS_ITEM_ID				MATR_CODE,
+            SELECT	B.CONS_ITEM_ID				MATR_CODE,
         			/* 생산계획 * CONS_QTY / PROD_QYT */ 
                     ROUND(SUM(F_GETCONV_UOM(A.ITEM_ID,A.QTY_UOM,B.PROD_QTY_UOM,A.PLAN_QTY)*B.CONS_QTY/B.PROD_QTY),0)	ODER_QTY
             FROM	(        
@@ -6453,11 +6749,15 @@ FROM		(
 		SELECT	T1.ITEM_ID,
 				F_GET_ITEM_NAME(T1.ITEM_ID)ITEM_NAME,
 				NVL(T2.PRE_STOCK,0)		PRE_STOCK,		--전주 기준재고
-		        NVL(T4.FC_QTY,0)		FC_QTY,			--당주 발주예고 0
-		        --0						PRE_IPGO,			
-		        --0						NOW_EXPT,
-		        --0						SIL_STOCK,
-				--0						DIFF_QTY,
+				#if ("$!{com_code}" == '0001000013')
+				NVL(T4.SINHYO_QTY,0)	FC_QTY,				
+				#elseif ("$!{com_code}" == '0001000012')	   
+				NVL(T4.SJP_QTY,0)		FC_QTY,	
+				#elseif ("$!{com_code}" == '0001000011')	
+				NVL(T4.HJIN_QTY,0)		FC_QTY,	
+				#else
+				NVL(T4.FC_QTY,0)		FC_QTY,			--당주 발주예고 		   
+				#end		            
 		        NVL(T3.CNFM_STOCK,0)	CNFM_STOCK		--당주 확정재고       
 		FROM	ITEM_MST	T1,
 		        (
@@ -6470,6 +6770,23 @@ FROM		(
 		        -- WHERE	CNFM_DATE	=	TRUNC(SYSDATE-7,'D')+1
 		        GROUP	BY	CONS_ITEM_ID
 		        )			T2,
+		        #if ("$!{com_code}" == '0001000013'||"$!{com_code}" == '0001000011'||"$!{com_code}" == '0001000012')
+		        (
+		        SELECT 	CONS_ITEM_ID,
+		                F_GET_ITEM_NAME(CONS_ITEM_ID)ITEM_NAME,
+		                #if ("$!{com_code}" == '0001000013')
+		                SUM(SINHYO_GIJUN) CNFM_STOCK
+		                #elseif ("$!{com_code}" == '0001000012')
+		                SUM(SJP_GIJUN) CNFM_STOCK
+		                #elseif ("$!{com_code}" == '0001000011')
+		                SUM(HJIN_GIJUN) CNFM_STOCK
+		                #end
+		        FROM	MFS_ORDER_FORECAST_PURCHASE	
+		        WHERE	CNFM_DATE	=	TO_DATE(REPLACE('$!{cnfm_date}','-',''))	-- 2013-09-02 달력 추가
+		        AND		COM_CODE	=	'0001000010'
+		        GROUP	BY	CONS_ITEM_ID
+		        )			T3,
+		        #else
 		        (
 		        SELECT 	CONS_ITEM_ID,
 		                F_GET_ITEM_NAME(CONS_ITEM_ID)ITEM_NAME,
@@ -6479,16 +6796,34 @@ FROM		(
 		        -- WHERE	CNFM_DATE	=	TRUNC(SYSDATE,'D')+1
 		        GROUP	BY	CONS_ITEM_ID
 		        )			T3,
-				--당주 발주예고
-		        (
+		        #end		        
+		        #if ("$!{com_code}" == '0001000013'||"$!{com_code}" == '0001000011'||"$!{com_code}" == '0001000012')	
+				(
 		        SELECT 	CONS_ITEM_ID,
 		                F_GET_ITEM_NAME(CONS_ITEM_ID)ITEM_NAME,
+		                SUM(SINHYO_QTY)	SINHYO_QTY,	
+		                SUM(SJP_QTY)	SJP_QTY,
+		                SUM(HJIN_QTY)	HJIN_QTY	
+		        FROM	MFS_ORDER_FORECAST_PURCHASE	
+		        WHERE	CNFM_DATE	=	TO_DATE(REPLACE('$!{cnfm_date}','-',''))	-- 2013-09-02 달력 추가
+		        AND		COM_CODE	=	'0001000010'
+		        GROUP	BY	CONS_ITEM_ID
+		        )			T4				
+				#else
+				(
+		        SELECT 	CONS_ITEM_ID,
+		                F_GET_ITEM_NAME(CONS_ITEM_ID)ITEM_NAME,
+		                #if ("$!{com_code}" == '0001000014')
+		                SUM(NVL(PR_FC_QTY,0))	FC_QTY		--당주 발주예고
+		                #else
 		                SUM(FC_QTY)	FC_QTY		--당주 발주예고
+		                #end		                
 		        FROM	MFS_ORDER_FORECAST	
 		        WHERE	CNFM_DATE	=	TO_DATE(REPLACE('$!{cnfm_date}','-',''))	-- 2013-09-02 달력 추가
 		        -- WHERE	CNFM_DATE	=	TRUNC(SYSDATE,'D')+1
 		        GROUP	BY	CONS_ITEM_ID
 		        )			T4
+				#end
 		WHERE	T1.ITEM_ID	=	T2.CONS_ITEM_ID(+)
 		AND		T1.ITEM_ID	=	T3.CONS_ITEM_ID(+)
 		AND		T1.ITEM_ID	=	T4.CONS_ITEM_ID(+)
@@ -6498,17 +6833,18 @@ FROM		(
          SELECT DISTINCT CNFM_DATE, COM_CODE
          FROM 	FC_QTY_CNFM
          WHERE	CNFM_DATE	=	TO_DATE(REPLACE('$!{cnfm_date}','-',''))	-- 2013-09-02 달력 추가
-         #if ("$!{com_code}" == '0001000010')
+         #if ("$!{com_code}" == '0001000010'||"$!{com_code}" == '0001000011'||"$!{com_code}" == '0001000012'||"$!{com_code}" == '0001000013')
          AND	PUR_FLAG	= 'Y'
+         AND	COM_CODE	= '0001000010'        
          #else
          AND	CNFM_FLAG	= 'Y'
-         #end
          AND	COM_CODE	LIKE '%'||'$!{com_code}'||'%'
+         #end         
         #if ("$!{user_id}" == '1931013')	--  태경농산
 --		AND	COM_CODE LIKE '%0001000050%'
 		#elseif ("$!{user_id}" == '210012')	--  율촌
 --		AND	COM_CODE LIKE '%0001000021%'
-		#elseif ("$!{user_id}" == 'admin')	--  율촌
+		#elseif ("$!{user_id}" == 'admin')	
 --		AND	COM_CODE LIKE '%0001000021%' OR COM_CODE LIKE '%0001000010%'
 		#end		 
          ) M4            
@@ -6516,8 +6852,8 @@ WHERE	M1.ITEM_ID	=	M2.MATR_CODE(+)
 AND		M1.ITEM_ID	=	M3.ITEM_ID(+)
 AND		M1.CNFM_DATE	= M4.CNFM_DATE
 AND		M1.COM_CODE		= M4.COM_CODE
-#if ("$!{com_code}" == '0001000010')
-         AND		M3.FC_QTY &gt;= 0
+#if ("$!{com_code}" == '0001000010'||"$!{com_code}" == '0001000011'||"$!{com_code}" == '0001000012'||"$!{com_code}" == '0001000013')
+         AND		M3.FC_QTY &gt;= 0         
          #else
          AND		M3.FC_QTY &gt; 0
          #end
@@ -6583,6 +6919,15 @@ FROM    (
                         TO_CHAR(BUY_DAY,'YYYYMM') YYYYMM
                 FROM	FT_BUY
                 WHERE   ITEM_CD(+) = '$!{item_id}'
+                #if ("$!{com_code}" == '0001000011')		--현진 1000075 SJP 1000178 신효 1002449
+                AND		CO_CODE = '1000075'
+                #elseif ("$!{com_code}" == '0001000012')
+                AND		CO_CODE = '1000178'
+                #elseif ("$!{com_code}" == '0001000013')
+                AND		CO_CODE = '1002449'
+                #elseif ("$!{com_code}" == '0001000014')
+                AND		CO_CODE = '1000068'
+                #end
                 )	FB, 
                 (
                 SELECT DISTINCT YYYYMM
@@ -6737,6 +7082,15 @@ FROM    (
                         SUM(BUY_QTY) IPGO_QTY
                 FROM	FT_BUY	FB
                 WHERE   FB.BUY_DAY BETWEEN TRUNC(SYSDATE-60,'D')+1 AND TRUNC(SYSDATE+20,'D')+1
+                #if ("$!{com_code}" == '0001000011')
+                AND		CO_CODE = '1000075'
+                #elseif ("$!{com_code}" == '0001000012')
+                AND		CO_CODE = '1000178'		
+                #elseif ("$!{com_code}" == '0001000013')
+                AND		CO_CODE = '1002449'
+                #elseif ("$!{com_code}" == '0001000014')
+                AND		CO_CODE = '1000068'
+                #end
                 AND		ITEM_CD(+) = '$!{item_id}'
                 GROUP	BY	FB.ITEM_CD, 
                             TRUNC(TO_DATE(FB.BUY_DAY),'IW')        
@@ -7539,6 +7893,20 @@ FROM    (
          		) 	
 </query> 
 
+<query id="op_02090_Long_Term_Planning_list_semi_dw4_header" paging="false">
+	
+	SELECT	SUBSTR(CAL_DATE,1,4)||'/'||SUBSTR(CAL_DATE,5,6)	MONTH,
+           		'MONTH_'||(ROWNUM)		HD_NAME
+        FROM	(
+                SELECT	DISTINCT SUBSTR(TO_CHAR(CAL_DATE,'YYYYMMDD'),1,6) CAL_DATE
+                FROM	CAL_MST
+                WHERE	CAL_DATE BETWEEN TRUNC(ADD_MONTHS(TO_DATE('$!{cnfm_date}'),-12),'MM') AND TRUNC(ADD_MONTHS(TO_DATE('$!{cnfm_date}'),-1),'MM')
+                ORDER
+                BY		1
+         		)
+      	
+</query>
+
 <query id="op_02090_Long_Term_Planning_list_semi_dw1">
 	
 	SELECT	IM.ITEM_ID,
@@ -7596,9 +7964,13 @@ FROM    (
             SELECT	11	IDX,
             		'901001548'	ITEM_ID
             FROM	DUAL
+            UNION ALL
+            SELECT	12	IDX,
+            		'901001627'	ITEM_ID
+            FROM	DUAL
             )ORD
     WHERE	IM.ITEM_ID = BS.ITEM_ID
-    AND		IM.ITEM_ID = ORD.ITEM_ID
+    AND		IM.ITEM_ID = ORD.ITEM_ID(+)
 	AND		BS.VERSION = '$!{version}'
 	AND		IM.BS_FLAG LIKE '%'||'$!{item_type}'||'%'
 	ORDER
@@ -7634,13 +8006,15 @@ FROM    (
             MAX(S1.IPGO_QTY),
             MAX(S1.IPGO_DATE),
             MAX(S1.READTIME),
-            MAX(S1.TEXT)	                
+            MAX(S1.TEXT),
+            S4.PR_NO,
+            S4.IF_MSGS 	                
 	FROM	(
 			SELECT	IM.ITEM_ID,
 	        		IM.ITEM_NAME,
 	                1		IDX,
 	                '재고량' GUBN,	               
-	                NVL(MM.LBKUM,0)	M,
+	                TO_NUMBER(NVL(BS.BASE_STOCK,MM.LBKUM))	M,
 	                0			M_1,
 	                0			M_2,
 	                0			M_3,
@@ -7752,10 +8126,18 @@ FROM    (
 		    WHERE	A.ITEM_ID = B.ITEM_ID		      
 	        )S1,
             SAPMARA     S2,
-            BASE_STOCK_PLAN	S3            
+            BASE_STOCK_PLAN	S3,
+            (
+            SELECT  ITEM_ID,
+                    PR_NO,
+                    IF_MSGS
+            FROM    APS_PR_PLAN_IF
+            WHERE   VERSION = '$!{version}'  
+            )S4                  
     WHERE	S1.ITEM_ID = S2.MATNR    
     AND		S1.ITEM_ID = S3.ITEM_ID
     AND		S3.VERSION = '$!{version}' 
+    AND     S1.ITEM_ID = S4.ITEM_ID(+)
     GROUP 
     BY		S1.ITEM_ID,
 			S1.ITEM_NAME,
@@ -7769,7 +8151,9 @@ FROM    (
 	        S1.M_5,
 	        S3.MINMPSQTY,
 	        S2.MEINS,
-	        S3.NTGEW     
+	        S3.NTGEW,
+	        S4.PR_NO,
+            S4.IF_MSGS      
 	ORDER
 	BY		S1.ITEM_ID,S1.IDX
 	
@@ -7900,9 +8284,13 @@ FROM    (
             SELECT	11	IDX,
             		'901001548'	ITEM_ID
             FROM	DUAL
+            UNION ALL
+            SELECT	11	IDX,
+            		'901001627'	ITEM_ID
+            FROM	DUAL
             )ORD
     WHERE	IM.ITEM_ID = BS.ITEM_ID
-    AND		IM.ITEM_ID = ORD.ITEM_ID
+    AND		IM.ITEM_ID = ORD.ITEM_ID(+)
     AND		IM.ITEM_ID = SA.ITEM_ID(+)
 	AND		BS.VERSION = '$!{version}'
 	AND		IM.BS_FLAG LIKE '%'||'$!{item_type}'||'%'
@@ -7918,6 +8306,89 @@ FROM    (
 	#end
 	
 	
+</query>
+
+<query id="op_02090_Long_Term_Planning_list_semi_dw4">
+    SELECT  S1.MATNR,
+            S1.ITEM_NAME,
+            ROUND(S1.MENGE/S1.BMENG  * S1.QTY   * 1000,3),
+            NVL(SUM(S3.RECEIPT_EXPT),0),
+            ROUND((NVL(SUM(S3.RECEIPT_EXPT),0) * S1.MENGE/S1.BMENG  * S1.QTY   * 1000)/1000,3)
+    FROM    (
+            SELECT  A.MATNR,
+                    B.ITEM_NAME,
+                    A.MENGE,
+                    A.MEINS,
+                    A.BMENG,
+                    A.IDNRK,
+                    B.QTY
+            FROM    SAPZPPV0030 A, ITEM_MST B
+            WHERE   A.MATNR = B.ITEM_ID
+            AND     A.IDNRK	= '$!{item_id}'  
+            )S1,
+            (
+            SELECT  ITEM_ID,
+                    DM
+            FROM    BASE_PROD_PLAN
+            WHERE   VERSION = '$!{version}'
+            )S2,
+            (
+            SELECT  DC.ITEM_ID,
+                    SUM(DC.RECEIPT_EXPT) RECEIPT_EXPT
+            FROM    DC_DATAWAREHOUSE DC, ITEM_MST IM,
+                    (
+                    SELECT  YYYYMMDD
+                    FROM    CAL_MST
+                    WHERE   CAL_DATE BETWEEN TRUNC(TO_DATE('$!{from_mm}','YYYY-MM'),'MM')	AND LAST_DAY(TO_DATE('$!{to_mm}','YYYY-MM'))
+                    )CAL
+            WHERE   CNFM_DATE   = CAL.YYYYMMDD
+            AND     DC.ITEM_ID  = IM.ITEM_ID
+            AND     IM.BS_FLAG IN ('1','2')
+            AND     DC.ITEM_ID LIKE '901%'                              
+            GROUP
+            BY      DC.ITEM_ID
+            )S3
+    WHERE   S1.MATNR = S2.ITEM_ID(+)
+    AND     S1.MATNR = S3.ITEM_ID(+)
+    GROUP
+    BY      S1.MATNR,
+            S1.ITEM_NAME,
+            S1.MENGE,
+            S1.BMENG,
+            S1.QTY
+    ORDER
+    BY		1,2
+
+          
+</query>
+
+<query id="op_02090_Long_Term_Planning_list_mat_move_pop_up">
+	SELECT  '월간사용실적' GUBN,
+	        MAX(DECODE(YYYYMM,TO_CHAR(ADD_MONTHS(TRUNC(TO_DATE('$!{cnfm_date}'),'MM'),-12),'YYYYMM'),MOVE_QTY,0)),
+	        MAX(DECODE(YYYYMM,TO_CHAR(ADD_MONTHS(TRUNC(TO_DATE('$!{cnfm_date}'),'MM'),-11),'YYYYMM'),MOVE_QTY,0)),
+	        MAX(DECODE(YYYYMM,TO_CHAR(ADD_MONTHS(TRUNC(TO_DATE('$!{cnfm_date}'),'MM'),-10),'YYYYMM'),MOVE_QTY,0)),
+	        MAX(DECODE(YYYYMM,TO_CHAR(ADD_MONTHS(TRUNC(TO_DATE('$!{cnfm_date}'),'MM'),-9),'YYYYMM'),MOVE_QTY,0)),
+	        MAX(DECODE(YYYYMM,TO_CHAR(ADD_MONTHS(TRUNC(TO_DATE('$!{cnfm_date}'),'MM'),-8),'YYYYMM'),MOVE_QTY,0)),
+	        MAX(DECODE(YYYYMM,TO_CHAR(ADD_MONTHS(TRUNC(TO_DATE('$!{cnfm_date}'),'MM'),-7),'YYYYMM'),MOVE_QTY,0)),
+	        MAX(DECODE(YYYYMM,TO_CHAR(ADD_MONTHS(TRUNC(TO_DATE('$!{cnfm_date}'),'MM'),-6),'YYYYMM'),MOVE_QTY,0)),
+	        MAX(DECODE(YYYYMM,TO_CHAR(ADD_MONTHS(TRUNC(TO_DATE('$!{cnfm_date}'),'MM'),-5),'YYYYMM'),MOVE_QTY,0)),
+	        MAX(DECODE(YYYYMM,TO_CHAR(ADD_MONTHS(TRUNC(TO_DATE('$!{cnfm_date}'),'MM'),-4),'YYYYMM'),MOVE_QTY,0)),
+	        MAX(DECODE(YYYYMM,TO_CHAR(ADD_MONTHS(TRUNC(TO_DATE('$!{cnfm_date}'),'MM'),-3),'YYYYMM'),MOVE_QTY,0)),
+	        MAX(DECODE(YYYYMM,TO_CHAR(ADD_MONTHS(TRUNC(TO_DATE('$!{cnfm_date}'),'MM'),-2),'YYYYMM'),MOVE_QTY,0)),
+	        MAX(DECODE(YYYYMM,TO_CHAR(ADD_MONTHS(TRUNC(TO_DATE('$!{cnfm_date}'),'MM'),-1),'YYYYMM'),MOVE_QTY,0))
+	FROM	(
+		    SELECT  TO_CHAR(TO_DATE(MOVE_DATE),'YYYYMM') YYYYMM,
+		    		SUM(MOVE_QTY) MOVE_QTY
+			FROM 	MAT_MOVE
+			WHERE 	MOVE_DATE BETWEEN TO_CHAR(ADD_MONTHS(TRUNC(TO_DATE('$!{cnfm_date}'),'MM'),-12),'YYYYMMDD') AND TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}'),'MM')-1,'YYYYMMDD')
+			AND 	ITEM_ID = '$!{item_id}' 
+			GROUP 
+			BY 		TO_CHAR(TO_DATE(MOVE_DATE),'YYYYMM')
+			ORDER 
+			BY 		1
+			)
+	
+
 </query>
 
 <query id="Aps_Pr_version_Semi_list">

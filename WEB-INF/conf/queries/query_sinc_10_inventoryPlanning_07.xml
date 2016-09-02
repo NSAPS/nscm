@@ -157,600 +157,551 @@
    
 	<!-- 유통본부 미납 추적분석(농심) --> 
 	<query id="ip_02120_Edi_NS_Analysis" paging="false"> 
-		/* 유통본부 미납 추적분석(농심) MAIN 그리드 */
-		SELECT	K1.CNFM_DATE,
-		        DECODE(K3.SELL_STOP_DATE,'99991231','','Y')	SELL_STOP_FLAG,
-		        NVL(K5.ALLOC_GUBN,'')						ALLOC_FLAG,
-		        '일반'										GUBN,
-		        K1.PROD_CODE								ITEM_ID,
-		        K3.ITEM_NAME,
-		        K3.SPEC,
-		        K1.CUST_CODE,
-		        K2.CUST_NAME,		       
-		        SUM(ODER_BOX)	EDI_BOX,
-		        SUM(SELL_BOX)	SELL_BOX,
-		        0				HS_BOX,
-		        DECODE(SIGN(SUM(ODER_BOX)-SUM(SELL_BOX)),-1,0,SUM(ODER_BOX)-SUM(SELL_BOX)) DEFAULT_BOX,
-		        K6.DEFAULT_CODE_NS,
-		        DECODE(K4.DC_ID,NULL,K7.STOR_CODE,K4.DC_ID),
-		        F_getDCName(DECODE(K4.DC_ID,NULL,K7.STOR_CODE,K4.DC_ID)) DC_NAME,
-		        K1.DEPT_CODE,
-		        F_GETSALESLOCNAME(K1.DEPT_CODE) DEPT_NAME,
-		        K1.HAN_NAME,
-		        K6.BIGO
-		FROM	(
-		        SELECT	T1.CNFM_DATE,
-		                T1.PROD_CODE,
-		                T1.GRUP_CODE,
-		                T4.DEPT_CODE,
-		                T1.CUST_CODE,
-		                SUM(T1.ODER_BOX)	ODER_BOX,
-		                SUM(T1.ODER_AMT)	ODER_AMT,
-		                0					REQT_BOX,
-		                0					REQT_AMT,
-		                0					SELL_BOX,
-		                0					SELL_AMT,
-		                T3.HAN_NAME			HAN_NAME
-		        FROM	SDORT120	T1,
-		                SDSTT105 	T2,
-		                NCOMT005	T3,
-		                SDSTT103	T4
-		        WHERE	T1.CNFM_DATE	= REPLACE('$!{cnfm_date}', '-','')
-		        AND		T1.ERR_GUBN		!= '16'  --2014-10-31 NFOS 삭제표시 데이터 안 보이게 수정   
-		        AND 	T2.PRTN_ROLE	= 'VE'
-		        AND 	T1.CUST_CODE = T2.CUST_CODE              	
-		        AND 	T1.CUST_CODE = T4.CUST_CODE              	
-		        AND		T2.PRTN_CUST_CODE	= T3.EMP_NO
-		        AND		T4.SALE_ORG		= '1000'	                	
-		        AND		T1.GRUP_CODE	IN (
-		                                SELECT	CD
-		                                FROM	CODE_MST
-		                                WHERE	CD_GRP	= 'GRUP_CODE1'
-		                                    AND		CD = '32'
-		                                    )
-		        -- 18시 기준
-		        AND		T1.IPUT_DATE||T1.IPUT_TIME &lt; TO_CHAR(TO_DATE(T1.CNFM_DATE,'YYYYMMDD')-1,'YYYYMMDD')||'180000'
-		        GROUP
-		        BY		T1.CNFM_DATE,
-		                T1.PROD_CODE,
-		                T1.GRUP_CODE,
-		                T4.DEPT_CODE,
-		                T1.CUST_CODE,
-		                T3.HAN_NAME               
-		        UNION	ALL                
-		        SELECT	T1.CNFM_DATE,
-		                T1.PROD_CODE,
-		                T6.GRUP_CODE,
-		                T9.DEPT_CODE,
-		                T1.CUST_CODE,
-		                0			ODER_BOX,
-		                0			ODER_AMT,
-		                SUM(
-		                    CASE
-		                        WHEN T3.ITEM_CATG IS NULL THEN /* 타계정 실적이다 */
-		                            CASE
-		                            WHEN SUBSTR(T1.ITEM_CATG,1,2) = 'YO' THEN
-		                                0
-		                            ELSE
-		                                0
-		                            END
-		                        ELSE
-		                           T1.REQT_BOX * T3.SIGN1
-		                    END
-		                )	REQT_BOX,
-		                SUM(
-		                    CASE
-		                        WHEN T3.ITEM_CATG IS NULL THEN /* 타계정 실적이다 */
-		                            CASE
-		                            WHEN SUBSTR(T1.ITEM_CATG,1,2) = 'YO' THEN
-		                                0
-		                            ELSE
-		                                0
-		                            END
-		                        ELSE
-		                           T1.REQT_AMT * T3.SIGN1
-		                    END
-		                )	REQT_AMT,
-		                SUM(
-		                    CASE
-		                        WHEN T3.ITEM_CATG IS NULL THEN /* 타계정 실적이다 */
-		                            CASE
-		                            WHEN SUBSTR(T1.ITEM_CATG,1,2) = 'YO' THEN
-		                                0
-		                            ELSE
-		                                0
-		                            END
-		                        ELSE
-		                           T1.SELL_BOX * T3.SIGN1
-		                    END
-		                    )	SELL_BOX,
-		                   SUM(
-		                    CASE
-		                        WHEN T3.ITEM_CATG IS NULL THEN /* 타계정 실적이다 */
-		                            CASE
-		                            WHEN SUBSTR(T1.ITEM_CATG,1,2) = 'YO' THEN
-		                                0
-		                            ELSE
-		                                0
-		                            END
-		                        ELSE
-		                           T1.SELL_AMT * T3.SIGN1
-		                    END
-		                )	SELL_AMT,
-		                T8.HAN_NAME HAN_NAME
-		        FROM	(
-		                SELECT	T1.CNFM_DATE,
-		                        T2.PROD_CODE,
-		                        T2.ITEM_CATG,
-		                        T1.SOLD_PART	CUST_CODE,  
-		                        SUM(T2.REQT_BOX)	REQT_BOX,
-		                        SUM(T2.SELL_BOX)	SELL_BOX,
-		                        SUM(T2.REQT_BOX*T2.SELL_PRIC)	REQT_AMT,
-		                        SUM(T2.SELL_BOX*T2.SELL_PRIC)	SELL_AMT
-		                        -- SUM(DECODE(T2.UPDT_GUBN,'10',T2.SELL_BOX,T2.REQT_BOX))	SELL_BOX
-		                FROM	SDORT101	T1,
-		                        SDORT102	T2
-		                WHERE	T1.SLIP_NO		= T2.SLIP_NO
-		                AND		T1.CNFM_DATE	= REPLACE('$!{cnfm_date}', '-','')
-		                AND		T1.UPDT_GUBN	!= '00'
-		                AND		T2.UPDT_GUBN	!= '00'	
-		                AND		T2.ITEM_CATG NOT LIKE 'YR%'  -- 반품만 제외
-		                GROUP
-		                BY		T1.CNFM_DATE,
-		                        T2.ITEM_CATG,
-		                        T2.PROD_CODE,
-		                        T1.SOLD_PART
-		                )			T1,
-		                ITEM_MST	T2,
-		                (
-		                SELECT	CODE		ITEM_CATG,
-		                        CODE_NAME4	SIGN1
-		                FROM	SDSTT500
-		                WHERE	CODE_GUBN	= 'OR103'
-		                AND		CODE_NAME2	= 'Y'
-		                AND		CODE_NAME3	= '01'
-		                AND		CODE NOT IN ('YSSE') --일반회송 0으로 취급 2014-11-10 이승용 요청
-		                )			T3,
-		                SDSTT500	T4,
-		                (
-		                SELECT	YYYYMMDD	CNFM_DATE
-		                FROM	CAL_MST
-		                WHERE	YYYYMMDD	= REPLACE('$!{cnfm_date}', '-','')
-		                )			T5,
-		                SDSTT101	T6,
-		                SDSTT105 	T7,
-		                NCOMT005	T8,
-		                SDSTT103	T9
-		        WHERE	T1.CNFM_DATE	= T5.CNFM_DATE
-		        AND		T1.ITEM_CATG 	= T3.ITEM_CATG(+)
-		        AND		T1.PROD_CODE	= T2.ITEM_ID
-		        AND		T4.CODE_GUBN	= 'ST310'
-		        AND		T4.CODE			= T2.SALES_CAT03
-		        AND		T1.CUST_CODE	= T6.CUST_CODE
-		        AND		T1.CUST_CODE	= T7.CUST_CODE                
-		        AND 	T7.PRTN_ROLE	= 'VE'              
-		        AND		T7.PRTN_CUST_CODE	= T8.EMP_NO
-		        AND		T9.SALE_ORG		= '1000'
-		        AND		T1.CUST_CODE	= T9.CUST_CODE
-		        AND		T6.GRUP_CODE	IN (
-		                                    SELECT	CD
-		                                    FROM	CODE_MST
-		                                    WHERE	CD_GRP	= 'GRUP_CODE1'
-		                                        AND		CD = '32'
-		                                        )
-		        GROUP
-		        BY		T1.CNFM_DATE,
-		                T1.PROD_CODE,
-		                T6.GRUP_CODE,
-		                T9.DEPT_CODE,
-		                T1.CUST_CODE,
-		                T8.HAN_NAME	                
-		        )	K1,
-		        SDSTT101	K2,
-		        ITEM_MST	K3,				
-		        (
-		         SELECT	DISTINCT T1.CNFM_DATE,
-		                T1.PROD_CODE,
-		                T1.GRUP_CODE,
-		                T1.CUST_CODE,
-		                T1.DC_ID,		               
-		                T1.SALESMAN_NM SALES_NAME,
-		                T1.INOUT_CD
-		          --2015-11-18 수정사항, 영업오류 오더에 대해 0마감 제거함으로써 오류 방지 010->020교체
-		         FROM	(
-		                SELECT A.CNFM_DATE, A.PROD_CODE, A.GRUP_CODE, A.CUST_CODE, SUBSTR(B.CENTER_CD,5,4) DC_ID, B.SALESMAN_NM, B.OUTBOUND_DATE, B.INOUT_CD
-		                FROM SDORT120 A, LO020NM B, LO020ND C
-		                WHERE A.CNFM_DATE = REPLACE('$!{cnfm_date}', '-','')
-		                AND A.PROD_CODE=C.ITEM_CD
-		                AND A.CUST_CODE = B.DELIVERY_CD
-		                AND B.OUTBOUND_DATE=C.OUTBOUND_DATE
-		                AND B.CENTER_CD = C.CENTER_CD
-		                AND B.BRAND_CD = C.BRAND_CD
-		                AND B.OUTBOUND_NO=C.OUTBOUND_NO
-		                AND C.CONFIRM_QTY > 0
-		                UNION ALL
-		                SELECT A.CNFM_DATE, A.PROD_CODE, A.GRUP_CODE,A.CUST_CODE, SUBSTR(B.CENTER_CD,5,4) DC_ID,B.SALESMAN_NM, B.OUTBOUND_DATE, B.INOUT_CD 
-		                FROM SDORT120 A, LO020NM_G B, LO020ND_G C
-		                WHERE A.CNFM_DATE = REPLACE('$!{cnfm_date}', '-','')
-		                AND A.PROD_CODE=C.ITEM_CD
-		                AND A.CUST_CODE = B.DELIVERY_CD
-		                AND B.OUTBOUND_DATE=C.OUTBOUND_DATE
-		                AND B.CENTER_CD = C.CENTER_CD
-		                AND B.BRAND_CD = C.BRAND_CD
-		                AND B.OUTBOUND_NO=C.OUTBOUND_NO
-		                AND C.CONFIRM_QTY > 0
-		                UNION ALL
-		                SELECT A.CNFM_DATE, A.PROD_CODE,A.GRUP_CODE, A.CUST_CODE,SUBSTR(B.CENTER_CD,5,4)DC_ID, B.SALESMAN_NM, B.OUTBOUND_DATE, B.INOUT_CD
-		                FROM SDORT120 A, LO020NM_P B, LO020ND_P C
-		                WHERE A.CNFM_DATE = REPLACE('$!{cnfm_date}', '-','')
-		                AND A.PROD_CODE=C.ITEM_CD
-		                AND A.CUST_CODE = B.DELIVERY_CD
-		                AND B.OUTBOUND_DATE=C.OUTBOUND_DATE
-		                AND B.CENTER_CD = C.CENTER_CD
-		                AND B.BRAND_CD = C.BRAND_CD
-		                AND B.OUTBOUND_NO=C.OUTBOUND_NO
-		                AND C.CONFIRM_QTY > 0
-		                )T1		                
-		         WHERE  T1.OUTBOUND_DATE = REPLACE('$!{cnfm_date}', '-','')		         
-		        )K4,
-		        (
-		        SELECT	DEPT_CODE,
-		                PROD_CODE,
-		                MAX(DECODE(ALLOC_GUBN,'2','Y','')) ALLOC_GUBN
-		        FROM    SDORT203
-		        WHERE	CNFM_DATE	= REPLACE('$!{cnfm_date}', '-','')
-		        AND		 ALLOC_GUBN	= '2'   -- 2 -> '관리' 
-		        GROUP
-		        BY		DEPT_CODE,
-		                PROD_CODE
-		        )K5,
-		        (
-		        SELECT	CNFM_DATE,
-		        		PROD_CODE,
-		                CUST_CODE,
-		                BIGO,
-		                DEFAULT_CODE_NS
-		        FROM	EDI_DEFAULT_NS
-		        WHERE	CNFM_DATE = REPLACE('$!{cnfm_date}', '-','')
-		        )K6,
-		       (
-		        SELECT 	CUST_CODE,
-		           		STOR_CODE
-		        FROM	SDSTT103
-		        WHERE TRAD_END_DATE >= TO_CHAR(SYSDATE,'YYYYMMDD')	
-		        )K7		        	
-		WHERE	K1.CUST_CODE	= K2.CUST_CODE
-		AND		K1.PROD_CODE	= K3.ITEM_ID  
-		AND		K1.CNFM_dATE	= K4.CNFM_DATE(+)
-		AND		K1.PROD_CODE	= K4.PROD_CODE(+)
-		AND		K1.CUST_CODE	= K4.CUST_CODE(+)
-		AND		K1.GRUP_CODE	= K4.GRUP_CODE(+)      
-		AND		K1.PROD_CODE	= K5.PROD_CODE(+)      
-		AND		K1.DEPT_CODE	= K5.DEPT_CODE(+) 
-		AND		K1.CNFM_DATE	= K6.CNFM_DATE(+)
-		AND		K1.PROD_CODE	= K6.PROD_CODE(+)
-		AND		K1.CUST_CODE	= K6.CUST_CODE(+)
-		AND		K1.CUST_CODE	= K7.CUST_CODE
-		HAVING		DECODE(SIGN(SUM(ODER_BOX)-SUM(SELL_BOX)),-1,0,SUM(ODER_BOX)-SUM(SELL_BOX)) > 0 
-		GROUP
-		BY		K1.CNFM_DATE,
-		        DECODE(K3.SELL_STOP_DATE,'99991231','','Y'),
-		        NVL(K5.ALLOC_GUBN,''),
-		        K1.PROD_CODE,
-		        K3.ITEM_NAME,
-		        K3.SPEC,
-		        K1.CUST_CODE,
-		        K2.CUST_NAME,
-		        K1.HAN_NAME,
-		        K4.DC_ID,
-		        K1.DEPT_CODE,
-		        K7.STOR_CODE,
-		        K6.DEFAULT_CODE_NS,
-		        K6.BIGO		        
-		UNION
-		SELECT	K1.CNFM_DATE,
-		        DECODE(K3.SELL_STOP_DATE,'99991231','','Y')	SELL_STOP_FLAG,
-		        NVL(K5.ALLOC_GUBN,'')						ALLOC_FLAG,
-		        '회송'										GUBN,
-		        K1.PROD_CODE								ITEM_ID,
-		        K3.ITEM_NAME,
-		        K3.SPEC,
-		        K1.CUST_CODE,
-		        K2.CUST_NAME,		        
-		        SUM(ODER_BOX)    EDI_BOX,
-                CASE WHEN SUM(ODER_BOX) >= SUM(SELL_BOX)
-                     THEN SUM(ODER_BOX) - SUM(SELL_BOX)
-                     ELSE 0
-                END  SELL_BOX, --회송의 경우 발주량에서 회송량을 제외한 것이 판매량이다
-                SUM(SELL_BOX)    HS_BOX,                    
-                CASE WHEN SUM(ODER_BOX) >= SUM(SELL_BOX)   
-                     THEN SUM(SELL_BOX)
-                     ELSE SUM(ODER_BOX)
-                END  DEFAULT_BOX,    --회송의 경우 회송량만큼이 미납량이다   
-		        K6.DEFAULT_CODE_NS,
-		        DECODE(K4.DC_ID,NULL,K7.STOR_CODE,K4.DC_ID),
-		        F_getDCName(DECODE(K4.DC_ID,NULL,K7.STOR_CODE,K4.DC_ID)) DC_NAME,
-		        K1.DEPT_CODE,
-		        F_GETSALESLOCNAME(K1.DEPT_CODE) DEPT_NAME,
-		        K1.HAN_NAME,
-		        K6.BIGO
-		FROM	(
-		        SELECT	T1.CNFM_DATE,
-		                T1.PROD_CODE,
-		                T1.GRUP_CODE,
-		                T4.DEPT_CODE,
-		                T1.CUST_CODE,
-		                SUM(T1.ODER_BOX)	ODER_BOX,
-		                SUM(T1.ODER_AMT)	ODER_AMT,
-		                0					REQT_BOX,
-		                0					REQT_AMT,
-		                0					SELL_BOX,
-		                0					SELL_AMT,
-		                T3.HAN_NAME			HAN_NAME
-		        FROM	SDORT120	T1,
-		                SDSTT105 	T2,
-		                NCOMT005	T3,
-		                SDSTT103	T4
-		        WHERE	T1.CNFM_DATE	= REPLACE('$!{cnfm_date}', '-','')
-		        AND		T1.ERR_GUBN		!= '16'  --2014-10-31 NFOS 삭제표시 데이터 안 보이게 수정   
-		        AND 	T2.PRTN_ROLE	= 'VE'
-		        AND 	T1.CUST_CODE = T2.CUST_CODE              	
-		        AND 	T1.CUST_CODE = T4.CUST_CODE              	
-		        AND		T2.PRTN_CUST_CODE	= T3.EMP_NO
-		        AND		T4.SALE_ORG		= '1000'	                	
-		        AND		T1.GRUP_CODE	IN (
-		                                SELECT	CD
-		                                FROM	CODE_MST
-		                                WHERE	CD_GRP	= 'GRUP_CODE1'
-		                                    AND		CD = '32'
-		                                    )
-		        -- 18시 기준
-		        AND		T1.IPUT_DATE||T1.IPUT_TIME &lt; TO_CHAR(TO_DATE(T1.CNFM_DATE,'YYYYMMDD')-1,'YYYYMMDD')||'180000'
-		        GROUP
-		        BY		T1.CNFM_DATE,
-		                T1.PROD_CODE,
-		                T1.GRUP_CODE,
-		                T4.DEPT_CODE,
-		                T1.CUST_CODE,
-		                T3.HAN_NAME               
-		        UNION	ALL                
-		        SELECT	T1.CNFM_DATE,
-		                T1.PROD_CODE,
-		                T6.GRUP_CODE,
-		                T9.DEPT_CODE,
-		                T1.CUST_CODE,
-		                0			ODER_BOX,
-		                0			ODER_AMT,
-		                SUM(
-		                    CASE
-		                        WHEN T3.ITEM_CATG IS NULL THEN /* 타계정 실적이다 */
-		                            CASE
-		                            WHEN SUBSTR(T1.ITEM_CATG,1,2) = 'YO' THEN
-		                                0
-		                            ELSE
-		                                0
-		                            END
-		                        ELSE
-		                           T1.REQT_BOX * T3.SIGN1
-		                    END
-		                )	REQT_BOX,
-		                SUM(
-		                    CASE
-		                        WHEN T3.ITEM_CATG IS NULL THEN /* 타계정 실적이다 */
-		                            CASE
-		                            WHEN SUBSTR(T1.ITEM_CATG,1,2) = 'YO' THEN
-		                                0
-		                            ELSE
-		                                0
-		                            END
-		                        ELSE
-		                           T1.REQT_AMT * T3.SIGN1
-		                    END
-		                )	REQT_AMT,
-		                SUM(
-		                    CASE
-		                        WHEN T3.ITEM_CATG IS NULL THEN /* 타계정 실적이다 */
-		                            CASE
-		                            WHEN SUBSTR(T1.ITEM_CATG,1,2) = 'YO' THEN
-		                                0
-		                            ELSE
-		                                0
-		                            END
-		                        ELSE
-		                           T1.SELL_BOX * T3.SIGN1
-		                    END
-		                    )	SELL_BOX,
-		                   SUM(
-		                    CASE
-		                        WHEN T3.ITEM_CATG IS NULL THEN /* 타계정 실적이다 */
-		                            CASE
-		                            WHEN SUBSTR(T1.ITEM_CATG,1,2) = 'YO' THEN
-		                                0
-		                            ELSE
-		                                0
-		                            END
-		                        ELSE
-		                           T1.SELL_AMT * T3.SIGN1
-		                    END
-		                )	SELL_AMT,
-		                T8.HAN_NAME HAN_NAME
-		        FROM	(
-		                SELECT	T1.CNFM_DATE,
-		                        T2.PROD_CODE,
-		                        T2.ITEM_CATG,
-		                        T1.SOLD_PART	CUST_CODE,  
-		                        SUM(T2.REQT_BOX)	REQT_BOX,
-		                        SUM(T2.SELL_BOX)	SELL_BOX,
-		                        SUM(T2.REQT_BOX*T2.SELL_PRIC)	REQT_AMT,
-		                        SUM(T2.SELL_BOX*T2.SELL_PRIC)	SELL_AMT
-		                        -- SUM(DECODE(T2.UPDT_GUBN,'10',T2.SELL_BOX,T2.REQT_BOX))	SELL_BOX
-		                FROM	SDORT101	T1,
-		                        SDORT102	T2
-		                WHERE	T1.SLIP_NO		= T2.SLIP_NO
-		                AND		T1.CNFM_DATE	= REPLACE('$!{cnfm_date}', '-','')
-		                AND		T1.UPDT_GUBN	!= '00'
-		                AND		T2.UPDT_GUBN	!= '00'	
-		                AND		T2.ITEM_CATG NOT LIKE 'YR%'  -- 반품만 제외
-		                GROUP
-		                BY		T1.CNFM_DATE,
-		                        T2.ITEM_CATG,
-		                        T2.PROD_CODE,
-		                        T1.SOLD_PART
-		                )			T1,
-		                ITEM_MST	T2,
-		                (
-		                SELECT	CODE		ITEM_CATG,
-		                        1			SIGN1					--원래 회송은 -1이지만 1로 표기하기로 한다.
-		                FROM	SDSTT500
-		                WHERE	CODE_GUBN	= 'OR103'
-		                AND		CODE_NAME2	= 'Y'
-		                AND		CODE_NAME3	= '01'
-		                AND		CODE  IN ('YSSE')
-		                )			T3,
-		                SDSTT500	T4,
-		                (
-		                SELECT	YYYYMMDD	CNFM_DATE
-		                FROM	CAL_MST
-		                WHERE	YYYYMMDD	= REPLACE('$!{cnfm_date}', '-','')
-		                )			T5,
-		                SDSTT101	T6,
-		                SDSTT105 	T7,
-		                NCOMT005	T8,
-		                SDSTT103	T9
-		        WHERE	T1.CNFM_DATE	= T5.CNFM_DATE
-		        AND		T1.ITEM_CATG 	= T3.ITEM_CATG(+)
-		        AND		T1.PROD_CODE	= T2.ITEM_ID
-		        AND		T4.CODE_GUBN	= 'ST310'
-		        AND		T4.CODE			= T2.SALES_CAT03
-		        AND		T1.CUST_CODE	= T6.CUST_CODE
-		        AND		T1.CUST_CODE	= T7.CUST_CODE                
-		        AND 	T7.PRTN_ROLE	= 'VE'              
-		        AND		T7.PRTN_CUST_CODE	= T8.EMP_NO
-		        AND		T9.SALE_ORG		= '1000'
-		        AND		T1.CUST_CODE	= T9.CUST_CODE
-		        AND		T6.GRUP_CODE	IN (
-		                                    SELECT	CD
-		                                    FROM	CODE_MST
-		                                    WHERE	CD_GRP	= 'GRUP_CODE1'
-		                                        AND		CD = '32'
-		                                        )
-		        GROUP
-		        BY		T1.CNFM_DATE,
-		                T1.PROD_CODE,
-		                T6.GRUP_CODE,
-		                T9.DEPT_CODE,
-		                T1.CUST_CODE,
-		                T8.HAN_NAME	                
-		        )	K1,
-		        SDSTT101	K2,
-		        ITEM_MST	K3,				
-		        (
-		         SELECT	DISTINCT T1.CNFM_DATE,
-		                T1.PROD_CODE,
-		                T1.GRUP_CODE,
-		                T1.CUST_CODE,
-		                T1.DC_ID,		               
-		                T1.SALESMAN_NM SALES_NAME,
-		                T1.INOUT_CD
-		          --2015-11-18 수정사항, 영업오류 오더에 대해 0마감 제거함으로써 오류 방지 010->020교체
-		         FROM	(
-		                SELECT A.CNFM_DATE, A.PROD_CODE, A.GRUP_CODE, A.CUST_CODE, SUBSTR(B.CENTER_CD,5,4) DC_ID, B.SALESMAN_NM, B.OUTBOUND_DATE, B.INOUT_CD
-		                FROM SDORT120 A, LO020NM B, LO020ND C
-		                WHERE A.CNFM_DATE = REPLACE('$!{cnfm_date}', '-','')
-		                AND A.PROD_CODE=C.ITEM_CD
-		                AND A.CUST_CODE = B.DELIVERY_CD
-		                AND B.OUTBOUND_DATE=C.OUTBOUND_DATE
-		                AND B.CENTER_CD = C.CENTER_CD
-		                AND B.BRAND_CD = C.BRAND_CD
-		                AND B.OUTBOUND_NO=C.OUTBOUND_NO
-		                AND C.CONFIRM_QTY > 0
-		                UNION ALL
-		                SELECT A.CNFM_DATE, A.PROD_CODE, A.GRUP_CODE,A.CUST_CODE, SUBSTR(B.CENTER_CD,5,4) DC_ID,B.SALESMAN_NM, B.OUTBOUND_DATE, B.INOUT_CD 
-		                FROM SDORT120 A, LO020NM_G B, LO020ND_G C
-		                WHERE A.CNFM_DATE = REPLACE('$!{cnfm_date}', '-','')
-		                AND A.PROD_CODE=C.ITEM_CD
-		                AND A.CUST_CODE = B.DELIVERY_CD
-		                AND B.OUTBOUND_DATE=C.OUTBOUND_DATE
-		                AND B.CENTER_CD = C.CENTER_CD
-		                AND B.BRAND_CD = C.BRAND_CD
-		                AND B.OUTBOUND_NO=C.OUTBOUND_NO
-		                AND C.CONFIRM_QTY > 0
-		                UNION ALL
-		                SELECT A.CNFM_DATE, A.PROD_CODE,A.GRUP_CODE, A.CUST_CODE,SUBSTR(B.CENTER_CD,5,4)DC_ID, B.SALESMAN_NM, B.OUTBOUND_DATE, B.INOUT_CD
-		                FROM SDORT120 A, LO020NM_P B, LO020ND_P C
-		                WHERE A.CNFM_DATE = REPLACE('$!{cnfm_date}', '-','')
-		                AND A.PROD_CODE=C.ITEM_CD
-		                AND A.CUST_CODE = B.DELIVERY_CD
-		                AND B.OUTBOUND_DATE=C.OUTBOUND_DATE
-		                AND B.CENTER_CD = C.CENTER_CD
-		                AND B.BRAND_CD = C.BRAND_CD
-		                AND B.OUTBOUND_NO=C.OUTBOUND_NO
-		                AND C.CONFIRM_QTY > 0
-		                )T1		                
-		         WHERE  T1.OUTBOUND_DATE = REPLACE('$!{cnfm_date}', '-','')	
-		         AND	T1.INOUT_CD	IN ( 
-								        SELECT CODE_CD FROM CMCODE
-								        WHERE CODE_GRP = 'LDIV03'
-								          AND SUB_CD = 'E3'
-								          AND CODE_EX = 'A'
-								      )              	         
-		        )K4,
-		        (
-		        SELECT	DEPT_CODE,
-		                PROD_CODE,
-		                MAX(DECODE(ALLOC_GUBN,'2','Y','')) ALLOC_GUBN
-		        FROM    SDORT203
-		        WHERE	CNFM_DATE	= REPLACE('$!{cnfm_date}', '-','')
-		        AND		 ALLOC_GUBN	= '2'   -- 2 -> '관리' 
-		        GROUP
-		        BY		DEPT_CODE,
-		                PROD_CODE
-		        )K5,
-		        (
-		        SELECT	CNFM_DATE,
-		        		PROD_CODE,
-		                CUST_CODE,
-		                BIGO,
-		                DEFAULT_CODE_NS
-		        FROM	EDI_DEFAULT_NS
-		        WHERE	CNFM_DATE = REPLACE('$!{cnfm_date}', '-','')
-		        )K6,
-		       (
-		        SELECT 	CUST_CODE,
-		           		STOR_CODE
-		        FROM	SDSTT103
-		        WHERE TRAD_END_DATE >= TO_CHAR(SYSDATE,'YYYYMMDD')	
-		        )K7		       
-		WHERE	K1.CUST_CODE	= K2.CUST_CODE
-		AND		K1.PROD_CODE	= K3.ITEM_ID  
-		AND		K1.CNFM_dATE	= K4.CNFM_DATE
-		AND		K1.PROD_CODE	= K4.PROD_CODE
-		AND		K1.CUST_CODE	= K4.CUST_CODE
-		AND		K1.GRUP_CODE	= K4.GRUP_CODE      
-		AND		K1.PROD_CODE	= K5.PROD_CODE(+)      
-		AND		K1.DEPT_CODE	= K5.DEPT_CODE(+) 
-		AND		K1.CNFM_DATE	= K6.CNFM_DATE(+)
-		AND		K1.PROD_CODE	= K6.PROD_CODE(+)
-		AND		K1.CUST_CODE	= K6.CUST_CODE(+)
-		AND		K1.CUST_CODE	= K7.CUST_CODE
-		--HAVING		DECODE(SIGN(SUM(ODER_BOX)-SUM(SELL_BOX)),-1,0,SUM(ODER_BOX)-SUM(SELL_BOX)) > 0 
-		GROUP
-		BY		K1.CNFM_DATE,
-		        DECODE(K3.SELL_STOP_DATE,'99991231','','Y'),
-		        NVL(K5.ALLOC_GUBN,''),
-		        K1.PROD_CODE,
-		        K3.ITEM_NAME,
-		        K3.SPEC,
-		        K1.CUST_CODE,
-		        K2.CUST_NAME,
-		        K1.HAN_NAME,
-		        K4.DC_ID,
-		        K1.DEPT_CODE,
-		        K7.STOR_CODE,
-		        K6.DEFAULT_CODE_NS,
-		        K6.BIGO		        
-		ORDER
-		BY		1, 5, 8		        	
+	/* 유통본부 미납 추적분석(농심) MAIN 그리드 */			
+	SELECT  T1.CNFM_DATE                                "작업일",
+	        DECODE(T2.SELL_STOP_DATE,'99991231','','Y')	"판매중지",
+	        T1.ALLOC_GUBN                               "공급할당",
+	        T1.JEJU_GUBN                                "제주배정",                
+	        T1.PROD_CODE                                "품목코드",
+	        T1.ITEM_NAME                                "품목명",
+	        T1.CUST_CODE                                "거래처코드",
+	        T1.CUST_NAME                                "거래처명",
+	        T1.ODER_BOX                                 "주문량",
+	        T1.SELL_BOX                                 "판매량",
+	        T1.HS_BOX                                   "회송량",
+	        T1.ODER_BOX - T1.SELL_BOX                   "미납량",
+	        T1.DEFAULT_CODE_NS                          "사유",
+	        T1.STOR_CODE                                "배송지점코드",
+	        T1.DC_NAME                                  "배송지점",
+	        T1.DEPT_CODE                                "영업지점코드",
+	        T1.DEPT_NAME                                "영업지점명",    
+	        T1.HAN_NAME                                 "담당자",
+	        T1.BIGO                                     "비고" 
+	FROM    (    
+	        SELECT  CNFM_DATE,
+	                ALLOC_GUBN,
+	                JEJU_GUBN,                
+	                PROD_CODE,
+	                ITEM_NAME,
+	                CUST_CODE,
+	                CUST_NAME,
+	                CASE WHEN ALLOC_GUBN ='Y'   --배정품목이면 EDI 발주량이 주문량이다
+	                     THEN ODER_BOX
+	                     ELSE CASE WHEN JEJU_GUBN ='Y'  -- 제주배정인 경우 제주지점만 EDI 발주량으로, 그 외는 영업사원값이다
+	                          THEN DECODE(DEPT_CODE,'144',ODER_BOX,ODER_BOX2)
+	                          ELSE ODER_BOX2
+	                          END
+	                END 	ODER_BOX,
+	                SELL_BOX,       
+	                HS_BOX,
+	                DEFAULT_CODE_NS,
+	                STOR_CODE,
+	                DC_NAME,
+	                DEPT_CODE,
+	                DEPT_NAME,    
+	                HAN_NAME,
+	                BIGO                                
+	        FROM    (        
+	                SELECT  S1.CNFM_DATE,
+	                        S1.PROD_CODE,         
+	                        S2.ALLOC_GUBN,
+	                        S2.JEJU_GUBN,
+	                        S1.ITEM_NAME,
+	                        S1.CUST_CODE,
+	                        S1.CUST_NAME,  
+	                        S1.STOR_CODE, 
+	                        S1.DC_NAME,
+	                        S1.DEPT_CODE,
+	                        S1.DEPT_NAME,
+	                        S1.HAN_NAME,
+	                        SUM(S1.ODER_BOX)   ODER_BOX,
+	                        SUM(S1.ODER_BOX2)  ODER_BOX2,       
+	                        SUM(S1.SELL_BOX) - SUM(S1.HS_BOX)  SELL_BOX,
+	                        SUM(S1.HS_BOX)     HS_BOX,
+	                        S3.DEFAULT_CODE_NS,
+	                        S3.BIGO
+	                FROM    (
+	                        /* 주문량 */
+	                        SELECT    T1.CNFM_DATE,
+	                                T1.PROD_CODE,
+	                                T8.ITEM_NAME,
+	                                T1.CUST_CODE,
+	                                T4.CUST_NAME,
+	                                T5.STOR_CODE,
+	                                F_GET_DC_NAME(T5.STOR_CODE) DC_NAME,
+	                                T5.DEPT_CODE,
+	                                T9.DEPT_NAME,
+	                                SUM(T1.ODER_BOX)    ODER_BOX,
+	                                0                   ODER_BOX2,
+	                                0                   SELL_BOX,
+	                                0   HS_BOX,
+	                                T7.HAN_NAME
+	                        FROM    SDORT120    T1,
+	                                SDSTT101    T4,
+	                                SDSTT103    T5,
+	                                SDSTT105    T6,
+	                                NCOMT005    T7,
+	                                ITEM_MST    T8,
+	                                SDSTT401    T9                        
+	                        WHERE   T1.CNFM_DATE    	= REPLACE('$!{cnfm_date}', '-','')              
+	                        AND     T1.ERR_GUBN    	   != '16'
+	                        AND     T1.GRUP_CODE    	= '32'            
+	                        AND     T1.CUST_CODE    	= T4.CUST_CODE
+	                        AND     T4.HEAD_CUST_CODE 	= '1020073'
+	                        AND     T1.CUST_CODE    	= T5.CUST_CODE
+	                        AND     T5.SALE_ORG     	= '1000'
+	                        AND     T1.CUST_CODE    	= T6.CUST_CODE                      
+	                        AND     T6.PRTN_ROLE    	= 'VE'
+	                        AND     T6.PRTN_CUST_CODE   = T7.EMP_NO
+	                        AND     T1.PROD_CODE     	= T8.ITEM_ID
+	                        AND     T5.DEPT_CODE     	= T9.DEPT_CODE
+	                        AND     T9.APPL_END_YYMM 	= '999912'
+	                        AND     T1.IPUT_DATE||T1.IPUT_TIME &lt; TO_CHAR(TO_DATE(T1.CNFM_DATE,'YYYYMMDD')-1,'YYYYMMDD')||'180000'
+	                        GROUP
+	                        BY      T1.CNFM_DATE,
+	                                T1.PROD_CODE,
+	                                T8.ITEM_NAME,
+	                                T1.CUST_CODE,
+	                                T4.CUST_NAME,
+	                                T5.DEPT_CODE,
+	                                T7.HAN_NAME,
+	                                T9.DEPT_NAME,
+	                                T5.STOR_CODE
+	                        /* 판매량 */
+	                        UNION ALL 
+	                        SELECT  T2.CNFM_DATE,
+	                                T3.PROD_CODE,
+	                                T8.ITEM_NAME,
+	                                T2.SOLD_PART,
+	                                T4.CUST_NAME,
+	                                T5.STOR_CODE,
+	                                F_GET_DC_NAME(T5.STOR_CODE),                        
+	                                T5.DEPT_CODE,
+	                                T9.DEPT_NAME,
+	                                0                   ODER_BOX,
+	                                SUM(T3.ODER_BOX)    ODER_BOX2,
+	                                SUM(T3.SELL_BOX)    SELL_BOX,
+	                                0   HS_BOX,
+	                                T7.HAN_NAME
+	                        FROM    SDORT101    T2,
+	                                SDORT102    T3,
+	                                SDSTT101    T4,
+	                                SDSTT103    T5,
+	                                SDSTT105    T6,
+	                                NCOMT005    T7,
+	                                ITEM_MST    T8,
+	                                SDSTT401    T9                        
+	                        WHERE   T2.CNFM_DATE    	= REPLACE('$!{cnfm_date}', '-','')               
+	                        AND     T2.SLIP_NO      	= T3.SLIP_NO
+	                        AND     T4.GRUP_CODE    	= '32'            
+	                        AND     T2.SOLD_PART    	= T4.CUST_CODE
+	                        AND     T4.HEAD_CUST_CODE 	= '1020073'
+	                        AND     T2.SOLD_PART    	= T5.CUST_CODE
+	                        AND     T5.SALE_ORG    		= '1000'
+	                        AND     T2.SOLD_PART    	= T6.CUST_CODE  
+	                        AND		T2.UPDT_GUBN	   != '00' 
+	                        AND		T3.UPDT_GUBN	   != '00'                 
+	                        AND     T6.PRTN_ROLE    	= 'VE'
+	                        AND     T2.SLIP_GUBN_CODE LIKE 'YO%'
+	                        AND     T6.PRTN_CUST_CODE   = T7.EMP_NO
+	                        AND     T3.PROD_CODE    	= T8.ITEM_ID
+	                        AND     T5.DEPT_CODE     	= T9.DEPT_CODE
+	                        AND     T9.APPL_END_YYMM 	= '999912'                    
+	                        GROUP
+	                        BY      T2.CNFM_DATE,
+	                                T3.PROD_CODE,
+	                                T8.ITEM_NAME,
+	                                T2.SOLD_PART,
+	                                T4.CUST_NAME,
+	                                T5.STOR_CODE,
+	                                T5.DEPT_CODE,
+	                                T9.DEPT_NAME,                
+	                                T7.HAN_NAME	                                
+	                        UNION ALL
+	                        /* 회송량 */                
+	                        SELECT  T2.CNFM_DATE,
+	                                T3.PROD_CODE,
+	                                T8.ITEM_NAME,
+	                                T2.SOLD_PART,
+	                                T4.CUST_NAME,
+	                                T5.STOR_CODE,
+	                                F_GET_DC_NAME(T5.STOR_CODE),                        
+	                                T5.DEPT_CODE,
+	                                T9.DEPT_NAME,
+	                                0                   ODER_BOX,
+	                                0                   ODER_BOX2,
+	                                0                   SELL_BOX,
+	                                SUM(T3.SELL_BOX)    HS_BOX,                        
+	                                T7.HAN_NAME
+	                        FROM    SDORT101    T2,
+	                                SDORT102    T3,
+	                                SDSTT101    T4,
+	                                SDSTT103    T5,
+	                                SDSTT105    T6,
+	                                NCOMT005    T7,
+	                                ITEM_MST    T8,
+	                                SDSTT401    T9                        
+	                        WHERE   T2.CNFM_DATE    	= REPLACE('$!{cnfm_date}', '-','')           
+	                        AND     T2.SLIP_NO      	= T3.SLIP_NO
+	                        AND     T4.GRUP_CODE    	= '32'            
+	                        AND     T2.SOLD_PART    	= T4.CUST_CODE
+	                        AND     T4.HEAD_CUST_CODE 	= '1020073'
+	                        AND     T2.SOLD_PART    	= T5.CUST_CODE
+	                        AND     T5.SALE_ORG    		= '1000'
+	                        AND		T2.UPDT_GUBN	   != '00'
+	                        AND		T3.UPDT_GUBN	   != '00'
+	                        AND     T2.SOLD_PART    	= T6.CUST_CODE                      
+	                        AND     T6.PRTN_ROLE    	= 'VE'
+	                        AND     T2.SLIP_GUBN_CODE LIKE 'YS%'
+	                        AND     T2.REFR_DOC IS  NOT  NULL
+	                        AND     T6.PRTN_CUST_CODE   = T7.EMP_NO
+	                        AND     T3.PROD_CODE    	= T8.ITEM_ID
+	                        AND     T5.DEPT_CODE     	= T9.DEPT_CODE
+	                        AND     T9.APPL_END_YYMM 	= '999912'                    
+	                        GROUP
+	                        BY      T2.CNFM_DATE,
+	                                T3.PROD_CODE,
+	                                T8.ITEM_NAME,
+	                                T2.SOLD_PART,
+	                                T4.CUST_NAME,
+	                                T5.STOR_CODE,
+	                                T5.DEPT_CODE,
+	                                T9.DEPT_NAME,                
+	                                T7.HAN_NAME	                                
+	                        )S1,
+	                        (
+	                        SELECT  PROD_CODE,
+	                                MAX(DECODE(GUBN,'1','Y','')) ALLOC_GUBN,
+	                                MAX(DECODE(GUBN,'2','Y','')) JEJU_GUBN
+	                        FROM    (
+	                                SELECT  PROD_CODE,                                
+	                                        '1'         GUBN
+	                                FROM    SDORT203
+	                                WHERE   CNFM_DATE   = REPLACE('$!{cnfm_date}', '-','')
+	                                AND     ALLOC_GUBN  = '2'   -- 2 -> '관리' 
+	                                AND     ALLOC_ZONE  = '01'
+	                                GROUP
+	                                BY      PROD_CODE
+	                                UNION ALL
+	                                SELECT  PROD_CODE,                                
+	                                        '2'         GUBN
+	                                FROM    SDORT203
+	                                WHERE   CNFM_DATE   = REPLACE('$!{cnfm_date}', '-','')
+	                                AND     ALLOC_GUBN  = '2'   -- 2 -> '관리' 
+	                                AND     ALLOC_ZONE	= '11'
+	                                GROUP
+	                                BY      PROD_CODE
+	                                )
+	                        GROUP
+	                        BY      PROD_CODE
+	                        )S2,
+	                        (
+	                        SELECT	DISTINCT CNFM_DATE,
+	                                PROD_CODE,
+	                                CUST_CODE,
+	                                BIGO,
+	                                DEFAULT_CODE_NS
+	                        FROM	EDI_DEFAULT_NS
+	                        WHERE	CNFM_DATE = REPLACE('$!{cnfm_date}', '-','')	                        
+	                        )S3
+	            WHERE   S1.PROD_CODE = S2.PROD_CODE(+)
+	            AND     S1.PROD_CODE = S3.PROD_CODE(+)
+	            AND     S1.CNFM_DATE = S3.CNFM_DATE(+)
+	            AND     S1.CUST_CODE = S3.CUST_CODE(+)
+	            GROUP 
+	            BY      S1.CNFM_DATE,
+	                    S1.PROD_CODE,            
+	                    S1.ITEM_NAME,
+	                    S1.CUST_CODE,
+	                    S1.CUST_NAME,   
+	                    S2.ALLOC_GUBN,
+	                    S2.JEJU_GUBN,
+	                    S1.STOR_CODE, 
+	                    S1.DC_NAME,
+	                    S1.DEPT_CODE,
+	                    S1.DEPT_NAME,
+	                    S1.HAN_NAME,
+	                    S3.BIGO,
+	                    S3.DEFAULT_CODE_NS    
+	            )
+	        )T1, ITEM_MST T2        
+	WHERE   DECODE(SIGN(T1.ODER_BOX - T1.SELL_BOX),-1,0,T1.ODER_BOX - T1.SELL_BOX) > 0      
+	AND     T1.PROD_CODE = T2.ITEM_ID   
+	ORDER
+	BY		1,5,7      
+	</query> 
+	
+	<query id="ip_02120_Edi_NS_Analysis_dw5" paging="false"> 
+	/* 유통본부 미납 추적분석(농심) DW2 그리드 */
+	SELECT  T1.CNFM_DATE                                "작업일",
+	        DECODE(T2.SELL_STOP_DATE,'99991231','','Y')	"판매중지",
+	        T1.ALLOC_GUBN                               "공급할당",
+	        T1.JEJU_GUBN                                "제주배정",                
+	        T1.PROD_CODE                                "품목코드",
+	        T1.ITEM_NAME                                "품목명",
+	        T1.CUST_CODE                                "거래처코드",
+	        T1.CUST_NAME                                "거래처명",
+	        T1.ODER_BOX                                 "주문량",
+	        T1.SELL_BOX                                 "판매량",
+	        T1.HS_BOX                                   "회송량",
+	        T1.ODER_BOX - T1.SELL_BOX                   "미납량",
+	        T1.DEFAULT_CODE_NS                          "사유",
+	        T1.STOR_CODE                                "배송지점코드",
+	        T1.DC_NAME                                  "배송지점",
+	        T1.DEPT_CODE                                "영업지점코드",
+	        T1.DEPT_NAME                                "영업지점명",    
+	        T1.HAN_NAME                                 "담당자",
+	        T1.BIGO                                     "비고" 
+	FROM    (    
+	        SELECT  CNFM_DATE,
+	                ALLOC_GUBN,
+	                JEJU_GUBN,                
+	                PROD_CODE,
+	                ITEM_NAME,
+	                CUST_CODE,
+	                CUST_NAME,
+	                CASE WHEN ALLOC_GUBN ='Y'   --배정품목이면 EDI 발주량이 주문량이다
+	                     THEN ODER_BOX
+	                     ELSE CASE WHEN JEJU_GUBN ='Y'  -- 제주배정인 경우 제주지점만 EDI 발주량으로, 그 외는 영업사원값이다
+	                          THEN DECODE(DEPT_CODE,'144',ODER_BOX,ODER_BOX2)
+	                          ELSE ODER_BOX2
+	                          END
+	                END 	ODER_BOX,
+	                SELL_BOX,       
+	                HS_BOX,
+	                DEFAULT_CODE_NS,
+	                STOR_CODE,
+	                DC_NAME,
+	                DEPT_CODE,
+	                DEPT_NAME,    
+	                HAN_NAME,
+	                BIGO                                
+	        FROM    (        
+	                SELECT  S1.CNFM_DATE,
+	                        S1.PROD_CODE,         
+	                        S2.ALLOC_GUBN,
+	                        S2.JEJU_GUBN,
+	                        S1.ITEM_NAME,
+	                        S1.CUST_CODE,
+	                        S1.CUST_NAME,  
+	                        S1.STOR_CODE, 
+	                        S1.DC_NAME,
+	                        S1.DEPT_CODE,
+	                        S1.DEPT_NAME,
+	                        S1.HAN_NAME,
+	                        SUM(S1.ODER_BOX)   ODER_BOX,
+	                        SUM(S1.ODER_BOX2)  ODER_BOX2,       
+	                        SUM(S1.SELL_BOX) - SUM(S1.HS_BOX)  SELL_BOX,
+	                        SUM(S1.HS_BOX)     HS_BOX,
+	                        S3.DEFAULT_CODE_NS,
+	                        S3.BIGO
+	                FROM    (
+	                        /* 주문량 */
+	                        SELECT    T1.CNFM_DATE,
+	                                T1.PROD_CODE,
+	                                T8.ITEM_NAME,
+	                                T1.CUST_CODE,
+	                                T4.CUST_NAME,
+	                                T5.STOR_CODE,
+	                                F_GET_DC_NAME(T5.STOR_CODE) DC_NAME,
+	                                T5.DEPT_CODE,
+	                                T9.DEPT_NAME,
+	                                SUM(T1.ODER_BOX)    ODER_BOX,
+	                                0                   ODER_BOX2,
+	                                0                   SELL_BOX,
+	                                0   HS_BOX,
+	                                T7.HAN_NAME
+	                        FROM    SDORT120    T1,
+	                                SDSTT101    T4,
+	                                SDSTT103    T5,
+	                                SDSTT105    T6,
+	                                NCOMT005    T7,
+	                                ITEM_MST    T8,
+	                                SDSTT401    T9                        
+	                        WHERE   T1.CNFM_DATE    	= REPLACE('$!{cnfm_date}', '-','')              
+	                        AND     T1.ERR_GUBN    	   != '16'
+	                        AND     T1.GRUP_CODE    	= '32'            
+	                        AND     T1.CUST_CODE    	= T4.CUST_CODE
+	                        AND     T4.HEAD_CUST_CODE 	!= '1020073'
+	                        AND     T1.CUST_CODE    	= T5.CUST_CODE
+	                        AND     T5.SALE_ORG     	= '1000'
+	                        AND     T1.CUST_CODE    	= T6.CUST_CODE                      
+	                        AND     T6.PRTN_ROLE    	= 'VE'
+	                        AND     T6.PRTN_CUST_CODE   = T7.EMP_NO
+	                        AND     T1.PROD_CODE     	= T8.ITEM_ID
+	                        AND     T5.DEPT_CODE     	= T9.DEPT_CODE
+	                        AND     T9.APPL_END_YYMM 	= '999912'
+	                        AND     T1.IPUT_DATE||T1.IPUT_TIME &lt; TO_CHAR(TO_DATE(T1.CNFM_DATE,'YYYYMMDD')-1,'YYYYMMDD')||'180000'
+	                        GROUP
+	                        BY      T1.CNFM_DATE,
+	                                T1.PROD_CODE,
+	                                T8.ITEM_NAME,
+	                                T1.CUST_CODE,
+	                                T4.CUST_NAME,
+	                                T5.DEPT_CODE,
+	                                T7.HAN_NAME,
+	                                T9.DEPT_NAME,
+	                                T5.STOR_CODE
+	                        /* 판매량 */
+	                        UNION ALL 
+	                        SELECT  T2.CNFM_DATE,
+	                                T3.PROD_CODE,
+	                                T8.ITEM_NAME,
+	                                T2.SOLD_PART,
+	                                T4.CUST_NAME,
+	                                T5.STOR_CODE,
+	                                F_GET_DC_NAME(T5.STOR_CODE),                        
+	                                T5.DEPT_CODE,
+	                                T9.DEPT_NAME,
+	                                0                   ODER_BOX,
+	                                SUM(T3.ODER_BOX)    ODER_BOX2,
+	                                SUM(T3.SELL_BOX)    SELL_BOX,
+	                                0   HS_BOX,
+	                                T7.HAN_NAME
+	                        FROM    SDORT101    T2,
+	                                SDORT102    T3,
+	                                SDSTT101    T4,
+	                                SDSTT103    T5,
+	                                SDSTT105    T6,
+	                                NCOMT005    T7,
+	                                ITEM_MST    T8,
+	                                SDSTT401    T9                        
+	                        WHERE   T2.CNFM_DATE    	= REPLACE('$!{cnfm_date}', '-','')               
+	                        AND     T2.SLIP_NO      	= T3.SLIP_NO
+	                        AND     T4.GRUP_CODE    	= '32'            
+	                        AND     T2.SOLD_PART    	= T4.CUST_CODE
+	                        AND     T4.HEAD_CUST_CODE 	!= '1020073'
+	                        AND     T2.SOLD_PART    	= T5.CUST_CODE
+	                        AND     T5.SALE_ORG    		= '1000'
+	                        AND     T2.SOLD_PART    	= T6.CUST_CODE  
+	                        AND		T2.UPDT_GUBN	   != '00'                  
+	                        AND     T6.PRTN_ROLE    	= 'VE'
+	                        AND     T2.SLIP_GUBN_CODE LIKE 'YO%'
+	                        AND     T6.PRTN_CUST_CODE   = T7.EMP_NO
+	                        AND     T3.PROD_CODE    	= T8.ITEM_ID
+	                        AND     T5.DEPT_CODE     	= T9.DEPT_CODE
+	                        AND     T9.APPL_END_YYMM 	= '999912'                    
+	                        GROUP
+	                        BY      T2.CNFM_DATE,
+	                                T3.PROD_CODE,
+	                                T8.ITEM_NAME,
+	                                T2.SOLD_PART,
+	                                T4.CUST_NAME,
+	                                T5.STOR_CODE,
+	                                T5.DEPT_CODE,
+	                                T9.DEPT_NAME,                
+	                                T7.HAN_NAME	                                
+	                        UNION ALL
+	                        /* 회송량 */                
+	                        SELECT  T2.CNFM_DATE,
+	                                T3.PROD_CODE,
+	                                T8.ITEM_NAME,
+	                                T2.SOLD_PART,
+	                                T4.CUST_NAME,
+	                                T5.STOR_CODE,
+	                                F_GET_DC_NAME(T5.STOR_CODE),                        
+	                                T5.DEPT_CODE,
+	                                T9.DEPT_NAME,
+	                                0                   ODER_BOX,
+	                                0                   ODER_BOX2,
+	                                0                   SELL_BOX,
+	                                SUM(T3.SELL_BOX)    HS_BOX,                        
+	                                T7.HAN_NAME
+	                        FROM    SDORT101    T2,
+	                                SDORT102    T3,
+	                                SDSTT101    T4,
+	                                SDSTT103    T5,
+	                                SDSTT105    T6,
+	                                NCOMT005    T7,
+	                                ITEM_MST    T8,
+	                                SDSTT401    T9                        
+	                        WHERE   T2.CNFM_DATE    	= REPLACE('$!{cnfm_date}', '-','')           
+	                        AND     T2.SLIP_NO      	= T3.SLIP_NO
+	                        AND     T4.GRUP_CODE    	= '32'            
+	                        AND     T2.SOLD_PART    	= T4.CUST_CODE
+	                        AND     T4.HEAD_CUST_CODE 	!= '1020073'
+	                        AND     T2.SOLD_PART    	= T5.CUST_CODE
+	                        AND     T5.SALE_ORG    		= '1000'
+	                        AND		T2.UPDT_GUBN	   != '00'
+	                        AND     T2.SOLD_PART    	= T6.CUST_CODE                      
+	                        AND     T6.PRTN_ROLE    	= 'VE'
+	                        AND     T2.SLIP_GUBN_CODE LIKE 'YS%'
+	                        AND     T2.REFR_DOC IS  NOT  NULL
+	                        AND     T6.PRTN_CUST_CODE   = T7.EMP_NO
+	                        AND     T3.PROD_CODE    	= T8.ITEM_ID
+	                        AND     T5.DEPT_CODE     	= T9.DEPT_CODE
+	                        AND     T9.APPL_END_YYMM 	= '999912'                    
+	                        GROUP
+	                        BY      T2.CNFM_DATE,
+	                                T3.PROD_CODE,
+	                                T8.ITEM_NAME,
+	                                T2.SOLD_PART,
+	                                T4.CUST_NAME,
+	                                T5.STOR_CODE,
+	                                T5.DEPT_CODE,
+	                                T9.DEPT_NAME,                
+	                                T7.HAN_NAME	                                
+	                        )S1,
+	                        (
+	                        SELECT  PROD_CODE,
+	                                MAX(DECODE(GUBN,'1','Y','')) ALLOC_GUBN,
+	                                MAX(DECODE(GUBN,'2','Y','')) JEJU_GUBN
+	                        FROM    (
+	                                SELECT  PROD_CODE,                                
+	                                        '1'         GUBN
+	                                FROM    SDORT203
+	                                WHERE   CNFM_DATE   = REPLACE('$!{cnfm_date}', '-','')
+	                                AND     ALLOC_GUBN  = '2'   -- 2 -> '관리' 
+	                                AND     ALLOC_ZONE  = '01'
+	                                GROUP
+	                                BY      PROD_CODE
+	                                UNION ALL
+	                                SELECT  PROD_CODE,                                
+	                                        '2'         GUBN
+	                                FROM    SDORT203
+	                                WHERE   CNFM_DATE   = REPLACE('$!{cnfm_date}', '-','')
+	                                AND     ALLOC_GUBN  = '2'   -- 2 -> '관리' 
+	                                AND     ALLOC_ZONE	= '11'
+	                                GROUP
+	                                BY      PROD_CODE
+	                                )
+	                        GROUP
+	                        BY      PROD_CODE
+	                        )S2,
+	                        (
+	                        SELECT	DISTINCT CNFM_DATE,
+	                                PROD_CODE,
+	                                CUST_CODE,
+	                                BIGO,
+	                                DEFAULT_CODE_NS
+	                        FROM	EDI_DEFAULT_NS
+	                        WHERE	CNFM_DATE = REPLACE('$!{cnfm_date}', '-','')	                        
+	                        )S3
+	            WHERE   S1.PROD_CODE = S2.PROD_CODE(+)
+	            AND     S1.PROD_CODE = S3.PROD_CODE(+)
+	            AND     S1.CNFM_DATE = S3.CNFM_DATE(+)
+	            AND     S1.CUST_CODE = S3.CUST_CODE(+)
+	            GROUP 
+	            BY      S1.CNFM_DATE,
+	                    S1.PROD_CODE,            
+	                    S1.ITEM_NAME,
+	                    S1.CUST_CODE,
+	                    S1.CUST_NAME,   
+	                    S2.ALLOC_GUBN,
+	                    S2.JEJU_GUBN,
+	                    S1.STOR_CODE, 
+	                    S1.DC_NAME,
+	                    S1.DEPT_CODE,
+	                    S1.DEPT_NAME,
+	                    S1.HAN_NAME,
+	                    S3.BIGO,
+	                    S3.DEFAULT_CODE_NS    
+	            )
+	        )T1, ITEM_MST T2        
+	WHERE   DECODE(SIGN(T1.ODER_BOX - T1.SELL_BOX),-1,0,T1.ODER_BOX - T1.SELL_BOX) > 0      
+	AND     T1.PROD_CODE = T2.ITEM_ID   
+	ORDER
+	BY		1,5,7         	
 
 	</query> 			
 
@@ -5260,7 +5211,8 @@
 		        DECODE(MAX(FLAG.CONS_ITEM_ID),NULL,'F','T')																								BOM_FLAG,
 		        --기초재고는 사외재고를 제거한 것으로 정의한다 2015-05-20 SCM팀
                 NVL(SUM(DW.BASE_STOCK),0) + NVL(MAX(DW_BOM.BASE_STOCK),0) -
-                (NVL(DW2.DY_STOCK,0) + ROUND(NVL(DW2_BOM.DY_STOCK,0),0) + NVL(DW2.GITA_STOCK,0) + ROUND(NVL(DW2_BOM.GITA_STOCK,0),0))                   "기초재고",
+                (NVL(DW2.DY_STOCK,0) + ROUND(NVL(DW2_BOM.DY_STOCK,0),0) + NVL(DW2.GITA_STOCK,0) + ROUND(NVL(DW2_BOM.GITA_STOCK,0),0))
+                - NVL(DW2.CJ_STOCK,0) - ROUND(NVL(DW2_BOM.CJ_STOCK,0),0)   																				"기초재고",
                 NVL(DW2.DY_STOCK,0) + ROUND(NVL(DW2_BOM.DY_STOCK,0),0)																					"동양재고",
                 NVL(DW2.GITA_STOCK,0) + ROUND(NVL(DW2_BOM.GITA_STOCK,0),0)																				"기타재고",  
                 NVL(DW2.DY_STOCK,0) + ROUND(NVL(DW2_BOM.DY_STOCK,0),0) + NVL(DW2.GITA_STOCK,0) + ROUND(NVL(DW2_BOM.GITA_STOCK,0),0)						"사외재고",              
@@ -5287,13 +5239,18 @@
                 NVL(SUM(DW.ISSUE_EXPT),0) + NVL(SUM(DW.ISSUE),0) + NVL(MAX(DW_BOM.ISSUE),0) + NVL(MAX(DW_BOM.ISSUE_EXPT),0)       						"일계",
                 NVL(MAX(DWSA.SELL_BOX_CUM),0)+SUM(DW.ISSUE_EXPT) + SUM(DW.ISSUE)  + NVL(MAX(DW_BOM.ISSUE),0) + NVL(MAX(DW_BOM.ISSUE_EXPT),0)   			"당월누계", 
                	NVL(SUM(DW.BASE_STOCK),0) + NVL(MAX(DW_BOM.BASE_STOCK),0) -
-                (NVL(DW2.DY_STOCK,0) + ROUND(NVL(DW2_BOM.DY_STOCK,0),0) + NVL(DW2.GITA_STOCK,0) + ROUND(NVL(DW2_BOM.GITA_STOCK,0),0))    
+                (NVL(DW2.DY_STOCK,0) + NVL(DW2.CJ_STOCK,0)+  ROUND(NVL(DW2_BOM.CJ_STOCK,0),0) + ROUND(NVL(DW2_BOM.DY_STOCK,0),0) + NVL(DW2.GITA_STOCK,0) 
+                + ROUND(NVL(DW2_BOM.GITA_STOCK,0),0))  
                 - (NVL(SUM(DW.ISSUE_EXPT),0) + NVL(SUM(DW.ISSUE),0) + NVL(MAX(DW_BOM.ISSUE),0) + NVL(MAX(DW_BOM.ISSUE_EXPT),0))							"예상재고",
                 NVL(SUM(DW.PRE_MONTH_SELL),0) 	+ NVL(MAX(DW_BOM.PRE_MONTH_SELL),0)																		"전월계",                
-                NVL(DWSP.MON_M00,0)																														"매입실적M",
+                --NVL(DWSP.MON_M00,0)																													"매입실적M",
+                NVL(RC.RECEIPT_M,0)																														"매입실적M",
+                NVL(RC.RECEIPT_M2,0)																													"매입실적M2",
+                NVL(RC.RECEIPT_M3,0)																													"매입실적M3", 
                 NVL(DWSP.MON_M01,0)																														"매입실적M+1",
                 NVL(DWSP.MON_M02,0)																														"매입실적M+2",
                 NVL(DWSP.MON_M03,0)																														"매입실적M+3",
+                NVL(DWSP.MON_M04,0)																														"매입실적M+4",
                 (NVL(SUM(DW.SALES_MEAN_1MON_TA),0) + NVL(MAX(DW_BOM.SALES_MEAN_1MON_TA),0)) * 6															"1개월평균",
                	(NVL(SUM(DW.SALES_MEAN_3MON_TA),0) + NVL(MAX(DW_BOM.SALES_MEAN_3MON_TA),0)) * 6															"3개월평균",
                 (NVL(SUM(DW.SALES_MEAN_1WEEK_ETC),0) + NVL(MAX(DW_BOM.SALES_MEAN_1WEEK_ETC),0)) 														"1주평균",
@@ -5335,23 +5292,28 @@
 				(
 				 SELECT	ITEM_ID,
 				 		SUM(DY_STOCK) 	DY_STOCK,
-				 		SUM(GITA_STOCK)	GITA_STOCK
+				 		SUM(GITA_STOCK)	GITA_STOCK,
+				 		SUM(CJ_STOCK)	CJ_STOCK
 				 FROM	(
 						 SELECT	DC.ITEM_ID,
 						 		CASE 	WHEN DM.DC_ID = '1811'
 						 				THEN SUM(DC.BASE_STOCK)
 						 				ELSE 0
 						 		END		DY_STOCK,
-						 		CASE	WHEN	(DM.DC_LOC_TYPE = '사외' AND DM.DC_ID != '1811')
+						 		CASE	WHEN	(DM.DC_LOC_TYPE = '사외' AND DM.DC_ID != '1811' AND DM.DC_ID != '8922')		
 						 				THEN	SUM(DC.BASE_STOCK)
 						 				ELSE	0
-						 		END		GITA_STOCK                        
+						 		END		GITA_STOCK  ,
+						 		CASE	WHEN	(DM.DC_LOC_TYPE = '사외' AND DM.DC_ID = '8922')		
+						 				THEN	SUM(DC.BASE_STOCK)
+						 				ELSE	0
+						 		END		CJ_STOCK                       
 		                FROM	DC_DATAWAREHOUSE DC, DC_MST DM, ITEM_MST IM
 		                WHERE	DC.CNFM_DATE 	= '$!{end_date}'                                      
 		                AND		DC.DC_ID 		= DM.DC_ID
 		                AND		DC.ITEM_ID		= IM.ITEM_ID
                         AND		IM.ST_FLAG  	= 'Y'
-                        AND		(IM.SELL_STOP_DATE > TO_CHAR(SYSDATE,'YYYYMMDD') OR IM.SELL_STOP_DATE = '00000000')
+                        --AND		(IM.SELL_STOP_DATE > TO_CHAR(SYSDATE,'YYYYMMDD') OR IM.SELL_STOP_DATE = '00000000')
 		                GROUP
 		                BY		DC.ITEM_ID, DM.DC_LOC_TYPE, DM.DC_ID
 		                )
@@ -5412,7 +5374,7 @@
 	                            WHERE	IM.ITEM_ID = MB.CONS_ITEM_ID
 	                            AND		IM.ITEM_ID	= ITM.ITEM_CD
 	                            AND		IM.ITYPE		= 'HAWA'	
-	                            AND		(IM.SELL_STOP_DATE > TO_CHAR(TO_DATE('$!{end_date}'),'YYYYMMDD') OR IM.SELL_STOP_DATE = '00000000')	                          
+	                            --AND		(IM.SELL_STOP_DATE > TO_CHAR(TO_DATE('$!{end_date}'),'YYYYMMDD') OR IM.SELL_STOP_DATE = '00000000')	                          
 	                            AND		IM.ST_FLAG = 'Y'
 	                            GROUP 
 	                            BY 		IM.ITEM_ID, 
@@ -5433,7 +5395,8 @@
                 (
                 SELECT	CONS_ITEM_ID,             			
                         SUM(DY_STOCK)	DY_STOCK,
-                        SUM(GITA_STOCK) GITA_STOCK                     
+                        SUM(GITA_STOCK) GITA_STOCK ,
+                        SUM(CJ_STOCK)	CJ_STOCK                    
                 FROM	(
                      	SELECT	S1.CONS_ITEM_ID,
 	                 			S1.PROD_ITEM_ID,  
@@ -5443,8 +5406,14 @@
 						 				ELSE 0
 						 		END
                                 )	* S1.QTY	DY_STOCK,
+                                (
+                                CASE 	WHEN S3.DC_ID = '8922'
+						 				THEN SUM(S2.BASE_STOCK)
+						 				ELSE 0
+						 		END
+                                )	* S1.QTY	CJ_STOCK,
 						 		(
-                                CASE	WHEN	(S3.DC_LOC_TYPE = '사외' AND S3.DC_ID != '1811')
+                                CASE	WHEN	(S3.DC_LOC_TYPE = '사외' AND S3.DC_ID NOT IN  ('1811','8922'))
 						 				THEN	SUM(S2.BASE_STOCK)
 						 				ELSE	0
 						 		END		
@@ -5462,7 +5431,7 @@
 	                            WHERE	IM.ITEM_ID = MB.CONS_ITEM_ID
 	                            AND		IM.ITEM_ID	= ITM.ITEM_CD
 	                            AND		IM.ITYPE		= 'HAWA'	
-	                            AND		(IM.SELL_STOP_DATE > TO_CHAR(TO_DATE('$!{end_date}'),'YYYYMMDD') OR IM.SELL_STOP_DATE = '00000000')	                            
+	                            --AND		(IM.SELL_STOP_DATE > TO_CHAR(TO_DATE('$!{end_date}'),'YYYYMMDD') OR IM.SELL_STOP_DATE = '00000000')	                            
 	                            AND		IM.ST_FLAG = 'Y'
 	                            GROUP 
 	                            BY 		IM.ITEM_ID, 
@@ -5487,7 +5456,7 @@
                  SELECT IM.* 
                  FROM 	ITEM_MST IM
 				 WHERE	IM.ITYPE		= 'HAWA'	
-				 AND	(IM.SELL_STOP_DATE > TO_CHAR(SYSDATE,'YYYYMMDD') OR IM.SELL_STOP_DATE = '00000000')
+				 --AND	(IM.SELL_STOP_DATE > TO_CHAR(SYSDATE,'YYYYMMDD') OR IM.SELL_STOP_DATE = '00000000')
 				-- AND	IM.SELL_STOP_DATE &gt;= TO_CHAR(TRUNC(SYSDATE),'YYYYMMDD')
 				 AND	IM.ST_FLAG 	= 'Y'                 			 
                 [AND    (IM.ITEM_ID		LIKE '%'||'$!{search_item}'||'%'
@@ -5498,11 +5467,42 @@
 						MON_M00,
 						MON_M01,
 						MON_M02,
-						MON_M03
+						MON_M03,
+						MON_M04
 				FROM	DC_RECEIVE_PR
 				WHERE	VERSION =  '$!{end_date}'
 				AND		GUBN ='2'
 		       )DWSP,
+		       (
+		       	SELECT	ITEM_ID,
+				        SUM(RECEIPT_M)  RECEIPT_M, 
+				        SUM(RECEIPT_M2) RECEIPT_M2,
+				        SUM(RECEIPT_M3) RECEIPT_M3
+				FROM	(
+ 						SELECT	CASE WHEN S1.CNFM_DATE BETWEEN TO_CHAR(TRUNC(TO_DATE('$!{end_date}'),'MM'),'YYYYMMDD') AND TO_CHAR(TRUNC(TO_DATE('$!{end_date}'),'MM')+9,'YYYYMMDD')
+		                        THEN SUM(RECEIPT_EXPT)
+		                        ELSE 0
+		                        END     RECEIPT_M,
+		                    	CASE WHEN S1.CNFM_DATE BETWEEN TO_CHAR(TRUNC(TO_DATE('$!{end_date}'),'MM')+10,'YYYYMMDD') AND TO_CHAR(TRUNC(TO_DATE('$!{end_date}'),'MM')+19,'YYYYMMDD')
+		                        THEN SUM(RECEIPT_EXPT)
+		                        ELSE 0
+		                        END     RECEIPT_M2,    
+		                     	CASE WHEN S1.CNFM_DATE BETWEEN TO_CHAR(TRUNC(TO_DATE('$!{end_date}'),'MM')+20,'YYYYMMDD') AND TO_CHAR(LAST_DAY(TRUNC(TO_DATE('$!{end_date}'))),'YYYYMMDD')
+		                        THEN SUM(RECEIPT_EXPT)
+		                        ELSE 0
+		                        END     RECEIPT_M3,  
+		                        S1.ITEM_ID
+             			FROM 	DC_DATAWAREHOUSE S1, ITEM_MST S2
+			            WHERE 	S1.CNFM_DATE BETWEEN '$!{start_date}' AND TO_CHAR(LAST_DAY(TRUNC(TO_DATE('$!{end_date}'))),'YYYYMMDD')
+			            AND 	S1.ITEM_ID = S2.ITEM_ID
+			            AND 	S2.ST_FLAG ='Y'
+			            AND 	CNFM_DATE >= TO_CHAR(TO_DATE('$!{end_date}'),'YYYYMMDD')
+			            HAVING 	SUM(RECEIPT_EXPT) > 0
+			            GROUP 
+			            BY 		S1.CNFM_DATE, S1.ITEM_ID
+            			)		
+            	GROUP BY ITEM_ID
+               )RC,           
 		      (		 
 			 SELECT		ITEM_ID,
 			 			MAX(DECODE(NO,1,MON_P01,0))		MON_P01,
@@ -5584,7 +5584,7 @@
 				                        WHERE	IM.ITEM_ID 	= MB.CONS_ITEM_ID
 				                        AND		IM.ITEM_ID	= ITM.ITEM_CD
 				                        AND		IM.ITYPE	= 'HAWA'	
-				                        AND		IM.SELL_STOP_DATE >= TO_CHAR(TO_DATE('$!{end_date}'),'YYYYMMDD')
+				                       -- AND		IM.SELL_STOP_DATE >= TO_CHAR(TO_DATE('$!{end_date}'),'YYYYMMDD')
 				                        AND		IM.ST_FLAG = 'Y'
 				                        AND    (IM.ITEM_ID		LIKE '%'||'$!{search_item}'||'%'
 				                                OR   IM.ITEM_NAME	LIKE '%'||'$!{search_item}'||'%')
@@ -5607,7 +5607,7 @@
 				                --AND      SA.DELIV_LOC    NOT IN ('8901','8902','8903','8913','8914') --판매 실적은 수출도 참조
 				                AND      SA.SALE_DATE = CAL.YYYYMMDD
 				                AND		 SA.DELIV_LOC = DM.DC_ID
-				                AND		 (DM.EXPORT_FLAG IS NULL OR DM.DC_ID IN( '8913','8914'))
+				                AND		 (DM.EXPORT_FLAG IS NULL OR DM.DC_ID IN( '8913','1842','8914'))
 				                GROUP BY SA.ITEM_ID,IM.CONS_ITEM_ID, IM.QTY
 		                		)
 		                GROUP BY CONS_ITEM_ID
@@ -5619,7 +5619,7 @@
 		                         SELECT *
 				                 FROM   ITEM_MST IM
 				                 WHERE	IM.ITYPE		= 'HAWA'	
-								 AND	IM.SELL_STOP_DATE >= TO_CHAR(TRUNC(SYSDATE),'YYYYMMDD')
+								 --AND	IM.SELL_STOP_DATE >= TO_CHAR(TRUNC(SYSDATE),'YYYYMMDD')
 								 AND	IM.ST_FLAG 	= 'Y'
 				                 AND    (IM.ITEM_ID		LIKE '%'||'$!{search_item}'||'%'
 						    		OR   IM.ITEM_NAME	LIKE '%'||'$!{search_item}'||'%')
@@ -5634,7 +5634,7 @@
 		                --AND      SA.DELIV_LOC    NOT IN ('8901','8902','8903','8913','8914') --판매 실적은 수출도 참조
 		                AND      SA.SALE_DATE = CAL.YYYYMMDD
 		                AND		 SA.DELIV_LOC = DM.DC_ID
-		                AND		 (DM.EXPORT_FLAG IS NULL OR DM.DC_ID IN( '8913','8914'))
+		                AND		 (DM.EXPORT_FLAG IS NULL OR DM.DC_ID IN( '8913','1842','8914'))
 		                GROUP BY SA.ITEM_ID
 		                )
 		                GROUP BY ITEM_ID
@@ -5649,13 +5649,13 @@
                          SELECT	ITEM_ID,
                         		SELL_STOP_DATE
                          FROM	ITEM_MST
-                         WHERE	SELL_STOP_DATE >=TO_CHAR(TO_DATE('$!{end_date}'),'YYYYMMDD')
+                         --WHERE	SELL_STOP_DATE >=TO_CHAR(TO_DATE('$!{end_date}'),'YYYYMMDD')
                         )IM2
                 WHERE	IM.ITEM_ID 	= MB.CONS_ITEM_ID
                 AND		IM.ITEM_ID	= ITM.ITEM_CD
                 AND		IM2.ITEM_ID = MB.PROD_ITEM_ID
                 AND		IM.ITYPE		= 'HAWA'	
-                AND		IM.SELL_STOP_DATE >= TO_CHAR(TO_DATE('$!{end_date}'),'YYYYMMDD')
+                --AND		IM.SELL_STOP_DATE >= TO_CHAR(TO_DATE('$!{end_date}'),'YYYYMMDD')
                 AND		IM.ST_FLAG = 'Y'
                 GROUP 
                 BY 		IM.ITEM_ID, 
@@ -5663,13 +5663,16 @@
                         MB.CONS_ITEM_ID,                      
                         IM.QTY
                  )FLAG,
-                 IMPORT_MD_EXPECT	SW		      
-		WHERE   DW.ITEM_ID      = DWSP.ITEM_ID
-		AND		DW.ITEM_ID		= DWSP2.ITEM_ID
+                 (
+                 SELECT	ITEM_ID,STOCK_WEEK, TOT_STOCK_WEEK
+                 FROM   IMPORT_MD_EXPECT
+                 WHERE  VERSION = '$!{end_date}'
+                 AND GUBN='1'
+                 )SW   
+		WHERE   DW.ITEM_ID      = DWSP.ITEM_ID(+)
+		AND		DW.ITEM_ID		= DWSP2.ITEM_ID(+)
 		AND		DW.ITEM_ID		= DW2.ITEM_ID	
-		AND		DW.ITEM_ID		= SW.ITEM_ID
-		AND		SW.VERSION		= '$!{end_date}'
-		AND		SW.GUBN			= '1'
+		AND		DW.ITEM_ID		= SW.ITEM_ID(+)		
 		AND		DW.ITEM_ID		= DW_BOM.CONS_ITEM_ID(+)
 		AND		DW.ITEM_ID		= DW2_BOM.CONS_ITEM_ID(+)
 		AND     DW.ITEM_ID      = DWSA.ITEM_ID	(+)	
@@ -5678,17 +5681,487 @@
 		AND		DW.DC_ID		= DM.DC_ID
 		AND		CM.CD			= IM.SALES_CAT03
 		AND		DW.ITEM_ID		= FLAG.ITEM_ID(+)
+		 AND     ((IM.SELL_STOP_DATE >= TO_CHAR(SYSDATE,'YYYYMMDD') OR IM.SELL_STOP_DATE = '00000000') OR 
+                  (NVL(DW.BASE_STOCK,0) + NVL(DW_BOM.BASE_STOCK,0) + NVL(DW2.DY_STOCK,0) + NVL(DW2_BOM.DY_STOCK,0) + NVL(DW2.GITA_STOCK,0) + NVL(DW2_BOM.GITA_STOCK,0)) > 0 )       
         AND		CM.CD_GRP		= 'SALES_CAT3'
-		AND		(DM.EXPORT_FLAG IS NULL OR DM.DC_ID IN( '8913','8914') )   --동우,대현 창고 추가 이승용대리 요청 2014-12-09 
+		AND		(DM.EXPORT_FLAG IS NULL OR DM.DC_ID IN( '8913','1842','8914') )   --동우,대현 창고 추가 이승용대리 요청 2014-12-09 
 		AND     DW.CNFM_DATE	= '$!{end_date}'
 		AND		IM.SALES_CAT05 LIKE '%'||'$!{sales_cat05}'||'%'
 		AND		IM.SALES_CAT03 LIKE '%'||'$!{sales_cat03}'||'%'
+		AND     DW.ITEM_ID = RC.ITEM_ID(+)
 		GROUP 
 		BY  	SALES_CAT05, SALES_CAT03, DW.ITEM_ID, IM.ITEM_NAME, IM.ITYPE, IM.SPEC, IM.CAT03, BOX_PER_PALET, IM.JGC_DUE_DATE, DWSP.MON_M00,
-				DWSP.MON_M00, DWSP.MON_M01, DWSP.MON_M02, DWSP.MON_M03, IM.PR_TO_PO, IM.PO_TO_LC, IM.LC_TO_PORT, IM.PORT_TO_CUST, DW2.DY_STOCK, DW2.GITA_STOCK,
+				DWSP.MON_M00, DWSP.MON_M01, DWSP.MON_M02, DWSP.MON_M03,DWSP.MON_M04, IM.PR_TO_PO, IM.PO_TO_LC, IM.LC_TO_PORT, IM.PORT_TO_CUST, DW2.DY_STOCK, DW2.GITA_STOCK,
 				DW2_BOM.DY_STOCK, DW2_BOM.GITA_STOCK,IM.NWGT_PER_BUOM, DWSP2.MON_P11, DWSP2.MON_P10, DWSP2.MON_P09, DWSP2.MON_P08, DWSP2.MON_P07, DWSP2.MON_P06, 
                 DWSP2.MON_P05, DWSP2.MON_P04, DWSP2.MON_P03, DWSP2.MON_P02, DWSP2.MON_P01, DWSP2.MON_M00, DWSP2.MON_M01, DWSP2.MON_M02, DWSP2.MON_M03, DWSP2.MON_M04, 
-                DWSP2.MON_M05, DWSP2.MON_M06, SW.STOCK_WEEK, SW.TOT_STOCK_WEEK
+                DWSP2.MON_M05, DWSP2.MON_M06, SW.STOCK_WEEK, SW.TOT_STOCK_WEEK,RC.RECEIPT_M,RC.RECEIPT_M2,RC.RECEIPT_M3, DW2.CJ_STOCK, DW2_BOM.CJ_STOCK
+		ORDER 
+		BY 		SALES_CAT05, SALES_CAT03, DW.ITEM_ID
+		)A
+		ORDER 
+		BY		A.SALES_CAT05, A.SALES_CAT03, A.ITEM_ID
+
+	</query>
+	
+	<query id="ip_01140_inventoryPlanAnalysis_md_list_new" paging="false">	
+		SELECT	A.*,				
+				ROWNUM
+		FROM
+		(
+		SELECT	F_GET_CODE_NAME('SALES_CAT5', IM.SALES_CAT05)       SALES_CAT05,
+				F_GET_CODE_NAME('SALES_CAT3', IM.SALES_CAT03)       SALES_CAT03,
+                DW.ITEM_ID,
+                IM.ITEM_NAME,
+		        IM.SPEC,
+		        'F'																							BOM_FLAG,
+		        --기초재고는 사외재고를 제거한 것으로 정의한다 2015-05-20 SCM팀
+                NVL(SUM(DW.BASE_STOCK),0) + NVL(MAX(DW_BOM.BASE_STOCK),0) -
+                (NVL(DW2.DY_STOCK,0) + ROUND(NVL(DW2_BOM.DY_STOCK,0),0) + NVL(DW2.GITA_STOCK,0) + ROUND(NVL(DW2_BOM.GITA_STOCK,0),0))
+                - NVL(DW2.CJ_STOCK,0) - ROUND(NVL(DW2_BOM.CJ_STOCK,0),0)   																				"기초재고",
+                NVL(DW2.DY_STOCK,0) + ROUND(NVL(DW2_BOM.DY_STOCK,0),0)																					"동양재고",
+                NVL(DW2.GITA_STOCK,0) + ROUND(NVL(DW2_BOM.GITA_STOCK,0),0)																				"기타재고",  
+                NVL(DW2.DY_STOCK,0) + ROUND(NVL(DW2_BOM.DY_STOCK,0),0) + NVL(DW2.GITA_STOCK,0) + ROUND(NVL(DW2_BOM.GITA_STOCK,0),0)						"사외재고",              
+                TRIM(TO_CHAR( DECODE( (SUM(DW.SALES_MEAN_1MON_TA)+NVL(MAX(DW_BOM.SALES_MEAN_1MON_TA),0)),0,0,           
+                ROUND((NVL(SUM(DW.BASE_STOCK),0) + NVL(MAX(DW_BOM.BASE_STOCK),0))/(SUM(DW.SALES_MEAN_1MON_TA) + 
+                NVL(MAX(DW_BOM.SALES_MEAN_1MON_TA),0)),0)) ,999999999990.9)) 																			"재고일수",
+                0																																		"재고주수",
+                NVL(SUM(DW.BASE_STOCK),0) + NVL(MAX(DW_BOM.BASE_STOCK),0) + 
+                NVL(DWSP.MON_M00,0) + NVL(DWSP.MON_M01,0) + NVL(DWSP.MON_M02,0)+ NVL(DWSP.MON_M03,0)													"총공급가능량",						
+                TRIM(TO_CHAR( DECODE( (SUM(DW.SALES_MEAN_3WEEK_ETC)+NVL(MAX(DW_BOM.SALES_MEAN_3WEEK_ETC),0)),0,0,           
+                ROUND((NVL(SUM(DW.BASE_STOCK),0) + NVL(MAX(DW_BOM.BASE_STOCK),0) + NVL(DWSP.MON_M00,0) + NVL(DWSP.MON_M01,0) + NVL(DWSP.MON_M02,0)
+                + NVL(DWSP.MON_M03,0))/(SUM(DW.SALES_MEAN_3WEEK_ETC) + NVL(MAX(DW_BOM.SALES_MEAN_3WEEK_ETC),0)),0)) ,999999999990.9)) 					"총공급가능일수",
+                0																												"총공급가능주수",
+                IM.PR_TO_PO,
+                IM.PO_TO_LC,
+                IM.LC_TO_PORT,
+                IM.PORT_TO_CUST,
+                NVL(MAX(IM.PROD_TERM),0)																								   				"유통기한\n경과일수",
+                MAX(IM.PROD_TERM) * (SUM(DW.BASE_STOCK)+ NVL(MAX(DW_BOM.BASE_STOCK),0))																	"경과일수히든",
+                MAX(CIM.TERM_VAL * 30 ) * (SUM(DW.BASE_STOCK)  + NVL(MAX(DW_BOM.BASE_STOCK),0))															"유통기한히든",
+                MAX(CIM.TERM_VAL * 30 )																									   				"유통기한일",
+                TO_CHAR(ROUND(DECODE(NVL(MAX(CIM.TERM_VAL),0),0,0,(NVL(MAX(IM.PROD_TERM),0)/NVL(MAX(CIM.TERM_VAL * 30),0))*100),1),'FM9990D99')||'%' 	"유통기한경과율",
+                NVL(SUM(DW.SALES_PRE),0)+ NVL(MAX(DW_BOM.SALES_PRE),0)      																		 	"전일계",
+                NVL(SUM(DW.ISSUE_EXPT),0) + NVL(SUM(DW.ISSUE),0) + NVL(MAX(DW_BOM.ISSUE),0) + NVL(MAX(DW_BOM.ISSUE_EXPT),0)       						"일계",
+                NVL(MAX(DWSA.SELL_BOX_CUM),0)+SUM(DW.ISSUE_EXPT) + SUM(DW.ISSUE)  + NVL(MAX(DW_BOM.ISSUE),0) + NVL(MAX(DW_BOM.ISSUE_EXPT),0)   			"당월누계", 
+               	NVL(SUM(DW.BASE_STOCK),0) + NVL(MAX(DW_BOM.BASE_STOCK),0) -
+                (NVL(DW2.DY_STOCK,0) + NVL(DW2.CJ_STOCK,0)+  ROUND(NVL(DW2_BOM.CJ_STOCK,0),0) + ROUND(NVL(DW2_BOM.DY_STOCK,0),0) + NVL(DW2.GITA_STOCK,0) 
+                + ROUND(NVL(DW2_BOM.GITA_STOCK,0),0))  
+                - (NVL(SUM(DW.ISSUE_EXPT),0) + NVL(SUM(DW.ISSUE),0) + NVL(MAX(DW_BOM.ISSUE),0) + NVL(MAX(DW_BOM.ISSUE_EXPT),0))							"예상재고",
+                NVL(SUM(DW.PRE_MONTH_SELL),0) 	+ NVL(MAX(DW_BOM.PRE_MONTH_SELL),0)																		"전월계",                
+                --NVL(DWSP.MON_M00,0)																													"매입실적M",
+                NVL(RC.RECEIPT_M,0)																														"매입실적M",
+                NVL(RC.RECEIPT_M2,0)																													"매입실적M2",
+                NVL(RC.RECEIPT_M3,0)																													"매입실적M3", 
+                NVL(DWSP.MON_M01,0)																														"매입실적M+1",
+                NVL(DWSP.MON_M02,0)																														"매입실적M+2",
+                NVL(DWSP.MON_M03,0)																														"매입실적M+3",
+                NVL(DWSP.MON_M04,0)																														"매입실적M+4",
+                (NVL(SUM(DW.SALES_MEAN_1MON_TA),0) + NVL(MAX(DW_BOM.SALES_MEAN_1MON_TA),0)) * 6															"1개월평균",
+               	(NVL(SUM(DW.SALES_MEAN_3MON_TA),0) + NVL(MAX(DW_BOM.SALES_MEAN_3MON_TA),0)) * 6															"3개월평균",
+                (NVL(SUM(DW.SALES_MEAN_1WEEK_ETC),0) + NVL(MAX(DW_BOM.SALES_MEAN_1WEEK_ETC),0)) 														"1주평균",
+               	(NVL(SUM(DW.SALES_MEAN_3WEEK_ETC),0) + NVL(MAX(DW_BOM.SALES_MEAN_3WEEK_ETC),0)) 														"3주평균",               	
+                NVL(SUM(DW.SALES_MEAN_1WEEK),0) + NVL(MAX(DW_BOM.SALES_MEAN_1WEEK),0)-SUM(DW.SALES_MEAN_3WEEK_ETC) -NVL(MAX(DW_BOM.SALES_MEAN_3WEEK),0)	"1,3주평균 편차",
+                DECODE((SUM(DW.SALES_MEAN_3WEEK_ETC)+NVL(MAX(DW_BOM.SALES_MEAN_3WEEK_ETC),0)),0, 0,
+                TRIM(TO_CHAR( 
+                ROUND((((SUM(DW.SALES_MEAN_1WEEK_ETC)+NVL(MAX(DW_BOM.SALES_MEAN_1WEEK_ETC),0))/(SUM(DW.SALES_MEAN_3WEEK_ETC)+
+                NVL(MAX(DW_BOM.SALES_MEAN_3WEEK_ETC),0)))-1)*100,1),999999999990.9)))  																	"편차비율",
+                NVL(SUM(DW.SALES_PY_MON_CUM),0)+NVL(SUM(DW.SALES_PY_MON_CUM_TA),0) + 
+                NVL(MAX(DW_BOM.SALES_PY_MON_CUM),0)+ NVL(MAX(DW_BOM.SALES_PY_MON_CUM_TA),0)											  			   		"전년동월\n누계",
+                NVL(SUM(DW.SALES_INI_CUM),0) + NVL(SUM(DW.SALES_INI_CUM_TA),0) + NVL(MAX(DW_BOM.SALES_INI_CUM),0) + NVL(MAX(DW_BOM.SALES_INI_CUM_TA),0) "년누계",
+                NVL(SUM(DW.SALES_PY_INI_CUM),0) + NVL(SUM(DW.SALES_PY_INI_CUM_TA),0) + 
+                NVL(MAX(DW_BOM.SALES_PY_INI_CUM),0)+ NVL(MAX(DW_BOM.SALES_PY_INI_CUM_TA),0)        														"전년누계",
+                (NVL(MAX(DWSA.SELL_BOX_CUM),0)+NVL(SUM(DW.ISSUE_EXPT),0) + NVL(MAX(DW_BOM.ISSUE_EXPT),0) + NVL(SUM(DW.ISSUE),0) + 
+                NVL(MAX(DW_BOM.ISSUE),0)) - (NVL(SUM(DW.SALES_PY_MON_CUM),0) + NVL(MAX(DW_BOM.SALES_PY_MON_CUM),0)+ NVL(SUM(DW.SALES_PY_MON_CUM_TA),0) +
+                NVL(MAX(DW_BOM.SALES_PY_MON_CUM_TA),0))																									"전년동일\n대비",
+                (NVL(SUM(DW.SALES_INI_CUM),0) + NVL(SUM(DW.SALES_INI_CUM_TA),0) + NVL(MAX(DW_BOM.SALES_INI_CUM),0) + 
+                NVL(MAX(DW_BOM.SALES_INI_CUM_TA),0)) - (NVL(SUM(DW.SALES_PY_INI_CUM),0) + NVL(SUM(DW.SALES_PY_INI_CUM_TA),0) + 
+                NVL(MAX(DW_BOM.SALES_PY_INI_CUM),0) + NVL(MAX(DW_BOM.SALES_PY_INI_CUM_TA),0))															"전년누계\n대비",               
+		        NVL(DECODE(IM.BOX_PER_PALET,0,0,CEIL(((SUM(DW.BASE_STOCK)+NVL(MAX(DW_BOM.BASE_STOCK),0))/IM.BOX_PER_PALET))),0)							"기초재고(PALLET)",
+		        NVL(DECODE(IM.BOX_PER_PALET,0,0,CEIL(((SUM(DW.STOCK_EXPT)+NVL(MAX(DW_BOM.STOCK_EXPT),0))/IM.BOX_PER_PALET))),0) 						"예상재고(PALLET)",
+		        ROUND(((NVL(SUM(DW.BASE_STOCK),0) + NVL(MAX(DW_BOM.BASE_STOCK),0)) * IM.NWGT_PER_BUOM) / 1000000 , 2) 									"기초재고중량",		        
+		        ROUND(NVL(DWSP2.MON_M00,0)  * IM.NWGT_PER_BUOM / 1000000, 2)																			"당월수입누계중량",
+		        NVL(DWSP2.MON_P01,0) + NVL(DWSP2.MON_P02,0) + NVL(DWSP2.MON_P03,0) + NVL(DWSP2.MON_P04,0) + NVL(DWSP2.MON_P05,0) + 
+                NVL(DWSP2.MON_P06,0) + NVL(DWSP2.MON_P07,0) + NVL(DWSP2.MON_P08,0) + NVL(DWSP2.MON_P09,0) + NVL(DWSP2.MON_P10,0) + 
+                NVL(DWSP2.MON_P11,0) + NVL(DWSP2.MON_M00,0) + NVL(DWSP2.MON_M01,0) + NVL(DWSP2.MON_M02,0) + NVL(DWSP2.MON_M03,0) +
+                NVL(DWSP2.MON_M04,0) + NVL(DWSP2.MON_M05,0) + NVL(DWSP2.MON_M06,0)																		"년수입누계",
+                ROUND((NVL(DWSP2.MON_P01,0) + NVL(DWSP2.MON_P02,0) + NVL(DWSP2.MON_P03,0) + NVL(DWSP2.MON_P04,0) + NVL(DWSP2.MON_P05,0) + 
+                NVL(DWSP2.MON_P06,0) + NVL(DWSP2.MON_P07,0) + NVL(DWSP2.MON_P08,0) + NVL(DWSP2.MON_P09,0) + NVL(DWSP2.MON_P10,0) + 
+                NVL(DWSP2.MON_P11,0) + NVL(DWSP2.MON_M00,0) + NVL(DWSP2.MON_M01,0) + NVL(DWSP2.MON_M02,0) + NVL(DWSP2.MON_M03,0) +
+                NVL(DWSP2.MON_M04,0) + NVL(DWSP2.MON_M05,0) + NVL(DWSP2.MON_M06,0)) * IM.NWGT_PER_BUOM / 1000000 , 2) 									"년수입누계중량",
+                ROUND((NVL(MAX(DWSA.SELL_BOX_CUM),0)+SUM(DW.ISSUE_EXPT) + SUM(DW.ISSUE)  + NVL(MAX(DW_BOM.ISSUE),0) + NVL(MAX(DW_BOM.ISSUE_EXPT),0))
+                 * IM.NWGT_PER_BUOM / 1000000, 2)																										"당월판매누계중량",
+                ROUND((NVL(SUM(DW.SALES_INI_CUM),0) + NVL(SUM(DW.SALES_INI_CUM_TA),0) + NVL(MAX(DW_BOM.SALES_INI_CUM),0) + 
+                NVL(MAX(DW_BOM.SALES_INI_CUM_TA),0)) * IM.NWGT_PER_BUOM / 1000000, 2)																	"년판매누계중량",                
+		        IM.PR_TO_PO + IM.PO_TO_LC + IM.LC_TO_PORT + IM.PORT_TO_CUST 																			"리드타임"
+		FROM    DC_DATAWAREHOUSE DW,
+				(
+				 SELECT	ITEM_ID,
+				 		SUM(DY_STOCK) 	DY_STOCK,
+				 		SUM(GITA_STOCK)	GITA_STOCK,
+				 		SUM(CJ_STOCK)	CJ_STOCK
+				 FROM	(
+						 SELECT	DC.ITEM_ID,
+						 		CASE 	WHEN DM.DC_ID = '1811'
+						 				THEN SUM(DC.BASE_STOCK)
+						 				ELSE 0
+						 		END		DY_STOCK,
+						 		CASE	WHEN	(DM.DC_LOC_TYPE = '사외' AND DM.DC_ID != '1811' AND DM.DC_ID != '8922')		
+						 				THEN	SUM(DC.BASE_STOCK)
+						 				ELSE	0
+						 		END		GITA_STOCK  ,
+						 		CASE	WHEN	(DM.DC_LOC_TYPE = '사외' AND DM.DC_ID = '8922')		
+						 				THEN	SUM(DC.BASE_STOCK)
+						 				ELSE	0
+						 		END		CJ_STOCK                       
+		                FROM	DC_DATAWAREHOUSE DC, DC_MST DM, ITEM_MST IM
+		                WHERE	DC.CNFM_DATE 	= '$!{end_date}'                                      
+		                AND		DC.DC_ID 		= DM.DC_ID
+		                AND		DC.ITEM_ID		= IM.ITEM_ID
+                        AND		IM.SB_FLAG  	= 'Y'
+                        AND		(IM.SELL_STOP_DATE > TO_CHAR(SYSDATE,'YYYYMMDD') OR IM.SELL_STOP_DATE = '00000000')
+		                GROUP
+		                BY		DC.ITEM_ID, DM.DC_LOC_TYPE, DM.DC_ID
+		                )
+		         GROUP
+		         BY		ITEM_ID
+				)DW2,			
+				(
+        	 	SELECT	PROD_ITEM_ID,
+             			ROUND(NVL(SUM(BASE_STOCK),0),0)	BASE_STOCK,
+                        ROUND(NVL(SUM(SALES_PRE),0),0)	SALES_PRE,
+                        ROUND(NVL(SUM(ISSUE),0),0)		ISSUE,
+                        ROUND(NVL(SUM(ISSUE_EXPT),0),0)	ISSUE_EXPT,
+                        ROUND(NVL(SUM(STOCK_EXPT),0),0)	STOCK_EXPT,
+                        ROUND(NVL(SUM(PRE_MONTH_SELL),0),0)	PRE_MONTH_SELL,
+                        ROUND(NVL(SUM(SALES_MEAN_1WEEK),0),0)	SALES_MEAN_1WEEK,
+                        ROUND(NVL(SUM(SALES_MEAN_3WEEK),0),0)	SALES_MEAN_3WEEK,
+                        ROUND(NVL(SUM(SALES_MEAN_1MON_TA),0),0)	SALES_MEAN_1MON_TA,
+                        ROUND(NVL(SUM(SALES_MEAN_3MON_TA),0),0)	SALES_MEAN_3MON_TA,
+                        ROUND(NVL(SUM(SALES_MEAN_1WEEK_ETC),0),0) SALES_MEAN_1WEEK_ETC,
+                        ROUND(NVL(SUM(SALES_MEAN_3WEEK_ETC),0),0) SALES_MEAN_3WEEK_ETC,
+                        ROUND(NVL(SUM(SALES_PY_MON_CUM),0),0) SALES_PY_MON_CUM,
+                        ROUND(NVL(SUM(SALES_PY_MON_CUM_TA),0),0) SALES_PY_MON_CUM_TA,                                    
+                        ROUND(NVL(SUM(SALES_INI_CUM),0),0) SALES_INI_CUM,
+                        ROUND(NVL(SUM(SALES_INI_CUM_TA),0),0) SALES_INI_CUM_TA,
+                        ROUND(NVL(SUM(SALES_PY_INI_CUM),0),0) SALES_PY_INI_CUM,
+                        ROUND(NVL(SUM(SALES_PY_INI_CUM_TA),0),0) SALES_PY_INI_CUM_TA                                  
+                FROM	(
+                     	SELECT	S1.PROD_ITEM_ID,                         			
+	                 			SUM(S2.BASE_STOCK) * (1/S1.QTY)	BASE_STOCK,
+	                            SUM(S2.SALES_PRE) * (1/S1.QTY)	SALES_PRE,
+	                            SUM(S2.ISSUE)	* (1/S1.QTY)	ISSUE,
+	                            SUM(S2.ISSUE_EXPT) * (1/S1.QTY)	ISSUE_EXPT,
+	                            SUM(S2.STOCK_EXPT) * (1/S1.QTY) STOCK_EXPT,
+	                            SUM(S2.PRE_MONTH_SELL) * (1/S1.QTY) PRE_MONTH_SELL,
+	                            SUM(S2.SALES_MEAN_1WEEK) * (1/S1.QTY) SALES_MEAN_1WEEK,
+	                            SUM(S2.SALES_MEAN_3WEEK) * (1/S1.QTY) SALES_MEAN_3WEEK,
+	                            SUM(S2.SALES_MEAN_1MON_TA) * (1/S1.QTY) SALES_MEAN_1MON_TA,
+	                            SUM(S2.SALES_MEAN_3MON_TA) * (1/S1.QTY) SALES_MEAN_3MON_TA,
+	                            SUM(S2.SALES_MEAN_1WEEK_ETC) * (1/S1.QTY) SALES_MEAN_1WEEK_ETC,
+	                            SUM(S2.SALES_MEAN_3WEEK_ETC) * (1/S1.QTY) SALES_MEAN_3WEEK_ETC,
+	                            SUM(S2.SALES_PY_MON_CUM) * (1/S1.QTY) SALES_PY_MON_CUM,
+	                            SUM(S2.SALES_PY_MON_CUM_TA) * (1/S1.QTY) SALES_PY_MON_CUM_TA,
+	                            SUM(S2.SALES_INI_CUM) * (1/S1.QTY) SALES_INI_CUM,
+	                            SUM(S2.SALES_INI_CUM_TA) * (1/S1.QTY) SALES_INI_CUM_TA,
+	                            SUM(S2.SALES_PY_INI_CUM) * (1/S1.QTY) SALES_PY_INI_CUM,
+	                            SUM(S2.SALES_PY_INI_CUM_TA) * (1/S1.QTY) SALES_PY_INI_CUM_TA                                                                              
+                      	FROM	(
+                         		SELECT  IM.ITEM_ID, 
+	                                    IM.ITEM_NAME,		
+	                                    MB.CONS_ITEM_ID,
+	                                    MAX(MB.PROD_VER),    
+	                                    MB.PROD_ITEM_ID,      
+	                                    MB.CONS_QTY,
+	                                    NVL(MB.CONS_QTY/DECODE(MB.CONS_QTY_UOM,'EA',DECODE(IM.QTY,0,NULL,IM.QTY),1),0) QTY,
+	                                    MB.CONS_QTY_UOM      
+	                            FROM	ITEM_MST IM, MBOM MB, CMITEM ITM
+	                            WHERE	IM.ITEM_ID = MB.CONS_ITEM_ID
+	                            AND		IM.ITEM_ID	= ITM.ITEM_CD
+	                            AND		IM.ITYPE		= 'HAWA'	
+	                            AND		(IM.SELL_STOP_DATE > TO_CHAR(TO_DATE('$!{end_date}'),'YYYYMMDD') OR IM.SELL_STOP_DATE = '00000000')	                         
+	                            
+	                            GROUP 
+	                            BY 		IM.ITEM_ID, 
+	                                    IM.ITEM_NAME,
+	                                    MB.CONS_ITEM_ID,
+	                                    MB.PROD_ITEM_ID,
+	                                    MB.CONS_QTY,
+	                                    MB.CONS_QTY_UOM, 
+	                                    IM.QTY
+                            	)S1, DC_DATAWAREHOUSE S2
+                        WHERE	S1.ITEM_ID = S2.ITEM_ID
+                        AND	  	S2.CNFM_DATE	='$!{end_date}'
+                        GROUP
+                        BY		S1.QTY,S1.PROD_ITEM_ID
+                        )
+                GROUP 
+                BY 		PROD_ITEM_ID
+                )DW_BOM,
+                (
+                SELECT	PROD_ITEM_ID,             			
+                        SUM(DY_STOCK)	DY_STOCK,
+                        SUM(GITA_STOCK) GITA_STOCK ,
+                        SUM(CJ_STOCK)	CJ_STOCK                    
+                FROM	(
+                     	SELECT	S1.PROD_ITEM_ID,  
+                                (
+                                CASE 	WHEN S3.DC_ID = '1811'
+						 				THEN SUM(S2.BASE_STOCK)
+						 				ELSE 0
+						 		END
+                                )	* (1/S1.QTY)	DY_STOCK,
+                                (
+                                CASE 	WHEN S3.DC_ID = '8922'
+						 				THEN SUM(S2.BASE_STOCK)
+						 				ELSE 0
+						 		END
+                                )	* (1/S1.QTY)	CJ_STOCK,
+						 		(
+                                CASE	WHEN	(S3.DC_LOC_TYPE = '사외' AND S3.DC_ID NOT IN  ('1811','8922'))
+						 				THEN	SUM(S2.BASE_STOCK)
+						 				ELSE	0
+						 		END		
+                                ) * (1/S1.QTY)		GITA_STOCK                                         
+                      	FROM	(
+                         		SELECT  IM.ITEM_NAME,		
+	                                    MB.CONS_ITEM_ID	ITEM_ID,		--완제품
+	                                    MAX(MB.PROD_VER),    
+	                                    MB.PROD_ITEM_ID,     	--소분제품 
+	                                    MB.CONS_QTY,
+	                                    NVL(MB.CONS_QTY/DECODE(MB.CONS_QTY_UOM,'EA',DECODE(IM.QTY,0,NULL,IM.QTY),1),0) QTY,
+	                                    MB.CONS_QTY_UOM      
+	                            FROM	ITEM_MST IM, MBOM MB, CMITEM ITM
+	                            WHERE	IM.ITEM_ID = MB.CONS_ITEM_ID
+	                            AND		IM.ITEM_ID	= ITM.ITEM_CD
+	                            AND		IM.ITYPE		= 'HAWA'	
+	                            AND		(IM.SELL_STOP_DATE > TO_CHAR(TO_DATE('$!{end_date}'),'YYYYMMDD') OR IM.SELL_STOP_DATE = '00000000')	
+	                            GROUP 
+	                            BY 		IM.ITEM_ID, 
+	                                    IM.ITEM_NAME,
+	                                    MB.CONS_ITEM_ID,
+	                                    MB.PROD_ITEM_ID,
+	                                    MB.CONS_QTY,
+	                                    MB.CONS_QTY_UOM, 
+	                                    IM.QTY
+                            	)S1, DC_DATAWAREHOUSE S2, DC_MST S3
+                        WHERE	S1.ITEM_ID = S2.ITEM_ID
+                        AND	  	S2.CNFM_DATE	='$!{end_date}'
+                        AND		S2.DC_ID		= S3.DC_ID
+                        GROUP
+                        BY		S1.QTY,S1.PROD_ITEM_ID, S3.DC_LOC_TYPE, S3.DC_ID
+                        )
+                GROUP 
+                BY 		PROD_ITEM_ID
+                )DW2_BOM, 
+				CODE_MST CM,
+				CMITEM	CIM,
+				 (
+                 SELECT IM.* 
+                 FROM 	ITEM_MST IM
+				 WHERE	IM.ITYPE		= 'HAWA'	
+				 AND	(IM.SELL_STOP_DATE > TO_CHAR(SYSDATE,'YYYYMMDD') OR IM.SELL_STOP_DATE = '00000000')
+				-- AND	IM.SELL_STOP_DATE &gt;= TO_CHAR(TRUNC(SYSDATE),'YYYYMMDD')
+				 AND	IM.SB_FLAG 	= 'Y'                 			 
+                [AND    (IM.ITEM_ID		LIKE '%'||'$!{search_item}'||'%'
+		    		OR   IM.ITEM_NAME	LIKE '%'||'$!{search_item}'||'%')]
+                 ) IM,	
+		       (
+				SELECT  ITEM_ID,
+						MON_M00,
+						MON_M01,
+						MON_M02,
+						MON_M03,
+						MON_M04
+				FROM	DC_RECEIVE_PR
+				WHERE	VERSION =  '$!{end_date}'
+				AND		GUBN ='2'
+		       )DWSP,
+		       (
+		       	SELECT	ITEM_ID,
+				        SUM(RECEIPT_M)  RECEIPT_M, 
+				        SUM(RECEIPT_M2) RECEIPT_M2,
+				        SUM(RECEIPT_M3) RECEIPT_M3
+				FROM	(
+ 						SELECT	CASE WHEN S1.CNFM_DATE BETWEEN TO_CHAR(TRUNC(TO_DATE('$!{end_date}'),'MM'),'YYYYMMDD') AND TO_CHAR(TRUNC(TO_DATE('$!{end_date}'),'MM')+9,'YYYYMMDD')
+		                        THEN SUM(RECEIPT_EXPT)
+		                        ELSE 0
+		                        END     RECEIPT_M,
+		                    	CASE WHEN S1.CNFM_DATE BETWEEN TO_CHAR(TRUNC(TO_DATE('$!{end_date}'),'MM')+10,'YYYYMMDD') AND TO_CHAR(TRUNC(TO_DATE('$!{end_date}'),'MM')+19,'YYYYMMDD')
+		                        THEN SUM(RECEIPT_EXPT)
+		                        ELSE 0
+		                        END     RECEIPT_M2,    
+		                     	CASE WHEN S1.CNFM_DATE BETWEEN TO_CHAR(TRUNC(TO_DATE('$!{end_date}'),'MM')+20,'YYYYMMDD') AND TO_CHAR(LAST_DAY(TRUNC(TO_DATE('$!{end_date}'))),'YYYYMMDD')
+		                        THEN SUM(RECEIPT_EXPT)
+		                        ELSE 0
+		                        END     RECEIPT_M3,  
+		                        S1.ITEM_ID
+             			FROM 	DC_DATAWAREHOUSE S1, ITEM_MST S2
+			            WHERE 	S1.CNFM_DATE BETWEEN '$!{start_date}' AND TO_CHAR(LAST_DAY(TRUNC(TO_DATE('$!{end_date}'))),'YYYYMMDD')
+			            AND 	S1.ITEM_ID = S2.ITEM_ID
+			            AND 	S2.SB_FLAG ='Y'
+			            AND 	CNFM_DATE >= TO_CHAR(TO_DATE('$!{end_date}'),'YYYYMMDD')
+			            HAVING 	SUM(RECEIPT_EXPT) > 0
+			            GROUP 
+			            BY 		S1.CNFM_DATE, S1.ITEM_ID
+            			)		
+            	GROUP BY ITEM_ID
+               )RC,           
+		      (		 
+			 SELECT		ITEM_ID,
+			 			MAX(DECODE(NO,1,MON_P01,0))		MON_P01,
+			 			MAX(DECODE(NO,2,MON_P02,0))		MON_P02,
+			            MAX(DECODE(NO,3,MON_P03,0))		MON_P03,
+			            MAX(DECODE(NO,4,MON_P04,0))		MON_P04,
+			            MAX(DECODE(NO,5,MON_P05,0))		MON_P05,
+			            MAX(DECODE(NO,6,MON_P06,0))		MON_P06,
+			            MAX(DECODE(NO,7,MON_P07,0))		MON_P07,
+			            MAX(DECODE(NO,8,MON_P08,0))		MON_P08,
+			            MAX(DECODE(NO,9,MON_P09,0))		MON_P09,
+			            MAX(DECODE(NO,10,MON_P10,0))	MON_P10,
+			            MAX(DECODE(NO,11,MON_P11,0))	MON_P11,
+			            MAX(DECODE(NO,12,MON_M00,0))	MON_M00,
+			            MAX(DECODE(NO,13,MON_M01,0))	MON_M01,
+			            MAX(DECODE(NO,14,MON_M02,0))	MON_M02,
+			            MAX(DECODE(NO,15,MON_M03,0))	MON_M03,
+			            MAX(DECODE(NO,16,MON_M04,0))	MON_M04,
+			            MAX(DECODE(NO,17,MON_M05,0))	MON_M05,
+			            MAX(DECODE(NO,18,MON_M06,0)) 	MON_M06,
+			            MAX(NO)							NO
+			 FROM		(
+			 			SELECT  ITEM_ID,
+		 						TO_CHAR(MON_P11)	MON_P11,
+		                		TO_CHAR(MON_P10)	MON_P10,
+		                        TO_CHAR(MON_P09)	MON_P09,
+		                        TO_CHAR(MON_P08)	MON_P08,
+		                        TO_CHAR(MON_P07)	MON_P07,
+		                        TO_CHAR(MON_P06)	MON_P06,
+		                        TO_CHAR(MON_P05)	MON_P05,
+		                        TO_CHAR(MON_P04)	MON_P04,
+		                        TO_CHAR(MON_P03)	MON_P03,
+		                        TO_CHAR(MON_P02)	MON_P02,
+		                        TO_CHAR(MON_P01)	MON_P01,
+		                        TO_CHAR(MON_M00)	MON_M00,
+		                        TO_CHAR(MON_M01)	MON_M01,
+		                        TO_CHAR(MON_M02)	MON_M02,
+		                        TO_CHAR(MON_M03)	MON_M03,
+		                        TO_CHAR(MON_M04)	MON_M04,
+		                        TO_CHAR(MON_M05)	MON_M05,
+		                        TO_CHAR(MON_M06)	MON_M06,
+		                        T.NO                     
+						FROM    DC_RECEIVE_PR L, 
+		                		(
+		                        SELECT 	ROWNUM NO, 
+		                        		TO_CHAR(ROWNUM, 'FM00') NO2 
+		                        FROM 	USER_OBJECTS 
+		                        WHERE ROWNUM &lt; 19
+		                        ) T
+						WHERE	VERSION =   '$!{end_date}'
+					 	AND 	GUBN='1'
+		                AND   	T.NO &lt;= 18
+		                ORDER 
+		                BY 		T.NO
+                		)
+                WHERE 	NO BETWEEN 1 	AND SUBSTR(TO_CHAR(TRUNC(SYSDATE,'MM'),'YYYYMM'),5,6) - SUBSTR(TO_CHAR(TRUNC(SYSDATE,'YY'),'YYYYMM'),5,6)
+               	OR		NO BETWEEN 12 	AND 12 + SUBSTR(TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE,'YY'),11),'YYYYMM'),5,6) - SUBSTR(TO_CHAR(TRUNC(SYSDATE,'MM'),'YYYYMM'),5,6)
+               	GROUP 
+               	BY 		ITEM_ID
+		       	)DWSP2,
+               (--판매실적 누계 --타계정포함
+                SELECT	ITEM_ID,
+                		ROUND(SUM(SELL_BOX_CUM),0) SELL_BOX_CUM
+                FROM	(
+		                SELECT	 PROD_ITEM_ID ITEM_ID,
+		                		 SUM(SELL_BOX_CUM) SELL_BOX_CUM
+		                FROM	(
+				                SELECT   IM.PROD_ITEM_ID,				                		 
+				                         SUM(SA.QTY) * (1/IM.QTY) SELL_BOX_CUM
+				                FROM     SALES_ACT SA,
+		                		 		 DC_MST DM,
+		                         		(
+				                        SELECT  MB.PROD_ITEM_ID,
+				                        		MB.CONS_ITEM_ID,
+				                                NVL(MB.CONS_QTY/DECODE(MB.CONS_QTY_UOM,'EA',DECODE(IM.QTY,0,NULL,IM.QTY),1),0) QTY,
+				                                MB.CONS_QTY_UOM      
+				                        FROM	ITEM_MST IM, MBOM MB, CMITEM ITM
+				                        WHERE	IM.ITEM_ID 	= MB.CONS_ITEM_ID
+				                        AND		IM.ITEM_ID	= ITM.ITEM_CD
+				                        AND		IM.ITYPE	= 'HAWA'	
+				                        AND		IM.SELL_STOP_DATE >= TO_CHAR(TO_DATE('$!{end_date}'),'YYYYMMDD')				                        
+				                        AND    (IM.ITEM_ID		LIKE '%'||'$!{search_item}'||'%'
+				                                OR   IM.ITEM_NAME	LIKE '%'||'$!{search_item}'||'%')
+					                    GROUP 
+					                    BY 		IM.ITEM_ID, 
+					                            IM.ITEM_NAME,
+					                            MB.CONS_ITEM_ID,
+					                            MB.PROD_ITEM_ID,
+					                            MB.CONS_QTY,
+					                            MB.CONS_QTY_UOM, 
+					                            IM.QTY
+		                         		) IM,
+			                         (
+			                         SELECT	TO_DATE(YYYYMMDD,'YYYY-MM-DD') YYYYMMDD
+									 FROM	CAL_MST
+									 WHERE	YYYYMMDD BETWEEN '$!{start_date}'
+					                		AND		TO_CHAR(TO_DATE('$!{end_date}')-1, 'YYYYMMDD')
+			                         )    CAL                            
+				                WHERE    SA.ITEM_ID = IM.CONS_ITEM_ID
+				                AND      SA.SALE_DATE = CAL.YYYYMMDD
+				                AND		 SA.DELIV_LOC = DM.DC_ID
+				                AND		 (DM.EXPORT_FLAG IS NULL OR DM.DC_ID IN( '8913','1842','8914'))
+				                GROUP 
+				                BY 		IM.PROD_ITEM_ID, IM.QTY
+		                		)
+		                GROUP BY PROD_ITEM_ID
+		                UNION ALL
+		                SELECT   SA.ITEM_ID, SUM(SA.QTY) SELL_BOX_CUM
+		                FROM     SALES_ACT SA,
+		                		 DC_MST DM,
+		                         (
+		                         SELECT *
+				                 FROM   ITEM_MST IM
+				                 WHERE	IM.ITYPE		= 'HAWA'	
+								 AND	IM.SELL_STOP_DATE >= TO_CHAR(TRUNC(SYSDATE),'YYYYMMDD')
+								 AND	IM.SB_FLAG 	= 'Y'
+				                 AND    (IM.ITEM_ID		LIKE '%'||'$!{search_item}'||'%'
+						    		OR   IM.ITEM_NAME	LIKE '%'||'$!{search_item}'||'%')
+		                         ) IM,
+		                         (
+		                         SELECT	TO_DATE(YYYYMMDD,'YYYY-MM-DD') YYYYMMDD
+								 FROM	CAL_MST
+								 WHERE	YYYYMMDD BETWEEN '$!{start_date}'
+				                		AND		TO_CHAR(TO_DATE('$!{end_date}')-1, 'YYYYMMDD')
+		                         )CAL                            
+		                WHERE    SA.ITEM_ID = IM.ITEM_ID
+		                AND      SA.SALE_DATE = CAL.YYYYMMDD
+		                AND		 SA.DELIV_LOC = DM.DC_ID
+		                AND		 (DM.EXPORT_FLAG IS NULL OR DM.DC_ID IN( '8913','1842','8914'))
+		                GROUP BY SA.ITEM_ID
+		                )
+		                GROUP BY ITEM_ID
+               	)DWSA,               
+		       	DC_MST DM 
+		WHERE   DW.ITEM_ID      = DWSP.ITEM_ID(+)
+		AND		DW.ITEM_ID		= DWSP2.ITEM_ID(+)
+		AND		DW.ITEM_ID		= DW2.ITEM_ID(+)
+		AND		DW.ITEM_ID		= DW_BOM.PROD_ITEM_ID(+)
+		AND		DW.ITEM_ID		= DW2_BOM.PROD_ITEM_ID(+)
+		AND     DW.ITEM_ID      = DWSA.ITEM_ID	(+)	
+		AND		IM.ITEM_ID		= CIM.ITEM_CD(+)			
+		AND     DW.ITEM_ID      = IM.ITEM_ID
+		AND		DW.DC_ID		= DM.DC_ID
+		AND		CM.CD			= IM.SALES_CAT03		
+        AND		CM.CD_GRP		= 'SALES_CAT3'
+		AND		(DM.EXPORT_FLAG IS NULL OR DM.DC_ID IN( '8913','1842','8914') )   --동우,대현 창고 추가 이승용대리 요청 2014-12-09 
+		AND     DW.CNFM_DATE	= '$!{end_date}'
+		AND		IM.SALES_CAT05 LIKE '%'||'$!{sales_cat05}'||'%'
+		AND		IM.SALES_CAT03 LIKE '%'||'$!{sales_cat03}'||'%'
+		AND     DW.ITEM_ID = RC.ITEM_ID(+)
+		GROUP 
+		BY  	SALES_CAT05, SALES_CAT03, DW.ITEM_ID, IM.ITEM_NAME, IM.ITYPE, IM.SPEC, IM.CAT03, BOX_PER_PALET, IM.JGC_DUE_DATE, DWSP.MON_M00,
+				DWSP.MON_M00, DWSP.MON_M01, DWSP.MON_M02, DWSP.MON_M03, DWSP.MON_M04, IM.PR_TO_PO, IM.PO_TO_LC, IM.LC_TO_PORT, IM.PORT_TO_CUST, DW2.DY_STOCK, DW2.GITA_STOCK,
+				DW2_BOM.DY_STOCK, DW2_BOM.GITA_STOCK,IM.NWGT_PER_BUOM, DWSP2.MON_P11, DWSP2.MON_P10, DWSP2.MON_P09, DWSP2.MON_P08, DWSP2.MON_P07, DWSP2.MON_P06, 
+                DWSP2.MON_P05, DWSP2.MON_P04, DWSP2.MON_P03, DWSP2.MON_P02, DWSP2.MON_P01, DWSP2.MON_M00, DWSP2.MON_M01, DWSP2.MON_M02, DWSP2.MON_M03, DWSP2.MON_M04, 
+                DWSP2.MON_M05, DWSP2.MON_M06,RC.RECEIPT_M,RC.RECEIPT_M2,RC.RECEIPT_M3, DW2.CJ_STOCK, DW2_BOM.CJ_STOCK
 		ORDER 
 		BY 		SALES_CAT05, SALES_CAT03, DW.ITEM_ID
 		)A
@@ -5698,7 +6171,7 @@
 	</query>
 	
 	<query id="ip_01140_inventoryPlanAnalysis_md_list_pop" paging="false">	
-	
+	#if("$!{gubn}" == "1")
 		SELECT  F_GET_CODE_NAME('SALES_CAT5', IM.SALES_CAT05)       SALES_CAT05,
 				F_GET_CODE_NAME('SALES_CAT3', IM.SALES_CAT03)       SALES_CAT03,
                 DW.ITEM_ID,
@@ -5795,7 +6268,7 @@
 		        						)
                 AND      sa.sale_date = CAL.YYYYMMDD
                 AND		 SA.DELIV_LOC = DM.DC_ID
-                AND		 (DM.EXPORT_FLAG IS NULL OR DM.DC_ID IN( '8913','8914'))
+                AND		 (DM.EXPORT_FLAG IS NULL OR DM.DC_ID IN( '8913','1842','8914'))
                 GROUP BY SA.ITEM_ID
                )DWSA,               
 		       DC_MST DM		      
@@ -5815,12 +6288,134 @@
                                 SELECT	'$!{item_id}' PROD_ITEM_ID
                                 FROM	DUAL
         						)	
-		AND		(DM.EXPORT_FLAG IS NULL OR DM.DC_ID IN( '8913','8914') )   
+		AND		(DM.EXPORT_FLAG IS NULL OR DM.DC_ID IN( '8913','1842','8914') )   
 		AND     DW.CNFM_DATE	= '$!{cnfm_date}'
 		GROUP BY  SALES_CAT05, SALES_CAT03, DW.ITEM_ID, IM.ITEM_NAME, IM.ITYPE, IM.SPEC, IM.CAT03, BOX_PER_PALET, IM.JGC_DUE_DATE, DWSP.MON_M00,
 				  DWSP.MON_M01, DWSP.MON_M02, DWSP.MON_M03
 		ORDER BY  SALES_CAT05, SALES_CAT03, DW.ITEM_ID
-	
+	#else	
+		SELECT  F_GET_CODE_NAME('SALES_CAT5', IM.SALES_CAT05)       SALES_CAT05,
+				F_GET_CODE_NAME('SALES_CAT3', IM.SALES_CAT03)       SALES_CAT03,
+                DW.ITEM_ID,
+                IM.ITEM_NAME,
+		        IM.SPEC,
+		      	SUM(DW.BASE_STOCK_2)              																			   			   "기초재고",
+                SUM(DW.OUT_STOCK)  																										   "사외재고",
+                TRIM(TO_CHAR( DECODE(SUM(DW.SALES_MEAN_1MON_TA),0,0,ROUND(SUM(DW.BASE_STOCK)/SUM(DW.SALES_MEAN_1MON_TA),1)) ,999999999990.9))  "재고일수",
+                NVL(MAX(IM.PROD_TERM),0)																								   "유통기한\n경과일수",
+                MAX(IM.PROD_TERM) * SUM(DW.BASE_STOCK)																					   "경과일수히든",
+                MAX(CIM.TERM_VAL * 30 ) * SUM(DW.BASE_STOCK)																			   "유통기한히든",
+                MAX(CIM.TERM_VAL * 30 )																									   "유통기한일",
+                ROUND(DECODE(MAX(CIM.TERM_VAL),0,0,(MAX(IM.PROD_TERM)/MAX(CIM.TERM_VAL * 30))*100),1) 						   		   	   "유통기한경과율",
+                SUM(DW.SALES_PRE)      																		 							   "전일계",
+                SUM(DW.ISSUE_EXPT) + SUM(DW.ISSUE)      													 							   "일계",
+                NVL(MAX(DWSA.SELL_BOX_CUM),0)+SUM(DW.ISSUE_EXPT) + SUM(DW.ISSUE)    						 							   "누계",                
+                SUM(DW.BASE_STOCK_2) -  SUM(DW.ISSUE_EXPT) - SUM(DW.ISSUE)              													"예상재고",
+                NVL(SUM(DW.PRE_MONTH_SELL),0) 																								"전월계",                
+                NVL(DWSP.MON_M00,0)																											"매입실적\nM",
+                NVL(DWSP.MON_M01,0)																											"매입실적\nM+1",
+                NVL(DWSP.MON_M02,0)																											"매입실적\nM+2",
+                NVL(DWSP.MON_M03,0)																											"매입실적\nM+3",
+               	NVL(SUM(DW.SALES_MEAN_1MON_TA),0) *6																						"1개월 평균",
+               	NVL(SUM(DW.SALES_MEAN_3MON_TA),0) *6																						"3개월 평균",
+                SUM(DW.SALES_MEAN_1MON_TA)-SUM(DW.SALES_MEAN_3MON_TA)                							 					   		"1,3주평균 편차",
+                DECODE(SUM(DW.SALES_MEAN_3WEEK_ETC),0, 0,
+                TRIM(TO_CHAR( 
+                ROUND(((SUM(DW.SALES_MEAN_1WEEK_ETC)/SUM(DW.SALES_MEAN_3WEEK_ETC))-1)*100,1) 
+                ,999999999990.9)))  																									   "편차비율",
+                NVL(SUM(DW.SALES_PY_MON_CUM),0)+NVL(SUM(DW.SALES_PY_MON_CUM_TA),0)											  			   "전년동월\n누계",
+                SUM(SALES_INI_CUM)+SUM(SALES_INI_CUM_TA)               																	   "년누계",
+                SUM(SALES_PY_INI_CUM)+SUM(SALES_PY_INI_CUM_TA)              															   "전년누계",
+                (NVL(MAX(DWSA.SELL_BOX_CUM),0)+SUM(DW.ISSUE_EXPT) + SUM(DW.ISSUE))-
+                (NVL(SUM(DW.SALES_PY_MON_CUM),0)+NVL(SUM(DW.SALES_PY_MON_CUM_TA),0))													   "전년동일\n대비",
+                (SUM(SALES_INI_CUM)+SUM(SALES_INI_CUM_TA))-(SUM(SALES_PY_INI_CUM)+SUM(SALES_PY_INI_CUM_TA))								   "전년누계\n대비",               
+		        DECODE(IM.BOX_PER_PALET,0,0,CEIL((SUM(DW.BASE_STOCK)/IM.BOX_PER_PALET)))												   "기초재고(PALLET)",
+		        DECODE(IM.BOX_PER_PALET,0,0,CEIL((SUM(DW.STOCK_EXPT)/IM.BOX_PER_PALET))) 											  	   "예상재고(PALLET)"		       
+		FROM    (
+        		SELECT	CASE WHEN DM.DC_LOC_TYPE ='사외'
+		                	 THEN 0
+		                	 ELSE DW.BASE_STOCK
+		                	 END              					BASE_STOCK_2,
+                        CASE WHEN DM.DC_LOC_TYPE ='사외'
+		                	 THEN DW.BASE_STOCK
+		                	 ELSE 0
+		                	 END            					OUT_STOCK,
+                        DW.*               		
+                FROM	DC_DATAWAREHOUSE DW, DC_MST DM
+                WHERE	DW.CNFM_DATE = '$!{cnfm_date}'
+                AND		DW.DC_ID = DM.DC_ID                  
+				)DW,
+				CODE_MST CM,
+				CMITEM	CIM,
+				 (
+                 SELECT IM.* 
+                 FROM 	ITEM_MST IM
+				 WHERE	IM.ITYPE		= 'HAWA'	
+				 AND	IM.SELL_STOP_DATE &gt;= TO_CHAR(TRUNC(SYSDATE),'YYYYMMDD')
+                 ) IM,	
+		       (
+				SELECT  ITEM_ID,
+						MON_M00,
+						MON_M01,
+						MON_M02,
+						MON_M03
+				FROM	DC_RECEIVE_PR
+				WHERE	VERSION =  '$!{cnfm_date}'
+				AND		GUBN='2'       
+		       )DWSP,
+               (               
+                SELECT   SA.ITEM_ID, SUM(SA.QTY) SELL_BOX_CUM
+                FROM     SALES_ACT SA,
+                		 DC_MST DM,
+                         (
+                         SELECT *
+		                 FROM   ITEM_MST IM
+		                 WHERE	IM.ITYPE		= 'HAWA'	
+						 AND	IM.SELL_STOP_DATE &gt;= TO_CHAR(TRUNC(SYSDATE),'YYYYMMDD')
+                         ) IM,
+                         (
+                         SELECT	YYYYMMDD
+						 FROM	CAL_MST
+						 WHERE	YYYYMMDD BETWEEN TO_CHAR(TRUNC(TO_DATE('$!{cnfm_date}'),'MM'),'YYYYMMDD') AND  '$!{cnfm_date}'		                		
+                         )    CAL                            
+                WHERE    SA.ITEM_ID = IM.ITEM_ID
+                AND		 SA.ITEM_ID IN (
+		        						SELECT	DISTINCT
+		        								CONS_ITEM_ID
+		        						FROM	MBOM
+		        						WHERE	PROD_ITEM_ID = '$!{item_id}'
+		        						UNION ALL
+		                                SELECT	'$!{item_id}' CONS_ITEM_ID
+		                                FROM	DUAL
+		        						)
+                AND      sa.sale_date = CAL.YYYYMMDD
+                AND		 SA.DELIV_LOC = DM.DC_ID
+                AND		 (DM.EXPORT_FLAG IS NULL OR DM.DC_ID IN( '8913','1842','8914'))
+                GROUP BY SA.ITEM_ID
+               )DWSA,               
+		       DC_MST DM		      
+		WHERE   DW.ITEM_ID      = DWSP.ITEM_ID(+)
+		AND     DW.ITEM_ID      = DWSA.ITEM_ID(+)
+		AND		IM.ITEM_ID		= CIM.ITEM_CD(+)			
+		AND     DW.ITEM_ID      = IM.ITEM_ID
+		AND		DW.DC_ID		= DM.DC_ID
+		AND		CM.CD			= IM.SALES_CAT03
+        AND		CM.CD_GRP		= 'SALES_CAT3'
+        AND		DW.ITEM_ID	IN (
+        						SELECT	DISTINCT
+        								CONS_ITEM_ID
+        						FROM	MBOM
+        						WHERE	PROD_ITEM_ID = '$!{item_id}'
+        						UNION ALL
+                                SELECT	'$!{item_id}' CONS_ITEM_ID
+                                FROM	DUAL
+        						)	
+		AND		(DM.EXPORT_FLAG IS NULL OR DM.DC_ID IN( '8913','1842','8914') )   
+		AND     DW.CNFM_DATE	= '$!{cnfm_date}'
+		GROUP BY  SALES_CAT05, SALES_CAT03, DW.ITEM_ID, IM.ITEM_NAME, IM.ITYPE, IM.SPEC, IM.CAT03, BOX_PER_PALET, IM.JGC_DUE_DATE, DWSP.MON_M00,
+				  DWSP.MON_M01, DWSP.MON_M02, DWSP.MON_M03
+		ORDER BY  SALES_CAT05, SALES_CAT03 DESC, DW.ITEM_ID 
+	#end
 
 	</query>
 	
@@ -9710,7 +10305,7 @@
 		                --AND      SA.DELIV_LOC    NOT IN ('8901','8902','8903','8913','8914') --판매 실적은 수출도 참조
 		                AND      SA.SALE_DATE = CAL.YYYYMMDD
 		                AND		 SA.DELIV_LOC = DM.DC_ID
-		                AND		 (DM.EXPORT_FLAG IS NULL OR DM.DC_ID IN( '8913','8914'))
+		                AND		 (DM.EXPORT_FLAG IS NULL OR DM.DC_ID IN( '8913','1842','8914'))
 		                GROUP BY SA.ITEM_ID
 		                )
 		                GROUP BY ITEM_ID
@@ -9758,7 +10353,7 @@
 		AND		DW.ITEM_ID		= SY.ITEM_ID(+)		
 		AND		CM.CD			= IM.SALES_CAT03		
         AND		CM.CD_GRP		= 'SALES_CAT3'
-		AND		(DM.EXPORT_FLAG IS NULL OR DM.DC_ID IN( '8913','8914') )   --동우,대현 창고 추가 이승용대리 요청 2014-12-09 
+		AND		(DM.EXPORT_FLAG IS NULL OR DM.DC_ID IN( '8913','1842','8914') )   --동우,대현 창고 추가 이승용대리 요청 2014-12-09 
 		AND     DW.CNFM_DATE	= '$!{end_date}'
 		AND		IM.SALES_CAT05 LIKE '%'||'$!{sales_cat05}'||'%'
 		AND		IM.SALES_CAT03 LIKE '%'||'$!{sales_cat03}'||'%'

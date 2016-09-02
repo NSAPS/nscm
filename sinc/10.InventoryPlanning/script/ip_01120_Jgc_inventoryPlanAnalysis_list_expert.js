@@ -122,27 +122,23 @@ function setHeader(GridObj) {
  	GridObj.AddHeader("ITEM_ID"	           ,"품목코드"		,"t_text" 	   ,100	    ,60     ,false); //0   
  	GridObj.AddHeader("ITEM_NAME"	       ,"품목명"	        ,"t_text" 	   ,100	    ,260    ,false); //0
  	GridObj.AddHeader("SPEC"	    	   ,"규격"	    	,"t_text"  	   ,100		,90     ,false); //0
- 	GridObj.AddHeader("GUBN"	    	   ,"구분"	    	,"t_text"  	   ,100		,50     ,false); //0
- 	GridObj.AddHeader("JGC_OCCUR"	       ,"장기체화\n발생재고"	,"t_number"    ,100.3	,0     ,false); //0
- 	GridObj.AddHeader("JGC_STOCK"	       ,"장기체화\n현재재고"	,"t_number"    ,100.3	,70     ,false); //0
- 	
- 	GridObj.AddHeader("JGC_PROD_DATE"	   ,"장기체화\n발생일"	,"t_text"      ,100		,70     ,false); //0
- 	GridObj.AddHeader("BUDU_QTY"	   	   ,"장기체화\n누계"		,"t_number"    ,100.3	,0     ,false); //0
- 	GridObj.AddHeader("BASE_STOCK"	       ,"기초재고"			,"t_number"    ,100.3	,0     ,false); //0
- 	GridObj.AddHeader("STOCK_DAY"  		   ,"재고일수"			,"t_number"    ,100.3	,70     ,false); //0
- 	GridObj.AddHeader("PROD_TERM"     	   ,"유통기한\n경과일수"	,"t_number"    ,100.3	,70     ,false); //0
-    GridObj.AddHeader("TERM_VAL"  		   ,"유통기한"			,"t_number"    ,100.3	,70     ,false); //0
-    GridObj.AddHeader("TERM_PER"  		   ,"유통기한\n경과율"	,"t_number"    ,100.3	,70     ,false); //0
- 	
- 	
+ 	GridObj.AddHeader("GUBN"	    	   ,"속성"	    	,"t_text"  	   ,100		,50     ,false); //0
+ 	GridObj.AddHeader("JGC_OCCUR"	       ,"장기체화\n발생재고"	,"t_number"    ,100.3	,70     ,false); //0
  	GridObj.AddHeader("SALES_PRE"	       ,"전일계"	    		,"t_number"    ,100.3	,70     ,false); //0
  	GridObj.AddHeader("SALES_CUR"	       ,"일계"       		,"t_number"    ,100.3	,70     ,false); //0
-    GridObj.AddHeader("SALES_SUM"	       ,"누계"	    		,"t_number"    ,100.3	,70     ,false); //0
-   	GridObj.AddHeader("REMAIN_STOCK"	    ,"잔여재고"	    	,"t_number"    ,100.3	,0     ,false); //0
-    GridObj.AddHeader("SALES_MEAN_1WEEK"    ,"1주평균"			,"t_number"    ,100.3	,70     ,false); //0
-    GridObj.AddHeader("SALES_MEAN_3WEEK"    ,"3주평균"			,"t_number"    ,100.3	,70     ,false); //0
+    GridObj.AddHeader("BUDU_QTY"	   	   ,"누계"				,"t_number"    ,100.3	,70     ,false); //0 	
+ 	GridObj.AddHeader("JGC_STOCK"	       ,"장기체화\n잔여재고"	,"t_number"    ,100.3	,70     ,false); //0
+ 	GridObj.AddHeader("JGC_START_DATE"	   ,"장기체화\n발생일"	,"t_text"      ,100		,70     ,false); //0
+ 	GridObj.AddHeader("PROD_TERM"     	   ,"생산\n경과일수"		,"t_number"    ,100.3	,70     ,false); //0
+ 	GridObj.AddHeader("TERM_VAL_REMAIN"    ,"유통기한\n잔여일"	,"t_number"    ,100.3	,70     ,false); //0
+ 	GridObj.AddHeader("TERM_VAL"  		   ,"유통기한"			,"t_number"    ,100.3	,70     ,false); //0
+ 	GridObj.AddHeader("TERM_PER"  		   ,"유통기한\n경과율"	,"t_number"    ,100.3	,70     ,false); //0
+ 	GridObj.AddHeader("JGC_PROD_DATE"	   ,"장기체화\n생산일"	,"t_text"      ,100		,70     ,false); //0
+ 	GridObj.AddHeader("STOCK_DAY"  		   ,"재고일수"			,"t_number"    ,100.3	,0     ,false); //0	
+    GridObj.AddHeader("SALES_MEAN_1WEEK"    ,"1주평균"			,"t_number"    ,100.3	,0     ,false); //0
+    GridObj.AddHeader("SALES_MEAN_3WEEK"    ,"3주평균"			,"t_number"    ,100.3	,0     ,false); //0
  	GridObj.AddHeader("GYR"    				,"GYR"				,"t_text"      ,100		,0     ,false); //0
- 	
+ 	//GridObj.AddHeader("REAL_STOCK"    		,"REAL_STOCK"				,"t_number"      ,100.3		,70     ,false); //0
   
 	/* 저장을 위한 히든 값 */
 
@@ -155,14 +151,12 @@ function setHeader(GridObj) {
     GridObj.SetColCellAlign('TERM_PER',     		'right'); 
 	GridObj.SetColCellAlign('GUBN',     			'center'); 
 	GridObj.SetColCellAlign('JGC_PROD_DATE',     	'center'); 
+	GridObj.SetColCellAlign('JGC_START_DATE',     	'center'); 
     GridObj.SetNumberFormat("JGC_STOCK",       "###,###.#");
     GridObj.SetNumberFormat("JGC_OCCUR",       "###,###.#");
-    GridObj.SetNumberFormat("BUDU_QTY",        "###,###.#");
-    GridObj.SetNumberFormat("BASE_STOCK",      "###,###.#");
+    GridObj.SetNumberFormat("BUDU_QTY",        "###,###.#");    
     GridObj.SetNumberFormat("SALES_PRE",       "###,###.#");
-    GridObj.SetNumberFormat("SALES_CUR",       "###,###.#");
-    GridObj.SetNumberFormat("SALES_SUM",       "###,###.#");
-    GridObj.SetNumberFormat("REMAIN_STOCK",    "###,###.#");
+    GridObj.SetNumberFormat("SALES_CUR",       "###,###.#");   
     GridObj.SetNumberFormat("PROD_TERM",       "###,###.#");
     
 
@@ -296,12 +290,17 @@ function GridCellClick(strColumnKey, nRow) {
 	var flag_jgc_stock = '1';	
 	var flag_sales_pre = '1';
 	var flag_sales_cur = '1';	
-	var flag_sales_sum = '1';
 	
-	var flag_remain_stock = '1';
+	var flag_jgc_occur = '1';
+	var flag_budu_qty = '1';
+	var flag_jgc_start_date = '1';
+	var flag_jgc_prod_date = '1';
+	var flag_term_val_Remain = '1';
+	var flag_gubn	= '1';
+	
+	
 	var flag_prod_term = '1';	
 	var flag_term_per = '1';
-
 	var flag_term_val = '1';
 	var flag_stock_day = '1';
 	var flag_sales_mean_3week = '1';
@@ -313,17 +312,19 @@ function HeaderClick(strColumnKey){
 	
 	GridObj.SetColCellSortEnable('ITEM_ID'			,true);
 	GridObj.SetColCellSortEnable('ITEM_NAME'		,true);
+	GridObj.SetColCellSortEnable('GUBN'				,true);
+	GridObj.SetColCellSortEnable('JGC_OCCUR'		,true);
+	GridObj.SetColCellSortEnable('SALES_PRE'		,true);
+	GridObj.SetColCellSortEnable('SALES_CUR'		,true);
+	GridObj.SetColCellSortEnable('BUDU_QTY'			,true);
 	GridObj.SetColCellSortEnable('JGC_STOCK'		,true);
+	GridObj.SetColCellSortEnable('JGC_START_DATE'		,true);
+	GridObj.SetColCellSortEnable('TERM_VAL_REMAIN'		,true);
+	GridObj.SetColCellSortEnable('JGC_PROD_DATE'		,true);	
 	GridObj.SetColCellSortEnable('STOCK_DAY'		,true);
 	GridObj.SetColCellSortEnable('PROD_TERM'		,true);
 	GridObj.SetColCellSortEnable('TERM_VAL'			,true);
 	GridObj.SetColCellSortEnable('TERM_PER'			,true);
-	GridObj.SetColCellSortEnable('SALES_PRE'		,true);
-	GridObj.SetColCellSortEnable('SALES_CUR'		,true);
-	
-	GridObj.SetColCellSortEnable('SALES_SUM'		,true);
-	GridObj.SetColCellSortEnable('REMAIN_STOCK'		,true);
-
 	GridObj.SetColCellSortEnable('SALES_MEAN_1WEEK'	,true);
 	GridObj.SetColCellSortEnable('SALES_MEAN_3WEEK'	,true);
 
@@ -465,36 +466,6 @@ function HeaderClick(strColumnKey){
 			
 		}
 	}
-	if(strColumnKey == 'SALES_SUM') {
-		
-		if(flag_sales_sum =='1'){
-		
-			GridObj.SetColCellSort('SALES_SUM','descending');
-			flag_sales_sum++;
-		}
-		else if(flag_sales_sum =='2'){
-			
-			GridObj.SetColCellSort('SALES_SUM','asceding');
-			
-			flag_sales_sum--;	
-			
-		}
-	}
-	if(strColumnKey == 'REMAIN_STOCK') {
-		
-		if(flag_remain_stock =='1'){
-		
-			GridObj.SetColCellSort('REMAIN_STOCK','descending');
-			flag_remain_stock++;
-		}
-		else if(flag_remain_stock =='2'){
-			
-			GridObj.SetColCellSort('REMAIN_STOCK','asceding');
-			
-			flag_remain_stock--;	
-			
-		}
-	}
 	if(strColumnKey == 'SALES_MEAN_1WEEK') {
 		
 		if(flag_sales_mean_1week =='1'){
@@ -526,6 +497,82 @@ function HeaderClick(strColumnKey){
 		}
 	}
 	
+	
+	if(strColumnKey == 'GUBN') {
+		
+		if(flag_gubn =='1'){
+		
+			GridObj.SetColCellSort('GUBN','descending');
+			flag_gubn++;
+		}
+		else if(flag_gubn =='2'){
+			
+			GridObj.SetColCellSort('GUBN','asceding');
+			
+			flag_gubn--;	
+			
+		}
+	}
+	if(strColumnKey == 'JGC_OCCUR') {
+		
+		if(flag_jgc_occur =='1'){
+		
+			GridObj.SetColCellSort('JGC_OCCUR','descending');
+			flag_jgc_occur++;
+		}
+		else if(flag_jgc_occur =='2'){
+			
+			GridObj.SetColCellSort('JGC_OCCUR','asceding');
+			
+			flag_jgc_occur--;	
+			
+		}
+	}
+	if(strColumnKey == 'BUDU_QTY') {
+		
+		if(flag_budu_qty =='1'){
+		
+			GridObj.SetColCellSort('BUDU_QTY','descending');
+			flag_budu_qty++;
+		}
+		else if(flag_budu_qty =='2'){
+			
+			GridObj.SetColCellSort('BUDU_QTY','asceding');
+			
+			flag_budu_qty--;	
+			
+		}
+	}
+	if(strColumnKey == 'JGC_START_DATE') {
+		
+		if(flag_jgc_start_date =='1'){
+		
+			GridObj.SetColCellSort('JGC_START_DATE','descending');
+			flag_jgc_start_date++;
+		}
+		else if(flag_jgc_start_date =='2'){
+			
+			GridObj.SetColCellSort('JGC_START_DATE','asceding');
+			
+			flag_jgc_start_date--;	
+			
+		}
+	}
+	if(strColumnKey == 'JGC_PROD_DATE') {
+		
+		if(flag_jgc_prod_Date =='1'){
+		
+			GridObj.SetColCellSort('JGC_PROD_DATE','descending');
+			flag_jgc_prod_Date++;
+		}
+		else if(flag_jgc_prod_Date =='2'){
+			
+			GridObj.SetColCellSort('JGC_PROD_DATE','asceding');
+			
+			flag_jgc_prod_Date--;	
+			
+		}
+	}
 		GridSetMerge();
 		
 }
@@ -559,10 +606,10 @@ function GridSetMerge(){
 	
 				
 		GridObj.SetGroupMerge('SALES_CAT03,ITEM_ID,ITEM_NAME,SPEC');
-      	GridObj.AddSummaryBar('SUMMARY1', '소계', 'SALES_CAT03', 'sum', 'JGC_STOCK,BASE_STOCK,STOCK_DAY,PROD_TERM,TERM_VAL,SALES_PRE,SALES_CUR,SALES_SUM,REMAIN_STOCK,' +
+      	GridObj.AddSummaryBar('SUMMARY1', '소계', 'SALES_CAT03', 'sum', 'JGC_STOCK,STOCK_DAY,PROD_TERM,SALES_PRE,SALES_CUR,' +
       			'SALES_MEAN_1WEEK,SALES_MEAN_3WEEK,JGC_OCCUR,BUDU_QTY'); 
      	 	
-	   	GridObj.AddSummaryBar('SUMMARY2', '합계', 'summaryall', 'sum', 'JGC_STOCK,BASE_STOCK,STOCK_DAY,PROD_TERM,TERM_VAL,SALES_PRE,SALES_CUR,SALES_SUM,REMAIN_STOCK,' +
+	   	GridObj.AddSummaryBar('SUMMARY2', '합계', 'summaryall', 'sum', 'JGC_STOCK,STOCK_DAY,PROD_TERM,SALES_PRE,SALES_CUR,' +
       			'SALES_MEAN_1WEEK,SALES_MEAN_3WEEK,JGC_OCCUR,BUDU_QTY'); 
         
     	GridObj.SetSummaryBarColor('SUMMARY1', '0|153|0', '230|230|250');

@@ -43,8 +43,9 @@ $response.setHeader("Content-Description", "JSP Generated Data")
 		<td>규격</td>		
 		<td>장기체화발생재고</td>
 		<td>전일계</td>
-		<td>일계</td>			
+		<td>일계</td>
 		<td>누계</td>
+		<td>총누계</td>
 		<td>장기체화잔여재고</td>
 		<td>재고소진율</td>
 		<td>잔여일수</td>
@@ -110,42 +111,44 @@ $response.setHeader("Content-Description", "JSP Generated Data")
 		## 일계
 		<td>$tr.get(7)</td>
 		## 누계
-		##<td style='mso-number-format:”yyyy-mm-dd”'>$tr.get(8)</td>
 		<td>$tr.get(8)</td>
-		## 장기체화잔여재고
+		## 총누계
+		##<td style='mso-number-format:”yyyy-mm-dd”'>$tr.get(8)</td>
 		<td>$tr.get(9)</td>
+		## 장기체화잔여재고
+		<td>$tr.get(10)</td>
 		## 재고소진율
-		<td>$tr.get(10)</td>	
+		<td>$tr.get(11)</td>	
 		## 잔여일수
-		<td>$tr.get(11)</td>
-		## 등록경과일
 		<td>$tr.get(12)</td>
-		## 유통기한경과예상수량30%
+		## 등록경과일
 		<td>$tr.get(13)</td>
-		## 유통기한경과예상수량50%
+		## 유통기한경과예상수량30%
 		<td>$tr.get(14)</td>
-		## 유통기한경과예상수량80%
+		## 유통기한경과예상수량50%
 		<td>$tr.get(15)</td>
+		## 유통기한경과예상수량80%
+		<td>$tr.get(16)</td>
 		## 유통기한경과예상수량100%
-		<td>$tr.get(16)</td>		
+		<td>$tr.get(17)</td>		
 		## 유통기한만기일
-		<td style='mso-number-format:yyyy-mm-dd'>$tr.get(17)</td>
+		<td style='mso-number-format:yyyy-mm-dd'>$tr.get(18)</td>
 		## 유통기한
-		<td>$tr.get(18)</td>
-		## 유통기한경과일수
 		<td>$tr.get(19)</td>
-		## 유통기한경과
+		## 유통기한경과일수
 		<td>$tr.get(20)</td>
-		## 재고일수
+		## 유통기한경과
 		<td>$tr.get(21)</td>
-		## 3주평균판매
+		## 재고일수
 		<td>$tr.get(22)</td>
-		## 처리기한
+		## 3주평균판매
 		<td>$tr.get(23)</td>
-		## 일자
+		## 처리기한
 		<td>$tr.get(24)</td>
+		## 일자
+		<td>$tr.get(25)</td>
 		## 등록일
-		<td style='mso-number-format:yyyy-mm-dd'>$tr.get(25)</td>
+		<td style='mso-number-format:yyyy-mm-dd'>$tr.get(26)</td>
 		</tr>
 	#end 
 </table> 

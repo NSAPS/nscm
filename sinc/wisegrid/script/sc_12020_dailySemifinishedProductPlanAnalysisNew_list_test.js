@@ -1,5 +1,5 @@
 //############################################################
-//## 프로그램ID : 
+//## 프로그램ID : sc_12020_dailySemifinishedProductPlanAnalysisNew_list_test
 //## 프로그램명 : 
 //## 개발자  : 정재교
 //## 개발일자 : 
@@ -94,10 +94,8 @@ function setDefault(GridObj){
 	GridObj.strRowBorderStyle = "none";         	//로우의 테두리에 아무것도 나타나지 않는다.
 	GridObj.nRowSpacing = 0;                    	//RowSpacing값을 정한다. 
 	GridObj.strHDClickAction = "select";        	//클릭한 컬럼의 셀을 선택가능하게 한다.
-
-	GridObj.strActiveRowBgColor = "232|245|213";    //선택된 행의 배경색상을 설정한다.
-	GridObj.strSelectedCellBgColor = '232|232|255'; //Drag로 선택된 셀의 배경색상을 변경할 수 있다 	
-    GridObj.strSelectedCellFgColor = '180|82|205';  //선택된 셀의 글자색 지정한다. 
+	//GridObj.strActiveRowBgColor = "180|238|180";    //선택된 행의 배경색상을 설정한다.
+	//GridObj.strSelectedCellBgColor = '238|0|238'; //Drag로 선택된 셀의 배경색상을 변경할 수 있다 	
 	
 	// Header Font Setting
 	GridObj.nHDFontSize = 9;				  	// Font Size
@@ -2159,3 +2157,16 @@ function setGridAutoResize( tab_h, table_h ){
 	document.WiseGrid.height = tableHeightValue + "px"; 
 	
 }
+
+
+function MrpCheck(){
+	
+		var service_url = "service.do?_moon_service=sc_12020_dailySemifinishedProductPlanAnalysisNew_list_test_pop";
+		service_url += "" ;
+		var pop_win_style = "titlebar=no, menubar=no, toolbar=no, status=yes, scrollbars=yes, resizable=yes, width=835, height=740, top=50, left=200";
+		var newWin = window.open(service_url, "", pop_win_style);
+		newWin.focus();	
+	
+}	
+	
+	

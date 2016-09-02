@@ -50,7 +50,7 @@
                     WHEN IM.SALES_CAT03 = '134' -- 그외 카프리선은 박스단위 판매 !!
                     THEN ED.EDI_QTY
                     WHEN (F_GET_ITEM_NAME(ED.ITEM_ID) LIKE '%VONO%' AND F_GET_ITEM_NAME(ED.ITEM_ID) LIKE '%(30입)%') -- VONO 종류중 (30입)은   EDI_QTY / 30
-                    THEN ED.EDI_QTY/30
+                    THEN ROUND(ED.EDI_QTY/30,0)
                     WHEN ED.ITEM_ID IS NULL -- 본부 조정으로 오더 전환을 막은 품목은 EDI 발주량을 변환없이 보여준다
                     THEN ED.EDI_QTY
                     ELSE ROUND(ED.EDI_QTY/DECODE(CV.VIEW_PROD_BOX, 1 ,CV.VIEW_PROD_PICE, CV.VIEW_PROD_BOX))  
@@ -71,7 +71,7 @@
                     WHEN IM.SALES_CAT03 = '134' -- 그외 카프리선은 박스단위 판매 !!
                     THEN ED.DEFAULT_QTY
                     WHEN (F_GET_ITEM_NAME(ED.ITEM_ID) LIKE '%VONO%' AND F_GET_ITEM_NAME(ED.ITEM_ID) LIKE '%(30입)%') -- VONO 종류중 (30입)은   EDI_QTY / 30
-                    THEN ED.DEFAULT_QTY/30
+                    THEN ROUND(ED.EDI_QTY/30,0)
                     WHEN ED.ITEM_ID IS NULL -- 본부 조정으로 오더 전환을 막은 품목은 EDI 발주량을 변환없이 보여준다
                     THEN ED.DEFAULT_QTY
                     ELSE ROUND(ED.DEFAULT_QTY/DECODE(CV.VIEW_PROD_BOX, 1 ,CV.VIEW_PROD_PICE, CV.VIEW_PROD_BOX))  
@@ -666,6 +666,7 @@
 									ELSE '22' -- E마트
 								END		       		
 								)
+		AND		OD.ERR_GUBN		!= '16'  --2014-10-31 NFOS 삭제표시 데이터 안 보이게 수정
     #if("$!{edi_gubn}" == "1")
 		/* 이마트 '$!{edi_gubn}' */
 		AND     CNFM_DATE   = TO_CHAR(TO_DATE('$!{cnfm_date}'), 'YYYYMMDD')
@@ -719,6 +720,7 @@
 										END
 										*/		       		
 		        AND     CNFM_DATE &lt; TRUNC(SYSDATE)
+		        AND		OD.ERR_GUBN		!= '16'  --2014-10-31 NFOS 삭제표시 데이터 안 보이게 수정
 		        --AND     ERR_GUBN = '09'
 		        GROUP BY CNFM_DATE
 		        ) OD,

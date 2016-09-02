@@ -143,10 +143,14 @@ function setHeader(GridObj) {
  	GridObj.AddHeader("GITA_STOCK"	       ,"기타재고"	    ,"t_number"    ,100.3	,60     ,false); //0 	
  	GridObj.AddHeader("OUT_STOCK"	       ,"사외재고"	    ,"t_number"    ,100.3	,60     ,false); //0
  	
- 	GridObj.AddHeader("RECEIPT_EXPT_SUM"   ,"수입예정\nM"	,"t_number"    ,100.3	,70     ,false); //0
- 	GridObj.AddHeader("RECEIPT_EXPT_SUM_1" ,"수입예정\nM+1"	,"t_number"    ,100.3	,70     ,false); //0
+ 	GridObj.AddHeader("RECEIPT_EXPT_SUM_M"    ,"1-10"	,"t_number"    ,100.3	,70     ,false); //0
+ 	GridObj.AddHeader("RECEIPT_EXPT_SUM_M2"   ,"11-20"	,"t_number"    ,100.3	,70     ,false); //0
+ 	GridObj.AddHeader("RECEIPT_EXPT_SUM_M3"   ,"21-30"	,"t_number"    ,100.3	,70     ,false); //0
+ 	
+ 	GridObj.AddHeader("RECEIPT_EXPT_SUM_1" ,"수입예정\nM+1"	,"t_number"    ,100.3	,70     ,false); //0 	
  	GridObj.AddHeader("RECEIPT_EXPT_SUM_2" ,"수입예정\nM+2"	,"t_number"    ,100.3	,70     ,false); //0
  	GridObj.AddHeader("RECEIPT_EXPT_SUM_3" ,"수입예정\nM+3"	,"t_number"    ,100.3	,70     ,false); //0
+ 	GridObj.AddHeader("RECEIPT_EXPT_SUM_4" ,"수입예정\nM+4"	,"t_number"    ,100.3	,70     ,false); //0
  	
  	GridObj.AddHeader("TOTAL_AVL_QTY"	   ,"총공급\n가능량"	,"t_number"    ,100.3	,60     ,false); //0
  	GridObj.AddHeader("TOTAL_AVL_DAY"	   ,"총공급\n가능일수","t_number"    ,100.3	,60     ,false); //0
@@ -165,11 +169,6 @@ function setHeader(GridObj) {
  	GridObj.AddHeader("THIS_YEAR_SUM"      ,"금년누계"	   	,"t_number"    ,100.3   ,60     ,false); //0
  	GridObj.AddHeader("LAST_YEAR_SUM"      ,"전년누계"		,"t_number"    ,100.3   ,60     ,false); //0
  	GridObj.AddHeader("SUB_PY_YEAR"    	   ,"전년누계\n대비"	,"t_number"    ,100.3   ,60     ,false); //0
- 	
- 	
-
- 	
- 	
 	
  	GridObj.AddHeader("WEEK_DEV_1_3"       ,"1/3주평균\n편차"	,"t_number"    ,100.3   ,0     ,false); //0
  	GridObj.AddHeader("DEV_PER"            ,"편차비율"	    ,"t_number"    ,100.3   ,0     ,false); //0
@@ -196,6 +195,11 @@ function setHeader(GridObj) {
  	
  
 	/* 저장을 위한 히든 값 */
+	
+	GridObj.AddGroup	("PROD_PLAN",   "수입예정M");			
+	GridObj.AppendHeader("PROD_PLAN", 	"RECEIPT_EXPT_SUM_M");
+	GridObj.AppendHeader("PROD_PLAN", 	"RECEIPT_EXPT_SUM_M2");
+	GridObj.AppendHeader("PROD_PLAN", 	"RECEIPT_EXPT_SUM_M3");
 
 	GridObj.BoundHeader();	
 	GridObj.SetColHDBgColor('STOCK_EXPT',  '225|255|54');
@@ -258,10 +262,11 @@ function setHeader(GridObj) {
     GridObj.SetColCellAlign('PRE_MONTH_SELL',    'right'); //전월계
     //GridObj.SetColCellAlign('SALES_SUM',         'right');
     //GridObj.SetColCellAlign('RECEIPT_EXPT',      'right'); //생산 계획
-    GridObj.SetColCellAlign('RECEIPT_EXPT_SUM',  'right'); //생산 누적
+    GridObj.SetColCellAlign('RECEIPT_EXPT_SUM_M',  'right'); //생산 누적
     GridObj.SetColCellAlign('RECEIPT_EXPT_SUM_1',  'right'); //생산 누적
     GridObj.SetColCellAlign('RECEIPT_EXPT_SUM_2',  'right'); //생산 누적
     GridObj.SetColCellAlign('RECEIPT_EXPT_SUM_3',  'right'); //생산 누적
+    GridObj.SetColCellAlign('RECEIPT_EXPT_SUM_4',  'right'); //생산 누적
     GridObj.SetColCellAlign('SALES_MEAN_1WEEK',  'right');
     GridObj.SetColCellAlign('SALES_MEAN_3WEEK',  'right');
     GridObj.SetColCellAlign('WEEK_DEV_1_3',      'right');
@@ -297,10 +302,13 @@ function setHeader(GridObj) {
     GridObj.SetNumberFormat("STOCK_EXPT",       	"###,###.#");
     //GridObj.SetNumberFormat("RECEIPT_EXPT",     "###,###.#");
     GridObj.SetNumberFormat("SALES_SUM_PY",     	"###,###.#");
-    GridObj.SetNumberFormat("RECEIPT_EXPT_SUM", 	"###,###.#");
+    GridObj.SetNumberFormat("RECEIPT_EXPT_SUM_M", 	"###,###.#");
+    GridObj.SetNumberFormat("RECEIPT_EXPT_SUM_M3", 	"###,###.#");
+    GridObj.SetNumberFormat("RECEIPT_EXPT_SUM_M2", 	"###,###.#");
     GridObj.SetNumberFormat("RECEIPT_EXPT_SUM_1", 	"###,###.#");
     GridObj.SetNumberFormat("RECEIPT_EXPT_SUM_2", 	"###,###.#");
     GridObj.SetNumberFormat("RECEIPT_EXPT_SUM_3", 	"###,###.#");
+    GridObj.SetNumberFormat("RECEIPT_EXPT_SUM_4", 	"###,###.#");
     GridObj.SetNumberFormat("SALES_MEAN_1WEEK", 	"###,###.#");
     GridObj.SetNumberFormat("SALES_MEAN_3WEEK", 	"###,###.#");
     GridObj.SetNumberFormat("WEEK_DEV_1_3",     	"###,###.#");
@@ -456,7 +464,7 @@ function setHeader(GridObj) {
 		var item_id		= GridObj.GetCellValue('ITEM_ID',nRow)
 		var	item_name	= GridObj.GetCellValue('ITEM_NAME',nRow)
 		var cnfm_date	= document.frm.end_date.value;
-		
+		var gubn		= '1';
 
 		
 		
@@ -476,7 +484,7 @@ function setHeader(GridObj) {
 			}else{
 				
 				var service_url = "service.do?_moon_service=ip_01140_inventoryPlanAnalysis_md_list_pop";
-				service_url += "&item_id=" + item_id + "&item_name=" + item_name + "&cnfm_date=" + cnfm_date;  
+				service_url += "&item_id=" + item_id + "&item_name=" + item_name + "&cnfm_date=" + cnfm_date + "&gubn=" + gubn;  
 				var pop_win_style = "titlebar=no, menubar=no, toolbar=no, status=yes, scrollbars=no, resizable=yes, width=1295, height=340, top=200, left=150";
 				var newWin = window.open(service_url, "", pop_win_style);
 				newWin.focus();		
@@ -503,7 +511,9 @@ function setHeader(GridObj) {
 	var flag_sales_sum = '1';
 	var flag_stock_expt = '1';
 	var flag_pre_month_sell = '1';	
-	var flag_receipt_expt_sum = '1';
+	var flag_receipt_expt_sum_m = '1';
+	var flag_receipt_expt_sum_m2 = '1';
+	var flag_receipt_expt_sum_m3 = '1';
 	var flag_receipt_expt_sum_1 = '1';
 	var flag_receipt_expt_sum_2 = '1';
 	var flag_receipt_expt_sum_3 = '1';
@@ -554,7 +564,9 @@ function setHeader(GridObj) {
 	GridObj.SetColCellSortEnable('STOCK_EXPT'		,true);
 	GridObj.SetColCellSortEnable('PRE_MONTH_SELL'	,true);
 	//GridObj.SetColCellSortEnable('RECEIPT_EXPT'		,true);
-	GridObj.SetColCellSortEnable('RECEIPT_EXPT_SUM'	,true);
+	GridObj.SetColCellSortEnable('RECEIPT_EXPT_SUM_M'	,true);
+	GridObj.SetColCellSortEnable('RECEIPT_EXPT_SUM_M2'	,true);
+	GridObj.SetColCellSortEnable('RECEIPT_EXPT_SUM_M3'	,true);
 	GridObj.SetColCellSortEnable('RECEIPT_EXPT_SUM_1'	,true);
 	GridObj.SetColCellSortEnable('RECEIPT_EXPT_SUM_2'	,true);
 	GridObj.SetColCellSortEnable('RECEIPT_EXPT_SUM_3'	,true);
@@ -918,18 +930,50 @@ function setHeader(GridObj) {
 		}
 	}
 
-	if(strColumnKey == 'RECEIPT_EXPT_SUM') {
+	if(strColumnKey == 'RECEIPT_EXPT_SUM_M') {
 		
-		if(flag_receipt_expt_sum =='1'){
+		if(flag_receipt_expt_sum_m =='1'){
 		
-			GridObj.SetColCellSort('RECEIPT_EXPT_SUM','descending');
-			flag_receipt_expt_sum++;
+			GridObj.SetColCellSort('RECEIPT_EXPT_SUM_M','descending');
+			flag_receipt_expt_sum_m++;
 		}
-		else if(flag_receipt_expt_sum =='2'){
+		else if(flag_receipt_expt_sum_m =='2'){
 			
-			GridObj.SetColCellSort('RECEIPT_EXPT_SUM','asceding');
+			GridObj.SetColCellSort('RECEIPT_EXPT_SUM_M','asceding');
 			
-			flag_receipt_expt_sum--;	
+			flag_receipt_expt_sum_m--;	
+			
+		}
+	}
+	
+	if(strColumnKey == 'RECEIPT_EXPT_SUM_M2') {
+		
+		if(flag_receipt_expt_sum_m2 =='1'){
+		
+			GridObj.SetColCellSort('RECEIPT_EXPT_SUM_M2','descending');
+			flag_receipt_expt_sum_m2++;
+		}
+		else if(flag_receipt_expt_sum_m2 =='2'){
+			
+			GridObj.SetColCellSort('RECEIPT_EXPT_SUM_M2','asceding');
+			
+			flag_receipt_expt_sum_m2--;	
+			
+		}
+	}
+	
+	if(strColumnKey == 'RECEIPT_EXPT_SUM_M3') {
+		
+		if(flag_receipt_expt_sum_m3 =='1'){
+		
+			GridObj.SetColCellSort('RECEIPT_EXPT_SUM_M3','descending');
+			flag_receipt_expt_sum_m3++;
+		}
+		else if(flag_receipt_expt_sum_m3 =='2'){
+			
+			GridObj.SetColCellSort('RECEIPT_EXPT_SUM_M3','asceding');
+			
+			flag_receipt_expt_sum_m3--;	
 			
 		}
 	}
@@ -1242,7 +1286,7 @@ function GridSetMerge(){
 
   	    
       	GridObj.AddSummaryBar('SUMMARY2', '소계', 'SALES_CAT03', 'custom', 'BASE_STOCK,DY_STOCK,DY_STOCK2,GITA_STOCK,OUT_STOCK,STOCK_DAY,STOCK_DAY2,STOCK_WEEK,PROD_TERM,STOCK_HIDDEN,TERM_HIDDEN,TERM_VAL,SALES_PRE,SALES_CUR,SALES_SUM,STOCK_EXPT,PRE_MONTH_SELL,' +
-      			'PR_TO_PO,PO_TO_LC,LC_TO_PORT,PORT_TO_CUST,RECEIPT_EXPT_SUM,RECEIPT_EXPT_SUM_1,RECEIPT_EXPT_SUM_2,RECEIPT_EXPT_SUM_3,SALES_MEAN_1WEEK,SALES_MEAN_3WEEK,WEEK_DEV_1_3,SALES_SUM_PY,THIS_YEAR_SUM,LAST_YEAR_SUM,SUB_PY_MON,' +
+      			'PR_TO_PO,PO_TO_LC,LC_TO_PORT,PORT_TO_CUST,RECEIPT_EXPT_SUM_M,RECEIPT_EXPT_SUM_M2,RECEIPT_EXPT_SUM_M3,RECEIPT_EXPT_SUM_1,RECEIPT_EXPT_SUM_2,RECEIPT_EXPT_SUM_3,RECEIPT_EXPT_SUM_4,SALES_MEAN_1WEEK,SALES_MEAN_3WEEK,WEEK_DEV_1_3,SALES_SUM_PY,THIS_YEAR_SUM,LAST_YEAR_SUM,SUB_PY_MON,' +
       			'SUB_PY_YEAR,BASE_STOCK_PALLET,STOCK_EXPT_PALLET,SALES_MEAN_1MON,SALES_MEAN_3MON,SALES_MEAN_1MON2,SALES_MEAN_3MON2,TOTAL_AVL_QTY,TOTAL_AVL_DAY,TOTAL_AVL_DAY2,TOT_STOCK_WEEK,NWGT_PER_BUOM,MON_IN_CUM_BUOM,YEAR_IN_CUM,YEAR_IN_CUM_BUOM,YEAR_IN_CUM_BUOM2,MON_SALE_CUM,YEAR_SALE_CUM_BUOM'); 
  	   
  	   /* custom 소계에 대해 각 컬럼별로 지정 - SUMMARY1 */
@@ -1261,10 +1305,13 @@ function GridSetMerge(){
  	    GridObj.SetSummaryBarFunction('SUMMARY2','sum','TOTAL_AVL_QTY'); 	
  	    //GridObj.SetSummaryBarFunction('SUMMARY2','sum','TOTAL_AVL_DAY'); 	 
  	    GridObj.SetSummaryBarFunction('SUMMARY2','sum','PRE_MONTH_SELL');
- 	    GridObj.SetSummaryBarFunction('SUMMARY2','sum','RECEIPT_EXPT_SUM');
+ 	    GridObj.SetSummaryBarFunction('SUMMARY2','sum','RECEIPT_EXPT_SUM_M');
+ 	    GridObj.SetSummaryBarFunction('SUMMARY2','sum','RECEIPT_EXPT_SUM_M2');
+ 	    GridObj.SetSummaryBarFunction('SUMMARY2','sum','RECEIPT_EXPT_SUM_M3');
  	    GridObj.SetSummaryBarFunction('SUMMARY2','sum','RECEIPT_EXPT_SUM_1');
  	    GridObj.SetSummaryBarFunction('SUMMARY2','sum','RECEIPT_EXPT_SUM_2');
  	    GridObj.SetSummaryBarFunction('SUMMARY2','sum','RECEIPT_EXPT_SUM_3');
+ 	    GridObj.SetSummaryBarFunction('SUMMARY2','sum','RECEIPT_EXPT_SUM_4');
  	    GridObj.SetSummaryBarFunction('SUMMARY2','sum','SALES_MEAN_1WEEK');
  	    GridObj.SetSummaryBarFunction('SUMMARY2','sum','SALES_MEAN_3WEEK');
  	    GridObj.SetSummaryBarFunction('SUMMARY2','sum','SALES_MEAN_1MON');
@@ -1333,7 +1380,7 @@ function GridSetMerge(){
   	    }
  	  	 	
   	 	GridObj.AddSummaryBar('SUMMARY3', '합계', 'summaryall', 'custom', 'BASE_STOCK,DY_STOCK,DY_STOCK2,GITA_STOCK,OUT_STOCK,STOCK_DAY,STOCK_DAY2,STOCK_WEEK,PROD_TERM,STOCK_HIDDEN,TERM_HIDDEN,TERM_VAL,SALES_PRE,SALES_CUR,SALES_SUM,STOCK_EXPT,PRE_MONTH_SELL,' +
-  	 			'RECEIPT_EXPT_SUM,RECEIPT_EXPT_SUM_1,RECEIPT_EXPT_SUM_2,RECEIPT_EXPT_SUM_3,SALES_MEAN_1WEEK,SALES_MEAN_3WEEK,WEEK_DEV_1_3,SALES_SUM_PY,THIS_YEAR_SUM,LAST_YEAR_SUM,SUB_PY_MON,SUB_PY_YEAR,BASE_STOCK_PALLET,' +
+  	 			'RECEIPT_EXPT_SUM_M,RECEIPT_EXPT_SUM_M2,RECEIPT_EXPT_SUM_M3,RECEIPT_EXPT_SUM_1,RECEIPT_EXPT_SUM_2,RECEIPT_EXPT_SUM_3,RECEIPT_EXPT_SUM_4,SALES_MEAN_1WEEK,SALES_MEAN_3WEEK,WEEK_DEV_1_3,SALES_SUM_PY,THIS_YEAR_SUM,LAST_YEAR_SUM,SUB_PY_MON,SUB_PY_YEAR,BASE_STOCK_PALLET,' +
   	 			'STOCK_EXPT_PALLET,SALES_MEAN_1MON,SALES_MEAN_3MON,SALES_MEAN_1MON2,SALES_MEAN_3MON2,TOTAL_AVL_QTY,TOTAL_AVL_DAY,TOTAL_AVL_DAY2,TOT_STOCK_WEEK,NWGT_PER_BUOM,MON_IN_CUM_BUOM,YEAR_IN_CUM,YEAR_IN_CUM_BUOM,YEAR_IN_CUM_BUOM2,MON_SALE_CUM,YEAR_SALE_CUM_BUOM');
         
         GridObj.SetSummaryBarFunction('SUMMARY3','sum','BASE_STOCK');
@@ -1351,10 +1398,13 @@ function GridSetMerge(){
  	    //GridObj.SetSummaryBarFunction('SUMMARY3','sum','TOTAL_AVL_DAY'); 	    
  	    GridObj.SetSummaryBarFunction('SUMMARY3','sum','PRE_MONTH_SELL');
  	    //GridObj.SetSummaryBarFunction('SUMMARY3','sum','RECEIPT_EXPT');
- 	    GridObj.SetSummaryBarFunction('SUMMARY3','sum','RECEIPT_EXPT_SUM');
+ 	    GridObj.SetSummaryBarFunction('SUMMARY3','sum','RECEIPT_EXPT_SUM_M');
+ 	    GridObj.SetSummaryBarFunction('SUMMARY3','sum','RECEIPT_EXPT_SUM_M2');
+ 	    GridObj.SetSummaryBarFunction('SUMMARY3','sum','RECEIPT_EXPT_SUM_M3');
  	    GridObj.SetSummaryBarFunction('SUMMARY3','sum','RECEIPT_EXPT_SUM_1');
  	    GridObj.SetSummaryBarFunction('SUMMARY3','sum','RECEIPT_EXPT_SUM_2');
  	    GridObj.SetSummaryBarFunction('SUMMARY3','sum','RECEIPT_EXPT_SUM_3');
+ 	    GridObj.SetSummaryBarFunction('SUMMARY3','sum','RECEIPT_EXPT_SUM_4');
  	    GridObj.SetSummaryBarFunction('SUMMARY3','sum','SALES_MEAN_1WEEK');
  	    GridObj.SetSummaryBarFunction('SUMMARY3','sum','SALES_MEAN_3WEEK');
  	    GridObj.SetSummaryBarFunction('SUMMARY3','sum','SALES_MEAN_1MON');

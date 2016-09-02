@@ -59,50 +59,38 @@ function setHeader(GridObj) {
 		GridObj.AddHeader("SALES_CAT03"		,"품목코드"    	 ,"t_text" 	    		,100	,90   ,false); // 중분류// 
 		GridObj.AddHeader("CD_NAME"			,"품목명"    	 	 ,"t_text" 	    		,100    ,160  ,false);
 		GridObj.AddHeader("GUBN"			,"구분"       	 ,"t_text" 	    		,100	,75   ,false);		
-	 	GridObj.AddHeader("MTS_AN_QTY"	    ,"3SforU(안양)"  ,"t_number" 			,100.3	,100  ,false);
-	 	GridObj.AddHeader("AS_QTY"	    	,"안성"  		,"t_number" 			,100.3	,70   ,false);
-		GridObj.AddHeader("MTS_PO_QTY"	    ,"3SforU(포승)"  ,"t_number" 			,100.3	,100  ,false);	  	
-	  	GridObj.AddHeader("WINE_QTY"	    ,"와인나라"       ,"t_number" 			,100.3	,100  ,false); 
-	  	GridObj.AddHeader("DY_QTY"	        ,"동양물류"       ,"t_number" 			,100.3	,100  ,false);
-	  	GridObj.AddHeader("MIRE_QTY"	    ,"미래상사"       ,"t_number" 			,100.3	,100  ,false);
+	 	GridObj.AddHeader("MTS_AN_QTY"	    ,"3SforU(안양)"  ,"t_number" 			,100.3	,100  ,false);	 
+		GridObj.AddHeader("MTS_PO_QTY"	    ,"3SforU(포승)"  ,"t_number" 			,100.3	,100  ,false);
+	  	GridObj.AddHeader("DY_QTY"	        ,"동양물류"       ,"t_number" 			,100.3	,100  ,false);	  
 	  	GridObj.AddHeader("TK_QTY"	        ,"대구경북능금"    ,"t_number" 			,100.3	,100  ,false);
-	  	GridObj.AddHeader("HS_QTY"	        ,"한솔"         	 ,"t_number" 			,100.3	,70   ,false);
+	  	GridObj.AddHeader("SAMBO_QTY"	    ,"삼보"         	 ,"t_number" 			,100.3	,100  ,false);
 	 	GridObj.AddHeader("TOT"			    ,"계"       		 ,"t_number" 			,100.3	,120  ,false);   
 	
 	    /* 이중 해더 추가 */
 		GridObj.AddGroup("HD1",    "작업장별");			//그리드에 그룹을 등록한다. 
-		GridObj.AppendHeader("HD1",   "MTS_AN_QTY");
-		GridObj.AppendHeader("HD1",		  "AS_QTY");
-		GridObj.AppendHeader("HD1",   "MTS_PO_QTY");
-		GridObj.AppendHeader("HD1",   	"WINE_QTY");
+		GridObj.AppendHeader("HD1",   "MTS_AN_QTY");		
+		GridObj.AppendHeader("HD1",   "MTS_PO_QTY");		
 		GridObj.AppendHeader("HD1",   	  "DY_QTY");
-		GridObj.AppendHeader("HD1",  	"MIRE_QTY");
-		GridObj.AppendHeader("HD1",    	  "TK_QTY");
-		GridObj.AppendHeader("HD1",    	  "HS_QTY");	
+		GridObj.AppendHeader("HD1",  	  "TK_QTY");		
+		GridObj.AppendHeader("HD1",    "SAMBO_QTY");	
 		
 		GridObj.BoundHeader();	
 		
 	    GridObj.SetColCellAlign('SALES_CAT03',	  'left'); 
 	    GridObj.SetColCellAlign('CD_NAME',	  	  'left');    
 	    GridObj.SetColCellAlign('GUBN',			'center');
-	    GridObj.SetColCellAlign('MTS_AN_QTY',	 'right'); 
-	    GridObj.SetColCellAlign('AS_QTY',	 	 'right');
-	    GridObj.SetColCellAlign('MTS_PO_QTY',	 'right');
-	    GridObj.SetColCellAlign('WINE_QTY',	     'right');
-	    GridObj.SetColCellAlign('DY_QTY',	     'right');
-	    GridObj.SetColCellAlign('MIRE_QTY',	     'right');
+	    GridObj.SetColCellAlign('MTS_AN_QTY',	 'right');	   
+	    GridObj.SetColCellAlign('MTS_PO_QTY',	 'right');	 
+	    GridObj.SetColCellAlign('DY_QTY',	     'right');	   
 	    GridObj.SetColCellAlign('TK_QTY',	     'right');
-	    GridObj.SetColCellAlign('HS_QTY',	     'right');
+	    GridObj.SetColCellAlign('SAMBO_QTY',	 'right');
 	    GridObj.SetColCellAlign('TOT',	   	     'right');
 	    
-		GridObj.SetNumberFormat('MTS_AN_QTY',  '#,##0.#');
-		GridObj.SetNumberFormat('AS_QTY',  	   '#,##0.#');
-		GridObj.SetNumberFormat('MTS_PO_QTY',  '#,##0.#');
-		GridObj.SetNumberFormat('WINE_QTY',    '#,##0.#');
-		GridObj.SetNumberFormat('DY_QTY',      '#,##0.#');
-		GridObj.SetNumberFormat('MIRE_QTY',    '#,##0.#');
+		GridObj.SetNumberFormat('MTS_AN_QTY',  '#,##0.#');		
+		GridObj.SetNumberFormat('MTS_PO_QTY',  '#,##0.#');	
+		GridObj.SetNumberFormat('DY_QTY',      '#,##0.#');		
 		GridObj.SetNumberFormat('TK_QTY',      '#,##0.#');
-		GridObj.SetNumberFormat('HS_QTY',      '#,##0.#');
+		GridObj.SetNumberFormat('SAMBO_QTY',   '#,##0.#');
 		GridObj.SetNumberFormat('TOT',     	   '#,##0.#');
 	
 	}else if(selected_type=="3"){
@@ -110,26 +98,23 @@ function setHeader(GridObj) {
 		GridObj.AddHeader("SALES_CAT01"		,"품목코드"    	 ,"t_text" 	    		,100	,90   ,false); // 대분류 // 
 		GridObj.AddHeader("CD_NAME"			,"품목명"    	 	 ,"t_text" 	    		,100    ,160  ,false);
 		GridObj.AddHeader("GUBN"			,"구분"       	 ,"t_text" 	    		,100	,75   ,false);		
-		GridObj.AddHeader("MTS_AN_QTY"	    ,"3SforU(안양)"  ,"t_number" 			,100.3	,100  ,false);
-		GridObj.AddHeader("AS_QTY"	    	,"안성"  		,"t_number" 			,100.3	,70  ,false);		    
-		GridObj.AddHeader("MTS_PO_QTY"	    ,"3SforU(포승)"  ,"t_number" 			,100.3	,100  ,false);
-	  	GridObj.AddHeader("WINE_QTY"	    ,"와인나라"       ,"t_number" 			,100.3	,100  ,false); 
-	  	GridObj.AddHeader("DY_QTY"	        ,"동양물류"       ,"t_number" 			,100.3	,100  ,false);
-	  	GridObj.AddHeader("MIRE_QTY"	    ,"미래상사"       ,"t_number" 			,100.3	,100  ,false);
+		GridObj.AddHeader("MTS_AN_QTY"	    ,"3SforU(안양)"  ,"t_number" 			,100.3	,100  ,false);			    
+		GridObj.AddHeader("MTS_PO_QTY"	    ,"3SforU(포승)"  ,"t_number" 			,100.3	,100  ,false);	  	
+	  	GridObj.AddHeader("DY_QTY"	        ,"동양물류"       ,"t_number" 			,100.3	,100  ,false);	  	
 	  	GridObj.AddHeader("TK_QTY"	        ,"대구경북능금"    ,"t_number" 			,100.3	,100  ,false);
-	  	GridObj.AddHeader("HS_QTY"	        ,"한솔"         	 ,"t_number" 			,100.3	,70   ,false);
+	  	GridObj.AddHeader("SAMBO_QTY"	    ,"삼보"         	 ,"t_number" 			,100.3	,100  ,false);
 	 	GridObj.AddHeader("TOT"			    ,"계"       		 ,"t_number" 			,100.3	,120  ,false);   
 	
 	    /* 이중 해더 추가 */
 		GridObj.AddGroup("HD1",    "작업장별");			//그리드에 그룹을 등록한다. 
 		GridObj.AppendHeader("HD1",   "MTS_AN_QTY");
-		GridObj.AppendHeader("HD1",		  "AS_QTY");
+
 		GridObj.AppendHeader("HD1",   "MTS_PO_QTY");
-		GridObj.AppendHeader("HD1",     "WINE_QTY");
+
 		GridObj.AppendHeader("HD1",       "DY_QTY");
-		GridObj.AppendHeader("HD1",     "MIRE_QTY");
+	
 		GridObj.AppendHeader("HD1",       "TK_QTY");
-		GridObj.AppendHeader("HD1",       "HS_QTY");	
+		GridObj.AppendHeader("HD1",    "SAMBO_QTY");	
 		
 		GridObj.BoundHeader();	
 		     
@@ -137,23 +122,23 @@ function setHeader(GridObj) {
 	    GridObj.SetColCellAlign('CD_NAME',		  'left');
 	    GridObj.SetColCellAlign('GUBN',			'center');
 	    GridObj.SetColCellAlign('MTS_AN_QTY',	 'right');
-		GridObj.SetColCellAlign('AS_QTY',	 	 'right');
+	
 	    GridObj.SetColCellAlign('MTS_PO_QTY',	 'right');
-	    GridObj.SetColCellAlign('WINE_QTY',	     'right');
+	    
 	    GridObj.SetColCellAlign('DY_QTY',	     'right');
-	    GridObj.SetColCellAlign('MIRE_QTY',	     'right');
+	  
 	    GridObj.SetColCellAlign('TK_QTY',	     'right');
-	    GridObj.SetColCellAlign('HS_QTY',	     'right');
+	    GridObj.SetColCellAlign('SAMBO_QTY',	 'right');
 	    GridObj.SetColCellAlign('TOT',	   	     'right');
 	    
 		GridObj.SetNumberFormat('MTS_AN_QTY',  '#,##0.#');
-		GridObj.SetNumberFormat('AS_QTY',	   '#,##0.#');
+		
 		GridObj.SetNumberFormat('MTS_PO_QTY',  '#,##0.#');
-		GridObj.SetNumberFormat('WINE_QTY',    '#,##0.#');
+	
 		GridObj.SetNumberFormat('DY_QTY',      '#,##0.#');
-		GridObj.SetNumberFormat('MIRE_QTY',    '#,##0.#');
+		
 		GridObj.SetNumberFormat('TK_QTY',      '#,##0.#');
-		GridObj.SetNumberFormat('HS_QTY',      '#,##0.#');
+		GridObj.SetNumberFormat('SAMBO_QTY',   '#,##0.#');
 		GridObj.SetNumberFormat('TOT',     	   '#,##0.#');
 	
 	}else{
@@ -162,25 +147,22 @@ function setHeader(GridObj) {
 				GridObj.AddHeader("SPEC"			,"규격"       	,"t_text" 	    		,100	,110  ,false);
 				GridObj.AddHeader("GUBN"			,"구분"       	,"t_text" 	    		,100	,75   ,false);				
 				GridObj.AddHeader("MTS_AN_QTY"	    ,"3SforU(안양)" ,"t_number" 				,100.3	,100  ,false);    
-				GridObj.AddHeader("AS_QTY"	    	,"안성"  		,"t_number" 			,100.3	,70   ,false);
+				
 				GridObj.AddHeader("MTS_PO_QTY"	    ,"3SforU(포승)" ,"t_number" 				,100.3	,100  ,false);
-			  	GridObj.AddHeader("WINE_QTY"	    ,"와인나라"      ,"t_number" 				,100.3	,95   ,false); 
+			 
 			  	GridObj.AddHeader("DY_QTY"	        ,"동양물류"      ,"t_number" 				,100.3	,95   ,false);
-			  	GridObj.AddHeader("MIRE_QTY"	    ,"미래상사"      ,"t_number" 				,100.3	,95   ,false);
+			
 			  	GridObj.AddHeader("TK_QTY"	        ,"대구경북능금"   ,"t_number" 				,100.3	,95   ,false);
-			  	GridObj.AddHeader("HS_QTY"	        ,"한솔"         	,"t_number" 			,100.3	,70   ,false);
+			  	GridObj.AddHeader("SAMBO_QTY"	    ,"삼보"         	,"t_number" 			,100.3	,90   ,false);
 			 	GridObj.AddHeader("TOT"			    ,"계"       		,"t_number" 			,100.3	,90   ,false); 
 				
 				 /* 이중 해더 추가 */
 				GridObj.AddGroup("HD1",    "작업장별");			//그리드에 그룹을 등록한다. 
-				GridObj.AppendHeader("HD1",   "MTS_AN_QTY");
-				GridObj.AppendHeader("HD1",		  "AS_QTY");
-				GridObj.AppendHeader("HD1",   "MTS_PO_QTY");
-				GridObj.AppendHeader("HD1",     "WINE_QTY");
-				GridObj.AppendHeader("HD1",       "DY_QTY");
-				GridObj.AppendHeader("HD1",     "MIRE_QTY");
+				GridObj.AppendHeader("HD1",   "MTS_AN_QTY");		
+				GridObj.AppendHeader("HD1",   "MTS_PO_QTY");				
+				GridObj.AppendHeader("HD1",       "DY_QTY");				
 				GridObj.AppendHeader("HD1",       "TK_QTY");
-				GridObj.AppendHeader("HD1",       "HS_QTY");	
+				GridObj.AppendHeader("HD1",    "SAMBO_QTY");	
 				
 				GridObj.BoundHeader();	
 				
@@ -189,23 +171,23 @@ function setHeader(GridObj) {
 			    GridObj.SetColCellAlign('SPEC',			'center');
 			    GridObj.SetColCellAlign('GUBN',			'center');
 			    GridObj.SetColCellAlign('MTS_AN_QTY',	 'right');
-			    GridObj.SetColCellAlign('AS_QTY',		 'right');
+			   
 			    GridObj.SetColCellAlign('MTS_PO_QTY',	 'right');
-			    GridObj.SetColCellAlign('WINE_QTY',	     'right');
+			
 			    GridObj.SetColCellAlign('DY_QTY',	     'right');
-			    GridObj.SetColCellAlign('MIRE_QTY',	     'right');
+			  
 			    GridObj.SetColCellAlign('TK_QTY',	     'right');
-			    GridObj.SetColCellAlign('HS_QTY',	     'right');
+			    GridObj.SetColCellAlign('SAMBO_QTY',	 'right');
 			    GridObj.SetColCellAlign('TOT',	   	     'right');
 			    
 				GridObj.SetNumberFormat('MTS_AN_QTY',  '#,##0.#');
-				GridObj.SetNumberFormat('AS_QTY',	   '#,##0.#');
+				
 				GridObj.SetNumberFormat('MTS_PO_QTY',  '#,##0.#');
-				GridObj.SetNumberFormat('WINE_QTY',    '#,##0.#');
+			
 				GridObj.SetNumberFormat('DY_QTY',      '#,##0.#');
-				GridObj.SetNumberFormat('MIRE_QTY',    '#,##0.#');
+			
 				GridObj.SetNumberFormat('TK_QTY',      '#,##0.#');
-				GridObj.SetNumberFormat('HS_QTY',      '#,##0.#');
+				GridObj.SetNumberFormat('SAMBO_QTY',   '#,##0.#');
 				GridObj.SetNumberFormat('TOT',     	   '#,##0.#');		
 			
 	}
@@ -353,14 +335,11 @@ function GoSave  (service) {
 				for(var i=0;i<GridObj.GetRowCount();i++) {
 					if(GridObj.GetCellValue('GUBN',i) == "차이"){
 						GridObj.SetCellBgColor('GUBN',			i, 	color_edit_col);
-						GridObj.SetCellBgColor('MTS_AN_QTY',	i,	color_edit_col);
-						GridObj.SetCellBgColor('AS_QTY',		i,	color_edit_col);
-						GridObj.SetCellBgColor('MTS_PO_QTY',  	i,	color_edit_col);
-						GridObj.SetCellBgColor('WINE_QTY', 	  	i, 	color_edit_col);
-						GridObj.SetCellBgColor('DY_QTY',      	i, 	color_edit_col);
-						GridObj.SetCellBgColor('MIRE_QTY',    	i, 	color_edit_col);
+						GridObj.SetCellBgColor('MTS_AN_QTY',	i,	color_edit_col);						
+						GridObj.SetCellBgColor('MTS_PO_QTY',  	i,	color_edit_col);						
+						GridObj.SetCellBgColor('DY_QTY',      	i, 	color_edit_col);						
 						GridObj.SetCellBgColor('TK_QTY',      	i, 	color_edit_col);
-						GridObj.SetCellBgColor('HS_QTY',      	i, 	color_edit_col);
+						GridObj.SetCellBgColor('SAMBO_QTY',     i, 	color_edit_col);
 						GridObj.SetCellBgColor('TOT',	      	i, 	color_edit_col);	
 					}					
 						

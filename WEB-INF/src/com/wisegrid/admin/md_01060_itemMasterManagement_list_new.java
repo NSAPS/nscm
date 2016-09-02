@@ -293,7 +293,8 @@ public class md_01060_itemMasterManagement_list_new extends HttpServlet {
 				gdRes.getHeader("ITEM_ID"				).addValue(qResult.get(i).get(0  ),"");                                      
 				gdRes.getHeader("ITEM_NAME"				).addValue(qResult.get(i).get(1  ),"");                                      
 				gdRes.getHeader("SPEC"					).addValue(qResult.get(i).get(2  ),"");    
-				gdRes.getHeader("MTO_FLAG"				).addValue(qResult.get(i).get(44  ),"");   //2015-08-27 이채환 부정 요청 MTO/MTS 추가				
+				gdRes.getHeader("MTO_FLAG"				).addValue(qResult.get(i).get(44  ),"");   //2015-08-27 이채환 부정 요청 MTO/MTS 추가	
+				gdRes.getHeader("MTO_MTS_SCM"			).addValue(qResult.get(i).get(48  ),"");   //2016-08-02 이승용 과장 요청 SCM전용 MTO/MTS 추가	
 				gdRes.getHeader("SPEC_UOM"				).addValue(qResult.get(i).get(3  ),"");                                      
 				gdRes.getHeader("MULTI_FLAG"			).addSelectedHiddenValue(qResult.get(i).get(4));//MULTI_FLAG                                      
 				gdRes.getHeader("QTY_PER_MULTI"			).addValue(qResult.get(i).get(5  ),"");                                      
@@ -336,6 +337,8 @@ public class md_01060_itemMasterManagement_list_new extends HttpServlet {
 				gdRes.getHeader("REFE_ITEM1_NAME"		).addValue(qResult.get(i).get(42 ),"");
 				gdRes.getHeader("SEARCH_FLAG"			).addSelectedHiddenValue(qResult.get(i).get(43));//수송중지
 				gdRes.getHeader("EX_NATION"				).addSelectedHiddenValue(qResult.get(i).get(45));   //2015-10-16 이승용 대리 요청 국가코드 추가
+				gdRes.getHeader("MOQ"					).addValue(qResult.get(i).get(46 ),"");
+				gdRes.getHeader("SAFETY_STOCK"			).addValue(qResult.get(i).get(47 ),"");
 				//gdRes.getHeader("EX_NATION"				).addValue(qResult.get(i).get(45 ),"");  
 				
 				
@@ -501,7 +504,8 @@ public class md_01060_itemMasterManagement_list_new extends HttpServlet {
 			sql += "			T1.SALES_PLAN_APPL_HIST,							T1.CAT07,									\n";
 			sql += " 			T1.CM_GUBN,       									T1.TRANS_ALLOC_FLAG,					    \n";
 			sql += "			T1.CAT01,				T1.CAT02,					T1.PROD_ALLOC_FLAG,	 T1.PACK_PROC_FLAG,		\n";
-			sql += "			T1.EX_NATION,																					\n";
+			sql += "			T1.EX_NATION,			T1.MOQ,						T1.SAFETY_STOCK,							\n";
+			sql += "			T1.MTO_MTS_SCM,																					\n";
 			sql += "			T2.MULTI_FLAG			NEW_MULTI_FLAG, 			T2.QTY_PER_MULTI	NEW_QTY_PER_MULTI, 		\n";
 			sql += "			T2.QTY_PER_MULTI_UOM	NEW_QTY_PER_MULTI_UOM,		T2.BOX_PER_PALET	NEW_BOX_PER_PALET,		\n";
 			sql += "			T2.CAT03				NEW_CAT03,					T2.CAT06			NEW_CAT06,				\n";
@@ -511,8 +515,9 @@ public class md_01060_itemMasterManagement_list_new extends HttpServlet {
 			sql += "			T2.CAT01				NEW_CAT01,					T2.CAT02 			NEW_CAT02,				\n";
 			sql += "			T2.CAT04				NEW_CAT04,					T2.CAT05 			NEW_CAT05,				\n";
 			sql += "			T2.TRANS_ALLOC_FLAG		NEW_TRANS_ALLOC_FLAG,		T2.PROD_ALLOC_FLAG	NEW_PROD_ALLOC_FLAG,	\n";
-			sql += "			T2.SEARCH_FLAG			NEW_SEARCH_FLAG,														\n";
-			sql += "			T2.EX_NATION			NEW_EX_NATION															\n";
+			sql += "			T2.SEARCH_FLAG			NEW_SEARCH_FLAG,			T2.SAFETY_STOCK		NEW_SAFETY_STOCK,		\n";
+			sql += "			T2.MTO_MTS_SCM			NEW_MTO_MTS_SCM,														\n";
+			sql += "			T2.EX_NATION			NEW_EX_NATION,				T2.MOQ				NEW_MOQ					\n";
 			sql += "	FROM	ITEM_MST	T1,                                                                                 \n";
 			sql += "			(                                                                                               \n";
 
@@ -588,11 +593,14 @@ public class md_01060_itemMasterManagement_list_new extends HttpServlet {
 					inner_sql  = "	SELECT	'" + gdReq.getHeader("ITEM_ID").getValue(i) 		+ "'		AS ITEM_ID, 					\n";
 					inner_sql += "			'" + multi_flag										+ "'		AS MULTI_FLAG,                  \n";
 					inner_sql += "			'" + gdReq.getHeader("QTY_PER_MULTI").getValue(i)	+ "'		AS QTY_PER_MULTI,               \n";
+					inner_sql += "			'" + gdReq.getHeader("MTO_MTS_SCM").getValue(i)	+ "'			AS MTO_MTS_SCM,               	\n";
 					inner_sql += "			'" + gdReq.getHeader("QTY_PER_MULTI_UOM").getValue(i)	+ "'	AS QTY_PER_MULTI_UOM,           \n";
 					inner_sql += "			'" + gdReq.getHeader("BOX_PER_PALET").getValue(i)	+ "'		AS BOX_PER_PALET,               \n";
 					inner_sql += "			'" + gdReq.getHeader("REFE_ITEM1").getValue(i)		+ "'		AS REFE_ITEM1,     		        \n";
 					inner_sql += "			'" + gdReq.getHeader("MIN_PICK_QTY").getValue(i)	+ "'		AS MIN_PICK_QTY,     		    \n";
 					inner_sql += "			'" + gdReq.getHeader("PACK_PROC_FLAG").getValue(i)	+ "'		AS PACK_PROC_FLAG,     		    \n";
+					inner_sql += "			'" + gdReq.getHeader("MOQ").getValue(i)				+ "'		AS MOQ,     		    		\n";
+					inner_sql += "			'" + gdReq.getHeader("SAFETY_STOCK").getValue(i)	+ "'		AS SAFETY_STOCK,     		    \n";
 					inner_sql += "			'" + cat01											+ "'		AS CAT01,                     	\n";
 					inner_sql += "			'" + cat02											+ "'		AS CAT02,                     	\n";
 					inner_sql += "			'" + cat03											+ "'		AS CAT03,                     	\n";
@@ -624,14 +632,15 @@ public class md_01060_itemMasterManagement_list_new extends HttpServlet {
 			sql += "	SET		MULTI_FLAG = NEW_MULTI_FLAG, 						QTY_PER_MULTI	= NEW_QTY_PER_MULTI,		\n";
 			sql += "			QTY_PER_MULTI_UOM = NEW_QTY_PER_MULTI_UOM, 			BOX_PER_PALET	= NEW_BOX_PER_PALET,		\n";
 			sql += "			CAT03 = NEW_CAT03, 									CAT06	= NEW_CAT06,						\n";	
-			sql += "			EX_NATION = NEW_EX_NATION, 																		\n";
+			sql += "			EX_NATION = NEW_EX_NATION, 							MOQ		= NEW_MOQ,							\n";
+			sql += "			MTO_MTS_SCM = NEW_MTO_MTS_SCM, 																	\n";
 			sql += "			SALES_PLAN_APPL_HIST = NEW_SALES_PLAN_APPL_HIST, 	CM_GUBN	= NEW_CM_GUBN,						\n";
 			sql += "			CAT07	= NEW_CAT07,								REFE_ITEM1 = NEW_REFE_ITEM1,				\n";
 			sql += "			MIN_PICK_QTY	= NEW_MIN_PICK_QTY,					PACK_PROC_FLAG = NEW_PACK_PROC_FLAG,		\n";
 			sql += "			CAT01	= NEW_CAT01,								CAT02 = NEW_CAT02,							\n";
 			sql += "			CAT04	= NEW_CAT04,								CAT05 = NEW_CAT05,							\n";
 			sql += "			TRANS_ALLOC_FLAG	= NEW_TRANS_ALLOC_FLAG,			PROD_ALLOC_FLAG = NEW_PROD_ALLOC_FLAG,		\n";
-			sql += "			SEARCH_FLAG			= NEW_SEARCH_FLAG															\n";
+			sql += "			SEARCH_FLAG			= NEW_SEARCH_FLAG,				SAFETY_STOCK = NEW_SAFETY_STOCK				\n";
 			//sql += "			MADE_DTTM	= SYSDATE																               	\n";
 
 			System.out.println("-----------------------------------------------QUERY-----------------------------------------------");

@@ -292,6 +292,7 @@ function doChange4(){
 // 숫자외 입력방지
 function checkForNumber(obj) {
 	var key = event.keyCode;
+	
 	if(!(key==8||key==9||key==13||key==46||key==144||
 		(key>=48&&key<=57)||key==110||key==190)) {
 		event.returnValue = false;
@@ -607,6 +608,7 @@ function setDefault3(){
     GridObj3.AddUserContextMenuItem("MENU_CELL","MENU01","전국"); 		//01//
 	GridObj3.AddUserContextMenuItem("MENU_CELL","MENU02","수도"); 		//02//
 	GridObj3.AddUserContextMenuItem("MENU_CELL","MENU03","부산");		//03//
+	
 	GridObj3.AddUserContextMenuItem("MENU_CELL","MENU04","유통");		//04//
     GridObj3.AddUserContextMenuItem("MENU_CELL","MENU05","시판");		//05//
 	GridObj3.AddUserContextMenuItem("MENU_CELL","MENU06","CVS");		//06//
@@ -614,8 +616,19 @@ function setDefault3(){
 	GridObj3.AddUserContextMenuItem("MENU_CELL","MENU08","CVS+시판");	//08//
  	GridObj3.AddUserContextMenuItem("MENU_CELL","MENU09","유통+시판");	//09//
  	GridObj3.AddUserContextMenuItem("MENU_CELL","MENU10","특판");		//10//		//2012-12-28 SCM침 이승용 대리 요청//
- 	GridObj3.AddUserContextMenuItem("MENU_CELL","MENU11","특판+시판");	//11//		//2012-12-28 SCM침 이승용 대리 요청//
- 	GridObj3.AddUserContextMenuItem("MENU_CELL","MENU12","사용자");	//11//		//2012-12-28 SCM침 이승용 대리 요청//
+ 	//GridObj3.AddUserContextMenuItem("MENU_CELL","MENU11","특판+시판");	//11//		//2012-12-28 SCM침 이승용 대리 요청//
+ 	GridObj3.AddUserContextMenuItem("MENU_CELL","MENU11","제주");	//11//		//2012-12-28 SCM침 이승용 대리 요청//
+ 	GridObj3.AddUserContextMenuItem("MENU_CELL","MENU12","사용자");	//11//		//2014-10-24 SCM침 이승용 대리 요청//
+ 	GridObj3.AddUserContextMenuItem("MENU_CELL","MENU13","사용자2");	//11//		//2014-10-24 SCM침 이승용 대리 요청//
+ 	GridObj3.AddUserContextMenuItem("MENU_CELL","MENU14","사용자3");	//11//		//2015-10-24 SCM침 이승용 대리 요청//
+ 	GridObj3.AddUserContextMenuItem("MENU_CELL","MENU15","사용자4");	//11//		//2015-10-24 SCM침 이승용 대리 요청//
+ 	//GridObj3.AddUserContextMenuItem("MENU_CELL","MENU14","사용자4");	//11//		//2014-10-24 SCM침 이승용 대리 요청//
+ 	//GridObj3.AddUserContextMenuItem("MENU_CELL","MENU15","사용자5");	//11//		//2014-10-24 SCM침 이승용 대리 요청//
+ 	//GridObj3.AddUserContextMenuItem("MENU_CELL","MENU16","사용자6");	//11//		//2014-10-24 SCM침 이승용 대리 요청//
+ 	//GridObj3.AddUserContextMenuItem("MENU_CELL","MENU17","사용자7");	//11//		//2014-10-24 SCM침 이승용 대리 요청//
+ 	//GridObj3.AddUserContextMenuItem("MENU_CELL","MENU18","사용자8");	//11//		//2014-10-24 SCM침 이승용 대리 요청//
+ 	//GridObj3.AddUserContextMenuItem("MENU_CELL","MENU19","사용자9");	//11//		//2014-10-24 SCM침 이승용 대리 요청//
+ 	
  	
 	/* 안전->전국(01)->유통(04)->시판(05)->수도(02)->부산(03) ->		//
 	// 추가 CVS(06)-> 유통+CVS(07) -> CVS+시판(08)-> 유통+시판 (09) */
@@ -3921,11 +3934,61 @@ function handler(strMenuKey, strMenuItemKey, strColumnKey, nRow){
 			GridObj3.SetCellValue("ALLOC_ZONE", nRow, '특판');
 			GridObj3.SetCellHiddenValue("ALLOC_ZONE", nRow, '10');	
 			GridObj3.SetRowBgColor(nRow, '255|173|143'); // row 배경색	
-		}else{	
-			GridObj3.SetCellValue("ALLOC_ZONE", nRow, '사용자');
+		}else if(strMenuItemKey == "MENU11" ){	
+			GridObj3.SetCellValue("ALLOC_ZONE", nRow, '제주');
 			GridObj3.SetCellHiddenValue("ALLOC_ZONE", nRow, '11');	
 			GridObj3.SetRowBgColor(nRow, '255|173|143'); // row 배경색	
-		} 
+		}
+		else if(strMenuItemKey == "MENU12" ){	
+			GridObj3.SetCellValue("ALLOC_ZONE", nRow, '사용자');
+			GridObj3.SetCellHiddenValue("ALLOC_ZONE", nRow, '12');	
+			GridObj3.SetRowBgColor(nRow, '255|173|143'); // row 배경색	
+		}
+		else if(strMenuItemKey == "MENU13" ){	
+			GridObj3.SetCellValue("ALLOC_ZONE", nRow, '사용자2');
+			GridObj3.SetCellHiddenValue("ALLOC_ZONE", nRow, '13');	
+			GridObj3.SetRowBgColor(nRow, '255|173|143'); // row 배경색	
+		}
+		else if(strMenuItemKey == "MENU14" ){	
+			GridObj3.SetCellValue("ALLOC_ZONE", nRow, '사용자3');
+			GridObj3.SetCellHiddenValue("ALLOC_ZONE", nRow, '14');	
+			GridObj3.SetRowBgColor(nRow, '255|173|143'); // row 배경색	
+		}
+		else if(strMenuItemKey == "MENU15" ){	
+			GridObj3.SetCellValue("ALLOC_ZONE", nRow, '사용자4');
+			GridObj3.SetCellHiddenValue("ALLOC_ZONE", nRow, '15');	
+			GridObj3.SetRowBgColor(nRow, '255|173|143'); // row 배경색	
+		}
+//		else if(strMenuItemKey == "MENU14" ){	
+//			GridObj3.SetCellValue("ALLOC_ZONE", nRow, '사용자4');
+//			GridObj3.SetCellHiddenValue("ALLOC_ZONE", nRow, '14');	
+//			GridObj3.SetRowBgColor(nRow, '255|173|143'); // row 배경색	
+//		}
+//		else if(strMenuItemKey == "MENU15" ){	
+//			GridObj3.SetCellValue("ALLOC_ZONE", nRow, '사용자5');
+//			GridObj3.SetCellHiddenValue("ALLOC_ZONE", nRow, '15');	
+//			GridObj3.SetRowBgColor(nRow, '255|173|143'); // row 배경색	
+//		}
+//		else if(strMenuItemKey == "MENU16" ){	
+//			GridObj3.SetCellValue("ALLOC_ZONE", nRow, '사용자6');
+//			GridObj3.SetCellHiddenValue("ALLOC_ZONE", nRow, '16');	
+//			GridObj3.SetRowBgColor(nRow, '255|173|143'); // row 배경색	
+//		}
+//		else if(strMenuItemKey == "MENU17" ){	
+//			GridObj3.SetCellValue("ALLOC_ZONE", nRow, '사용자7');
+//			GridObj3.SetCellHiddenValue("ALLOC_ZONE", nRow, '17');	
+//			GridObj3.SetRowBgColor(nRow, '255|173|143'); // row 배경색	
+//		}
+//		else if(strMenuItemKey == "MENU18" ){	
+//			GridObj3.SetCellValue("ALLOC_ZONE", nRow, '사용자8');
+//			GridObj3.SetCellHiddenValue("ALLOC_ZONE", nRow, '18');	
+//			GridObj3.SetRowBgColor(nRow, '255|173|143'); // row 배경색	
+//		}
+//		else if(strMenuItemKey == "MENU19" ){	
+//			GridObj3.SetCellValue("ALLOC_ZONE", nRow, '사용자9');
+//			GridObj3.SetCellHiddenValue("ALLOC_ZONE", nRow, '19');	
+//			GridObj3.SetRowBgColor(nRow, '255|173|143'); // row 배경색	
+//		} 
 		
 	}	else {
 			alert("존재 하지 않은 메뉴입니다.");

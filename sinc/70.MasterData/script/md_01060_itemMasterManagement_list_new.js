@@ -167,13 +167,16 @@ function setHeader(GridObj) {        //  줄바꿈 : \n
 	GridObj.AddHeader("ITEM_ID"				,"품목번호"				,"t_text"	,200	,66,false);//0
 	GridObj.AddHeader("ITEM_NAME"			,"품목명"					,"t_text"	,200	,174,false);//0
 	GridObj.AddHeader("SPEC"				,"스팩"					,"t_text"	,200	,90,false);//0
-	GridObj.AddHeader("MTO_FLAG"			,"MTO/\nMTS"					,"t_text"	,200	,50,false);//0
-	GridObj.AddHeader("EX_NATION"			,"국가코드"					,"t_combo"	,200	,91,true);//0
+	GridObj.AddHeader("MTO_FLAG"			,"MTO/\nMTS"			,"t_text"	,200	,0,false);//0
+	GridObj.AddHeader("MTO_MTS_SCM"			,"MTO/\nMTS"			,"t_text"	,200	,50,true);//0
+	GridObj.AddHeader("EX_NATION"			,"국가코드"				,"t_combo"	,200	,91,true);//0
 	GridObj.AddHeader("SPEC_UOM"			,"스팩\n단위"				,"t_text"	,200	,35,false);//0
 	
 	
 	GridObj.AddHeader("ITEM_HIST"			,"품목이력\n연결"			,"t_text"	,200	,61,false);//0
 	GridObj.AddHeader("BOX_PER_PALET"		,"파레트당\nBOX수"		,"t_number"	,200	,61,true);//0
+	GridObj.AddHeader("MOQ"					,"M.O.Q"				,"t_number"	,200	,61,true);//0
+	GridObj.AddHeader("SAFETY_STOCK"		,"안전재고"				,"t_number"	,200	,61,true);//0
 	GridObj.AddHeader("CAT03"				,"수송계획\n기준정보"		,"t_combo"	,200	,91,true);//0
 	GridObj.AddHeader("CAT06"				,"공장할당\n기준정보"		,"t_combo"	,200	,91,true);//0
 
@@ -230,6 +233,7 @@ function setHeader(GridObj) {        //  줄바꿈 : \n
     GridObj.SetColCellAlign('SPEC','right'); 
     GridObj.SetColCellAlign('SPEC_UOM','center'); 
     GridObj.SetColCellAlign('MTO_FLAG','center'); 
+    GridObj.SetColCellAlign('MTO_MTS_SCM','center'); 
     GridObj.SetColCellAlign('QTY_PER_MULTI_UOM','center'); 
     GridObj.SetColCellAlign('ITEM_HIST','center'); 
     GridObj.SetColCellAlign('PACK_PROC_FLAG','right'); 
@@ -349,6 +353,9 @@ function GridEndQuery(){
 				GridObj.SetCellBgColor('REFE_ITEM1', i, color_edit_col );
 				GridObj.SetCellBgColor('REFE_ITEM1_NAME', i, color_edit_col );
 				GridObj.SetCellBgColor('SEARCH_FLAG', i, color_edit_col );
+				GridObj.SetCellBgColor('MOQ', i, color_edit_col );
+				GridObj.SetCellBgColor('SAFETY_STOCK', i, color_edit_col );
+				GridObj.SetCellBgColor('MTO_MTS_SCM', i, color_edit_col );
 
 				
 				//GridObj.SetCellFontBold('TOT_STOCK', i, 'true'); // font 굵기

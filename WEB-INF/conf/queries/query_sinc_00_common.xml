@@ -47,6 +47,8 @@
 			 WHERE 	IM.MADE_TYPE != 'DE'
 			   AND  IM.ITEM_STATUS = 'ST'
 			   AND	IM.HR_TY1 NOT LIKE '606006%' 	/* 수산물 제외 */
+			   AND	IM.SELL_STOP_DATE >= TO_CHAR(SYSDATE,'YYYYMMDD')
+			   AND	NVL(IM.CAT03,'XX') NOT LIKE 'O%'
 			  [AND 	UPPER(IM.ITEM_ID)||UPPER(IM.ITEM_NAME) LIKE UPPER('%${code_input}%')]
 			  [AND 	IM.ITYPE = '${itype}']
 			 ORDER 	BY IM.ITYPE, IM.ITEM_ID

@@ -76,7 +76,7 @@
 									#date_sole_no_title("start_date" "10" "normal" "btnS" "$date.get('yyyy-MM')-01")
 									~ #date_sole_no_title("end_date" "10" "normal" "btnE" "$date.get('yyyy-MM-dd')")
             					</td>								
-								<td width="30%" align="left"> 
+								<td width="25%" align="left"> 
             						구분 :            					
 									<select name="item_type" > 
 										<option value="" selected >전체</option>
@@ -86,13 +86,14 @@
 									<select name="search_type">
                               			<option value="">선택</option> 
                               			<option value="1020"#if( "$!{search_type}" == "1020" ) selected #end>면/스낵</option> 
-											<option value="10V"#if( "$!{search_type}" == "10V" ) selected #end>면(Visual구분)</option>
+											##<option value="10V"#if( "$!{search_type}" == "10V" ) selected #end>면(Visual구분)</option>
 										#foreach( $condition in $ip_02020_combo_search_type )
 											<option value="$condition.get(0)"  #if( "$!{search_type}" == "$condition.get(0)" ) selected #end>$condition.get(1)</option>
 										#end
                               			<option value="P40"#if( "$!{search_type}" == "P40" ) selected #end>유통가공품</option> 
 										<option value="310"#if( "$!{search_type}" == "310" ) selected #end>용기면(VISUAL)</option>
 										<option value="T86"#if( "$!{search_type}" == "T86" ) selected #end>관심 품목</option>
+										<option value="T87"#if( "$!{search_type}" == "T87" ) selected #end>관심 품목-II</option>
 										<option value="O1020"#if( "$!{search_type}" == "O1020" ) selected #end>수출 면/스낵</option>
 										<option value="O10"#if( "$!{search_type}" == "O10" ) selected #end>수출 면</option>
 										<option value="O20"#if( "$!{search_type}" == "O20" ) selected #end>수출 스낵</option>										
@@ -104,7 +105,7 @@
 									</select>
 									
             					</td>														
-								<td width="50%" align="left">
+								<td width="55%" align="left">
 									검색어 :								
 									<input type="text" name="search_item" size="20" class="normal" onKeyPress="enterCheck('$_moon_service'); " 
 										style="width:90px; padding-left:5px; " onBlur="strCheck(); " ondblClick="select(); " 
@@ -112,13 +113,15 @@
 									&nbsp;
 									저장 구분: 
 									<input type="radio" name="checked_button" value="00" style="border:0px; "
-            							onClick="this.checked" #if($!{checked_button} == "00") checked #else #end checked>관심품목</input>&nbsp;
+            							onClick="this.checked" #if($!{checked_button} == "00") checked #else #end checked>관심품목</input>&nbsp;									
 									<input type="radio" name="checked_button" value="10" style="border:0px; "
             							onClick="this.checked" #if($!{checked_button} == "10") checked #else #end>장기체(음료)</input>&nbsp;
             						<input type="radio" name="checked_button" value="20" style="border:0px; "
             							onClick="this.checked" #if($!{checked_button} == "20") checked #else #end>장기체(상품1팀)</input>&nbsp;
 									<input type="radio" name="checked_button" value="30" style="border:0px; "
             							onClick="this.checked" #if($!{checked_button} == "30") checked #else #end>장기체(상품2팀)</input>&nbsp;
+									<input type="radio" name="checked_button" value="40" style="border:0px; "
+            							onClick="this.checked" #if($!{checked_button} == "40") checked #else #end>관심품목-II</input>&nbsp;
 									<input type="hidden" name="serch_item_pre" value ="$!{search_item}" >
 									
 								</td>

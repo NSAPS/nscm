@@ -1,0 +1,2440 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>	
+	
+	<query id="ip_09010_intergrated_stock_manage" paging="true">
+	#if("$!{selected_type}" == "BOX")
+		SELECT  TO_CHAR(IF_DTTM,'YYYY-MM-DD')		CNFM_DATE,
+                ROUND(MAX(DECODE(GUBN,'1',MS_QTY,0))/1000,0)		"면스낵 금년재고",
+                ROUND(MAX(DECODE(GUBN,'2',MS_QTY,0))/1000,0)		"면스낵 전년재고",
+                ROUND(MAX(DECODE(GUBN,'1',MS_CHGO,0))/1000,0)		"면스낵 금년출고",
+                ROUND(MAX(DECODE(GUBN,'2',MS_CHGO,0))/1000,0)		"면스낵 전년출고",
+                ROUND(MAX(DECODE(GUBN,'1',DO_QTY,0))/1000,0)		"매입상품 금년재고",
+                ROUND(MAX(DECODE(GUBN,'2',DO_QTY,0))/1000,0)		"매입상품 전년재고",                
+                ROUND(MAX(DECODE(GUBN,'1',DO_CHGO,0))/1000,0)		"매입상품 금년출고",
+                ROUND(MAX(DECODE(GUBN,'2',DO_CHGO,0))/1000,0)		"매입상품 전년출고",
+                ROUND(MAX(DECODE(GUBN,'1',EX_QTY,0))/1000,0)		"수입상품 금년재고",
+                ROUND(MAX(DECODE(GUBN,'2',EX_QTY,0))/1000,0)		"수입상품 전년재고",
+                ROUND(MAX(DECODE(GUBN,'1',EX_CHGO,0))/1000,0)		"수입상품 금년출고",
+                ROUND(MAX(DECODE(GUBN,'2',EX_CHGO,0))/1000,0)		"수입상품 전년출고",
+                ROUND(MAX(DECODE(GUBN,'1',GITA_QTY,0))/1000,0) - ROUND(MAX(DECODE(GUBN,'1',MS_QTY,0))/1000,0) -
+                ROUND(MAX(DECODE(GUBN,'1',DO_QTY,0))/1000,0)	 - ROUND(MAX(DECODE(GUBN,'1',EX_QTY,0))/1000,0)		"기타 금년재고",
+                ROUND(MAX(DECODE(GUBN,'2',GITA_QTY,0))/1000,0) - ROUND(MAX(DECODE(GUBN,'2',MS_QTY,0))/1000,0) -
+                ROUND(MAX(DECODE(GUBN,'2',DO_QTY,0))/1000,0)	 - ROUND(MAX(DECODE(GUBN,'2',EX_QTY,0))/1000,0)		"기타 전년재고",
+                ROUND(MAX(DECODE(GUBN,'1',GITA_CHGO,0))/1000,0) - ROUND(MAX(DECODE(GUBN,'1',MS_CHGO,0))/1000,0) -
+                ROUND(MAX(DECODE(GUBN,'1',DO_CHGO,0))/1000,0)	  - ROUND(MAX(DECODE(GUBN,'1',EX_CHGO,0))/1000,0)		"기타 금년출고",
+                ROUND(MAX(DECODE(GUBN,'2',GITA_CHGO,0))/1000,0) - ROUND(MAX(DECODE(GUBN,'2',MS_CHGO,0))/1000,0) -
+                ROUND(MAX(DECODE(GUBN,'2',DO_CHGO,0))/1000,0)	  - ROUND(MAX(DECODE(GUBN,'2',EX_CHGO,0))/1000,0)		"기타 전년출고",
+                ROUND(MAX(DECODE(GUBN,'1',GITA_QTY,0))/1000,0)	"계 금년재고",
+                ROUND(MAX(DECODE(GUBN,'2',GITA_QTY,0))/1000,0)	"계 전년재고",
+                ROUND(MAX(DECODE(GUBN,'1',GITA_CHGO,0))/1000,0)	"계 금년출고",
+                ROUND(MAX(DECODE(GUBN,'2',GITA_CHGO,0))/1000,0)	"계 전년출고"                                        
+        FROM    (        
+                /*금년재고*/
+                SELECT  IF_DTTM,
+                        '1'         GUBN,
+                        SUM(QTY)    MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO                        
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(S1.QTY) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    = 'FERT'   
+                        AND     S2.DIVISION IN ('10','20')
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                UNION ALL
+                SELECT  IF_DTTM,
+                        '1'         GUBN,
+                        0           MS_QTY,                        
+                        0           MS_CHGO,                           
+                        SUM(QTY)    DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO 
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(S1.QTY) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    = 'HAWA'   
+                        AND     S2.RC_FLAG  = 'Y'
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                UNION ALL
+                SELECT  IF_DTTM,
+                        '1'         GUBN,
+                        0           MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        SUM(QTY)    EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO 
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(S1.QTY) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    = 'HAWA'   
+                        AND     S2.ST_FLAG  = 'Y'
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                UNION ALL
+                SELECT  IF_DTTM,
+                        '1'         GUBN,
+                        0           MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        SUM(QTY)    GITA_QTY,                                       
+                        0           GITA_CHGO 
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(S1.QTY) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    IN ('FERT','HAWA')
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                /*금년출고*/
+                UNION ALL
+                SELECT  SALE_DATE,
+                        '1'         GUBN,
+                        0           MS_QTY,                        
+                        SUM(QTY)    MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO         
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(S1.QTY) QTY
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S3
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        = 'FERT'   
+                        AND     S2.DIVISION     IN ('10','20')
+                        AND		S1.DELIV_LOC 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE
+                        UNION ALL
+                        SELECT	TO_DATE(YYYYMMDD,'YYYY-MM-DD'),
+                        		SUM(S1.REQT_BOX) QTY
+                        FROM	DWSDF210_DD S1,
+                        		ITEM_MST S2
+                        WHERE	S1.YYYYMMDD 	= REPLACE('$!{end_date}', '-', '')   
+                        AND		S1.PROD_CODE	= S2.ITEM_ID  
+                        AND		S1.SALE_GUBN	= '1'      
+                        AND     S2.ITYPE        = 'FERT' 
+                        AND		S2.DIVISION IN ('10','20')   
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'   
+                        GROUP
+                        BY		YYYYMMDD   
+                        )
+                GROUP
+                BY      SALE_DATE
+                UNION ALL
+                SELECT  SALE_DATE,
+                        '1'         GUBN,
+                        0           MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        SUM(QTY)    DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO              
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(S1.QTY) QTY
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S3
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        = 'HAWA'   
+                        AND     S2.RC_FLAG      = 'Y'
+                        AND		S1.DELIV_LOC 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE 
+                        UNION ALL
+                        SELECT	TO_DATE(YYYYMMDD,'YYYY-MM-DD'),
+                        		SUM(S1.REQT_BOX) QTY
+                        FROM	DWSDF210_DD S1,
+                        		ITEM_MST S2
+                        WHERE	S1.YYYYMMDD 	= REPLACE('$!{end_date}', '-', '')   
+                        AND		S1.PROD_CODE	= S2.ITEM_ID  
+                        AND		S1.SALE_GUBN	= '1'      
+                        AND     S2.ITYPE        = 'HAWA' 
+                        AND     S2.RC_FLAG      = 'Y'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'   
+                        GROUP
+                        BY		YYYYMMDD                       
+                        )
+                GROUP
+                BY      SALE_DATE
+                UNION ALL
+                SELECT  SALE_DATE,
+                        '1'         GUBN,
+                        0    		MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        SUM(QTY)    EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO               
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(S1.QTY) QTY
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S3
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        = 'HAWA'   
+                        AND     S2.ST_FLAG      = 'Y'
+                        AND		S1.DELIV_LOC 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE
+                        UNION ALL
+                        SELECT	TO_DATE(YYYYMMDD,'YYYY-MM-DD'),
+                        		SUM(S1.REQT_BOX) QTY
+                        FROM	DWSDF210_DD S1,
+                        		ITEM_MST S2
+                        WHERE	S1.YYYYMMDD 	= REPLACE('$!{end_date}', '-', '')   
+                        AND		S1.PROD_CODE	= S2.ITEM_ID  
+                        AND		S1.SALE_GUBN	= '1'      
+                        AND     S2.ITYPE        = 'HAWA' 
+                        AND     S2.ST_FLAG      = 'Y'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'   
+                        GROUP
+                        BY		YYYYMMDD                           
+                        )
+                GROUP
+                BY      SALE_DATE
+                UNION ALL
+                SELECT  SALE_DATE,
+                        '1'         GUBN,
+                        0    		MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        SUM(QTY)    GITA_CHGO                
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(S1.QTY) QTY                       
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S3
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        IN ('FERT','HAWA')
+                        AND		S1.DELIV_LOC 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE   
+                        UNION ALL
+                        SELECT	TO_DATE(YYYYMMDD,'YYYY-MM-DD'),
+                        		SUM(S1.REQT_BOX) QTY
+                        FROM	DWSDF210_DD S1,
+                        		ITEM_MST S2
+                        WHERE	S1.YYYYMMDD 	= REPLACE('$!{end_date}', '-', '')   
+                        AND		S1.PROD_CODE	= S2.ITEM_ID  
+                        AND		S1.SALE_GUBN	= '1'      
+                        AND     S2.ITYPE        IN ('FERT','HAWA')                        
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'   
+                        GROUP
+                        BY		YYYYMMDD                                             
+                        )
+                GROUP
+                BY      SALE_DATE
+                UNION ALL
+                /*전년재고*/
+                SELECT  ADD_MONTHS(IF_DTTM,12),
+                        '2'         GUBN,
+                        SUM(QTY)    MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO 
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(S1.QTY) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    = 'FERT'   
+                        AND     S2.DIVISION IN ('10','20')
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                UNION ALL
+                SELECT  ADD_MONTHS(IF_DTTM,12),
+                        '2'         GUBN,
+                        0    		MS_QTY,                        
+                        0           MS_CHGO,                           
+                        SUM(QTY)    DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO 
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(S1.QTY) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    = 'HAWA'   
+                        AND     S2.RC_FLAG  = 'Y'
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                UNION ALL
+                SELECT  ADD_MONTHS(IF_DTTM,12),
+                        '2'         GUBN,
+                        0    		MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        SUM(QTY)    EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO 
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(S1.QTY) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    = 'HAWA'   
+                        AND     S2.ST_FLAG  = 'Y'
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                UNION ALL
+                SELECT  ADD_MONTHS(IF_DTTM,12),
+                        '2'         GUBN,
+                        0   		MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        SUM(QTY)    GITA_QTY,                                       
+                        0           GITA_CHGO 
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(S1.QTY) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    IN ('FERT','HAWA')
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                /*전년출고*/
+                UNION ALL
+                SELECT  ADD_MONTHS(SALE_DATE,12),
+                        '2'         GUBN,
+                        0    		MS_QTY,                        
+                        SUM(QTY)    MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO         
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(S1.QTY) QTY
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S3
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        = 'FERT'   
+                        AND     S2.DIVISION     IN ('10','20')
+                        AND		S1.DELIV_LOC 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE 
+                        )
+                GROUP
+                BY      SALE_DATE
+                UNION ALL
+                SELECT  ADD_MONTHS(SALE_DATE,12),
+                        '2'         GUBN,
+                        0   		MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        SUM(QTY)    DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO              
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(S1.QTY) QTY
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S3
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        = 'HAWA'   
+                        AND     S2.RC_FLAG      = 'Y'
+                        AND		S1.DELIV_LOC 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE                       
+                        )
+                GROUP
+                BY      SALE_DATE
+                UNION ALL
+                SELECT  ADD_MONTHS(SALE_DATE,12),
+                        '2'         GUBN,
+                        0    		MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        SUM(QTY)    EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO              
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(S1.QTY) QTY
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S3
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        = 'HAWA'   
+                        AND     S2.ST_FLAG      = 'Y'
+                        AND		S1.DELIV_LOC 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE                       
+                        )
+                GROUP
+                BY      SALE_DATE
+                UNION ALL
+                SELECT  ADD_MONTHS(SALE_DATE,12),
+                        '2'         GUBN,
+                        0    		MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        SUM(QTY)    GITA_CHGO                
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(S1.QTY) QTY                       
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S3
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        IN ('FERT','HAWA')
+                        AND		S1.DELIV_LOC 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE                                              
+                        )
+                GROUP
+                BY      SALE_DATE
+                )
+        GROUP
+        BY      IF_DTTM
+        ORDER
+        BY      1  
+ 	#elseif("$!{selected_type}" == "PLT")
+ 		SELECT  TO_CHAR(IF_DTTM,'YYYY-MM-DD')				CNFM_DATE,
+                ROUND(MAX(DECODE(GUBN,'1',MS_QTY,0)),0)		"면스낵 금년재고",
+                ROUND(MAX(DECODE(GUBN,'2',MS_QTY,0)),0)		"면스낵 전년재고",
+                ROUND(MAX(DECODE(GUBN,'1',MS_CHGO,0)),0)	"면스낵 금년출고",
+                ROUND(MAX(DECODE(GUBN,'2',MS_CHGO,0)),0)	"면스낵 전년출고",
+                ROUND(MAX(DECODE(GUBN,'1',DO_QTY,0)),0)		"매입상품 금년재고",
+                ROUND(MAX(DECODE(GUBN,'2',DO_QTY,0)),0)		"매입상품 전년재고",                
+                ROUND(MAX(DECODE(GUBN,'1',DO_CHGO,0)),0)	"매입상품 금년출고",
+                ROUND(MAX(DECODE(GUBN,'2',DO_CHGO,0)),0)	"매입상품 전년출고",
+                ROUND(MAX(DECODE(GUBN,'1',EX_QTY,0)),0)		"수입상품 금년재고",
+                ROUND(MAX(DECODE(GUBN,'2',EX_QTY,0)),0)		"수입상품 전년재고",
+                ROUND(MAX(DECODE(GUBN,'1',EX_CHGO,0)),0)	"수입상품 금년출고",
+                ROUND(MAX(DECODE(GUBN,'2',EX_CHGO,0)),0)	"수입상품 전년출고",
+                ROUND(MAX(DECODE(GUBN,'1',GITA_QTY,0)),0) 	- ROUND(MAX(DECODE(GUBN,'1',MS_QTY,0)),0) -
+                ROUND(MAX(DECODE(GUBN,'1',DO_QTY,0)),0)	 	- ROUND(MAX(DECODE(GUBN,'1',EX_QTY,0)),0)		"기타 금년재고",
+                ROUND(MAX(DECODE(GUBN,'2',GITA_QTY,0)),0) 	- ROUND(MAX(DECODE(GUBN,'2',MS_QTY,0)),0) -
+                ROUND(MAX(DECODE(GUBN,'2',DO_QTY,0)),0)	 	- ROUND(MAX(DECODE(GUBN,'2',EX_QTY,0)),0)		"기타 전년재고",
+                ROUND(MAX(DECODE(GUBN,'1',GITA_CHGO,0)),0) 	- ROUND(MAX(DECODE(GUBN,'1',MS_CHGO,0)),0) -
+                ROUND(MAX(DECODE(GUBN,'1',DO_CHGO,0)),0)	- ROUND(MAX(DECODE(GUBN,'1',EX_CHGO,0)),0)		"기타 금년출고",
+                ROUND(MAX(DECODE(GUBN,'2',GITA_CHGO,0)),0) 	- ROUND(MAX(DECODE(GUBN,'2',MS_CHGO,0)),0) -
+                ROUND(MAX(DECODE(GUBN,'2',DO_CHGO,0)),0)	- ROUND(MAX(DECODE(GUBN,'2',EX_CHGO,0)),0)		"기타 전년출고",
+                ROUND(MAX(DECODE(GUBN,'1',GITA_QTY,0)),0)	"계 금년재고",
+                ROUND(MAX(DECODE(GUBN,'2',GITA_QTY,0)),0)	"계 전년재고",
+                ROUND(MAX(DECODE(GUBN,'1',GITA_CHGO,0)),0)	"계 금년출고",
+                ROUND(MAX(DECODE(GUBN,'2',GITA_CHGO,0)),0)	"계 전년출고"                                                    
+        FROM    (        
+                /*금년재고*/
+                SELECT  IF_DTTM,
+                        '1'         GUBN,
+                        SUM(QTY)    MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO                        
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(NVL(S1.QTY/DECODE(S2.BOX_PER_PALET,0,NULL,S2.BOX_PER_PALET),0)) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    = 'FERT'   
+                        AND     S2.DIVISION IN ('10','20')
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                UNION ALL
+                SELECT  IF_DTTM,
+                        '1'         GUBN,
+                        0           MS_QTY,                        
+                        0           MS_CHGO,                           
+                        SUM(QTY)    DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO 
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(NVL(S1.QTY/DECODE(S2.BOX_PER_PALET,0,NULL,S2.BOX_PER_PALET),0)) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    = 'HAWA'   
+                        AND     S2.RC_FLAG  = 'Y'
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                UNION ALL
+                SELECT  IF_DTTM,
+                        '1'         GUBN,
+                        0           MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        SUM(QTY)    EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO 
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(NVL(S1.QTY/DECODE(S2.BOX_PER_PALET,0,NULL,S2.BOX_PER_PALET),0)) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    = 'HAWA'   
+                        AND     S2.ST_FLAG  = 'Y'
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                UNION ALL
+                SELECT  IF_DTTM,
+                        '1'         GUBN,
+                        0           MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        SUM(QTY)    GITA_QTY,                                       
+                        0           GITA_CHGO 
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(NVL(S1.QTY/DECODE(S2.BOX_PER_PALET,0,NULL,S2.BOX_PER_PALET),0)) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    IN ('FERT','HAWA')
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                /*금년출고*/
+                UNION ALL
+                SELECT  SALE_DATE,
+                        '1'         GUBN,
+                        0           MS_QTY,                        
+                        SUM(QTY)    MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO         
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(NVL(S1.QTY/DECODE(S2.BOX_PER_PALET,0,NULL,S2.BOX_PER_PALET),0)) QTY
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S3
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        = 'FERT'   
+                        AND     S2.DIVISION     IN ('10','20')
+                        AND		S1.DELIV_LOC	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE                       
+                        )
+                GROUP
+                BY      SALE_DATE
+                UNION ALL
+                SELECT  SALE_DATE,
+                        '1'         GUBN,
+                        0           MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        SUM(QTY)    DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO              
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(NVL(S1.QTY/DECODE(S2.BOX_PER_PALET,0,NULL,S2.BOX_PER_PALET),0)) QTY
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S3
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        = 'HAWA'   
+                        AND     S2.RC_FLAG      = 'Y'
+                        AND		S1.DELIV_LOC	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE                       
+                        )
+                GROUP
+                BY      SALE_DATE
+                UNION ALL
+                SELECT  SALE_DATE,
+                        '1'         GUBN,
+                        0   		MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        SUM(QTY)    EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO               
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(NVL(S1.QTY/DECODE(S2.BOX_PER_PALET,0,NULL,S2.BOX_PER_PALET),0)) QTY
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S3
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        = 'HAWA'   
+                        AND     S2.ST_FLAG      = 'Y'
+                        AND		S1.DELIV_LOC	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE                       
+                        )
+                GROUP
+                BY      SALE_DATE
+                UNION ALL
+                SELECT  SALE_DATE,
+                        '1'         GUBN,
+                        0    		MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        SUM(QTY)    GITA_CHGO                
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(NVL(S1.QTY/DECODE(S2.BOX_PER_PALET,0,NULL,S2.BOX_PER_PALET),0)) QTY                       
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S3
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        IN ('FERT','HAWA')
+                        AND		S1.DELIV_LOC	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE                                              
+                        )
+                GROUP
+                BY      SALE_DATE
+                UNION ALL
+                /*전년재고*/
+                SELECT  ADD_MONTHS(IF_DTTM,12),
+                        '2'         GUBN,
+                        SUM(QTY)    MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO 
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(NVL(S1.QTY/DECODE(S2.BOX_PER_PALET,0,NULL,S2.BOX_PER_PALET),0)) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    = 'FERT'   
+                        AND     S2.DIVISION IN ('10','20')
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                UNION ALL
+                SELECT  ADD_MONTHS(IF_DTTM,12),
+                        '2'         GUBN,
+                        0    MS_QTY,                        
+                        0           MS_CHGO,                           
+                        SUM(QTY)           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO 
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(NVL(S1.QTY/DECODE(S2.BOX_PER_PALET,0,NULL,S2.BOX_PER_PALET),0)) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    = 'HAWA'   
+                        AND     S2.RC_FLAG  = 'Y'
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                UNION ALL
+                SELECT  ADD_MONTHS(IF_DTTM,12),
+                        '2'         GUBN,
+                        0    MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        SUM(QTY)           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO 
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(NVL(S1.QTY/DECODE(S2.BOX_PER_PALET,0,NULL,S2.BOX_PER_PALET),0)) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    = 'HAWA'   
+                        AND     S2.ST_FLAG  = 'Y'
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                UNION ALL
+                SELECT  ADD_MONTHS(IF_DTTM,12),
+                        '2'         GUBN,
+                        0   MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        SUM(QTY)           GITA_QTY,                                       
+                        0           GITA_CHGO 
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(NVL(S1.QTY/DECODE(S2.BOX_PER_PALET,0,NULL,S2.BOX_PER_PALET),0)) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    IN ('FERT','HAWA')
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                /*전년출고*/
+                UNION ALL
+                SELECT  ADD_MONTHS(SALE_DATE,12),
+                        '2'         GUBN,
+                        0    MS_QTY,                        
+                        SUM(QTY)           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO         
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(NVL(S1.QTY/DECODE(S2.BOX_PER_PALET,0,NULL,S2.BOX_PER_PALET),0)) QTY
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S3
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        = 'FERT'   
+                        AND     S2.DIVISION     IN ('10','20')
+                        AND		S1.DELIV_LOC	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE                       
+                        )
+                GROUP
+                BY      SALE_DATE
+                UNION ALL
+                SELECT  ADD_MONTHS(SALE_DATE,12),
+                        '2'         GUBN,
+                        0   MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        SUM(QTY)           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO              
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(NVL(S1.QTY/DECODE(S2.BOX_PER_PALET,0,NULL,S2.BOX_PER_PALET),0)) QTY
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S3
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        = 'HAWA'   
+                        AND     S2.RC_FLAG      = 'Y'
+                        AND		S1.DELIV_LOC	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE                       
+                        )
+                GROUP
+                BY      SALE_DATE
+                UNION ALL
+                SELECT  ADD_MONTHS(SALE_DATE,12),
+                        '2'         GUBN,
+                        0    MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        SUM(QTY)           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO              
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(NVL(S1.QTY/DECODE(S2.BOX_PER_PALET,0,NULL,S2.BOX_PER_PALET),0)) QTY
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S3
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        = 'HAWA'   
+                        AND     S2.ST_FLAG      = 'Y'
+                        AND		S1.DELIV_LOC	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE                       
+                        )
+                GROUP
+                BY      SALE_DATE
+                UNION ALL
+                SELECT  ADD_MONTHS(SALE_DATE,12),
+                        '2'         GUBN,
+                        0    MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        SUM(QTY)           GITA_CHGO                
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(NVL(S1.QTY/DECODE(S2.BOX_PER_PALET,0,NULL,S2.BOX_PER_PALET),0)) QTY                       
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S3
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND		S1.DELIV_LOC	!= '8922'
+                        AND     S2.ITYPE        IN ('FERT','HAWA')
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE                                              
+                        )
+                GROUP
+                BY      SALE_DATE
+                )
+        GROUP
+        BY      IF_DTTM
+        ORDER
+        BY      1  
+ 	#elseif("$!{selected_type}" == "EA")
+ 		SELECT  TO_CHAR(IF_DTTM,'YYYY-MM-DD')		CNFM_DATE,
+                ROUND(MAX(DECODE(GUBN,'1',MS_QTY,0))/1000,0)		"면스낵 금년재고",
+                ROUND(MAX(DECODE(GUBN,'2',MS_QTY,0))/1000,0)		"면스낵 전년재고",
+                ROUND(MAX(DECODE(GUBN,'1',MS_CHGO,0))/1000,0)		"면스낵 금년출고",
+                ROUND(MAX(DECODE(GUBN,'2',MS_CHGO,0))/1000,0)		"면스낵 전년출고",
+                ROUND(MAX(DECODE(GUBN,'1',DO_QTY,0))/1000,0)		"매입상품 금년재고",
+                ROUND(MAX(DECODE(GUBN,'2',DO_QTY,0))/1000,0)		"매입상품 전년재고",                
+                ROUND(MAX(DECODE(GUBN,'1',DO_CHGO,0))/1000,0)		"매입상품 금년출고",
+                ROUND(MAX(DECODE(GUBN,'2',DO_CHGO,0))/1000,0)		"매입상품 전년출고",
+                ROUND(MAX(DECODE(GUBN,'1',EX_QTY,0))/1000,0)		"수입상품 금년재고",
+                ROUND(MAX(DECODE(GUBN,'2',EX_QTY,0))/1000,0)		"수입상품 전년재고",
+                ROUND(MAX(DECODE(GUBN,'1',EX_CHGO,0))/1000,0)		"수입상품 금년출고",
+                ROUND(MAX(DECODE(GUBN,'2',EX_CHGO,0))/1000,0)		"수입상품 전년출고",
+                ROUND(MAX(DECODE(GUBN,'1',GITA_QTY,0))/1000,0) - ROUND(MAX(DECODE(GUBN,'1',MS_QTY,0))/1000,0) -
+                ROUND(MAX(DECODE(GUBN,'1',DO_QTY,0))/1000,0)	 - ROUND(MAX(DECODE(GUBN,'1',EX_QTY,0))/1000,0)		"기타 금년재고",
+                ROUND(MAX(DECODE(GUBN,'2',GITA_QTY,0))/1000,0) - ROUND(MAX(DECODE(GUBN,'2',MS_QTY,0))/1000,0) -
+                ROUND(MAX(DECODE(GUBN,'2',DO_QTY,0))/1000,0)	 - ROUND(MAX(DECODE(GUBN,'2',EX_QTY,0))/1000,0)		"기타 전년재고",
+                ROUND(MAX(DECODE(GUBN,'1',GITA_CHGO,0))/1000,0) - ROUND(MAX(DECODE(GUBN,'1',MS_CHGO,0))/1000,0) -
+                ROUND(MAX(DECODE(GUBN,'1',DO_CHGO,0))/1000,0)	  - ROUND(MAX(DECODE(GUBN,'1',EX_CHGO,0))/1000,0)		"기타 금년출고",
+                ROUND(MAX(DECODE(GUBN,'2',GITA_CHGO,0))/1000,0) - ROUND(MAX(DECODE(GUBN,'2',MS_CHGO,0))/1000,0) -
+                ROUND(MAX(DECODE(GUBN,'2',DO_CHGO,0))/1000,0)	  - ROUND(MAX(DECODE(GUBN,'2',EX_CHGO,0))/1000,0)		"기타 전년출고",
+                ROUND(MAX(DECODE(GUBN,'1',GITA_QTY,0))/1000,0)	"계 금년재고",
+                ROUND(MAX(DECODE(GUBN,'2',GITA_QTY,0))/1000,0)	"계 전년재고",
+                ROUND(MAX(DECODE(GUBN,'1',GITA_CHGO,0))/1000,0)	"계 금년출고",
+                ROUND(MAX(DECODE(GUBN,'2',GITA_CHGO,0))/1000,0)	"계 전년출고"                                               
+        FROM    (        
+                /*금년재고*/
+                SELECT  IF_DTTM,
+                        '1'         GUBN,
+                        SUM(QTY)    MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO                        
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(S1.QTY * NVL(S2.QTY,1)) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    = 'FERT'   
+                        AND     S2.DIVISION IN ('10','20')
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                UNION ALL
+                SELECT  IF_DTTM,
+                        '1'         GUBN,
+                        0           MS_QTY,                        
+                        0           MS_CHGO,                           
+                        SUM(QTY)    DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO 
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(S1.QTY * NVL(S2.QTY,1)) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    = 'HAWA'   
+                        AND     S2.RC_FLAG  = 'Y'
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                UNION ALL
+                SELECT  IF_DTTM,
+                        '1'         GUBN,
+                        0           MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        SUM(QTY)    EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO 
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(S1.QTY * NVL(S2.QTY,1)) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    = 'HAWA'   
+                        AND     S2.ST_FLAG  = 'Y'
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                UNION ALL
+                SELECT  IF_DTTM,
+                        '1'         GUBN,
+                        0           MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        SUM(QTY)    GITA_QTY,                                       
+                        0           GITA_CHGO 
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(S1.QTY * NVL(S2.QTY,1)) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    IN ('FERT','HAWA')
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                /*금년출고*/
+                UNION ALL
+                SELECT  SALE_DATE,
+                        '1'         GUBN,
+                        0           MS_QTY,                        
+                        SUM(QTY)    MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO         
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(S1.QTY * NVL(S2.QTY,1)) QTY
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S3
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        = 'FERT'   
+                        AND     S2.DIVISION     IN ('10','20')
+                        AND		S1.DELIV_LOC	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE                       
+                        )
+                GROUP
+                BY      SALE_DATE
+                UNION ALL
+                SELECT  SALE_DATE,
+                        '1'         GUBN,
+                        0           MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        SUM(QTY)    DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO              
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(S1.QTY * NVL(S2.QTY,1)) QTY
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S3
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        = 'HAWA'   
+                        AND     S2.RC_FLAG      = 'Y'
+                        AND		S1.DELIV_LOC	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE                       
+                        )
+                GROUP
+                BY      SALE_DATE
+                UNION ALL
+                SELECT  SALE_DATE,
+                        '1'         GUBN,
+                        0    		MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        SUM(QTY)           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO               
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(S1.QTY * NVL(S2.QTY,1)) QTY
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S3
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        = 'HAWA'   
+                        AND     S2.ST_FLAG      = 'Y'
+                        AND		S1.DELIV_LOC	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE                       
+                        )
+                GROUP
+                BY      SALE_DATE
+                UNION ALL
+                SELECT  SALE_DATE,
+                        '1'         GUBN,
+                        0    		MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0          GITA_QTY,                                       
+                        SUM(QTY)           GITA_CHGO                
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(S1.QTY * NVL(S2.QTY,1)) QTY                       
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S3
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        IN ('FERT','HAWA')
+                        AND		S1.DELIV_LOC	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE                                              
+                        )
+                GROUP
+                BY      SALE_DATE
+                UNION ALL
+                /*전년재고*/
+                SELECT  ADD_MONTHS(IF_DTTM,12),
+                        '2'         GUBN,
+                        SUM(QTY)    MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO 
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(S1.QTY * NVL(S2.QTY,1)) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    = 'FERT'   
+                        AND     S2.DIVISION IN ('10','20')
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                UNION ALL
+                SELECT  ADD_MONTHS(IF_DTTM,12),
+                        '2'         GUBN,
+                        0    		MS_QTY,                        
+                        0           MS_CHGO,                           
+                        SUM(QTY)    DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO 
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(S1.QTY * NVL(S2.QTY,1)) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    = 'HAWA'   
+                        AND     S2.RC_FLAG  = 'Y'
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                UNION ALL
+                SELECT  ADD_MONTHS(IF_DTTM,12),
+                        '2'         GUBN,
+                        0    		MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        SUM(QTY)           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO 
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(S1.QTY * NVL(S2.QTY,1)) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    = 'HAWA'   
+                        AND     S2.ST_FLAG  = 'Y'
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                UNION ALL
+                SELECT  ADD_MONTHS(IF_DTTM,12),
+                        '2'         GUBN,
+                        0   		MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        SUM(QTY)           GITA_QTY,                                       
+                        0           GITA_CHGO 
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(S1.QTY * NVL(S2.QTY,1)) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    IN ('FERT','HAWA')
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                /*전년출고*/
+                UNION ALL
+                SELECT  ADD_MONTHS(SALE_DATE,12),
+                        '2'         GUBN,
+                        0    		MS_QTY,                        
+                        SUM(QTY)    MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO         
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(S1.QTY * NVL(S2.QTY,1)) QTY
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S3
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        = 'FERT'   
+                        AND     S2.DIVISION     IN ('10','20')
+                        AND		S1.DELIV_LOC	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE                       
+                        )
+                GROUP
+                BY      SALE_DATE
+                UNION ALL
+                SELECT  ADD_MONTHS(SALE_DATE,12),
+                        '2'         GUBN,
+                        0   		MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        SUM(QTY)           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO              
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(S1.QTY * NVL(S2.QTY,1)) QTY
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S3
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        = 'HAWA'   
+                        AND     S2.RC_FLAG      = 'Y'
+                        AND		S1.DELIV_LOC	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE                       
+                        )
+                GROUP
+                BY      SALE_DATE
+                UNION ALL
+                SELECT  ADD_MONTHS(SALE_DATE,12),
+                        '2'         GUBN,
+                        0    		MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        SUM(QTY)           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO              
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(S1.QTY * NVL(S2.QTY,1)) QTY
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S3
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        = 'HAWA'   
+                        AND     S2.ST_FLAG      = 'Y'
+                        AND		S1.DELIV_LOC	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE                       
+                        )
+                GROUP
+                BY      SALE_DATE
+                UNION ALL
+                SELECT  ADD_MONTHS(SALE_DATE,12),
+                        '2'         GUBN,
+                        0    		MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        SUM(QTY)           GITA_CHGO                
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(S1.QTY * NVL(S2.QTY,1)) QTY                       
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S3
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        IN ('FERT','HAWA')
+                        AND		S1.DELIV_LOC	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE                                              
+                        )
+                GROUP
+                BY      SALE_DATE
+                )
+        GROUP
+        BY      IF_DTTM
+        ORDER
+        BY      1  
+ 	#elseif("$!{selected_type}" == "PRICE")
+ 		SELECT  TO_CHAR(IF_DTTM,'YYYY-MM-DD')		CNFM_DATE,
+                ROUND(MAX(DECODE(GUBN,'1',MS_QTY,0))/1000,0)		"면스낵 금년재고",
+                ROUND(MAX(DECODE(GUBN,'2',MS_QTY,0))/1000,0)		"면스낵 전년재고",
+                ROUND(MAX(DECODE(GUBN,'1',MS_CHGO,0))/1000,0)		"면스낵 금년출고",
+                ROUND(MAX(DECODE(GUBN,'2',MS_CHGO,0))/1000,0)		"면스낵 전년출고",
+                ROUND(MAX(DECODE(GUBN,'1',DO_QTY,0))/1000,0)		"매입상품 금년재고",
+                ROUND(MAX(DECODE(GUBN,'2',DO_QTY,0))/1000,0)		"매입상품 전년재고",                
+                ROUND(MAX(DECODE(GUBN,'1',DO_CHGO,0))/1000,0)		"매입상품 금년출고",
+                ROUND(MAX(DECODE(GUBN,'2',DO_CHGO,0))/1000,0)		"매입상품 전년출고",
+                ROUND(MAX(DECODE(GUBN,'1',EX_QTY,0))/1000,0)		"수입상품 금년재고",
+                ROUND(MAX(DECODE(GUBN,'2',EX_QTY,0))/1000,0)		"수입상품 전년재고",
+                ROUND(MAX(DECODE(GUBN,'1',EX_CHGO,0))/1000,0)		"수입상품 금년출고",
+                ROUND(MAX(DECODE(GUBN,'2',EX_CHGO,0))/1000,0)		"수입상품 전년출고",
+                ROUND(MAX(DECODE(GUBN,'1',GITA_QTY,0))/1000,0) - ROUND(MAX(DECODE(GUBN,'1',MS_QTY,0))/1000,0) -
+                ROUND(MAX(DECODE(GUBN,'1',DO_QTY,0))/1000,0)	 - ROUND(MAX(DECODE(GUBN,'1',EX_QTY,0))/1000,0)		"기타 금년재고",
+                ROUND(MAX(DECODE(GUBN,'2',GITA_QTY,0))/1000,0) - ROUND(MAX(DECODE(GUBN,'2',MS_QTY,0))/1000,0) -
+                ROUND(MAX(DECODE(GUBN,'2',DO_QTY,0))/1000,0)	 - ROUND(MAX(DECODE(GUBN,'2',EX_QTY,0))/1000,0)		"기타 전년재고",
+                ROUND(MAX(DECODE(GUBN,'1',GITA_CHGO,0))/1000,0) - ROUND(MAX(DECODE(GUBN,'1',MS_CHGO,0))/1000,0) -
+                ROUND(MAX(DECODE(GUBN,'1',DO_CHGO,0))/1000,0)	  - ROUND(MAX(DECODE(GUBN,'1',EX_CHGO,0))/1000,0)		"기타 금년출고",
+                ROUND(MAX(DECODE(GUBN,'2',GITA_CHGO,0))/1000,0) - ROUND(MAX(DECODE(GUBN,'2',MS_CHGO,0))/1000,0) -
+                ROUND(MAX(DECODE(GUBN,'2',DO_CHGO,0))/1000,0)	  - ROUND(MAX(DECODE(GUBN,'2',EX_CHGO,0))/1000,0)		"기타 전년출고",
+                ROUND(MAX(DECODE(GUBN,'1',GITA_QTY,0))/1000,0)	"계 금년재고",
+                ROUND(MAX(DECODE(GUBN,'2',GITA_QTY,0))/1000,0)	"계 전년재고",
+                ROUND(MAX(DECODE(GUBN,'1',GITA_CHGO,0))/1000,0)	"계 금년출고",
+                ROUND(MAX(DECODE(GUBN,'2',GITA_CHGO,0))/1000,0)	"계 전년출고"                                               
+        FROM    (        
+                /*금년재고*/
+                SELECT  IF_DTTM,
+                        '1'         GUBN,
+                        SUM(QTY)    MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO                        
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(S1.QTY * S4.SALE_PRICE) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    = 'FERT'   
+                        AND     S2.DIVISION IN ('10','20')
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                UNION ALL
+                SELECT  IF_DTTM,
+                        '1'         GUBN,
+                        0           MS_QTY,                        
+                        0           MS_CHGO,                           
+                        SUM(QTY)    DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO 
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(S1.QTY * S4.SALE_PRICE) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    = 'HAWA'   
+                        AND     S2.RC_FLAG  = 'Y'
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                UNION ALL
+                SELECT  IF_DTTM,
+                        '1'         GUBN,
+                        0           MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        SUM(QTY)    EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO 
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(S1.QTY * S4.SALE_PRICE) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    = 'HAWA'   
+                        AND     S2.ST_FLAG  = 'Y'
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                UNION ALL
+                SELECT  IF_DTTM,
+                        '1'         GUBN,
+                        0           MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        SUM(QTY)    GITA_QTY,                                       
+                        0           GITA_CHGO 
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(S1.QTY * S4.SALE_PRICE) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    IN ('FERT','HAWA')
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                /*금년출고*/
+                UNION ALL
+                SELECT  SALE_DATE,
+                        '1'         GUBN,
+                        0           MS_QTY,                        
+                        SUM(QTY)    MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO         
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(S1.QTY * S4.SALE_PRICE) QTY
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S3,
+                                CMITEM	S4
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        = 'FERT'   
+                        AND     S2.DIVISION     IN ('10','20')
+                        AND		S1.ITEM_ID		= S4.ITEM_CD   
+                        AND		S1.DELIV_LOC	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE                       
+                        )
+                GROUP
+                BY      SALE_DATE
+                UNION ALL
+                SELECT  SALE_DATE,
+                        '1'         GUBN,
+                        0           MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        SUM(QTY)    DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO              
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(S1.QTY * S4.SALE_PRICE) QTY
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S3,
+                                CMITEM		S4
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        = 'HAWA'   
+                        AND     S2.RC_FLAG      = 'Y'
+                        AND		S1.ITEM_ID		= S4.ITEM_CD 
+                        AND		S1.DELIV_LOC	!= '8922'  
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE                       
+                        )
+                GROUP
+                BY      SALE_DATE
+                UNION ALL
+                SELECT  SALE_DATE,
+                        '1'         GUBN,
+                        0    		MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        SUM(QTY)    EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO               
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(S1.QTY * S4.SALE_PRICE) QTY
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S3,
+                                CMITEM		S4
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        = 'HAWA'   
+                        AND     S2.ST_FLAG      = 'Y'
+                        AND		S1.ITEM_ID		= S4.ITEM_CD
+                        AND		S1.DELIV_LOC	!= '8922'   
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE                       
+                        )
+                GROUP
+                BY      SALE_DATE
+                UNION ALL
+                SELECT  SALE_DATE,
+                        '1'         GUBN,
+                        0    		MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        SUM(QTY)    GITA_CHGO                
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(S1.QTY * S4.SALE_PRICE) QTY                       
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+                                )S3,
+                                CMITEM	S4
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        IN ('FERT','HAWA')
+                        AND		S1.ITEM_ID		= S4.ITEM_CD   
+                        AND		S1.DELIV_LOC	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE                                              
+                        )
+                GROUP
+                BY      SALE_DATE
+                UNION ALL
+                /*전년재고*/
+                SELECT  ADD_MONTHS(IF_DTTM,12),
+                        '2'         GUBN,
+                        SUM(QTY)    MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO 
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(S1.QTY * S4.SALE_PRICE) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    = 'FERT'   
+                        AND     S2.DIVISION IN ('10','20')
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                UNION ALL
+                SELECT  ADD_MONTHS(IF_DTTM,12),
+                        '2'         GUBN,
+                        0    		MS_QTY,                        
+                        0           MS_CHGO,                           
+                        SUM(QTY)    DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO 
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(S1.QTY * S4.SALE_PRICE) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    = 'HAWA'   
+                        AND     S2.RC_FLAG  = 'Y'
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                UNION ALL
+                SELECT  ADD_MONTHS(IF_DTTM,12),
+                        '2'         GUBN,
+                        0    		MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        SUM(QTY)    EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO 
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(S1.QTY * S4.SALE_PRICE) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    = 'HAWA'   
+                        AND     S2.ST_FLAG  = 'Y'
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                UNION ALL
+                SELECT  ADD_MONTHS(IF_DTTM,12),
+                        '2'         GUBN,
+                        0   		MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        SUM(QTY)    GITA_QTY,                                       
+                        0           GITA_CHGO 
+                FROM    (
+                        SELECT  S1.IF_DTTM,
+                                SUM(S1.QTY * S4.SALE_PRICE) QTY                                              
+                        FROM    WMS_STOCK   S1,
+                                ITEM_MST    S2,
+                                DC_MST      S3,
+                                CMITEM      S4,
+                                (                
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S5                        
+                        WHERE   S1.IF_DTTM  = S5.CAL_DATE
+                        AND     S1.ITEM_ID  = S2.ITEM_ID
+                        AND     S1.ITEM_ID  = S4.ITEM_CD
+                        AND     S3.DC_ID    = S1.LOC_ID                
+                        AND     S2.ITYPE    IN ('FERT','HAWA')
+                        AND		S3.DC_ID 	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%'    -- 수출품목 제외                 
+                        AND     S3.EXPORT_FLAG IS NULL          -- 부두, CY 제외
+                        GROUP
+                        BY      S1.IF_DTTM                        
+                        )
+                GROUP
+                BY      IF_DTTM
+                /*전년출고*/
+                UNION ALL
+                SELECT  ADD_MONTHS(SALE_DATE,12),
+                        '2'         GUBN,
+                        0    		MS_QTY,                        
+                        SUM(QTY)    MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO         
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(S1.QTY * S4.SALE_PRICE) QTY
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S3,
+                                CMITEM	S4
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        = 'FERT'   
+                        AND     S2.DIVISION     IN ('10','20')
+                        AND		S1.ITEM_ID		= S4.ITEM_CD   
+                        AND		S1.DELIV_LOC	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE                       
+                        )
+                GROUP
+                BY      SALE_DATE
+                UNION ALL
+                SELECT  ADD_MONTHS(SALE_DATE,12),
+                        '2'         GUBN,
+                        0   		MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        SUM(QTY)    DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO              
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(S1.QTY * S4.SALE_PRICE) QTY
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S3,
+                                CMITEM		S4
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        = 'HAWA'   
+                        AND     S2.RC_FLAG      = 'Y'
+                        AND		S1.ITEM_ID		= S4.ITEM_CD   
+                        AND		S1.DELIV_LOC	!= '8922'
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE                       
+                        )
+                GROUP
+                BY      SALE_DATE
+                UNION ALL
+                SELECT  ADD_MONTHS(SALE_DATE,12),
+                        '2'         GUBN,
+                        0    		MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        SUM(QTY)    EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        0           GITA_CHGO              
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(S1.QTY * S4.SALE_PRICE) QTY
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S3,
+                                CMITEM		S4
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID    
+                        AND     S2.ITYPE        = 'HAWA'   
+                        AND     S2.ST_FLAG      = 'Y'
+                        AND		S1.ITEM_ID		= S4.ITEM_CD 
+                        AND		S1.DELIV_LOC	!= '8922'  
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE                       
+                        )
+                GROUP
+                BY      SALE_DATE
+                UNION ALL
+                SELECT  ADD_MONTHS(SALE_DATE,12),
+                        '2'         GUBN,
+                        0    		MS_QTY,                        
+                        0           MS_CHGO,                           
+                        0           DO_QTY,                        
+                        0           DO_CHGO,
+                        0           EX_QTY,                        
+                        0           EX_CHGO,                        
+                        0           GITA_QTY,                                       
+                        SUM(QTY)    GITA_CHGO                
+                FROM    (
+                        SELECT  S1.SALE_DATE,
+                                SUM(S1.QTY * S4.SALE_PRICE) QTY                       
+                        FROM    SALES_ACT   S1,
+                                ITEM_MST    S2,
+                                (
+                                SELECT  CAL_DATE
+                                FROM    CAL_MST
+                                WHERE   CAL_DATE BETWEEN ADD_MONTHS('$!{start_date}',-12) AND ADD_MONTHS('$!{end_date}',-12)
+                                )S3,
+                                CMITEM	    S4
+                        WHERE   S1.DOMAIN       = 'DO'   
+                        AND     S1.SALE_DATE    = S3.CAL_DATE  
+                        AND     S1.ITEM_ID      = S2.ITEM_ID 
+                        AND		S1.ITEM_ID		= S4.ITEM_CD   
+                        AND		S1.DELIV_LOC	!= '8922'
+                        AND     S2.ITYPE        IN ('FERT','HAWA')
+                        AND     NVL(S2.CAT03,'XX') NOT LIKE 'O%' 
+                        GROUP
+                        BY      S1.SALE_DATE                                              
+                        )
+                GROUP
+                BY      SALE_DATE
+                )
+        GROUP
+        BY      IF_DTTM
+        ORDER
+        BY      1  
+ 	#end
+	</query>
+	
+</queries>
+	

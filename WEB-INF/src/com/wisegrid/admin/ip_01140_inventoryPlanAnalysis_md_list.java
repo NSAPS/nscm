@@ -144,40 +144,43 @@ public class ip_01140_inventoryPlanAnalysis_md_list extends HttpServlet {
 				gdRes.getHeader("SALES_SUM"	        ).addValue(qResult.get(i).get(26),"");
 				gdRes.getHeader("STOCK_EXPT"		).addValue(qResult.get(i).get(27),"");
 				gdRes.getHeader("PRE_MONTH_SELL"	).addValue(qResult.get(i).get(28),"");
-				gdRes.getHeader("RECEIPT_EXPT_SUM"	).addValue(qResult.get(i).get(29),"");
-				gdRes.getHeader("RECEIPT_EXPT_SUM_1").addValue(qResult.get(i).get(30),"");
-				gdRes.getHeader("RECEIPT_EXPT_SUM_2").addValue(qResult.get(i).get(31),"");
-				gdRes.getHeader("RECEIPT_EXPT_SUM_3").addValue(qResult.get(i).get(32),"");
+				gdRes.getHeader("RECEIPT_EXPT_SUM_M"	).addValue(qResult.get(i).get(29),"");
+				gdRes.getHeader("RECEIPT_EXPT_SUM_M2"	).addValue(qResult.get(i).get(30),"");
+				gdRes.getHeader("RECEIPT_EXPT_SUM_M3"	).addValue(qResult.get(i).get(31),"");
 				
-				gdRes.getHeader("SALES_MEAN_1MON"	).addValue(qResult.get(i).get(33),"");
-				gdRes.getHeader("SALES_MEAN_1MON2"	).addValue(qResult.get(i).get(33),"");
-				gdRes.getHeader("SALES_MEAN_3MON" 	).addValue(qResult.get(i).get(34),"");
-				gdRes.getHeader("SALES_MEAN_3MON2" 	).addValue(qResult.get(i).get(34),"");
-				gdRes.getHeader("SALES_MEAN_1WEEK"	).addValue(qResult.get(i).get(35),"");
-				gdRes.getHeader("SALES_MEAN_3WEEK"	).addValue(qResult.get(i).get(36),"");
-				gdRes.getHeader("WEEK_DEV_1_3"	    ).addValue(qResult.get(i).get(37),"");
-				gdRes.getHeader("DEV_PER"	        ).addValue(qResult.get(i).get(38),"");
-				gdRes.getHeader("SALES_SUM_PY"	    ).addValue(qResult.get(i).get(39),"");
-				gdRes.getHeader("THIS_YEAR_SUM"	    ).addValue(qResult.get(i).get(40),"");
-				gdRes.getHeader("LAST_YEAR_SUM"		).addValue(qResult.get(i).get(41),"");
-				gdRes.getHeader("SUB_PY_MON"	    ).addValue(qResult.get(i).get(42),"");
-				gdRes.getHeader("SUB_PY_YEAR"		).addValue(qResult.get(i).get(43),"");
+				gdRes.getHeader("RECEIPT_EXPT_SUM_1").addValue(qResult.get(i).get(32),"");
+				gdRes.getHeader("RECEIPT_EXPT_SUM_2").addValue(qResult.get(i).get(33),"");
+				gdRes.getHeader("RECEIPT_EXPT_SUM_3").addValue(qResult.get(i).get(34),"");
+				gdRes.getHeader("RECEIPT_EXPT_SUM_4").addValue(qResult.get(i).get(35),"");
+				gdRes.getHeader("SALES_MEAN_1MON"	).addValue(qResult.get(i).get(36),"");
+				gdRes.getHeader("SALES_MEAN_1MON2"	).addValue(qResult.get(i).get(36),"");
+				gdRes.getHeader("SALES_MEAN_3MON" 	).addValue(qResult.get(i).get(37),"");
+				gdRes.getHeader("SALES_MEAN_3MON2" 	).addValue(qResult.get(i).get(37),"");
+				gdRes.getHeader("SALES_MEAN_1WEEK"	).addValue(qResult.get(i).get(38),"");
+				gdRes.getHeader("SALES_MEAN_3WEEK"	).addValue(qResult.get(i).get(39),"");
+				gdRes.getHeader("WEEK_DEV_1_3"	    ).addValue(qResult.get(i).get(40),"");
+				gdRes.getHeader("DEV_PER"	        ).addValue(qResult.get(i).get(41),"");
+				gdRes.getHeader("SALES_SUM_PY"	    ).addValue(qResult.get(i).get(42),"");
+				gdRes.getHeader("THIS_YEAR_SUM"	    ).addValue(qResult.get(i).get(43),"");
+				gdRes.getHeader("LAST_YEAR_SUM"		).addValue(qResult.get(i).get(44),"");
+				gdRes.getHeader("SUB_PY_MON"	    ).addValue(qResult.get(i).get(45),"");
+				gdRes.getHeader("SUB_PY_YEAR"		).addValue(qResult.get(i).get(46),"");
 				
-				gdRes.getHeader("BASE_STOCK_PALLET" ).addValue(qResult.get(i).get(44),"");
-				gdRes.getHeader("BASE_STOCK_PALLET2").addValue(qResult.get(i).get(44),"");
-				gdRes.getHeader("STOCK_EXPT_PALLET" ).addValue(qResult.get(i).get(45),"");
-				gdRes.getHeader("NWGT_PER_BUOM" 	).addValue(qResult.get(i).get(46),"");			//기초재고중량
-				gdRes.getHeader("MON_IN_CUM_BUOM"	).addValue(qResult.get(i).get(47),"");			//당월수입누계중량			
-				gdRes.getHeader("YEAR_IN_CUM" 		).addValue(qResult.get(i).get(48),"");			//년수입누계
+				gdRes.getHeader("BASE_STOCK_PALLET" ).addValue(qResult.get(i).get(47),"");
+				gdRes.getHeader("BASE_STOCK_PALLET2").addValue(qResult.get(i).get(47),"");
+				gdRes.getHeader("STOCK_EXPT_PALLET" ).addValue(qResult.get(i).get(48),"");
+				gdRes.getHeader("NWGT_PER_BUOM" 	).addValue(qResult.get(i).get(49),"");			//기초재고중량
+				gdRes.getHeader("MON_IN_CUM_BUOM"	).addValue(qResult.get(i).get(50),"");			//당월수입누계중량			
+				gdRes.getHeader("YEAR_IN_CUM" 		).addValue(qResult.get(i).get(51),"");			//년수입누계
 				
-				gdRes.getHeader("YEAR_IN_CUM_BUOM" 	).addValue(qResult.get(i).get(49),"");			//년수입누계중량
-				gdRes.getHeader("YEAR_IN_CUM_BUOM2" ).addValue(qResult.get(i).get(49),"");			//년수입누계중량				
-				gdRes.getHeader("MON_SALE_CUM" 		).addValue(qResult.get(i).get(50),"");			//당월판매누계중량
-				gdRes.getHeader("YEAR_SALE_CUM_BUOM").addValue(qResult.get(i).get(51),"");			//년판매누계중량			
+				gdRes.getHeader("YEAR_IN_CUM_BUOM" 	).addValue(qResult.get(i).get(52),"");			//년수입누계중량
+				gdRes.getHeader("YEAR_IN_CUM_BUOM2" ).addValue(qResult.get(i).get(52),"");			//년수입누계중량				
+				gdRes.getHeader("MON_SALE_CUM" 		).addValue(qResult.get(i).get(53),"");			//당월판매누계중량
+				gdRes.getHeader("YEAR_SALE_CUM_BUOM").addValue(qResult.get(i).get(54),"");			//년판매누계중량			
 				
-				gdRes.getHeader("LEAD_TIME" 		).addValue(qResult.get(i).get(52),"");
-				gdRes.getHeader("LEAD_TIME2" 		).addValue(qResult.get(i).get(52),"");
-				gdRes.getHeader("ROWNUM" 			).addValue(qResult.get(i).get(53),"");
+				gdRes.getHeader("LEAD_TIME" 		).addValue(qResult.get(i).get(55),"");
+				gdRes.getHeader("LEAD_TIME2" 		).addValue(qResult.get(i).get(55),"");
+				gdRes.getHeader("ROWNUM" 			).addValue(qResult.get(i).get(56),"");
 				
 			
 		                                                                                                          

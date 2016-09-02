@@ -319,7 +319,3 @@ function excelUpload(){
 
 }
 
-/* EXCEL DWON */
-function excelDown() {
-
-}

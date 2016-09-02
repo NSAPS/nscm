@@ -145,6 +145,9 @@ function setHeader(GridObj) {
     GridObj.SetNumberFormat("PR_QTY", 	"#,##0.##");
     GridObj.SetNumberFormat("PO_QTY", 	"#,##0.##");
     GridObj.SetNumberFormat("IPGO_QTY", "#,##0.##");
+    GridObj.SetNumberFormat("PR_PO", 	"#,##0.##");
+    GridObj.SetNumberFormat("PO_IPGO", 	"#,##0.##");
+    GridObj.SetNumberFormat("TOTAL", "#,##0.##");
 	
 
 	setDefault();        	//화면 기본 설정 
@@ -175,12 +178,14 @@ function doQuery()
 	
 	var item_id		= document.frm.item_id.value;
 	var item_name	= document.frm.item_name.value;
+	var	gubn		= document.frm.gubn.value;
 
-	   
+	
 	//넘겨줄 값들을만든다.( 파라미터 정의 부분 )
 	GridObj.SetParam("mode", "search");
 	GridObj.SetParam("item_id", item_id);
 	GridObj.SetParam("item_name", item_name);
+	GridObj.SetParam("gubn", gubn);
 	   
 	GridObj.DoQuery(servlet_url);
 }
@@ -197,25 +202,25 @@ function GridEndQuery()
     {
         if(GridObj.GetStatus() == "true") 
         {                           
-			
-			cal_dw();
-			var i = GridObj.GetRowCount()-1;
-			GridObj.SetCellBgColor('ITEM_ID', 	i, color_tot);
-		 	GridObj.SetCellBgColor('ITEM_NAME', i, color_tot);
-		 	GridObj.SetCellBgColor('PR_DAY', 	i, color_tot);
-		 	GridObj.SetCellBgColor('PR_TERM', 	i, color_tot);
-		 	GridObj.SetCellBgColor('PR_QTY', 	i, color_tot);
-		 	GridObj.SetCellBgColor('PO_DAY', 	i, color_tot);
-		 	GridObj.SetCellBgColor('PO_TERM', 	i, color_tot);
-		 	GridObj.SetCellBgColor('PO_QTY', 	i, color_tot);
-		 	GridObj.SetCellBgColor('LFDAT', 	i, color_tot);
-		 	GridObj.SetCellBgColor('IPGO_DAY', 	i, color_tot);
-		 	GridObj.SetCellBgColor('IPGO_TERM', i, color_tot);
-		 	GridObj.SetCellBgColor('IPGO_QTY', 	i, color_tot);
-		 	GridObj.SetCellBgColor('STATUS', 	i, color_tot);
-		 	GridObj.SetCellBgColor('PR_PO', 	i, color_tot);
-		 	GridObj.SetCellBgColor('PO_IPGO', 	i, color_tot);
-		 	GridObj.SetCellBgColor('TOTAL', 	i, color_tot);
+			GridSetMerge();
+		//	cal_dw();
+//			var i = GridObj.GetRowCount()-1;
+//			GridObj.SetCellBgColor('ITEM_ID', 	i, color_tot);
+//		 	GridObj.SetCellBgColor('ITEM_NAME', i, color_tot);
+//		 	GridObj.SetCellBgColor('PR_DAY', 	i, color_tot);
+//		 	GridObj.SetCellBgColor('PR_TERM', 	i, color_tot);
+//		 	GridObj.SetCellBgColor('PR_QTY', 	i, color_tot);
+//		 	GridObj.SetCellBgColor('PO_DAY', 	i, color_tot);
+//		 	GridObj.SetCellBgColor('PO_TERM', 	i, color_tot);
+//		 	GridObj.SetCellBgColor('PO_QTY', 	i, color_tot);
+//		 	GridObj.SetCellBgColor('LFDAT', 	i, color_tot);
+//		 	GridObj.SetCellBgColor('IPGO_DAY', 	i, color_tot);
+//		 	GridObj.SetCellBgColor('IPGO_TERM', i, color_tot);
+//		 	GridObj.SetCellBgColor('IPGO_QTY', 	i, color_tot);
+//		 	GridObj.SetCellBgColor('STATUS', 	i, color_tot);
+//		 	GridObj.SetCellBgColor('PR_PO', 	i, color_tot);
+//		 	GridObj.SetCellBgColor('PO_IPGO', 	i, color_tot);
+//		 	GridObj.SetCellBgColor('TOTAL', 	i, color_tot);
 
                    
         } else    
@@ -407,4 +412,29 @@ function refresh(week_flag) {
 	var newWin = window.open(service_url, "", pop_win_style);
 	newWin.focus();		
 	
+}
+
+
+function GridSetMerge(){
+	
+	GridObj.SetGroupMerge('ITEM_ID,ITEM_NAME');
+    GridObj.AddSummaryBar('SUMMARY1', '합계', 'summaryall', 'custom', 'PR_QTY,PO_QTY,IPGO_QTY,PR_PO,PO_IPGO,TOTAL'); 
+         	   
+ 	GridObj.SetSummaryBarFunction('SUMMARY1','sum','PR_QTY');
+    GridObj.SetSummaryBarFunction('SUMMARY1','sum','PO_QTY'); 
+    GridObj.SetSummaryBarFunction('SUMMARY1','sum','IPGO_QTY');
+    GridObj.SetSummaryBarFunction('SUMMARY1','average','PR_PO');
+    GridObj.SetSummaryBarFunction('SUMMARY1','average','PO_IPGO');
+    GridObj.SetSummaryBarFunction('SUMMARY1','average','TOTAL');	 
+    
+    GridObj.SetSummaryBarColor('SUMMARY1', '0|153|0', '230|230|250');  
+         	   
+         	   
+         	   
+         	   
+         	   
+         	   
+         	   
+         	   
+         	   
 }

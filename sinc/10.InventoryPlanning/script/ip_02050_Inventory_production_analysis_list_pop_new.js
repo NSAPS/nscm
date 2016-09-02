@@ -699,6 +699,7 @@ function GridEndQuery()
             alert(error_msg);            
 		}
     }
+    
 	cal_dw1()
 	GridObj.SetCellBgColor('GUBN',   2, color_edit_col);
 	GridObj.SetCellBgColor('DAY_00', 2, color_edit_col);
@@ -912,7 +913,7 @@ function GridEndQuery_plan()  //판매계획 조회시 main grid
     {
         if(GridObj.GetStatus() == "true") 
         {                           
-
+			
                  
         } else    
         { 
@@ -920,7 +921,8 @@ function GridEndQuery_plan()  //판매계획 조회시 main grid
             alert(error_msg);            
 		}
     }
-	cal_dw1()
+   
+	cal_dw1();
 	GridObj.SetCellBgColor('DAY_00', 2, color_edit_col);
 	GridObj.SetCellBgColor('DAY_01', 2, color_edit_col);
 	GridObj.SetCellBgColor('DAY_02', 2, color_edit_col);
@@ -1389,21 +1391,23 @@ function paintLineGraph2() {
 	
 	var item_id = document.frm.item_id.value;
 	var item_name = document.frm.item_name.value;
-
+	
+	var issue = GridObj.GetCellValue('DAY_00',2);	
+	
+	//GridObj2 과거30일
 	var project = document.frm.project.value;
 	var so = new SWFObject(project+"/sinc/template/basic/swf/actionscript/open-flash-chart.swf", "ofc", "100%", "300", "9", "#FFFFFF");                 
 	var title = item_id + ' / ' + item_name;	
 	var y_legend = 'BOX'
 	var x_legend = 'DATE'
 
-	var colValue = 0;
-	var header_day = "";
+	var colValue = 0;	
+	var header_day = "";	
 	var headerCol = "";
 	var headerCol_tmp = "";
 	var dataCol = "";
 	var dataCol_temp = "";
-	var maxValue = 0;
-	
+	var maxValue = 0;	
 	var dataCol_G1 = "";
 	var first_G1 = 0;
 	var save_month = "";
@@ -1424,7 +1428,7 @@ function paintLineGraph2() {
 			header_day = header_day.replace(/\)/g,"");
 			
 			// 일요일, 0 일자 제거
-			if(colValue <= 0 || header_day == '일') continue;			
+			//if(colValue <= 0 || header_day == '일') continue;			
 			if (maxValue < colValue) {
 				maxValue = colValue;
 			}
@@ -1469,12 +1473,13 @@ function paintLineGraph2() {
 			
 			colValue = Number(GridObj2.GetCellValueIndex(Number(i+2),0));			
 			header_day = GridObj2.GetColHDText(GridObj2.GetColHDKey(Number(i+2)));
+			//alert("test1:"+header_day);
 			header_day = header_day.substr(6,10);
 			header_day = header_day.replace(/\(/g,"");
 			header_day = header_day.replace(/\)/g,"");
-			
+	
 			// 일요일, 0 일자 제거
-			if(colValue <= 0 || header_day == '일') continue;			
+		//	if(colValue <= 0 || header_day == '일') continue;			
 			if (maxValue < colValue) {
 				maxValue = colValue;
 			}	
@@ -1482,13 +1487,14 @@ function paintLineGraph2() {
 			if(first_2==1){
 				if(rowCnt == 0) headerCol = GridObj2.GetColHDText(GridObj2.GetColHDKey(Number(i+2)));
 				dataCol_2 = GridObj2.GetCellValueIndex(Number(i+2),0);
+				
 			}
 			else {
 				if(rowCnt == 0) headerCol = headerCol + ','+ GridObj2.GetColHDText(GridObj2.GetColHDKey(Number(i+2)));
 				dataCol_2 = dataCol_2 + ','+ GridObj2.GetCellValueIndex(Number(i+2),0);
 			}				
 		}
-
+		//dataCol_2 = dataCol_2 + ',' + issue;
 		if(rowCnt == 0) { // 1번 그래프가 없는 경우!!!!
 				so.addVariable("line_dot","2,#CC3399," + gubnName_2 + ",12,5");
 				valuesId = "values";

@@ -81,6 +81,7 @@
                               			<option value="P40"#if( "$!{search_type}" == "P40" ) selected #end>유통가공품</option> 
 										<option value="310"#if( "$!{search_type}" == "310" ) selected #end>용기면(VISUAL)</option>
 										<option value="T86"#if( "$!{search_type}" == "T86" ) selected #end>관심 품목</option>
+										<option value="T87"#if( "$!{search_type}" == "T87" ) selected #end>관심 품목-II</option>
 									</select>
             					</td>
 								<td width="70px" align="right" > 
@@ -139,6 +140,22 @@
 									<input type="radio" name="term_gubn"  style="border:0px; " value="Day" checked="on" onClick="setHeader(GridObj); " >Day</intput>
             						<input type="radio" name="term_gubn"  style="border:0px; " value="Week" onClick="setHeader(GridObj); ">Week</intput> 
 								</td>
+								<td width="250px">
+									<select name="scm_charge" onChange="doChange2(this);" >
+            						#foreach( $condition in $rp_01160_SCM_CHARGE_list )
+            							<option value="$condition.get(0)" #if( "$!{_user_id}" == "$condition.get(0)" ) selected #end  >$condition.get(1)</option>
+            						#end
+									</select>
+									&nbsp;&nbsp;
+									품종그룹 : 
+									<select name="sales_cat02" style="width:75px;">
+										<option value="">전체</option>
+									#foreach( $condition in $ip_02050_Inventory_production_analysis_list_combo )  
+										<option value="$condition.get(0)" #if($!{sales_cat02} == "$condition.get(0)") selected #else #end >$condition.get(1)</option>											
+									#end
+									</select>
+								</td>
+								
 							</tr>
 							<tr>
 								<td width="70px" align="right">

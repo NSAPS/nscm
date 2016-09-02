@@ -128,20 +128,19 @@ public class ip_07090_EDI_eCvan_Analysis_pop extends HttpServlet {
 				gdRes.getHeader("CNFM_DATE"		).addValue(qResult.get(i).get(0),"");
 				gdRes.getHeader("ITEM_ID"		).addValue(qResult.get(i).get(1),"");                                      
 				gdRes.getHeader("ITEM_NAME"		).addValue(qResult.get(i).get(2),"");                                      
-				gdRes.getHeader("SPEC"			).addValue(qResult.get(i).get(3),"");                                      
-				gdRes.getHeader("CUST_CODE"		).addValue(qResult.get(i).get(4),"");                                      
-				gdRes.getHeader("CUST_NAME"		).addValue(qResult.get(i).get(5),"");                                      
-				gdRes.getHeader("EDI_BOX"		).addValue(qResult.get(i).get(6),"");                                      
-				gdRes.getHeader("SELL_BOX"		).addValue(qResult.get(i).get(7),"");
-				gdRes.getHeader("DEFAULT_BOX"	).addValue(qResult.get(i).get(8),"");				
-				gdRes.getHeader("DEFAULT_CODE_NS"			).addSelectedHiddenValue(qResult.get(i).get(9));                                  
+				gdRes.getHeader("CUST_CODE"		).addValue(qResult.get(i).get(3),"");                                      
+				gdRes.getHeader("CUST_NAME"		).addValue(qResult.get(i).get(4),"");                                      
+				gdRes.getHeader("EDI_BOX"		).addValue(qResult.get(i).get(5),"");                                      
+				gdRes.getHeader("SELL_BOX"		).addValue(qResult.get(i).get(6),"");
+				gdRes.getHeader("DEFAULT_BOX"	).addValue(qResult.get(i).get(7),"");				
+				gdRes.getHeader("DEFAULT_CODE_NS"	).addSelectedHiddenValue(qResult.get(i).get(8));                                  
 
-				gdRes.getHeader("DC_ID"			).addValue(qResult.get(i).get(10),"");                                      
-				gdRes.getHeader("DC_NAME"		).addValue(qResult.get(i).get(11),"");                                      
-				gdRes.getHeader("DEPT_CODE"		).addValue(qResult.get(i).get(12),"");                                      
-				gdRes.getHeader("DEPT_NAME"		).addValue(qResult.get(i).get(13),"");                                      
-				gdRes.getHeader("HAN_NAME"		).addValue(qResult.get(i).get(14),""); 
-				gdRes.getHeader("BIGO"			).addValue(qResult.get(i).get(15),"");
+				gdRes.getHeader("DC_ID"			).addValue(qResult.get(i).get(9),"");                                      
+				gdRes.getHeader("DC_NAME"		).addValue(qResult.get(i).get(10),"");                                      
+				gdRes.getHeader("DEPT_CODE"		).addValue(qResult.get(i).get(11),"");                                      
+				gdRes.getHeader("DEPT_NAME"		).addValue(qResult.get(i).get(12),"");                                      
+				gdRes.getHeader("HAN_NAME"		).addValue(qResult.get(i).get(13),""); 
+				gdRes.getHeader("BIGO"			).addValue(qResult.get(i).get(14),"");
 		                                                                                                          
 			}                                                                                                                
                                                                                                                              

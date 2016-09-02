@@ -1,0 +1,241 @@
+//## ÇÁ·Î±×·¥ID       	: rp_03010_supply_suitability_pop.js
+//## ÇÁ·Î±×·¥¸í       	: ¹°·® ÀûÇÕ¼º °ü¸®(ÆË¾÷)
+//## º¯°æÀÚ           	: ÀÌ°­¿í
+//## °³¹ßÀÏÀÚ         	: 2016-08-24 
+//## °ü·Ã job file   	: job_sinc_40_replenishmentPlanning_05.xml.xml
+//## °ü·Ã query file 	: query_sinc_40_replenishmentPlanning_05.xml.xml
+//##
+//## REVISIONS
+//## VER        DATE        AUTHOR    DESCRIPTION
+//## ---------  ----------  --------  ------------------------------------
+//## 1.1        2016-08-24   ÀÌ°­¿í      CREATE  
+//############################################################
+/************************************************************************************************************************************/
+/**********************************************  WiseGrid Java Script   *************************************************************/
+/************************************************************************************************************************************/
+
+//-----------------------------------------             Àü¿ª º¯¼ö            ----------------------------------------------//
+//var mode;														// WiseGrid Åë½Å ½Ã Àü¼Û ¸ðµå(search, save, ... etc)
+var class_path = "com.wisegrid.admin.";							// ¼­ºí¸´ ÆÐÅ°Áö(class ÆÄÀÏ °æ·Î)
+var job_id = 'rp_03010_supply_suitability_pop';
+
+var GridObj ; 													// WiseGrid °´Ã¼
+var color_tot 		 = '234|234|234';			//ÇÕ°è ¶óÀÎ ¹è°æ»ö
+var color_edit_col   = '255|253|208';
+var color_sp 		 = '230|222|230'; 			//ÄÃ·³ ±¸ºÐ¼± ¹è°æ»ö
+var color_select_row = '141|232|141';			//¶óÀÎ ¼±ÅÃ ¹è°æ»ö 
+var colBg01 		 = '224|255|224';			//255|255|153
+var colBg02 	     = '255|255|255';
+
+
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢±×¸®µåÀÇ »çÀÌÁî Á¶Àý Fnc
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+    function setGridAutoResize( tab_h, table_h ){
+        
+        var maxWidthValue;
+        var maxHeightValue;
+        
+        if (document.layers) {
+            //Nescape
+            maxWidthValue   = window.innerWidth;
+            maxHeightValue  = window.innerHeight;
+        }
+        if (document.all) {
+            //explore
+            maxWidthValue    = document.body.clientWidth;
+            maxHeightValue   = document.body.clientHeight;
+        } 
+        
+        var tabHeightValue   = Number(maxHeightValue) - Number(tab_h) ; 
+        var tableHeightValue = Number(maxHeightValue) - Number(table_h) ; 
+        
+        var search_h = document.frm.search_h.value; 
+        if( search_menu.style.display == "none" ) 
+        { 
+            tabHeightValue   += Number(search_h); 
+            tableHeightValue += Number(search_h);   
+        } 
+        
+        // È­¸é size Ãà¼Ò ½Ã È­¸éÀÌ ³Ê¹« ÀÛ¾Æ ±×¸®µå Å©±â°¡ À½¼ö°¡ µÇ¸é ¿¡·¯°¡ ³ª¹Ç·Î ±× °æ¿ì ¹«Á¶°Ç 1·Î ¼¼ÆÃ 
+        // ==> È­¸éÀÌ ´õÀÌ»ó Ãà¼ÒµÇÁö ¾ÊÀ½ 
+        if( tabHeightValue < 1 ) 
+            tabHeightValue = 1; 
+        if( tableHeightValue < 1 ) 
+            tableHeightValue = 1;
+          
+        //tabPage1.style.height = tabHeightValue + "px"; 
+
+        document.WiseGrid.height = tableHeightValue + "px"; 
+        //document.WiseGrid2.height = tableHeightValue - document.WiseGrid.height + "px";
+    }  
+
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢WiseGrid ¿ÀºêÁ§Æ®°¡ »ý¼ºµÇ°í ÃÊ±âÈ­µÈ ÈÄ ¹ß»ýÇÏ´Â 							¦¢
+  ¦¢JavaScript EventÀÎ Initialize()¸¦ ¹Þ¾Æ ±×¸®µåÀÇ Çì´õ¸¦ ¼ÂÆÃÇÑ´Ù.			¦¢
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+function init() { 
+		
+	GridObj = document.WiseGrid;
+	setProperty(GridObj);	//WiseGrid Default¼³Á¤ ºÎºÐ (WiseGrid_Property.jsÆÄÀÏ ³»¿¡ ¼±¾ðµÇ¾î ÀÖ´Ù.)
+	setHeader(GridObj);  	//ÇØ´õ»ý¼º 
+	setDefault();        	//È­¸é ±âº» ¼³Á¤ 
+}   
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢È­¸é ±âº» ¼³Á¤ ºÎºÐ.
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+function setDefault() { 
+	
+	GridObj.bRowSelectorIndex = true;				//Row Selector ¿µ¿ª¿¡ Row Index¸¦ º¸¿©ÁØ´Ù.
+
+    GridObj.nHDLineSize         = 10; //Header Size
+    //GridObj.bHDMoving = true;		// ÄÃ·³ Çì´õ À§Ä¡ ÀÌµ¿
+    
+    //Çì´õÀÇ ¶óÀÎ¼ö¸¦ ¼³Á¤ÇÑ´Ù. 
+    GridObj.nHDLines = 2;   
+   
+    //¼±ÅÃµÈ ¼¿ÀÇ ±ÛÀÚ»ö ÁöÁ¤ÇÑ´Ù.
+	GridObj.strSelectedCellFgColor = '0|0|0';
+	GridObj.strSelectedCellBgColor = '232|232|255'; 	//Drag·Î ¼±ÅÃµÈ ¼¿ÀÇ ¹è°æ»ö»óÀ» º¯°æÇÒ ¼ö ÀÖ´Ù
+	GridObj.strActiveRowBgColor    = "232|245|213";     //¼±ÅÃµÈ ÇàÀÇ ¹è°æ»ö»óÀ» ¼³Á¤ÇÑ´Ù.	
+    GridObj.strHDClickAction 	   = "select";        	//Å¬¸¯ÇÑ ÄÃ·³ÀÇ ¼¿À» ¼±ÅÃ°¡´ÉÇÏ°Ô ÇÑ´Ù.
+    GridObj.strMouseWheelAction='page';
+
+	// Cell Font Setting
+	GridObj.nCellFontSize = 9;					// Font Size 9
+       
+}
+       
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢ÇØ´õ»ý¼º
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/ 
+function setHeader(GridObj) {  
+	  	
+	  	GridObj.AddHeader("SALES_CAT03"	          	,"Ç°Á¾"			,"t_text" 	   	,100	    ,80     ,false); //0   
+		GridObj.AddHeader("ITEM_ID"	          		,"Ç°¸ñÄÚµå"		,"t_text" 	   	,100	    ,80     ,false); //0   
+	 	GridObj.AddHeader("ITEM_NAME"	      		,"Ç°¸ñ¸í"	        ,"t_text" 	   	,100	    ,180    ,false); //0
+		GridObj.AddHeader("SALE_DATE"  				,"ÀÏÀÚ"			,"t_text"    	,100		,80     ,false); //0
+		GridObj.AddHeader("QTY"  					,"ÆÇ¸Å·®"			,"t_number"    	,100.3		,80     ,false); //0
+		GridObj.AddHeader("EVENT_GUBN"  			,"ÀÌº¥Æ® ¿©ºÎ"		,"t_text"    	,100		,80     ,false); //0
+		GridObj.AddHeader("TXT"  					,"À¯Åë Ã¤³Î"		,"t_text"    	,100		,100     ,false); //0
+	
+		GridObj.BoundHeader();
+		
+		GridObj.SetColCellAlign('ITEM_NAME',        	  		'left');
+		GridObj.SetColCellAlign('EVENT_GUBN',        	  		'center');
+	    GridObj.SetColCellAlign('SALE_DATE',        	  		'center');	
+	    GridObj.SetColCellAlign('TXT',        	  				'left');	
+	 	GridObj.SetNumberFormat("QTY",       					"###,###.#");
+	 	
+ 		doQuery();
+}	
+
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢µ¥ÀÌÅÍ Á¶È¸°¡ Á¤»óÀûÀ¸·Î ¿Ï·áµÇ¸é ¹ß»ýµÇ´Â Event¿¡ ´ëÇÑ Fnc
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+    function GridEndQuery() 
+    {
+    	
+        var endMode = GridObj.GetParam("mode");
+        var error_msg = '';
+          
+        if(endMode == "search") //Á¶È¸°¡ ¿Ï·áµÈ °æ¿ì
+        {
+            if(GridObj.GetStatus() == "true") 
+            {        
+            	
+            	var row = GridObj.GetRowCount();            	
+            	if (row == 0) return;
+            	
+            	GridSetMerge(); 
+         	           	
+             
+            } else    
+            { 
+                error_msg = GridObj.GetMessage(); 
+                alert(error_msg);            
+			}
+        }	
+		
+    }
+
+
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢±×¸®µåÀÇ ¿ø Å¬¸¯ ÀÌº¥Æ®
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+               
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢È­¸é¿¡ 'Á¶È¸'¸¦ ´©¸£¸é È£Ãâ Fnc
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+function GoSearch(service) 
+{   
+    doQuery();
+}
+
+
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢DW 1 Á¶È¸ Äõ¸®¸¦ È£Ãâ Fnc
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+   function doQuery() 
+   {
+       var cnfm_date	    = document.frm.cnfm_date.value; 
+	   var user_id			= document.frm._user_id.value;         
+       var item_id	    	= document.frm.item_id.value;
+       var servlet_url      = Project_name+"/servlet/com.wisegrid.admin."+job_id;
+       
+       //³Ñ°ÜÁÙ °ªµéÀ»¸¸µç´Ù.( ÆÄ¶ó¹ÌÅÍ Á¤ÀÇ ºÎºÐ )
+       GridObj.SetParam("mode",           	"search");
+       GridObj.SetParam("cnfm_date",  		cnfm_date);
+       GridObj.SetParam("item_id",       	item_id);
+       GridObj.SetParam("user_id",  		user_id);	
+         
+	   GridObj.DoQuery(servlet_url);       
+   }
+
+
+// ¼¿ ÀúÀå Àü¿ªº¯¼ö
+var objTdG;
+
+
+// ³¯Â¥ °Ë»ö POP BTN mouseOver
+function overBtn( objBtn ) {
+	clickedDateIdx = objBtn.parentNode.parentNode.parentNode.rowIndex;	
+}
+
+// ³¯Â¥ °Ë»ö POP BTN mouseOut
+function outBtn( objBtn ) {
+	clickedDateIdx = null;	
+}
+
+/*¦£¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¤
+  ¦¢±×¸®µåÀÇ ¿ø Å¬¸¯ ÀÌº¥Æ®
+  ¦¦¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¥*/
+function GridCellClick(strColumnKey, nRow) {
+	
+	
+
+}		
+
+function GridCellDblClick(strColumnKey, nRow){
+	
+}
+
+function HeaderClick(strColumnKey){
+	
+}
+
+function GridChangeCell(strColumnKey, nRow, vtOldValue, vtNewValue){
+
+}	
+
+
+function GridSetMerge(){
+
+	
+	GridObj.SetGroupMerge('SALES_CAT03,ITEM_ID,ITEM_NAME,SALE_DATE,QTY,EVENT_GUBN');
+    
+    GridObj.AddSummaryBar('SUMMARY2', 'ÇÕ°è', 'summaryall', 'sum', 'QTY' );
+    	 		
+	GridObj.SetSummaryBarColor('SUMMARY2', '0|153|0', '152|251|152');
+}
+

@@ -1,5 +1,5 @@
 ############################################################
-## 프로그램ID		:	op_02040_Mds_Stock_Info.vm
+## 프로그램ID		:	op_02040_Mfs_Stock_Info.vm
 ## 프로그램명		:	계열사 재고정고 Excel 업로드 
 ## 개발자          	:	우종균 
 ## 개발일자       	:	2013-04-08
@@ -39,7 +39,7 @@
 					<td width="60px" align="right">계획일자 : </td>
 					<td width="60px">
 					<select name="cnfm_date" > 
-										#foreach( $tr in $op_02050_plan_date_mst )
+										#foreach( $tr in $op_02050_plan_date_mon )
 						<option value="$tr.get(0)" #if( "$!{cnfm_date}" == "${tr.get(0)}" ) selected #end)>${tr.get(0)}</option>
 										#end
 					</select>
@@ -52,6 +52,7 @@
 						<select name="com_code">
 							<option value="0001000050"   #if( "$!{com_code}" == "0001000050")  selected #end>태경농산</option>
 							<option value="0001000021"   #if( "$!{com_code}" == "0001000021")  selected #end>율촌화학</option>
+						##	<option value="0001000010"   #if( "$!{com_code}" == "0001000010")  selected #end>종이용기</option>
                 		</select>
                 	</td>
 					<td align="right" >

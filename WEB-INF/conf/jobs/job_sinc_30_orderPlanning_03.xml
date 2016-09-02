@@ -117,10 +117,23 @@
 		<description>계열사 재고정보 등록</description>
 		<request_type>list</request_type>
 		<queries>
-		<query idref="op_02050_plan_date_mst" datasource="t3sinc"/>
+		<query idref="op_02050_plan_date_mon" datasource="t3sinc"/>
 		</queries>		
 	</job>
-
+	
+	<!-- 계열사 재고정보 등록 업체 전용 -->
+	<job id="op_02040_Mfs_Stock_Info_new" job_type="single" check_permission="no">
+		<path>/sinc/30.OrderPlanning</path>
+		<navigation>자재계획 >>운영정보>>계열사 재고정보 등록(구매)</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>계열사 재고정보 등록(구매)</title>
+		<authority>1</authority>		
+		<description>계열사 재고정보 등록(구매)</description>
+		<request_type>list</request_type>
+		<queries>
+		<query idref="op_02050_plan_date_mon" datasource="t3sinc"/>
+		</queries>		
+	</job>
 
 
 
@@ -136,11 +149,11 @@
 	<!-- 중장기 상품발주 계획 -->
 	<job id="op_02010_Long_Term_Planning_list_Hawa" job_type="single" check_permission="no">
 		<path>/sinc/30.OrderPlanning</path>
-		<navigation>재고정책 >> 운영정보>>중장기 상품발주 계획</navigation>
+		<navigation> 상품정보시스템 >> 상품분석 >> 중장기 상품발주 계획(구)</navigation>
 		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>중장기 상품발주 계획</title>
+		<title> 중장기 상품발주 계획(구)</title>
 		<authority>1</authority>		
-		<description>중장기 상품발주 계획</description>
+		<description> 중장기 상품발주 계획(구)</description>
 		<request_type>list</request_type>
 		<queries>    
 			<query idref="Aps_Pr_version_list_hawa" datasource="t3sinc"/>
@@ -175,14 +188,69 @@
 			
 			<!-- <query idref="md_10010_DOMAIN_list" datasource="t3sinc"/>
 			<query idref="Aps_Pr_version_list" datasource="t3sinc"/> -->
-			<query idref="op_02050_plan_date_mst" datasource="t3sinc"/>
+			<query idref="op_02050_plan_date_mon" datasource="t3sinc"/>
 			<!-- <query idref="sel_dmd_list" datasource="t3sinc"/> -->
 			<query idref="sel_dmd_list_3" datasource="t3sinc"/>
 
 		</queries>		
 	</job>
+	
+	<job id="op_02050_roh_expt_master_yong" job_type="single" check_permission="no">
+		<path>/sinc/30.OrderPlanning</path>
+		<navigation>자재계획 >>운영정보>>발주예시 Main화면(용기)</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>발주예시 Main화면(용기)</title>
+		<authority>1</authority>		
+		<description>발주예시 Main화면(용기)</description>
+		<request_type>list</request_type>
+		<queries>
+			
+			<!-- <query idref="md_10010_DOMAIN_list" datasource="t3sinc"/>
+			<query idref="Aps_Pr_version_list" datasource="t3sinc"/> -->
+			<query idref="op_02050_plan_date_mon" datasource="t3sinc"/>
+			<!-- <query idref="sel_dmd_list" datasource="t3sinc"/> -->
+			<query idref="sel_dmd_list_3" datasource="t3sinc"/>
 
+		</queries>		
+	</job>
+	
+	<job id="op_02050_roh_expt_master_sw" job_type="single" check_permission="no">
+		<path>/sinc/30.OrderPlanning</path>
+		<navigation>자재계획 >>운영정보>>발주예시 Main화면(세우)</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>발주예시 Main화면(세우)</title>
+		<authority>1</authority>		
+		<description>발주예시 Main화면(세우)</description>
+		<request_type>list</request_type>
+		<queries>
+			
+			<!-- <query idref="md_10010_DOMAIN_list" datasource="t3sinc"/>
+			<query idref="Aps_Pr_version_list" datasource="t3sinc"/> -->
+			<query idref="op_02050_plan_date_mon" datasource="t3sinc"/>
+			<!-- <query idref="sel_dmd_list" datasource="t3sinc"/> -->
+			<query idref="sel_dmd_list_3" datasource="t3sinc"/>
 
+		</queries>		
+	</job>
+	
+	<job id="op_02050_roh_expt_master_new" job_type="single" check_permission="no">
+		<path>/sinc/30.OrderPlanning</path>
+		<navigation>자재계획 >>운영정보>>발주예시 Main화면(구매)</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>발주예시 Main화면(구매)</title>
+		<authority>1</authority>		
+		<description>발주예시 Main화면(구매)</description>
+		<request_type>list</request_type>
+		<queries>
+			
+			<!-- <query idref="md_10010_DOMAIN_list" datasource="t3sinc"/>
+			<query idref="Aps_Pr_version_list" datasource="t3sinc"/> -->
+			<query idref="op_02050_plan_date_mon" datasource="t3sinc"/>
+			<!-- <query idref="sel_dmd_list" datasource="t3sinc"/> -->
+			<query idref="sel_dmd_list_3" datasource="t3sinc"/>
+
+		</queries>		
+	</job>
 
 <!--
 	======================================================================
@@ -202,7 +270,7 @@
 		<request_type>list</request_type>
 		<queries>
 			
-			<query idref="op_02050_plan_date_mst" datasource="t3sinc"/>
+			<query idref="op_02050_plan_date_mon" datasource="t3sinc"/>
 			
 			<!-- <query idref="md_10010_DOMAIN_list" datasource="t3sinc"/>
 			<query idref="Aps_Pr_version_list" datasource="t3sinc"/> 
@@ -267,6 +335,18 @@
 		<request_type>list</request_type>
 		<queries>
 						
+		</queries>		
+	</job>
+	<!-- 웰치 자재수급계획 월간 실적 팝업-->
+	<job id="op_02090_Long_Term_Planning_list_mat_move_pop_up" job_type="single" check_permission="no">
+		<path>/sinc/30.OrderPlanning</path>
+		<navigation>웰치 자재수급계획 >> 월간 실적 팝업 </navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>월간 실적 팝업</title>
+		<authority>1</authority>		
+		<description>월간 실적 팝업</description>
+		<request_type>list</request_type>
+		<queries>
 		</queries>		
 	</job>
 	

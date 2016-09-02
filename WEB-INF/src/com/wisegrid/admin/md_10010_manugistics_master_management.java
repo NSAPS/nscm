@@ -277,6 +277,9 @@ public class md_10010_manugistics_master_management extends HttpServlet {
 				gdRes.getHeader("MIN_PICK_QTY"		).addValue(qResult.get(i).get(46),"");
 				
 				gdRes.getHeader("MFS_FLAG"	 		).addSelectedHiddenValue(qResult.get(i).get(47));
+				gdRes.getHeader("SW_FLAG" 			).addValue(qResult.get(i).get(54),"");	
+				gdRes.getHeader("MHDHB" 			).addValue(qResult.get(i).get(55),"");
+				gdRes.getHeader("SB_FLAG" 			).addValue(qResult.get(i).get(56),"");
 
 			}                                                                                                                  
                                                                                                                              
@@ -325,8 +328,8 @@ public class md_10010_manugistics_master_management extends HttpServlet {
 			sql += "	( 																												\n";
 			sql += "	SELECT																											\n";
 			sql += "			T1.USE_PR_PLAN, T1.RC_FLAG, T1.SEMI_FLAG, T1.PR_TO_PO, T1.PO_TO_LC, T1.LC_TO_PORT, T1.PORT_TO_CUST, 	\n";
-			sql += " 			T1.BS_FLAG,T1.PR_FLAG,T1.ST_FLAG,T1.STD_VAR_FR,T1.STD_VAR_TO, T1.PRE_MONTH_FR, T1.PRE_MONTH_TO, 					\n";
-			sql += "			T1.USE_DP_DATE, T1.USE_FF_DATE, T1.USE_TAGE_FLAG,                                                      	\n";
+			sql += " 			T1.BS_FLAG,T1.PR_FLAG,T1.ST_FLAG,T1.STD_VAR_FR,T1.STD_VAR_TO, T1.PRE_MONTH_FR, T1.PRE_MONTH_TO, 		\n";
+			sql += "			T1.USE_DP_DATE, T1.USE_FF_DATE, T1.USE_TAGE_FLAG, T1.SW_FLAG, T1.SB_FLAG,                               \n";
 			sql += "			T1.ORDER_FLAG, T1.CUSTORDERDUR, T1.DPCAL,                                                              	\n";
 			sql += "			T1.ALLOCCAL, T1.MPSRULE, T1.MPSCOVDUR,                                                                 	\n";
 			sql += "			T1.MAXOH, T1.PLANDUR, T1.TIMEFENSEDUR,                                                                 	\n";
@@ -340,7 +343,7 @@ public class md_10010_manugistics_master_management extends HttpServlet {
 			sql += "			T2.LC_TO_PORT	NEW_LC_TO_PORT, T2.PORT_TO_CUST	NEW_PORT_TO_CUST, T2.STD_VAR_FR	NEW_STD_VAR_FR,			\n";
 			sql += " 			T2.STD_VAR_TO	NEW_STD_VAR_TO, T2.PRE_MONTH_FR	NEW_PRE_MONTH_FR, T2.PRE_MONTH_TO	NEW_PRE_MONTH_TO,	\n";
 			sql += "			T2.USE_DP_DATE	NEW_USE_DP_DATE, T2.USE_FF_DATE	NEW_USE_FF_DATE, T2.USE_TAGE_FLAG	NEW_USE_TAGE_FLAG, 	\n";
-			sql += "			T2.ORDER_FLAG	NEW_ORDER_FLAG, T2.CUSTORDERDUR	NEW_CUSTORDERDUR, T2.DPCAL	NEW_DPCAL,                 	\n";
+			sql += "			T2.SW_FLAG NEW_SW_FLAG, T2.SB_FLAG NEW_SB_FLAG, T2.ORDER_FLAG	NEW_ORDER_FLAG, T2.CUSTORDERDUR	NEW_CUSTORDERDUR, T2.DPCAL	NEW_DPCAL,                 	\n";
 			sql += "			T2.ALLOCCAL	NEW_ALLOCCAL, T2.MPSRULE	NEW_MPSRULE, T2.MPSCOVDUR	NEW_MPSCOVDUR,                     	\n";
 			sql += "			T2.MAXOH	NEW_MAXOH, T2.PLANDUR	NEW_PLANDUR, T2.TIMEFENSEDUR	NEW_TIMEFENSEDUR,                  	\n";
 			sql += "			T2.CPPPRIORITY	NEW_CPPPRIORITY, T2.INCMPSQTY	NEW_INCMPSQTY, T2.MINMPSQTY	NEW_MINMPSQTY,             	\n";
@@ -399,6 +402,8 @@ public class md_10010_manugistics_master_management extends HttpServlet {
 					inner_sql += "			DECODE(		 " + gdReq.getHeader("ST_FLAG"			).getValue(i)		+ ",1,'Y','N')	 	AS ST_FLAG,             		\n";
 					inner_sql += "			DECODE(		 " + gdReq.getHeader("RC_FLAG"			).getValue(i)		+ ",1,'Y','N')	 	AS RC_FLAG,             		\n";
 					inner_sql += "			DECODE(		 " + gdReq.getHeader("SEMI_FLAG"		).getValue(i)		+ ",1,'Y','N')	 	AS SEMI_FLAG,             		\n";
+					inner_sql += "			DECODE(		 " + gdReq.getHeader("SW_FLAG"			).getValue(i)		+ ",1,'Y','N')	 	AS SW_FLAG,             		\n";
+					inner_sql += "			DECODE(		 " + gdReq.getHeader("SB_FLAG"			).getValue(i)		+ ",1,'Y','N')	 	AS SB_FLAG,             		\n";
 					inner_sql += "			DECODE(		 " + gdReq.getHeader("BS_FLAG1"			).getValue(i)		+ ",1,'1', 							\n";
 					inner_sql += "			DECODE(		 " + gdReq.getHeader("BS_FLAG2"			).getValue(i)		+ ",1,'2', 							\n";
 					inner_sql += "			DECODE(		 " + gdReq.getHeader("BS_FLAG3"			).getValue(i)		+ ",1,'3', 							\n";
@@ -462,8 +467,8 @@ public class md_10010_manugistics_master_management extends HttpServlet {
 			sql += "			BS_FLAG	= NEW_BS_FLAG, PR_FLAG = NEW_PR_FLAG, ST_FLAG = NEW_ST_FLAG, PR_TO_PO = NEW_PR_TO_PO, PO_TO_LC = NEW_PO_TO_LC,		\n";	
 			sql += "			LC_TO_PORT = NEW_LC_TO_PORT, PORT_TO_CUST = NEW_PORT_TO_CUST, STD_VAR_FR = NEW_STD_VAR_FR,			\n";
 			sql += "			STD_VAR_TO = NEW_STD_VAR_TO, PRE_MONTH_FR = NEW_PRE_MONTH_FR, PRE_MONTH_TO = NEW_PRE_MONTH_TO,		\n";
-			sql += "			USE_DP_DATE	= NEW_USE_DP_DATE, USE_FF_DATE = NEW_USE_FF_DATE, USE_TAGE_FLAG = NEW_USE_TAGE_FLAG, 	\n";
-			sql += "			ORDER_FLAG = NEW_ORDER_FLAG, CUSTORDERDUR = NEW_CUSTORDERDUR, DPCAL = NEW_DPCAL,                 	\n";
+			sql += "			USE_DP_DATE	= NEW_USE_DP_DATE, USE_FF_DATE = NEW_USE_FF_DATE, USE_TAGE_FLAG = NEW_USE_TAGE_FLAG, SW_FLAG = NEW_SW_FLAG,	\n";
+			sql += "			SB_FLAG = NEW_SB_FLAG, ORDER_FLAG = NEW_ORDER_FLAG, CUSTORDERDUR = NEW_CUSTORDERDUR, DPCAL = NEW_DPCAL,                 	\n";
 			sql += "			ALLOCCAL = NEW_ALLOCCAL, MPSRULE = NEW_MPSRULE, MPSCOVDUR = NEW_MPSCOVDUR,                       	\n";
 			sql += "			MAXOH = NEW_MAXOH, PLANDUR = NEW_PLANDUR, TIMEFENSEDUR = NEW_TIMEFENSEDUR,                       	\n";
 			sql += "			CPPPRIORITY = NEW_CPPPRIORITY, INCMPSQTY = NEW_INCMPSQTY, MINMPSQTY = NEW_MINMPSQTY,             	\n";

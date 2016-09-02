@@ -302,6 +302,7 @@ function setHeader(GridObj) {
        var cnfm_date	= document.frm.cnfm_date.value;
        var item_id		= document.frm.item_id.value;
        cnfm_date 		= cnfm_date.replace(/-/g,"");
+       var gubn			= document.frm.gubn.value;
          	
        var servlet_url      = Project_name+"/servlet/com.wisegrid.admin."+job_id;
        
@@ -309,7 +310,7 @@ function setHeader(GridObj) {
        GridObj.SetParam("mode",           "search");
        GridObj.SetParam("cnfm_date",   cnfm_date);
        GridObj.SetParam("item_id",       item_id);	   
-	  
+	   GridObj.SetParam("gubn",       		gubn);
 	   GridObj.DoQuery(servlet_url);       
    }
 

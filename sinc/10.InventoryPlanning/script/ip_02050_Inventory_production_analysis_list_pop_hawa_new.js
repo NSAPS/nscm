@@ -1286,7 +1286,7 @@ function paintLineGraph2() {
 			header_day = header_day.replace(/\)/g,"");
 			
 			// 老夸老, 0 老磊 力芭
-			if(colValue <= 0 || header_day == '老') continue;			
+			//if(colValue <= 0 || header_day == '老') continue;			
 			if (maxValue < colValue) {
 				maxValue = colValue;
 			}
@@ -1336,7 +1336,7 @@ function paintLineGraph2() {
 			header_day = header_day.replace(/\)/g,"");
 			
 			// 老夸老, 0 老磊 力芭
-			if(colValue <= 0 || header_day == '老') continue;			
+			//if(colValue <= 0 || header_day == '老') continue;			
 			if (maxValue < colValue) {
 				maxValue = colValue;
 			}	

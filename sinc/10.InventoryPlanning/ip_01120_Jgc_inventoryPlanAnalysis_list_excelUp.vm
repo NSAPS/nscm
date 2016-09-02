@@ -230,22 +230,22 @@ function GoSave(service) {
 
 						#set( $data = "" )
 						
-						#set( $headertype 	= "TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!TEXT!%!NUMBER!%!TEXT!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!TEXT!%!TEXT!%!NUMBER!%!TEXT!%!TEXT!%!NUMBER!%!TEXT!%!TEXT!%!TEXT" )
-						#set( $header 		= "구분!%!자재그룹!%!품목코드!%!품목명!%!규격!%!장기체화\n발생재고!%!전일계!%!일계!%!누계!%!장기체화\n잔여재고!%!재고\n소진율!%!잔여\n일수!%!등록\n경과일!%!30%\n경과예상수량!%!50%\n경과예상수량!%!80%\n경과예상수량!%!100%\n경과예상수량!%!유통기한\n만기일!%!유통\n기한!%!유통기한\n경과일수!%!유통기한\n경과율!%!재고\n일수!%!3주\n평균!%!처리기한!%!일자!%!품목등록일" )
-						#set( $colwidth 	= "0!%!80!%!70!%!140!%!60!%!70!%!60!%!60!%!60!%!70!%!60!%!60!%!60!%!90!%!90!%!90!%!90!%!80!%!60!%!70!%!70!%!60!%!60!%!70!%!0!%!80" ) 
+						#set( $headertype 	= "TEXT!%!TEXT!%!TEXT!%!TEXT!%!TEXT!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!TEXT!%!NUMBER!%!TEXT!%!NUMBER!%!NUMBER!%!NUMBER!%!NUMBER!%!TEXT!%!TEXT!%!NUMBER!%!TEXT!%!TEXT!%!NUMBER!%!TEXT!%!TEXT!%!TEXT" )
+						#set( $header 		= "구분!%!자재그룹!%!품목코드!%!품목명!%!규격!%!장기체화\n발생재고!%!전일계!%!일계!%!누계!%!총누계!%!장기체화\n잔여재고!%!재고\n소진율!%!잔여\n일수!%!등록\n경과일!%!30%\n경과예상수량!%!50%\n경과예상수량!%!80%\n경과예상수량!%!100%\n경과예상수량!%!유통기한\n만기일!%!유통\n기한!%!유통기한\n경과일수!%!유통기한\n경과율!%!재고\n일수!%!3주\n평균!%!처리기한!%!일자!%!품목등록일" )
+						#set( $colwidth 	= "0!%!80!%!70!%!140!%!60!%!70!%!60!%!60!%!60!%!70!%!60!%!60!%!60!%!60!%!90!%!90!%!90!%!90!%!80!%!60!%!70!%!70!%!60!%!60!%!70!%!0!%!80" ) 
 						###set( $colwidth 	= "$colwidth!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50!%!50" ) 기존 colwidth 뒤에 붙일떄
-						#set( $colalign 	= "CENTER!%!CENTER!%!CENTER!%!LEFT!%!LEFT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!CENTER!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!CENTER!%!CENTER!%!TEXT" ) 
-						#set( $name 		= "division!%!sales_cat03!%!item_id!%!item_name!%!spec!%!stock!%!sales_pre!%!issue!%!sell_box_cum!%!stock_remain" ) 
+						#set( $colalign 	= "CENTER!%!CENTER!%!CENTER!%!LEFT!%!LEFT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!CENTER!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!RIGHT!%!CENTER!%!CENTER!%!TEXT" ) 
+						#set( $name 		= "division!%!sales_cat03!%!item_id!%!item_name!%!spec!%!stock!%!sales_pre!%!issue!%!sales_cum!%!sell_box_cum!%!stock_remain" ) 
 						#set( $name			= "$name!%!stock_sell_rate!%!remain_day!%!register_day_cum!%!expect_stock_30!%!expect_stock_50!%!expect_stock_80!%!expect_stock!%!expiry_version!%!term_val!%!prod_term!%!prod_rate!%!stock_day!%!sales_3week!%!due_date!%!cnfm_date!%!register_day" )
 						###set( $name = "$name!%!tot!%!plant_id!%!version!%!seq!%!team_id!%!line_id!%!proc_id!%!start_date!%!cat_id" )
 						#foreach($tr in $body)
 							
 							#if( $velocityCount == 1 ) 
 								#set( $data = "${tr.get(0)}!%!${tr.get(1)}!%!${tr.get(2)}!%!${tr.get(3)}!%!${tr.get(4)}!%!${tr.get(5)}!%!${tr.get(6)}!%!${tr.get(7)}!%!${tr.get(8)}!%!${tr.get(9)}" )
-								#set( $data = "$data!%!${tr.get(10)}!%!${tr.get(11)}!%!${tr.get(12)}!%!${tr.get(13)}!%!${tr.get(14)}!%!${tr.get(15)}!%!${tr.get(16)}!%!${tr.get(17)}!%!${tr.get(18)}!%!${tr.get(19)}!%!${tr.get(20)}!%!${tr.get(21)}!%!${tr.get(22)}!%!${tr.get(23)}!%!${tr.get(24)}!%!${tr.get(25)}" )
+								#set( $data = "$data!%!${tr.get(10)}!%!${tr.get(11)}!%!${tr.get(12)}!%!${tr.get(13)}!%!${tr.get(14)}!%!${tr.get(15)}!%!${tr.get(16)}!%!${tr.get(17)}!%!${tr.get(18)}!%!${tr.get(19)}!%!${tr.get(20)}!%!${tr.get(21)}!%!${tr.get(22)}!%!${tr.get(23)}!%!${tr.get(24)}!%!${tr.get(25)}!%!${tr.get(26)}" )
 							#else
 								#set( $data  = "$data/%/${tr.get(0)}!%!${tr.get(1)}!%!${tr.get(2)}!%!${tr.get(3)}!%!${tr.get(4)}!%!${tr.get(5)}!%!${tr.get(6)}!%!${tr.get(7)}!%!${tr.get(8)}!%!${tr.get(9)}" ) 
-								#set( $data = "$data!%!${tr.get(10)}!%!${tr.get(11)}!%!${tr.get(12)}!%!${tr.get(13)}!%!${tr.get(14)}!%!${tr.get(15)}!%!${tr.get(16)}!%!${tr.get(17)}!%!${tr.get(18)}!%!${tr.get(19)}!%!${tr.get(20)}!%!${tr.get(21)}!%!${tr.get(22)}!%!${tr.get(23)}!%!${tr.get(24)}!%!${tr.get(25)}" )
+								#set( $data = "$data!%!${tr.get(10)}!%!${tr.get(11)}!%!${tr.get(12)}!%!${tr.get(13)}!%!${tr.get(14)}!%!${tr.get(15)}!%!${tr.get(16)}!%!${tr.get(17)}!%!${tr.get(18)}!%!${tr.get(19)}!%!${tr.get(20)}!%!${tr.get(21)}!%!${tr.get(22)}!%!${tr.get(23)}!%!${tr.get(24)}!%!${tr.get(25)}!%!${tr.get(26)}" )
 							#end 
 							<input name="division" 			type="hidden" value="${tr.get(0)}"> 
 							<input name="sales_cat03" 		type="hidden" value="${tr.get(1)}"> 
@@ -255,24 +255,25 @@ function GoSave(service) {
 							<input name="stock" 			type="hidden" value="${tr.get(5)}">  ##발생재고
 							<input name="sales_pre" 		type="hidden" value="${tr.get(6)}"> ##전일계
 							<input name="issue" 			type="hidden" value="${tr.get(7)}">	##일계
-							<input name="sell_box_cum" 		type="hidden" value="${tr.get(8)}"> ##누계
-							<input name="stock_remain" 		type="hidden" value="${tr.get(9)}"> ##장기체화잔여재고
-							<input name="stock_sell_rate" 	type="hidden" value="${tr.get(10)}"> ##재고소진율
-							<input name="remain_day" 		type="hidden" value="${tr.get(11)}"> ##잔여일수
-							<input name="register_day_cum"	type="hidden" value="${tr.get(12)}"> ##등록경과일
-							<input name="expect_stock_30" 	type="hidden" value="${tr.get(13)}"> ##유통기한경과예상수량
-							<input name="expect_stock_50" 	type="hidden" value="${tr.get(14)}"> ##유통기한경과예상수량
-							<input name="expect_stock_80" 	type="hidden" value="${tr.get(15)}"> ##유통기한경과예상수량
-							<input name="expect_stock" 		type="hidden" value="${tr.get(16)}"> ##유통기한경과예상수량
-							<input name="expiry_version" 	type="hidden" value="${tr.get(17)}"> ##유통기한만기일
-							<input name="term_val" 			type="hidden" value="${tr.get(18)}"> ##유통기한
-							<input name="prod_term" 		type="hidden" value="${tr.get(19)}"> ##유통기한경과일
-							<input name="prod_rate" 		type="hidden" value="${tr.get(20)}"> ##유통기한경과율
-							<input name="stock_day" 		type="hidden" value="${tr.get(21)}"> ##재고일수
-							<input name="sales_3week" 		type="hidden" value="${tr.get(22)}"> ##3주평균판매
-							<input name="due_date" 			type="hidden" value="${tr.get(23)}"> ##처리기한
-							<input name="cnfm_date" 		type="hidden" value="${tr.get(24)}"> ##일자
-							<input name="register_day" 		type="hidden" value="${tr.get(25)}"> ##등록일
+							<input name="sales_cum" 		type="hidden" value="${tr.get(8)}"> ##누계
+							<input name="sell_box_cum" 		type="hidden" value="${tr.get(9)}"> ##총누계
+							<input name="stock_remain" 		type="hidden" value="${tr.get(10)}"> ##장기체화잔여재고
+							<input name="stock_sell_rate" 	type="hidden" value="${tr.get(11)}"> ##재고소진율
+							<input name="remain_day" 		type="hidden" value="${tr.get(12)}"> ##잔여일수
+							<input name="register_day_cum"	type="hidden" value="${tr.get(13)}"> ##등록경과일
+							<input name="expect_stock_30" 	type="hidden" value="${tr.get(14)}"> ##유통기한경과예상수량
+							<input name="expect_stock_50" 	type="hidden" value="${tr.get(15)}"> ##유통기한경과예상수량
+							<input name="expect_stock_80" 	type="hidden" value="${tr.get(16)}"> ##유통기한경과예상수량
+							<input name="expect_stock" 		type="hidden" value="${tr.get(17)}"> ##유통기한경과예상수량
+							<input name="expiry_version" 	type="hidden" value="${tr.get(18)}"> ##유통기한만기일
+							<input name="term_val" 			type="hidden" value="${tr.get(19)}"> ##유통기한
+							<input name="prod_term" 		type="hidden" value="${tr.get(20)}"> ##유통기한경과일
+							<input name="prod_rate" 		type="hidden" value="${tr.get(21)}"> ##유통기한경과율
+							<input name="stock_day" 		type="hidden" value="${tr.get(22)}"> ##재고일수
+							<input name="sales_3week" 		type="hidden" value="${tr.get(23)}"> ##3주평균판매
+							<input name="due_date" 			type="hidden" value="${tr.get(24)}"> ##처리기한
+							<input name="cnfm_date" 		type="hidden" value="${tr.get(25)}"> ##일자
+							<input name="register_day" 		type="hidden" value="${tr.get(26)}"> ##등록일
 							<input name="row_count"	 		type="hidden" value="$velocityCount">
 						#end 
 						 

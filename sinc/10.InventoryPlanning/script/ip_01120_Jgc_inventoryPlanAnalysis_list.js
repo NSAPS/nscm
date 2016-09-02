@@ -124,17 +124,21 @@ function setHeader(GridObj) {
  	GridObj.AddHeader("SPEC"	    	   ,"규격"	    	,"t_text"  	   ,100		,90     ,false); //0
  	
  	GridObj.AddHeader("JGC_STOCK"	       ,"장기체화\n발생재고"	,"t_number"    ,100.3	,70     ,false); //0
+ 	GridObj.AddHeader("USE_PLAN"	       ,"당월\n처리계획"		,"t_number"    ,100.3	,70     ,false); //0
  	GridObj.AddHeader("SALES_PRE"	       ,"전일계"	    		,"t_number"    ,100.3	,60     ,false); //0
  	GridObj.AddHeader("SALES_CUR"	       ,"일계"       		,"t_number"    ,100.3	,60     ,false); //0
-    GridObj.AddHeader("SALES_SUM"	       ,"누계"	    		,"t_number"    ,100.3	,60     ,false); //0
+ 	GridObj.AddHeader("SALES_CUM"	       ,"누계"       		,"t_number"    ,100.3	,60     ,false); //0
+ 	GridObj.AddHeader("MONTH_RATE"	       ,"당월소진율"       	,"t_text"      ,100		,70     ,false); //0
+    GridObj.AddHeader("SALES_SUM"	       ,"총누계"	    		,"t_number"    ,100.3	,60     ,false); //0
     GridObj.AddHeader("REMAIN_STOCK"	   ,"장기체화\n잔여재고"	,"t_number"    ,100.3	,60     ,false); //0
+    GridObj.AddHeader("REMAIN_PRICE"	   ,"장기체화\n잔여금액"	,"t_number"    ,100.3	,100     ,false); //0
     GridObj.AddHeader("REMAIN_DAY"	   	   ,"잔여일수"			,"t_number"    ,100.3	,60     ,false); //0
-    GridObj.AddHeader("EXPIRY_VERSION"     ,"유통기한\n만기일"	,"t_text"      ,100		,80     ,false); //0
+    GridObj.AddHeader("EXPIRY_VERSION"     ,"유통기한\n만기일"		,"t_text"      ,100		,80     ,false); //0
     GridObj.AddHeader("PROD_TERM"     	   ,"유통기한\n경과일수"	,"t_number"    ,100.3	,70     ,false); //0
-    GridObj.AddHeader("TERM_PER"  		   ,"유통기한\n경과율"	,"t_number"      ,100.3		,70     ,false); //0
+    GridObj.AddHeader("TERM_PER"  		   ,"유통기한\n경과율"		,"t_number"    ,100.3	,70     ,false); //0
     GridObj.AddHeader("DUE_DATE"  		   ,"처리기한"			,"t_text"      ,100		,150     ,false); //0
-    GridObj.AddHeader("STOCK_USE_PER"	   ,"재고\n소진율"       ,"t_text"      ,100		,60     ,false); //0
- 	GridObj.AddHeader("REGISTER_AGO"	   ,"등록\n경과일"       ,"t_number"    ,100.3	,60     ,false); //0
+    GridObj.AddHeader("STOCK_USE_PER"	   ,"재고\n소진율"        ,"t_text"      ,100		,60     ,false); //0
+ 	GridObj.AddHeader("REGISTER_AGO"	   ,"등록\n경과일"        ,"t_number"    ,100.3	,60     ,false); //0
  	
  	GridObj.AddHeader("EXPECT_QTY"	       ,"30%\n경과예상수량"  ,"t_number"    ,100.3	,90     ,false); //0
  	GridObj.AddHeader("EXPECT_QTY2"	       ,"50%\n경과예상수량"  ,"t_number"    ,100.3	,90     ,false); //0
@@ -158,6 +162,7 @@ function setHeader(GridObj) {
     GridObj.SetColCellAlign('EXPIRY_VERSION',     	'center'); 	
     GridObj.SetColCellAlign('TERM_PER',     		'right'); 
     GridObj.SetColCellAlign('STOCK_USE_PER',     	'right'); 
+    GridObj.SetColCellAlign('MONTH_RATE',     		'right'); 
     GridObj.SetColCellAlign('REGISTER_DAY',     	'center'); 
     GridObj.SetNumberFormat("JGC_STOCK",       "###,###.#");
     GridObj.SetNumberFormat("SALES_PRE",       "###,###.#");
@@ -170,7 +175,8 @@ function setHeader(GridObj) {
     GridObj.SetNumberFormat("EXPECT_QTY2",     "###,###.#");
     GridObj.SetNumberFormat("EXPECT_QTY3",     "###,###.#");
     GridObj.SetNumberFormat("EXPECT_QTY4",     "###,###.#");
-
+	GridObj.SetNumberFormat("USE_PLAN",        "###,###.#");
+	GridObj.SetNumberFormat("REMAIN_PRICE",     "###,###.#");
 }
 	
 
@@ -190,6 +196,7 @@ function setHeader(GridObj) {
             	
             	var row = GridObj.GetRowCount();            	
             	if (row == 0) return;
+            	
             	
             	GridSetMerge();
             	GridModify();
@@ -709,16 +716,38 @@ function GridSetMerge(){
 	
 				
 		GridObj.SetGroupMerge('SALES_CAT03,ITEM_ID,ITEM_NAME,SPEC');
-      	GridObj.AddSummaryBar('SUMMARY1', '소계', 'SALES_CAT03', 'sum', 'JGC_STOCK,STOCK_DAY,PROD_TERM,TERM_VAL,SALES_PRE,SALES_CUR,SALES_SUM,REMAIN_STOCK,' +
+      	GridObj.AddSummaryBar('SUMMARY1', '소계', 'SALES_CAT03', 'sum', 'JGC_STOCK,USE_PLAN,STOCK_DAY,PROD_TERM,TERM_VAL,SALES_PRE,SALES_CUR,SALES_CUM,MONTH_RATE,SALES_SUM,REMAIN_STOCK,REMAIN_PRICE,' +
       			'REMAIN_DAY,EXPIRY_VERSION,DUE_DATE,STOCK_USE_PER,REGISTER_AGO,EXPECT_QTY,EXPECT_QTY2,EXPECT_QTY3,EXPECT_QTY4,SALES_MEAN_3WEEK,REGISTER_DAY'); 
    
 
 	      	 	
-	      	 	GridObj.AddSummaryBar('SUMMARY2', '합계', 'summaryall', 'sum', 'JGC_STOCK,STOCK_DAY,PROD_TERM,TERM_VAL,SALES_PRE,SALES_CUR,SALES_SUM,REMAIN_STOCK,' +
-      			'REMAIN_DAY,EXPIRY_VERSION,DUE_DATE,STOCK_USE_PER,REGISTER_AGO,EXPECT_QTY,EXPECT_QTY2,EXPECT_QTY3,EXPECT_QTY4,SALES_MEAN_3WEEK,REGISTER_DAY'); 
-  
+  	 	GridObj.AddSummaryBar('SUMMARY2', '합계', 'summaryall', 'sum', 'JGC_STOCK,USE_PLAN,STOCK_DAY,PROD_TERM,TERM_VAL,SALES_PRE,SALES_CUR,SALES_CUM,MONTH_RATE,SALES_SUM,REMAIN_STOCK,REMAIN_PRICE,' +
+		'REMAIN_DAY,EXPIRY_VERSION,DUE_DATE,STOCK_USE_PER,REGISTER_AGO,EXPECT_QTY,EXPECT_QTY2,EXPECT_QTY3,EXPECT_QTY4,SALES_MEAN_3WEEK,REGISTER_DAY'); 
+		
+		var rowcount = GridObj.GetMergeCount('SALES_CAT03');   //소계 인덱스 구하기
+         	    for (var i=0; i<rowcount; i++){
+         	    	
+         	   	 	var use_plan 		 = GridObj.GetSummaryBarValue('SUMMARY1','USE_PLAN',i,true).replace(/,/g,"");         	   	 	
+         	    	var sales_cum 		 = GridObj.GetSummaryBarValue('SUMMARY1','SALES_CUM',i,true).replace(/,/g,"");
+         	    	var stock 		 	 = GridObj.GetSummaryBarValue('SUMMARY1','JGC_STOCK',i,true).replace(/,/g,"");         	   	 	
+         	    	var sales_sum 		 = GridObj.GetSummaryBarValue('SUMMARY1','SALES_SUM',i,true).replace(/,/g,"");		
+         	    	
+         	    	
+         	    	/* 사용자 지정 계산식 추가 - 재고소진율,당월소진율 */
+         	    	GridObj.SetSummaryBarValue('SUMMARY1','STOCK_USE_PER',i, Math.round((sales_sum/stock)*1000)/10 + '%' );
+        			GridObj.SetSummaryBarValue('SUMMARY1','MONTH_RATE',i, 	 Math.round((sales_cum/use_plan)*1000)/10 + '%' );
+         	    	
+          	    }
+  		
+  		var use_plan_2 		 	 = GridObj.GetSummaryBarValue('SUMMARY2','USE_PLAN',i,true).replace(/,/g,"");
+  		var sales_cum_2 		 = GridObj.GetSummaryBarValue('SUMMARY2','SALES_CUM',i,true).replace(/,/g,"");
+    	var stock_2 		 	 = GridObj.GetSummaryBarValue('SUMMARY2','JGC_STOCK',i,true).replace(/,/g,"");         	   	 	
+    	var sales_sum_2 		 = GridObj.GetSummaryBarValue('SUMMARY2','SALES_SUM',i,true).replace(/,/g,""); 
+    	
+    	GridObj.SetSummaryBarValue('SUMMARY2','STOCK_USE_PER',i, Math.round((sales_sum_2/stock_2)*1000)/10 + '%' );
+        GridObj.SetSummaryBarValue('SUMMARY2','MONTH_RATE',i, 	 Math.round((sales_cum_2/use_plan_2)*1000)/10 + '%' );
    	        
-    	        GridObj.SetSummaryBarColor('SUMMARY1', '0|153|0', '230|230|250');
+    	GridObj.SetSummaryBarColor('SUMMARY1', '0|153|0', '230|230|250');
  		GridObj.SetSummaryBarColor('SUMMARY2', '0|153|0', '152|251|152');		//녹색
 
 }
@@ -741,7 +770,9 @@ function GridModify(){
 	 			
 	 			GridObj.SetCellValue('SALES_PRE',j+1,0);
 	 			GridObj.SetCellValue('SALES_CUR',j+1,0);
+	 			GridObj.SetCellValue('SALES_CUM',j+1,0);
 	 			GridObj.SetCellValue('SALES_SUM',j+1,0);
+	 			GridObj.SetCellValue('MONTH_RATE',j+1,0+'%');
 	 			GridObj.SetCellValue('REMAIN_STOCK',j+1,GridObj.GetCellValue('JGC_STOCK',j+1));
 	 		}
 	 		
@@ -752,7 +783,9 @@ function GridModify(){
 	 			
 	 			GridObj.SetCellValue('SALES_PRE',j+1,0);
 	 			GridObj.SetCellValue('SALES_CUR',j+1,0);
+	 			GridObj.SetCellValue('SALES_CUM',j+1,0);
 	 			GridObj.SetCellValue('SALES_SUM',j+1,0);
+	 			GridObj.SetCellValue('MONTH_RATE',j+1,0+'%');
 	 			GridObj.SetCellValue('REMAIN_STOCK',j+1,GridObj.GetCellValue('JGC_STOCK',j+1));
 	 			}
 	 		

@@ -595,14 +595,28 @@
 		<request_type>list</request_type>		
 	</job> 
 	
-		<job id="ip_07090_EDI_eCvan_Analysis_pop_all" job_type="single" check_permission="no">
+		<job id="ip_07090_EDI_eCvan_Analysis_pop_ecv" job_type="single" check_permission="no">
 		<path>/sinc/10.InventoryPlanning</path>
 		<navigation>재고정책 >> 분석정보 >> EDI eCvan 분석 조회 </navigation>
 		<toolbars>1000</toolbars>
 		<title>EDI eCvan 분석 조회</title>
 		<authority>1</authority>		
 		<description>EDI eCvan 분석 조회</description>
-		<request_type>list</request_type>		
+		<request_type>list</request_type>	
+		
+	</job> 
+	
+	<job id="ip_07090_EDI_eCvan_Analysis_pop_all" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고정책 >> 분석정보 >> EDI eCvan 분석 조회 </navigation>
+		<toolbars>1000</toolbars>
+		<title>EDI eCvan 분석 조회</title>
+		<authority>1</authority>		
+		<description>EDI eCvan 분석 조회</description>
+		<request_type>list</request_type>	
+		<queries> 
+			<query idref="ip_02120_Edi_Default_NS_combo" datasource="t3sinc"/>		
+		</queries>	
 	</job> 
 	
 

@@ -1,0 +1,579 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>	
+	
+<!-- 공장별 생산계획 대비 실적조회 신규 -->
+<query id = "sc_02190_planVsActualResultByPlant_list_new">	
+	-- 1: 제품별 2: 중분류별 3: 대분류별
+	#if("$!{selected_type}" == "1")
+	SELECT  ITEM_ID,
+	        ITEM_NAME,
+	        SPEC,
+	        '계획' GUBN,
+	        NVL(MAX(DECODE(PLANT_ID,'1110',PLAN_QTY,0)),0)  ANYANG_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1120',PLAN_QTY,0)),0)  ANSUNG_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1130',PLAN_QTY,0)),0)  ANSUNG_BE_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1140',PLAN_QTY,0)),0)  ASAN_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1160',PLAN_QTY,0)),0)  KUMI_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1170',PLAN_QTY,0)),0)  PUSAN_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1180',PLAN_QTY,0)),0)  NOKSAN_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1110',PLAN_QTY,0)) + MAX(DECODE(PLANT_ID,'1120',PLAN_QTY,0)) + 
+	        MAX(DECODE(PLANT_ID,'1130',PLAN_QTY,0)) + MAX(DECODE(PLANT_ID,'1140',PLAN_QTY,0)) + 
+	        MAX(DECODE(PLANT_ID,'1160',PLAN_QTY,0)) + MAX(DECODE(PLANT_ID,'1170',PLAN_QTY,0)) + 
+	        MAX(DECODE(PLANT_ID,'1180',PLAN_QTY,0)),0)  TOTAL
+	FROM	(
+			SELECT	S1.ITEM_ID,
+					S4.ITEM_NAME,
+					S4.SPEC,
+					S1.PLANT_ID,
+					SUM(DECODE('$!{checked_uom}','BOX',S1.SHIFT_QTY,S1.SHIFT_QTY * DECODE(S4.QTY,0,1,S4.QTY)))   PLAN_QTY,
+		            SUM(DECODE('$!{checked_uom}','BOX',(
+									                    SELECT  SUM(COMPL_QTY) COMPL_QTY
+									                    FROM    V_ERP_PO_MES
+									                    WHERE   PO_ID       = S2.AUFNR
+									                    AND     PLANT_ID    = S1.PLANT_ID
+									                    AND     ITEM_ID     = S1.ITEM_ID
+									                    ),(
+										                    SELECT  SUM(COMPL_QTY) COMPL_QTY
+										                    FROM    V_ERP_PO_MES
+										                    WHERE   PO_ID       = S2.AUFNR
+										                    AND     PLANT_ID    = S1.PLANT_ID
+										                    AND     ITEM_ID     = S1.ITEM_ID
+                    										) * DECODE(S4.QTY,0,1,S4.QTY)))   					PROD_QTY
+			FROM	(
+					SELECT  DISTINCT SUBSTR(WO_ID,12,8) START_DATE, 
+		                    WO_ID,
+		                    ITEM_ID, 
+		                    PLANT_ID, 
+		                    SHIFT_QTY
+					FROM 	DAILY_SCH_PLAN_SHIFT S1
+					WHERE	S1.VERSION LIKE TO_CHAR(TRUNC(TO_DATE('$!{start_date}')-7,'D')+2,'YYYYMMDD')||'%'
+					)S1, SAPAUFK S2, ITEM_MST S4
+			WHERE	S1.WO_ID 	= S2.SCMWO			
+			AND  	S1.ITEM_ID 	= S4.ITEM_ID
+			AND		S4.ITYPE	= 'FERT'
+			AND		S1.START_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+			AND		S4.MTO_MTS_TYPE LIKE '%'||'$!{mto_gubn}'||'%'
+			#if("$!{ex_gubn}" == "DO")
+		    AND     (S4.MATERIAL_GROUP &lt; '5K000' OR S4.MATERIAL_GROUP &gt; '5S999')   
+            #elseif("$!{ex_gubn}" == "EX")
+            AND     S4.MATERIAL_GROUP BETWEEN '5K000' AND '5S999'  
+            #end
+			GROUP 
+			BY 		S1.ITEM_ID,
+					S4.ITEM_NAME,
+					S4.SPEC,
+					S1.PLANT_ID
+	        )
+	GROUP
+	BY		ITEM_ID,
+	        ITEM_NAME,
+	        SPEC
+	UNION ALL
+	SELECT  ITEM_ID,
+	        ITEM_NAME,
+	        SPEC,
+	        '실적' GUBN,
+	        NVL(MAX(DECODE(PLANT_ID,'1110',PROD_QTY,0)),0)  ANYANG_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1120',PROD_QTY,0)),0)  ANSUNG_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1130',PROD_QTY,0)),0)  ANSUNG_BE_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1140',PROD_QTY,0)),0)  ASAN_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1160',PROD_QTY,0)),0)  KUMI_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1170',PROD_QTY,0)),0)  PUSAN_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1180',PROD_QTY,0)),0)  NOKSAN_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1110',PROD_QTY,0)) + MAX(DECODE(PLANT_ID,'1120',PROD_QTY,0)) + 
+	        MAX(DECODE(PLANT_ID,'1130',PROD_QTY,0)) + MAX(DECODE(PLANT_ID,'1140',PROD_QTY,0)) + 
+	        MAX(DECODE(PLANT_ID,'1160',PROD_QTY,0)) + MAX(DECODE(PLANT_ID,'1170',PROD_QTY,0)) + 
+	        MAX(DECODE(PLANT_ID,'1180',PROD_QTY,0)),0)  TOTAL
+	FROM	(
+			SELECT	S1.ITEM_ID,
+					S4.ITEM_NAME,
+					S4.SPEC,
+					S1.PLANT_ID,
+					SUM(DECODE('$!{checked_uom}','BOX',S1.SHIFT_QTY,S1.SHIFT_QTY * DECODE(S4.QTY,0,1,S4.QTY)))   PLAN_QTY,
+		            SUM(DECODE('$!{checked_uom}','BOX',(
+									                    SELECT  SUM(COMPL_QTY) COMPL_QTY
+									                    FROM    V_ERP_PO_MES
+									                    WHERE   PO_ID       = S2.AUFNR
+									                    AND     PLANT_ID    = S1.PLANT_ID
+									                    AND     ITEM_ID     = S1.ITEM_ID
+									                    ),(
+										                    SELECT  SUM(COMPL_QTY) COMPL_QTY
+										                    FROM    V_ERP_PO_MES
+										                    WHERE   PO_ID       = S2.AUFNR
+										                    AND     PLANT_ID    = S1.PLANT_ID
+										                    AND     ITEM_ID     = S1.ITEM_ID
+                    										) * DECODE(S4.QTY,0,1,S4.QTY)))   					PROD_QTY
+			FROM	(
+					SELECT  DISTINCT SUBSTR(WO_ID,12,8) START_DATE, 
+		                    WO_ID,
+		                    ITEM_ID, 
+		                    PLANT_ID, 
+		                    SHIFT_QTY
+					FROM 	DAILY_SCH_PLAN_SHIFT S1
+					WHERE	S1.VERSION LIKE TO_CHAR(TRUNC(TO_DATE('$!{start_date}')-7,'D')+2,'YYYYMMDD')||'%'
+					)S1, SAPAUFK S2, ITEM_MST S4
+			WHERE	S1.WO_ID 	= S2.SCMWO			
+			AND  	S1.ITEM_ID 	= S4.ITEM_ID
+			AND		S4.ITYPE	= 'FERT'
+			AND		S1.START_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+			AND		S4.MTO_MTS_TYPE LIKE '%'||'$!{mto_gubn}'||'%'
+			#if("$!{ex_gubn}" == "DO")
+		    AND     (S4.MATERIAL_GROUP &lt; '5K000' OR S4.MATERIAL_GROUP &gt; '5S999')   
+            #elseif("$!{ex_gubn}" == "EX")
+            AND     S4.MATERIAL_GROUP BETWEEN '5K000' AND '5S999'  
+            #end
+			GROUP 
+			BY 		S1.ITEM_ID,
+					S4.ITEM_NAME,
+					S4.SPEC,
+					S1.PLANT_ID
+	        )
+	GROUP
+	BY		ITEM_ID,
+	        ITEM_NAME,
+	        SPEC
+	UNION ALL
+	SELECT  ITEM_ID,
+	        ITEM_NAME,
+	        SPEC,
+	        '차이' GUBN,
+	        NVL(MAX(DECODE(PLANT_ID,'1110',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1110',PLAN_QTY,0)),0)  ANYANG_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1120',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1120',PLAN_QTY,0)),0)  ANSUNG_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1130',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1130',PLAN_QTY,0)),0)  ANSUNG_BE_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1140',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1140',PLAN_QTY,0)),0)  ASAN_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1160',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1160',PLAN_QTY,0)),0)  KUMI_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1170',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1170',PLAN_QTY,0)),0)  PUSAN_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1180',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1180',PLAN_QTY,0)),0)  NOKSAN_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1110',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1110',PLAN_QTY,0)),0) + 
+	        NVL(MAX(DECODE(PLANT_ID,'1120',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1120',PLAN_QTY,0)),0) + 
+	        NVL(MAX(DECODE(PLANT_ID,'1130',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1130',PLAN_QTY,0)),0) + 
+	        NVL(MAX(DECODE(PLANT_ID,'1140',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1140',PLAN_QTY,0)),0) + 
+	        NVL(MAX(DECODE(PLANT_ID,'1160',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1160',PLAN_QTY,0)),0) + 
+	        NVL(MAX(DECODE(PLANT_ID,'1170',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1170',PLAN_QTY,0)),0) + 
+	        NVL(MAX(DECODE(PLANT_ID,'1180',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1180',PLAN_QTY,0)),0)	TOTAL
+	FROM	(
+			SELECT	S1.ITEM_ID,
+					S4.ITEM_NAME,
+					S4.SPEC,
+					S1.PLANT_ID,
+					SUM(DECODE('$!{checked_uom}','BOX',S1.SHIFT_QTY,S1.SHIFT_QTY * DECODE(S4.QTY,0,1,S4.QTY)))   PLAN_QTY,
+		            SUM(DECODE('$!{checked_uom}','BOX',(
+									                    SELECT  SUM(COMPL_QTY) COMPL_QTY
+									                    FROM    V_ERP_PO_MES
+									                    WHERE   PO_ID       = S2.AUFNR
+									                    AND     PLANT_ID    = S1.PLANT_ID
+									                    AND     ITEM_ID     = S1.ITEM_ID
+									                    ),(
+										                    SELECT  SUM(COMPL_QTY) COMPL_QTY
+										                    FROM    V_ERP_PO_MES
+										                    WHERE   PO_ID       = S2.AUFNR
+										                    AND     PLANT_ID    = S1.PLANT_ID
+										                    AND     ITEM_ID     = S1.ITEM_ID
+                    										) * DECODE(S4.QTY,0,1,S4.QTY)))   					PROD_QTY
+			FROM	(
+					SELECT  DISTINCT SUBSTR(WO_ID,12,8) START_DATE, 
+		                    WO_ID,
+		                    ITEM_ID, 
+		                    PLANT_ID, 
+		                    SHIFT_QTY
+					FROM 	DAILY_SCH_PLAN_SHIFT S1
+					WHERE	S1.VERSION LIKE TO_CHAR(TRUNC(TO_DATE('$!{start_date}')-7,'D')+2,'YYYYMMDD')||'%'
+					)S1, SAPAUFK S2, ITEM_MST S4
+			WHERE	S1.WO_ID 	= S2.SCMWO			
+			AND  	S1.ITEM_ID 	= S4.ITEM_ID
+			AND		S4.ITYPE	= 'FERT'
+			AND		S1.START_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+			AND		S4.MTO_MTS_TYPE LIKE '%'||'$!{mto_gubn}'||'%'
+			#if("$!{ex_gubn}" == "DO")
+		    AND     (S4.MATERIAL_GROUP &lt; '5K000' OR S4.MATERIAL_GROUP &gt; '5S999')   
+            #elseif("$!{ex_gubn}" == "EX")
+            AND     S4.MATERIAL_GROUP BETWEEN '5K000' AND '5S999'  
+            #end
+			GROUP 
+			BY 		S1.ITEM_ID,
+					S4.ITEM_NAME,
+					S4.SPEC,
+					S1.PLANT_ID
+	        )
+	GROUP
+	BY		ITEM_ID,
+	        ITEM_NAME,
+	        SPEC
+	ORDER
+	BY		ITEM_ID,GUBN
+	#elseif("$!{selected_type}" == "2")
+	SELECT  SALES_CAT03,
+	        CD_NAME,
+	        ''	SPEC,
+	        '계획' GUBN,
+	        NVL(MAX(DECODE(PLANT_ID,'1110',PLAN_QTY,0)),0)  ANYANG_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1120',PLAN_QTY,0)),0)  ANSUNG_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1130',PLAN_QTY,0)),0)  ANSUNG_BE_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1140',PLAN_QTY,0)),0)  ASAN_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1160',PLAN_QTY,0)),0)  KUMI_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1170',PLAN_QTY,0)),0)  PUSAN_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1180',PLAN_QTY,0)),0)  NOKSAN_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1110',PLAN_QTY,0)) + MAX(DECODE(PLANT_ID,'1120',PLAN_QTY,0)) + 
+	        MAX(DECODE(PLANT_ID,'1130',PLAN_QTY,0)) + MAX(DECODE(PLANT_ID,'1140',PLAN_QTY,0)) + 
+	        MAX(DECODE(PLANT_ID,'1160',PLAN_QTY,0)) + MAX(DECODE(PLANT_ID,'1170',PLAN_QTY,0)) + 
+	        MAX(DECODE(PLANT_ID,'1180',PLAN_QTY,0)),0)  TOTAL
+	FROM	(
+			SELECT	S4.SALES_CAT03,
+					S5.CD,
+					S5.CD_NAME,
+					S1.PLANT_ID,					
+					SUM(DECODE('$!{checked_uom}','BOX',S1.SHIFT_QTY,S1.SHIFT_QTY * DECODE(S4.QTY,0,1,S4.QTY)))   PLAN_QTY,
+		            SUM(DECODE('$!{checked_uom}','BOX',S3.COMPL_QTY,S3.COMPL_QTY * DECODE(S4.QTY,0,1,S4.QTY)))   PROD_QTY
+			FROM	(
+					SELECT  DISTINCT SUBSTR(WO_ID,12,8) START_DATE, 
+		                    WO_ID,
+		                    ITEM_ID, 
+		                    PLANT_ID, 
+		                    SHIFT_QTY
+					FROM DAILY_SCH_PLAN_SHIFT S1
+					WHERE S1.VERSION LIKE TO_CHAR(TRUNC(TO_DATE('$!{start_date}')-7,'D')+2,'YYYYMMDD')||'%'		          
+					)S1, SAPAUFK S2, V_ERP_PO_MES S3, ITEM_MST S4, 
+					(
+                    SELECT  CD, CD_NAME
+                    FROM    CODE_MST
+                    WHERE   CD_GRP = 'SALES_CAT3'
+                    )S5
+			WHERE	S1.WO_ID 		= S2.SCMWO
+			AND 	S2.AUFNR 		= S3.PO_ID
+			AND  	S1.ITEM_ID 		= S4.ITEM_ID
+			AND 	S1.PLANT_ID 	= S3.PLANT_ID
+			AND		S4.SALES_CAT03	= S5.CD
+			AND 	S1.ITEM_ID 		= S3.ITEM_ID
+			AND		S4.ITYPE		= 'FERT'
+			AND		S1.START_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+			AND		S4.MTO_MTS_TYPE LIKE '%'||'$!{mto_gubn}'||'%'
+			#if("$!{ex_gubn}" == "DO")
+		    AND     (S4.MATERIAL_GROUP &lt; '5K000' OR S4.MATERIAL_GROUP &gt; '5S999')   
+            #elseif("$!{ex_gubn}" == "EX")
+            AND     S4.MATERIAL_GROUP BETWEEN '5K000' AND '5S999'  
+            #end
+			GROUP 
+			BY 		S4.SALES_CAT03,
+					S5.CD,
+					S5.CD_NAME,
+					S1.PLANT_ID
+	        )
+	GROUP
+	BY		SALES_CAT03,
+	        CD_NAME
+	UNION ALL
+	SELECT  SALES_CAT03,
+	        CD_NAME,
+	        ''	SPEC,
+	        '실적' GUBN,
+	        NVL(MAX(DECODE(PLANT_ID,'1110',PROD_QTY,0)),0)  ANYANG_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1120',PROD_QTY,0)),0)  ANSUNG_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1130',PROD_QTY,0)),0)  ANSUNG_BE_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1140',PROD_QTY,0)),0)  ASAN_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1160',PROD_QTY,0)),0)  KUMI_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1170',PROD_QTY,0)),0)  PUSAN_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1180',PROD_QTY,0)),0)  NOKSAN_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1110',PROD_QTY,0)) + MAX(DECODE(PLANT_ID,'1120',PROD_QTY,0)) + 
+	        MAX(DECODE(PLANT_ID,'1130',PROD_QTY,0)) + MAX(DECODE(PLANT_ID,'1140',PROD_QTY,0)) + 
+	        MAX(DECODE(PLANT_ID,'1160',PROD_QTY,0)) + MAX(DECODE(PLANT_ID,'1170',PROD_QTY,0)) + 
+	        MAX(DECODE(PLANT_ID,'1180',PROD_QTY,0)),0)  TOTAL
+	FROM	(
+			SELECT	S4.SALES_CAT03,
+					S5.CD,
+					S5.CD_NAME,
+					S1.PLANT_ID,					
+					SUM(DECODE('$!{checked_uom}','BOX',S1.SHIFT_QTY,S1.SHIFT_QTY * DECODE(S4.QTY,0,1,S4.QTY)))   PLAN_QTY,
+		            SUM(DECODE('$!{checked_uom}','BOX',S3.COMPL_QTY,S3.COMPL_QTY * DECODE(S4.QTY,0,1,S4.QTY)))   PROD_QTY
+			FROM	(
+					SELECT  DISTINCT SUBSTR(WO_ID,12,8) START_DATE, 
+		                    WO_ID,
+		                    ITEM_ID, 
+		                    PLANT_ID, 
+		                    SHIFT_QTY
+					FROM DAILY_SCH_PLAN_SHIFT S1
+					WHERE S1.VERSION LIKE TO_CHAR(TRUNC(TO_DATE('$!{start_date}')-7,'D')+2,'YYYYMMDD')||'%'		          
+					)S1, SAPAUFK S2, V_ERP_PO_MES S3, ITEM_MST S4, 
+					(
+                    SELECT  CD, CD_NAME
+                    FROM    CODE_MST
+                    WHERE   CD_GRP = 'SALES_CAT3'
+                    )S5
+			WHERE	S1.WO_ID 		= S2.SCMWO
+			AND 	S2.AUFNR 		= S3.PO_ID
+			AND  	S1.ITEM_ID 		= S4.ITEM_ID
+			AND 	S1.PLANT_ID 	= S3.PLANT_ID
+			AND		S4.SALES_CAT03	= S5.CD
+			AND 	S1.ITEM_ID 		= S3.ITEM_ID
+			AND		S4.ITYPE		= 'FERT'
+			AND		S1.START_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+			AND		S4.MTO_MTS_TYPE LIKE '%'||'$!{mto_gubn}'||'%'
+			#if("$!{ex_gubn}" == "DO")
+		    AND     (S4.MATERIAL_GROUP &lt; '5K000' OR S4.MATERIAL_GROUP &gt; '5S999')   
+            #elseif("$!{ex_gubn}" == "EX")
+            AND     S4.MATERIAL_GROUP BETWEEN '5K000' AND '5S999'  
+            #end
+			GROUP 
+			BY 		S4.SALES_CAT03,
+					S5.CD,
+					S5.CD_NAME,
+					S1.PLANT_ID
+	        )
+	GROUP
+	BY		SALES_CAT03,
+	        CD_NAME
+	UNION ALL
+	SELECT  SALES_CAT03,
+	        CD_NAME,
+	        ''	SPEC,
+	        '차이' GUBN,
+	        NVL(MAX(DECODE(PLANT_ID,'1110',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1110',PLAN_QTY,0)),0)  ANYANG_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1120',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1120',PLAN_QTY,0)),0)  ANSUNG_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1130',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1130',PLAN_QTY,0)),0)  ANSUNG_BE_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1140',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1140',PLAN_QTY,0)),0)  ASAN_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1160',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1160',PLAN_QTY,0)),0)  KUMI_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1170',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1170',PLAN_QTY,0)),0)  PUSAN_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1180',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1180',PLAN_QTY,0)),0)  NOKSAN_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1110',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1110',PLAN_QTY,0)),0) + 
+	        NVL(MAX(DECODE(PLANT_ID,'1120',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1120',PLAN_QTY,0)),0) + 
+	        NVL(MAX(DECODE(PLANT_ID,'1130',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1130',PLAN_QTY,0)),0) + 
+	        NVL(MAX(DECODE(PLANT_ID,'1140',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1140',PLAN_QTY,0)),0) + 
+	        NVL(MAX(DECODE(PLANT_ID,'1160',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1160',PLAN_QTY,0)),0) + 
+	        NVL(MAX(DECODE(PLANT_ID,'1170',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1170',PLAN_QTY,0)),0) + 
+	        NVL(MAX(DECODE(PLANT_ID,'1180',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1180',PLAN_QTY,0)),0)	TOTAL	     
+	FROM	(
+			SELECT	S4.SALES_CAT03,
+					S5.CD,
+					S5.CD_NAME,
+					S1.PLANT_ID,					
+					SUM(DECODE('$!{checked_uom}','BOX',S1.SHIFT_QTY,S1.SHIFT_QTY * DECODE(S4.QTY,0,1,S4.QTY)))   PLAN_QTY,
+		            SUM(DECODE('$!{checked_uom}','BOX',S3.COMPL_QTY,S3.COMPL_QTY * DECODE(S4.QTY,0,1,S4.QTY)))   PROD_QTY
+			FROM	(
+					SELECT  DISTINCT SUBSTR(WO_ID,12,8) START_DATE, 
+		                    WO_ID,
+		                    ITEM_ID, 
+		                    PLANT_ID, 
+		                    SHIFT_QTY
+					FROM DAILY_SCH_PLAN_SHIFT S1
+					WHERE S1.VERSION LIKE TO_CHAR(TRUNC(TO_DATE('$!{start_date}')-7,'D')+2,'YYYYMMDD')||'%'		          
+					)S1, SAPAUFK S2, V_ERP_PO_MES S3, ITEM_MST S4, 
+					(
+                    SELECT  CD, CD_NAME
+                    FROM    CODE_MST
+                    WHERE   CD_GRP = 'SALES_CAT3'
+                    )S5
+			WHERE	S1.WO_ID 		= S2.SCMWO
+			AND 	S2.AUFNR 		= S3.PO_ID
+			AND  	S1.ITEM_ID 		= S4.ITEM_ID
+			AND 	S1.PLANT_ID 	= S3.PLANT_ID
+			AND		S4.SALES_CAT03	= S5.CD
+			AND 	S1.ITEM_ID 		= S3.ITEM_ID
+			AND		S4.ITYPE		= 'FERT'
+			AND		S1.START_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+			AND		S4.MTO_MTS_TYPE LIKE '%'||'$!{mto_gubn}'||'%'
+			#if("$!{ex_gubn}" == "DO")
+		    AND     (S4.MATERIAL_GROUP &lt; '5K000' OR S4.MATERIAL_GROUP &gt; '5S999')   
+            #elseif("$!{ex_gubn}" == "EX")
+            AND     S4.MATERIAL_GROUP BETWEEN '5K000' AND '5S999'  
+            #end
+			GROUP 
+			BY 		S4.SALES_CAT03,
+					S5.CD,
+					S5.CD_NAME,
+					S1.PLANT_ID
+	        )
+	GROUP
+	BY		SALES_CAT03,
+	        CD_NAME
+	ORDER
+	BY		SALES_CAT03,GUBN
+	#else
+	SELECT  SALES_CAT01,
+	        CD_NAME,
+	        ''	SPEC,
+	        '계획' GUBN,
+	        MAX(DECODE(PLANT_ID,'1110',PLAN_QTY,0))  ANYANG_QTY,
+	        MAX(DECODE(PLANT_ID,'1120',PLAN_QTY,0))  ANSUNG_QTY,
+	        MAX(DECODE(PLANT_ID,'1130',PLAN_QTY,0))  ANSUNG_BE_QTY,
+	        MAX(DECODE(PLANT_ID,'1140',PLAN_QTY,0))  ASAN_QTY,
+	        MAX(DECODE(PLANT_ID,'1160',PLAN_QTY,0))  KUMI_QTY,
+	        MAX(DECODE(PLANT_ID,'1170',PLAN_QTY,0))  PUSAN_QTY,
+	        MAX(DECODE(PLANT_ID,'1180',PLAN_QTY,0))  NOKSAN_QTY,
+	        MAX(DECODE(PLANT_ID,'1110',PLAN_QTY,0)) + MAX(DECODE(PLANT_ID,'1120',PLAN_QTY,0)) + 
+	        MAX(DECODE(PLANT_ID,'1130',PLAN_QTY,0)) + MAX(DECODE(PLANT_ID,'1140',PLAN_QTY,0)) + 
+	        MAX(DECODE(PLANT_ID,'1160',PLAN_QTY,0)) + MAX(DECODE(PLANT_ID,'1170',PLAN_QTY,0)) + 
+	        MAX(DECODE(PLANT_ID,'1180',PLAN_QTY,0))  TOTAL
+	FROM	(
+			SELECT	S4.SALES_CAT01,
+					S5.CD,
+					S5.CD_NAME,
+					S1.PLANT_ID,					
+					SUM(DECODE('$!{checked_uom}','BOX',S1.SHIFT_QTY,S1.SHIFT_QTY * DECODE(S4.QTY,0,1,S4.QTY)))   PLAN_QTY,
+		            SUM(DECODE('$!{checked_uom}','BOX',S3.COMPL_QTY,S3.COMPL_QTY * DECODE(S4.QTY,0,1,S4.QTY)))   PROD_QTY
+			FROM	(
+					SELECT  DISTINCT SUBSTR(WO_ID,12,8) START_DATE, 
+		                    WO_ID,
+		                    ITEM_ID, 
+		                    PLANT_ID, 
+		                    SHIFT_QTY
+					FROM DAILY_SCH_PLAN_SHIFT S1
+					WHERE S1.VERSION LIKE TO_CHAR(TRUNC(TO_DATE('$!{start_date}')-7,'D')+2,'YYYYMMDD')||'%'		          
+					)S1, SAPAUFK S2, V_ERP_PO_MES S3, ITEM_MST S4, 
+					(
+                    SELECT  CD, CD_NAME
+                    FROM    CODE_MST
+                    WHERE   CD_GRP = 'SALES_CAT1'
+                    )S5
+			WHERE	S1.WO_ID 		= S2.SCMWO
+			AND 	S2.AUFNR 		= S3.PO_ID
+			AND  	S1.ITEM_ID 		= S4.ITEM_ID
+			AND 	S1.PLANT_ID 	= S3.PLANT_ID
+			AND		S4.SALES_CAT01	= S5.CD
+			AND 	S1.ITEM_ID 		= S3.ITEM_ID
+			AND		S4.ITYPE		= 'FERT'
+			AND		S1.START_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+			AND		S4.MTO_MTS_TYPE LIKE '%'||'$!{mto_gubn}'||'%'
+			#if("$!{ex_gubn}" == "DO")
+		    AND     (S4.MATERIAL_GROUP &lt; '5K000' OR S4.MATERIAL_GROUP &gt; '5S999')   
+            #elseif("$!{ex_gubn}" == "EX")
+            AND     S4.MATERIAL_GROUP BETWEEN '5K000' AND '5S999'  
+            #end
+			GROUP 
+			BY 		S4.SALES_CAT01,
+					S5.CD,
+					S5.CD_NAME,
+					S1.PLANT_ID
+	        )
+	GROUP
+	BY		SALES_CAT01,
+	        CD_NAME
+	UNION ALL
+	SELECT  SALES_CAT01,
+	        CD_NAME,
+	        ''	SPEC,
+	        '실적' GUBN,
+	        MAX(DECODE(PLANT_ID,'1110',PROD_QTY,0))  ANYANG_QTY,
+	        MAX(DECODE(PLANT_ID,'1120',PROD_QTY,0))  ANSUNG_QTY,
+	        MAX(DECODE(PLANT_ID,'1130',PROD_QTY,0))  ANSUNG_BE_QTY,
+	        MAX(DECODE(PLANT_ID,'1140',PROD_QTY,0))  ASAN_QTY,
+	        MAX(DECODE(PLANT_ID,'1160',PROD_QTY,0))  KUMI_QTY,
+	        MAX(DECODE(PLANT_ID,'1170',PROD_QTY,0))  PUSAN_QTY,
+	        MAX(DECODE(PLANT_ID,'1180',PROD_QTY,0))  NOKSAN_QTY,
+	        MAX(DECODE(PLANT_ID,'1110',PROD_QTY,0)) + MAX(DECODE(PLANT_ID,'1120',PROD_QTY,0)) + 
+	        MAX(DECODE(PLANT_ID,'1130',PROD_QTY,0)) + MAX(DECODE(PLANT_ID,'1140',PROD_QTY,0)) + 
+	        MAX(DECODE(PLANT_ID,'1160',PROD_QTY,0)) + MAX(DECODE(PLANT_ID,'1170',PROD_QTY,0)) + 
+	        MAX(DECODE(PLANT_ID,'1180',PROD_QTY,0))  TOTAL
+	FROM	(
+			SELECT	S4.SALES_CAT01,
+					S5.CD,
+					S5.CD_NAME,
+					S1.PLANT_ID,					
+					SUM(DECODE('$!{checked_uom}','BOX',S1.SHIFT_QTY,S1.SHIFT_QTY * DECODE(S4.QTY,0,1,S4.QTY)))   PLAN_QTY,
+		            SUM(DECODE('$!{checked_uom}','BOX',S3.COMPL_QTY,S3.COMPL_QTY * DECODE(S4.QTY,0,1,S4.QTY)))   PROD_QTY
+			FROM	(
+					SELECT  DISTINCT SUBSTR(WO_ID,12,8) START_DATE, 
+		                    WO_ID,
+		                    ITEM_ID, 
+		                    PLANT_ID, 
+		                    SHIFT_QTY
+					FROM DAILY_SCH_PLAN_SHIFT S1
+					WHERE S1.VERSION LIKE TO_CHAR(TRUNC(TO_DATE('$!{start_date}')-7,'D')+2,'YYYYMMDD')||'%'		          
+					)S1, SAPAUFK S2, V_ERP_PO_MES S3, ITEM_MST S4, 
+					(
+                    SELECT  CD, CD_NAME
+                    FROM    CODE_MST
+                    WHERE   CD_GRP = 'SALES_CAT1'
+                    )S5
+			WHERE	S1.WO_ID 		= S2.SCMWO
+			AND 	S2.AUFNR 		= S3.PO_ID
+			AND  	S1.ITEM_ID 		= S4.ITEM_ID
+			AND 	S1.PLANT_ID 	= S3.PLANT_ID
+			AND		S4.SALES_CAT01	= S5.CD
+			AND 	S1.ITEM_ID 		= S3.ITEM_ID
+			AND		S4.ITYPE		= 'FERT'
+			AND		S1.START_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+			AND		S4.MTO_MTS_TYPE LIKE '%'||'$!{mto_gubn}'||'%'
+			#if("$!{ex_gubn}" == "DO")
+		    AND     (S4.MATERIAL_GROUP &lt; '5K000' OR S4.MATERIAL_GROUP &gt; '5S999')   
+            #elseif("$!{ex_gubn}" == "EX")
+            AND     S4.MATERIAL_GROUP BETWEEN '5K000' AND '5S999'  
+            #end
+			GROUP 
+			BY 		S4.SALES_CAT01,
+					S5.CD,
+					S5.CD_NAME,
+					S1.PLANT_ID
+	        )
+	GROUP
+	BY		SALES_CAT01,
+	        CD_NAME
+	UNION ALL
+	SELECT  SALES_CAT01,
+	        CD_NAME,
+	        ''	SPEC,
+	        '차이' GUBN,
+	        NVL(MAX(DECODE(PLANT_ID,'1110',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1110',PLAN_QTY,0)),0)  ANYANG_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1120',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1120',PLAN_QTY,0)),0)  ANSUNG_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1130',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1130',PLAN_QTY,0)),0)  ANSUNG_BE_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1140',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1140',PLAN_QTY,0)),0)  ASAN_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1160',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1160',PLAN_QTY,0)),0)  KUMI_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1170',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1170',PLAN_QTY,0)),0)  PUSAN_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1180',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1180',PLAN_QTY,0)),0)  NOKSAN_QTY,
+	        NVL(MAX(DECODE(PLANT_ID,'1110',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1110',PLAN_QTY,0)),0) + 
+	        NVL(MAX(DECODE(PLANT_ID,'1120',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1120',PLAN_QTY,0)),0) + 
+	        NVL(MAX(DECODE(PLANT_ID,'1130',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1130',PLAN_QTY,0)),0) + 
+	        NVL(MAX(DECODE(PLANT_ID,'1140',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1140',PLAN_QTY,0)),0) + 
+	        NVL(MAX(DECODE(PLANT_ID,'1160',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1160',PLAN_QTY,0)),0) + 
+	        NVL(MAX(DECODE(PLANT_ID,'1170',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1170',PLAN_QTY,0)),0) + 
+	        NVL(MAX(DECODE(PLANT_ID,'1180',PROD_QTY,0)),0) - NVL(MAX(DECODE(PLANT_ID,'1180',PLAN_QTY,0)),0)	TOTAL
+	FROM	(
+			SELECT	S4.SALES_CAT01,
+					S5.CD,
+					S5.CD_NAME,
+					S1.PLANT_ID,					
+					SUM(DECODE('$!{checked_uom}','BOX',S1.SHIFT_QTY,S1.SHIFT_QTY * DECODE(S4.QTY,0,1,S4.QTY)))   PLAN_QTY,
+		            SUM(DECODE('$!{checked_uom}','BOX',S3.COMPL_QTY,S3.COMPL_QTY * DECODE(S4.QTY,0,1,S4.QTY)))   PROD_QTY
+			FROM	(
+					SELECT  DISTINCT SUBSTR(WO_ID,12,8) START_DATE, 
+		                    WO_ID,
+		                    ITEM_ID, 
+		                    PLANT_ID, 
+		                    SHIFT_QTY
+					FROM DAILY_SCH_PLAN_SHIFT S1
+					WHERE S1.VERSION LIKE TO_CHAR(TRUNC(TO_DATE('$!{start_date}')-7,'D')+2,'YYYYMMDD')||'%'		          
+					)S1, SAPAUFK S2, V_ERP_PO_MES S3, ITEM_MST S4, 
+					(
+                    SELECT  CD, CD_NAME
+                    FROM    CODE_MST
+                    WHERE   CD_GRP = 'SALES_CAT1'
+                    )S5
+			WHERE	S1.WO_ID 		= S2.SCMWO
+			AND 	S2.AUFNR 		= S3.PO_ID
+			AND  	S1.ITEM_ID 		= S4.ITEM_ID
+			AND 	S1.PLANT_ID 	= S3.PLANT_ID
+			AND		S4.SALES_CAT01	= S5.CD
+			AND 	S1.ITEM_ID 		= S3.ITEM_ID
+			AND		S4.ITYPE		= 'FERT'
+			AND		S1.START_DATE BETWEEN '$!{start_date}' AND '$!{end_date}'
+			AND		S4.MTO_MTS_TYPE LIKE '%'||'$!{mto_gubn}'||'%'
+			#if("$!{ex_gubn}" == "DO")
+		    AND     (S4.MATERIAL_GROUP &lt; '5K000' OR S4.MATERIAL_GROUP &gt; '5S999')   
+            #elseif("$!{ex_gubn}" == "EX")
+            AND     S4.MATERIAL_GROUP BETWEEN '5K000' AND '5S999'  
+            #end
+			GROUP 
+			BY 		S4.SALES_CAT01,
+					S5.CD,
+					S5.CD_NAME,
+					S1.PLANT_ID
+	        )
+	GROUP
+	BY		SALES_CAT01,
+	        CD_NAME
+	ORDER
+	BY		SALES_CAT01,GUBN
+	#end
+		 
+</query>		
+		
+
+</queries>	

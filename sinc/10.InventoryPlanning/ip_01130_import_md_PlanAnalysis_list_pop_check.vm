@@ -98,11 +98,11 @@
 				<tr>
 					<td width="80%" valign="top" align="left" >
 						<input type="radio" name="checked_button" value="Y_1" style="border:0px; "
-							onClick="this.checked" #if($!{checked_button} == "Y_1") checked #else #end >2014</input>
+							onClick="this.checked" #if($!{checked_button} == "Y_1") checked #else #end >2015</input>
 						<input type="radio" name="checked_button" value="Y_2" style="border:0px; "
-							onClick="this.checked" #if($!{checked_button} == "Y_2") checked #else #end>2013</input>
+							onClick="this.checked" #if($!{checked_button} == "Y_2") checked #else #end>2014</input>
 						<input type="radio" name="checked_button" value="Y_3" style="border:0px; "
-							onClick="this.checked" #if($!{checked_button} == "Y_3") checked #else #end>2012</input>&nbsp;
+							onClick="this.checked" #if($!{checked_button} == "Y_3") checked #else #end>2013</input>&nbsp;
 						<input type="text" name="simul_data" size="60" class="normal" onKeyPress="enterCheck('$_moon_service'); " 
             				style="width:60px; padding-left:1px; " onBlur="; " onClick="; " 
             				onChange="" value="$commonUtil.replaceQuot($!{simul_data_org})">

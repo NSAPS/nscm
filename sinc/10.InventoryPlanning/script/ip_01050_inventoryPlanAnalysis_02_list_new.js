@@ -131,6 +131,7 @@ function setHeader(GridObj) {
  	GridObj.AddHeader("ITEM_ID"	           ,"제품코드"		,"t_text" 	   ,100	    ,65     ,false); //0   
  	GridObj.AddHeader("ITEM_NAME"	       ,"제품명"	        ,"t_text" 	   ,100	    ,220    ,false); //0
  	GridObj.AddHeader("SPEC"	    	   ,"규격"	    	,"t_text"  		,100	,90     ,false); //0
+ 	GridObj.AddHeader("MTO_MTS_TYPE"	   ,"구분"	    	,"t_text"  		,100	,0     ,false); //0
  	GridObj.AddHeader("BASE_STOCK"	       ,"기초재고"	    ,"t_number"    ,100.3	,60     ,false); //0
  	GridObj.AddHeader("STOCK_DAY"	       ,"재고일수"       ,"t_number"    ,100.3	,60     ,false); //0
  	GridObj.AddHeader("PROD_TERM"  		   ,"유통기한\n경과일수"	,"t_number"    ,100.3	,70     ,false); //0
@@ -144,9 +145,12 @@ function setHeader(GridObj) {
     GridObj.AddHeader("SALES_SUM"	       ,"누계"	    ,"t_number"    ,100.3	,60     ,false); //0
     GridObj.AddHeader("PRE_MONTH_SELL"	   ,"전월계"	    ,"t_number"    ,100.3	,60     ,false); //0
     GridObj.AddHeader("STOCK_EXPT"	       ,"예상재고"	,"t_number"    ,100.3	,70     ,false); //0
+    
  	GridObj.AddHeader("RECEIPT_EXPT"       ,"금일생산계획"	,"t_number"    ,100.3   ,80     ,false); //0
  	GridObj.AddHeader("RECEIPT_EXPT_REM"   ,"금주잔여\n생산계획"	,"t_number"    ,100.3   ,80     ,false); //0
  	GridObj.AddHeader("RECEIPT_EXPT_NEXT"  ,"차주생산계획"	,"t_number"    ,100.3   ,80     ,false); //0
+ 	GridObj.AddHeader("TOT_SUPPLE"	       ,"총공급량"	,"t_number"    ,100.3	,70     ,false); //0
+ 	GridObj.AddHeader("TOT_STOCKDAY"	    ,"총재고일수"	,"t_number"    ,100.3	,70     ,false); //0
  	GridObj.AddHeader("RECEIPT_EXPT_SUM"   ,"생산누계"	,"t_number"    ,100.3	,70     ,false); //0
  	
   //GridObj.AddHeader("PROD_TERM"     	   ,"생산\n경과일"	,"t_number"    ,100.3	,0     ,false); //0 //추가 : 2012-04-19//
@@ -180,6 +184,7 @@ function setHeader(GridObj) {
     GridObj.SetColCellAlign('ITEM_ID',            'left');
     GridObj.SetColCellAlign('ITEM_NAME',          'left');
     GridObj.SetColCellAlign('SPEC',               'left');
+    GridObj.SetColCellAlign('MTO_MTS_TYPE',       'center');
     GridObj.SetColCellAlign('BASE_STOCK',        'right');
     GridObj.SetColCellAlign('STOCK_DAY',         'right'); 
     GridObj.SetColCellAlign('SALES_PRE',         'right');
@@ -230,6 +235,7 @@ function setHeader(GridObj) {
     GridObj.SetNumberFormat("WEEK_DEV_1_3",     "###,###.#");
     GridObj.SetNumberFormat("DEV_PER",          "###,###.#");
     GridObj.SetNumberFormat("PRE_MONTH_SELL",   "###,###.#");
+    GridObj.SetNumberFormat("TOT_SUPPLE",   	"###,###.#");
     GridObj.SetNumberFormat("THIS_YEAR_SUM",    "###,###.#");
     GridObj.SetNumberFormat("LAST_YEAR_SUM",    "###,###.#");
     GridObj.SetNumberFormat("SUB_PY_MON",   	"###,###.#");
@@ -237,9 +243,10 @@ function setHeader(GridObj) {
     GridObj.SetNumberFormat("BASE_STOCK_PALLET","###,###.#");
     GridObj.SetNumberFormat("STOCK_EXPT_PALLET","###,###.#");
     GridObj.SetNumberFormat("GOALS_BOX",        "###,###.#");
-    GridObj.SetNumberFormat("REQT_QTY",        "###,###.#");
+    GridObj.SetNumberFormat("REQT_QTY",        	"###,###.#");
   	GridObj.SetNumberFormat("RECEIPT_EXPT_REM",        "###,###.#");
   	GridObj.SetNumberFormat("RECEIPT_EXPT_NEXT",        "###,###.#");
+  	GridObj.SetNumberFormat("TOT_STOCKDAY",        "###,###.#");
 	
 	//GridObj.SetCRUDMode("CRUD");  // AD와 DE가 셋팅 될 경우는 없다.
 	//Hidden 컬럼
@@ -265,6 +272,7 @@ function setHeader(GridObj) {
             	var row = GridObj.GetRowCount();            	
             	if (row == 0) return;
             	
+            	GridSetColor();
             	GridSetMerge();
              
             } else    
@@ -351,11 +359,16 @@ function doSave() {
 		
 		checked_button = document.frm.checked_button[2].value;
 		
-	}else{
+	}else if(document.frm.checked_button[3].checked){
 		
 		checked_button = document.frm.checked_button[3].value;
 		
+	}else{
+		
+		checked_button = document.frm.checked_button[4].value;
+		
 	}
+	
 	
 	
 	//var in_trans_unit = "";
@@ -527,13 +540,36 @@ function GoDelete(){
 	var GridObj		= document.WiseGrid;
 	var servlet_url = Project_name+"/servlet/com.wisegrid.admin."+job_id;
 
+	var checked_button ;
 	
-	
+	if(document.frm.checked_button[0].checked){
 
+		checked_button = document.frm.checked_button[0].value;
+
+	}else if(document.frm.checked_button[1].checked){
+		
+		checked_button = document.frm.checked_button[1].value;
+		
+	}else if(document.frm.checked_button[2].checked){
+		
+		checked_button = document.frm.checked_button[2].value;
+		
+	}else if(document.frm.checked_button[3].checked){
+		
+		checked_button = document.frm.checked_button[3].value;
+		
+	}else{
+		
+		checked_button = document.frm.checked_button[4].value;
+		
+	}
+	
+	
     
 	//넘겨줄 값들을만든다.( 파라미터 정의 부분 )
-	GridObj.SetParam("mode",						"delete");
-	GridObj.SetParam("user_id",	 document.frm._user_id.value);
+	GridObj.SetParam("mode",				"delete");
+	GridObj.SetParam("user_id",	 			document.frm._user_id.value);
+	GridObj.SetParam("checked_button",	 	checked_button);
 	//GridObj.SetParam("checked_button",checked_button);
 	
 	
@@ -1037,12 +1073,22 @@ function HeaderClick(strColumnKey){
 		
 }
 
+function GridSetColor(){
+	
+	var rowcount = GridObj.GetRowCount();
+	for(var i=0; i< rowcount; i++){
+		
+		var gubn = GridObj.GetCellValue('MTO_MTS_TYPE',i);
+		if(gubn == "MTO") GridObj.SetCellBgColor('ITEM_NAME',i,'255|255|200');
+	}
+}
+
 function GridSetMerge(){
 	
 				
 				GridObj.SetGroupMerge('SALES_CAT01,SALES_CAT03');
               	GridObj.AddSummaryBar('SUMMARY1', '소계', 'SALES_CAT03', 'custom', 'BASE_STOCK,STOCK_DAY,PROD_TERM,PROD_TERM_AVG,STOCK_HIDDEN,TERM_HIDDEN,TERM_VAL,SALES_PRE,SALES_CUR,SALES_SUM,STOCK_EXPT,BASE_STOCK_2,PRE_MONTH_SELL,RECEIPT_EXPT,' +
-              			'RECEIPT_EXPT_REM,RECEIPT_EXPT_NEXT,RECEIPT_EXPT_SUM,SALES_MEAN_1WEEK,SALES_MEAN_3WEEK,WEEK_DEV_1_3,SALES_SUM_PY,THIS_YEAR_SUM,LAST_YEAR_SUM,SUB_PY_MON,SUB_PY_YEAR,GOALS_BOX,BASE_STOCK_PALLET,STOCK_EXPT_PALLET,STOCK_USE_EXPT_RATE,REQT_QTY'); 
+              			'RECEIPT_EXPT_REM,RECEIPT_EXPT_NEXT,TOT_SUPPLE,TOT_STOCKDAY,RECEIPT_EXPT_SUM,SALES_MEAN_1WEEK,SALES_MEAN_3WEEK,WEEK_DEV_1_3,SALES_SUM_PY,THIS_YEAR_SUM,LAST_YEAR_SUM,SUB_PY_MON,SUB_PY_YEAR,GOALS_BOX,BASE_STOCK_PALLET,STOCK_EXPT_PALLET,STOCK_USE_EXPT_RATE,REQT_QTY'); 
          	   
          	   /* custom 소계에 대해 각 컬럼별로 지정 - SUMMARY1 */
          	   
@@ -1070,7 +1116,8 @@ function GridSetMerge(){
          	    GridObj.SetSummaryBarFunction('SUMMARY1','sum','REQT_QTY');
          	    GridObj.SetSummaryBarFunction('SUMMARY1','sum','RECEIPT_EXPT_REM');
          	    GridObj.SetSummaryBarFunction('SUMMARY1','sum','RECEIPT_EXPT_NEXT');
-         	   
+         	    GridObj.SetSummaryBarFunction('SUMMARY1','sum','TOT_SUPPLE');
+         	   	GridObj.SetSummaryBarFunction('SUMMARY1','sum','TOT_STOCKDAY');
          	    //GridObj.SetSummaryBarFunction('SUMMARY1','average','TERM_PER');   
          	    
          	    var rowcount = GridObj.GetMergeCount('SALES_CAT03');   //소계 인덱스 구하기
@@ -1096,7 +1143,7 @@ function GridSetMerge(){
          	    /* custom 소계에 대해 각 컬럼별로 지정 - SUMMARY2 */
          	  
          	    GridObj.AddSummaryBar('SUMMARY2', '계', 'SALES_CAT01', 'custom', 'BASE_STOCK,STOCK_DAY,PROD_TERM,PROD_TERM_AVG,STOCK_HIDDEN,TERM_HIDDEN,TERM_VAL,SALES_PRE,SALES_CUR,SALES_SUM,STOCK_EXPT,BASE_STOCK_2,PRE_MONTH_SELL,RECEIPT_EXPT,' +
-              			'RECEIPT_EXPT_REM,RECEIPT_EXPT_NEXT,RECEIPT_EXPT_SUM,SALES_MEAN_1WEEK,SALES_MEAN_3WEEK,WEEK_DEV_1_3,SALES_SUM_PY,THIS_YEAR_SUM,LAST_YEAR_SUM,SUB_PY_MON,SUB_PY_YEAR,GOALS_BOX,BASE_STOCK_PALLET,STOCK_EXPT_PALLET,STOCK_USE_EXPT_RATE,REQT_QTY');
+              			'RECEIPT_EXPT_REM,RECEIPT_EXPT_NEXT,TOT_SUPPLE,TOT_STOCKDAY,RECEIPT_EXPT_SUM,SALES_MEAN_1WEEK,SALES_MEAN_3WEEK,WEEK_DEV_1_3,SALES_SUM_PY,THIS_YEAR_SUM,LAST_YEAR_SUM,SUB_PY_MON,SUB_PY_YEAR,GOALS_BOX,BASE_STOCK_PALLET,STOCK_EXPT_PALLET,STOCK_USE_EXPT_RATE,REQT_QTY');
          	    
 	      	 	GridObj.SetSummaryBarFunction('SUMMARY2','sum','BASE_STOCK');
 	      	 	GridObj.SetSummaryBarFunction('SUMMARY2','sum','STOCK_HIDDEN');
@@ -1122,7 +1169,8 @@ function GridSetMerge(){
          	    GridObj.SetSummaryBarFunction('SUMMARY2','sum','REQT_QTY');
          	    GridObj.SetSummaryBarFunction('SUMMARY2','sum','RECEIPT_EXPT_REM');
          	    GridObj.SetSummaryBarFunction('SUMMARY2','sum','RECEIPT_EXPT_NEXT');
-         	    
+         	    GridObj.SetSummaryBarFunction('SUMMARY2','sum','TOT_SUPPLE');
+         	    GridObj.SetSummaryBarFunction('SUMMARY2','sum','TOT_STOCKDAY');
          	       
          	    //GridObj.SetSummaryBarFunction('SUMMARY2','average','TERM_VAL');   
          	    
@@ -1148,7 +1196,7 @@ function GridSetMerge(){
 	      	 	/* custom 소계에 대해 각 컬럼별로 지정 - SUMMARY3 */
 	      	 	
 	      	 	GridObj.AddSummaryBar('SUMMARY3', '합계', 'summaryall', 'custom', 'BASE_STOCK,STOCK_DAY,PROD_TERM,PROD_TERM_AVG,STOCK_HIDDEN,TERM_HIDDEN,TERM_VAL,SALES_PRE,SALES_CUR,SALES_SUM,STOCK_EXPT,BASE_STOCK_2,PRE_MONTH_SELL,RECEIPT_EXPT,' +
-	      	 			'RECEIPT_EXPT_REM,RECEIPT_EXPT_NEXT,RECEIPT_EXPT_SUM,SALES_MEAN_1WEEK,SALES_MEAN_3WEEK,WEEK_DEV_1_3,SALES_SUM_PY,THIS_YEAR_SUM,LAST_YEAR_SUM,SUB_PY_MON,SUB_PY_YEAR,GOALS_BOX,BASE_STOCK_PALLET,STOCK_EXPT_PALLET,STOCK_USE_EXPT_RATE,REQT_QTY');
+	      	 			'RECEIPT_EXPT_REM,RECEIPT_EXPT_NEXT,TOT_SUPPLE,TOT_STOCKDAY,RECEIPT_EXPT_SUM,SALES_MEAN_1WEEK,SALES_MEAN_3WEEK,WEEK_DEV_1_3,SALES_SUM_PY,THIS_YEAR_SUM,LAST_YEAR_SUM,SUB_PY_MON,SUB_PY_YEAR,GOALS_BOX,BASE_STOCK_PALLET,STOCK_EXPT_PALLET,STOCK_USE_EXPT_RATE,REQT_QTY');
     	        
     	        GridObj.SetSummaryBarFunction('SUMMARY3','sum','BASE_STOCK');
     	        GridObj.SetSummaryBarFunction('SUMMARY3','sum','STOCK_HIDDEN');
@@ -1174,7 +1222,8 @@ function GridSetMerge(){
          	    GridObj.SetSummaryBarFunction('SUMMARY3','sum','REQT_QTY');
          	    GridObj.SetSummaryBarFunction('SUMMARY3','sum','RECEIPT_EXPT_REM');
          	    GridObj.SetSummaryBarFunction('SUMMARY3','sum','RECEIPT_EXPT_NEXT');
-         	   
+         	    GridObj.SetSummaryBarFunction('SUMMARY3','sum','TOT_SUPPLE');
+         	    GridObj.SetSummaryBarFunction('SUMMARY3','sum','TOT_STOCKDAY');
          	    //GridObj.SetSummaryBarFunction('SUMMARY3','average','TERM_VAL');   
          	    
          	    	var base_stock3 		= GridObj.GetSummaryBarValue('SUMMARY3','BASE_STOCK',0,true).replace(/,/g,"");

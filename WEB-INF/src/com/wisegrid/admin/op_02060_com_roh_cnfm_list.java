@@ -223,10 +223,11 @@ public class op_02060_com_roh_cnfm_list extends HttpServlet {
 			                                                                                                                 
 			String item_id		=	gdReq.getParam("item_id");                                                            
 			String itype		=	gdReq.getParam("itype");
-			String query_id		=	gdReq.getParam("query_id");			                                                                                                                 
+			String query_id		=	gdReq.getParam("query_id");	
+			String com_code		=	gdReq.getParam("com_code");	
 
-			String paramKey		=	"item_id!%!itype!%!query_id";                                                                      
-			String paramCode	=	item_id+"!%!"+itype+"!%!"+query_id;                                                                   
+			String paramKey		=	"item_id!%!itype!%!query_id!%!com_code";                                                                      
+			String paramCode	=	item_id+"!%!"+itype+"!%!"+query_id+"!%!"+com_code;                                                                   
 
 			System.out.println("query_id"+query_id);				                                                             
 			                                                                                     

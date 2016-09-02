@@ -119,7 +119,8 @@ public class op_02040_Mfs_Stock_Info_new extends HttpServlet {
 				gdRes.getHeader("COM_MATR_NAME"		).addValue(qResult.get(i).get(4),"");                                      
 				gdRes.getHeader("NS_MATR_CODE"		).addValue(qResult.get(i).get(5),"");                                      
 				gdRes.getHeader("BASE_UOM"			).addValue(qResult.get(i).get(6),"");
-				gdRes.getHeader("BASE_STOCK"		).addValue(qResult.get(i).get(7),"");       
+				gdRes.getHeader("BASE_STOCK"		).addValue(qResult.get(i).get(7),"");    
+				gdRes.getHeader("SW_FLAG"			).addValue(qResult.get(i).get(8),""); 
 				
 			}                                                                                                                
                                                                                                                              
@@ -166,6 +167,10 @@ public class op_02040_Mfs_Stock_Info_new extends HttpServlet {
 			String com_code		= gdReq.getParam("com_code");	
 			String user_id		= gdReq.getParam("user_id");
 			String cnfm_date	= gdReq.getParam("cnfm_date");
+			String com_code_temp = "";
+			
+			if(com_code.equals("0001000014")) com_code_temp = "0001000014";
+			else com_code_temp = "0001000010";
 			
 			// 데이터 셋팅
 			System.out.println("sql 쿼리 생성");
@@ -175,8 +180,8 @@ public class op_02040_Mfs_Stock_Info_new extends HttpServlet {
 						sql += " union all \n"; 
 					} 
 						
-						sql += "	SELECT	'" + cnfm_date									   	+ "'	AS CNFM_DATE,   	\n";
-						sql += "			'0001000010'									   	 		AS COM_CODE,   		\n";
+						sql += "	SELECT	'" + gdReq.getHeader("CNFM_DATE"		).getValue(i)+ "'	AS CNFM_DATE,   	\n";
+						sql += "			'" + com_code_temp									 + "'	AS COM_CODE,   		\n";
 						sql += "			'" + gdReq.getHeader("COM_NAME"			).getValue(i)+ "'   AS COM_NAME, 		\n";
 						sql += "			'" + gdReq.getHeader("COM_MATR_CODE"	).getValue(i)+ "'   AS COM_MATR_CODE,   \n";
 						sql += "			'" + gdReq.getHeader("COM_MATR_NAME"	).getValue(i)+ "'   AS COM_MATR_NAME,	\n";
@@ -200,8 +205,10 @@ public class op_02040_Mfs_Stock_Info_new extends HttpServlet {
 				sql2 += "DELETE	 FROM	Mfs_Stock_Info WHERE CNFM_DATE =  '" + cnfm_date	+ "'	AND	COM_MATR_CODE LIKE 'HJ%' \n";
 			}else if(com_code.equals("0001000012")){
 				sql2 += "DELETE	 FROM	Mfs_Stock_Info WHERE CNFM_DATE =  '" + cnfm_date	+ "'	AND	COM_MATR_CODE LIKE 'SJP%' \n";
-			}else {
+			}else if(com_code.equals("0001000013")) {
 				sql2 += "DELETE	 FROM	Mfs_Stock_Info WHERE CNFM_DATE =  '" + cnfm_date	+ "'	AND	COM_MATR_CODE LIKE 'SH%' \n";
+			}else if(com_code.equals("0001000014")) {
+				sql2 += "DELETE	 FROM	Mfs_Stock_Info WHERE CNFM_DATE =  '" + cnfm_date	+ "'	AND	COM_MATR_CODE LIKE 'SW%' \n";
 			}
 							
 			

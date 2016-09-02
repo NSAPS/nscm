@@ -32,7 +32,8 @@
              WHERE 	DM.MADE_TYPE != 'DE' -- 삭제 필드가 아닌 데이터만 조회
                AND  (DM.CDC_FLAG = 'Y' OR DM.RDC_FLAG = 'Y')
                AND  DM.ZONE IS NOT NULL   -- 필요없는 입고장 제거위해 사용 2011.10.25
-               	OR DC_ID IN ('8913','8938','1842')
+               	--OR DC_ID IN ('8913','8938','1842')
+               	OR TRANS_FLAG='Y'
              ORDER 	BY DM.DC_ID 
 			
 	</query>	

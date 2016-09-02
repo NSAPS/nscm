@@ -434,6 +434,7 @@
 						AND		K2.PSTAT !='F'
 						AND		K1.ORDER_NUM	= K2.ORDER_NUM	
 						AND		K1.ORDER_STAT	NOT IN ('TECO','DLFL')
+						AND		K2.PTO_DATE BETWEEN TO_CHAR(TO_DATE('$!{in_work_date}')-1,'YYYYMMDD') AND TO_CHAR(TO_DATE('$!{in_work_date}')+1,'YYYYMMDD')
 						)			T1,
 						(
 						/* 마지막 공정정보 */
@@ -609,7 +610,14 @@
 						  / (DECODE (ITM.MIN_UNIT_UOM, 'EA', ITM.BOX_UNIT_QTY, 1)
 							)
 						  QTY
-					 FROM LC060NM DTL, CMITEM ITM, LS010NM LS0
+					 FROM LC060NM DTL, CMITEM ITM,
+					 	  (
+	                      SELECT  DISTINCT
+	                              CENTER_CD,
+	                              ITEM_CD,
+	                              INBOUND_SEQ
+	                      FROM    LS010NM 
+	                      )LS0
 					WHERE DTL.BRAND_CD = '100001'
 					  AND DTL.ITEM_STATE = 'A'
 					  AND DTL.ITEM_CD = ITM.ITEM_CD
@@ -631,7 +639,14 @@
 						  / (DECODE (ITM.MIN_UNIT_UOM, 'EA', ITM.BOX_UNIT_QTY, 1)
 							)
 						  QTY
-					 FROM LC060NM_G DTL, CMITEM ITM, LS010NM_G LS0
+					 FROM LC060NM_G DTL, CMITEM ITM,
+					 	  (
+	                      SELECT  DISTINCT
+	                              CENTER_CD,
+	                              ITEM_CD,
+	                              INBOUND_SEQ
+	                      FROM    LS010NM_G
+	                      )LS0
 					WHERE DTL.BRAND_CD = '100001'
 					  AND DTL.ITEM_STATE = 'A'
 					  AND DTL.ITEM_CD = ITM.ITEM_CD
@@ -653,7 +668,14 @@
 						  / (DECODE (ITM.MIN_UNIT_UOM, 'EA', ITM.BOX_UNIT_QTY, 1)
 							)
 						  QTY
-					 FROM LC060NM_P DTL, CMITEM ITM, LS010NM_P LS0
+					 FROM LC060NM_P DTL, CMITEM ITM,
+					      (
+	                      SELECT  DISTINCT
+	                              CENTER_CD,
+	                              ITEM_CD,
+	                              INBOUND_SEQ
+	                      FROM    LS010NM_P 
+	                      )LS0
 					WHERE DTL.BRAND_CD = '100001'
 					  AND DTL.ITEM_STATE = 'A'
 					  AND DTL.ITEM_CD = ITM.ITEM_CD

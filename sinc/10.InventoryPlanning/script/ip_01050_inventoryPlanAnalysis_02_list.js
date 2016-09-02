@@ -36,7 +36,7 @@ function onclickfunc(row, col, data) {
 	commonUtil.getSelQeury( "item_id", item_id, "ip_01050_Inventory_plan_analysis_check_item_type",{
 		callback:function(result){
 			
-		if(col == '16'){ // (1/3주 평균 편차)->(예상재고) 수정 2014-05-20 이강욱
+		if(col == '19'){ // (1/3주 평균 편차)->(예상재고) 수정 2014-05-20 이강욱
 		
 	
 				if(result == "FERT"){					
