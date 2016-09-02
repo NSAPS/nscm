@@ -1,7 +1,7 @@
 function setProperty(GridObj)
 {
-    GridObj.strHDFontName = "ï¿½ï¿½ï¿½ï¿½";
-    GridObj.strCellFontName = "ï¿½ï¿½ï¿½ï¿½";
+    GridObj.strHDFontName = "±¼¸²";
+    GridObj.strCellFontName = "±¼¸²";
     // Cell Font Setting
     GridObj.nCellFontSize = 9;
 
@@ -44,13 +44,13 @@ function setProperty(GridObj)
     GridObj.bAbortQueryVisible = true;
 
     GridObj.bUserContextMenu    = false;
-    GridObj.bHDMoving           = false;        //ï¿½ï¿½ï¿½ï¿½Ú°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½å·¡ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½Ìµï¿½ï¿½Ò¼ï¿½ ï¿½ï¿½ï¿½ï¿½.
-    GridObj.bHDSwapping         = false;        //ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½Ä¡ï¿½Ìµï¿½ ï¿½Þºï¿½ï¿½ï¿½Æ°ï¿½ï¿½ ï¿½ï¿½È°ï¿½ï¿½È­ ï¿½Ñ´ï¿½.
-    GridObj.bRowSelectorVisible = false;        //ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ WiseGridï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½,. 
-    GridObj.strRowBorderStyle   = "none";       //ï¿½Î¿ï¿½ï¿½ï¿½ ï¿½×µÎ¸ï¿½ï¿½ï¿½ ï¿½Æ¹ï¿½ï¿½Íµï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.  
-    GridObj.nRowSpacing         = 0;            //RowSpacingï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ´ï¿½. 
-    GridObj.strHDClickAction    = "select";     //Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ã°ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ñ´ï¿½.
-    GridObj.strActiveRowBgColor = "default";    //ï¿½ï¿½ï¿½Ãµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.    
+    GridObj.bHDMoving           = false;        //»ç¿ëÀÚ°¡ Çì´õ¸¦ µå·¡±×ÇØ¼­ ÄÃ·³À§Ä¡¸¦ ÀÌµ¿ÇÒ¼ö ¾ø´Ù.
+    GridObj.bHDSwapping         = false;        //Çì´õÀÇ ÄÃ·³À§Ä¡ÀÌµ¿ ÄÞº¸¹öÆ°À» ºñÈ°¼ºÈ­ ÇÑ´Ù.
+    GridObj.bRowSelectorVisible = false;        //·Î¿ì ¼¿·ºÅÍ¸¦ WiseGrid¿¡¼­ ¼û±ä´Ù,. 
+    GridObj.strRowBorderStyle   = "none";       //·Î¿ìÀÇ Å×µÎ¸®¿¡ ¾Æ¹«°Íµµ ³ªÅ¸³ªÁö ¾Ê´Â´Ù.  
+    GridObj.nRowSpacing         = 0;            //RowSpacing°ªÀ» Á¤ÇÑ´Ù. 
+    GridObj.strHDClickAction    = "select";     //Å¬¸¯ÇÑ ÄÃ·³ÀÇ ¼¿À» ¼±ÅÃ°¡´ÉÇÏ°Ô ÇÑ´Ù.
+    GridObj.strActiveRowBgColor = "default";    //¼±ÅÃµÈ ÇàÀÇ ¹è°æ»ö»óÀ» ¼³Á¤ÇÑ´Ù.    
   
     GridObj.bHDMoving=false;
     GridObj.bHDSwapping = false;
