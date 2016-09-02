@@ -1,23 +1,23 @@
 ##############################################################
-## 프로그램ID      : rp_01190_EXP_Stock_Info_list.vm
-## 프로그램명      : 수출출고장 재고분석
-## 개발자          : 남웅용
-## 개발일자        : 2016-08-09
+## ?봽濡쒓렇?옩ID      : rp_01190_EXP_Stock_Info_list.vm
+## ?봽濡쒓렇?옩紐?      : ?닔異쒖텧怨좎옣 ?옱怨좊텇?꽍
+## 媛쒕컻?옄          : ?궓?썒?슜
+## 媛쒕컻?씪?옄        : 2016-08-09
 ##
-## 관련 job file   : job_sinc_40_replenishmentPlanning_03.xml
-## 관련 query file : query_sinc_40_replenishmentPlanning_03.xml
+## 愿??젴 job file   : job_sinc_40_replenishmentPlanning_03.xml
+## 愿??젴 query file : query_sinc_40_replenishmentPlanning_03.xml
 ##
 ## REVISIONS
 ## VER        DATE        AUTHOR    DESCRIPTION
 ## ---------  ----------  --------  ------------------------------------
-## 1.0        2016-08-09  남웅용          create
-##
-##############################################################
+## 1.0        2016-08-09  ?궓?썒?슜          create
 
 
-## 비정상적 접근 방지 
+## git?꽌踰꾩뿉?꽌 吏곸젒蹂?寃?
+
+## 鍮꾩젙?긽?쟻 ?젒洹? 諛⑹? 
 #loginCheck()
-## 화면 resizing 을 위한 size 변수 
+## ?솕硫? resizing ?쓣 ?쐞?븳 size 蹂??닔 
 #set( $resizeFuncCallCode = "setGridAutoResize('79', '270')" ) 
 
 <script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
@@ -33,18 +33,18 @@
 	init2();
 </script>
 
-## DoQuery 메소드가 실행되고 서버와의 통신이 정상적으로 완료되면 발생한다. 
+## DoQuery 硫붿냼?뱶媛? ?떎?뻾?릺怨? ?꽌踰꾩??쓽 ?넻?떊?씠 ?젙?긽?쟻?쑝濡? ?셿猷뚮릺硫? 諛쒖깮?븳?떎. 
 <script language="javascript" for="WiseGrid2" event="EndQuery()">
 	GridEndQuery2();
 </script>
 
-## 등록/수정 화면 이동한 후, 본 화면으로 이동할 때 조회조건을 기억하기 위한 parameter
+## ?벑濡?/?닔?젙 ?솕硫? ?씠?룞?븳 ?썑, 蹂? ?솕硫댁쑝濡? ?씠?룞?븷 ?븣 議고쉶議곌굔?쓣 湲곗뼲?븯湲? ?쐞?븳 parameter
 <input type="hidden" name="cd_grp_pre" value="$!{cd_grp}">
 <input type="hidden" name="perpage_pre" value="${_moon_perpage}">
 <input type="hidden" name="pagenumber_pre" value="$!{_moon_pagenumber}">
 
 <table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
-    ## 기능 버튼 영역
+    ## 湲곕뒫 踰꾪듉 ?쁺?뿭
     <tr>
         <td height="25" align="right">
             <table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
@@ -56,7 +56,7 @@
             </table>
         </td>
     </tr>    
-    ## 조회 영역
+    ## 議고쉶 ?쁺?뿭
 	
     <tr>
         <td width="100%" valign="top">
@@ -70,14 +70,14 @@
                         <table border="0" width="100%" cellpading="0" cellspacing="0" id="search_menu" style="background-color:#f2f2f2; display:block; ">
                             <tr>            
 								<td width="35%" align="left"> 
-    								조회기간 :&nbsp;
+    								議고쉶湲곌컙 :&nbsp;
 									#date_sole_no_title( "cnfm_date" "10" "normal" "work_dateBtn" $commonUtil.toDate($date.get('yyyy-MM-dd'),'YYYY-MM-DD','DAY',0) )
 								</td>
             					<td width="65%" align="left">  
                 					<select name="sel_gubn" style="width:100px; ">
-										<option value="%" #if( "$!{sel_gubn}" == "%" ) selected #end >전체</option>
-        								<option value="10" #if( "$!{sel_gubn}" == "10" ) selected #end >면</option>
-        								<option value="20" #if( "$!{sel_gubn}" == "20" ) selected #end >스낵</option>
+										<option value="%" #if( "$!{sel_gubn}" == "%" ) selected #end >?쟾泥?</option>
+        								<option value="10" #if( "$!{sel_gubn}" == "10" ) selected #end >硫?</option>
+        								<option value="20" #if( "$!{sel_gubn}" == "20" ) selected #end >?뒪?궢</option>
                 					</select>	             									
             					</td> 
                             </tr>                            
@@ -90,12 +90,12 @@
         </td> 
     </tr>
 
-    <input name="search_h" type="hidden" value="45"> ## search 조건 부분 높이 
+    <input name="search_h" type="hidden" value="45"> ## search 議곌굔 遺?遺? ?넂?씠 
     <tr><td height="1"></td></tr>
-    ## TAB 영역
+    ## TAB ?쁺?뿭
     <tr>
         <td valign="top">
-        ## tab 좌측 여백
+        ## tab 醫뚯륫 ?뿬諛?
         ##tabLeft()               
  			<table id="tbBottom" border="0" width="100%" cellpadding="0" cellspacing="0" width="100%" height="170px">
 				<tr height="100%">
@@ -127,12 +127,12 @@
 
 <script>
     
-    // 화면 resize
+    // ?솕硫? resize
     $!{resizeFuncCallCode};
     function window.onresize() { $!{resizeFuncCallCode}; }
     
-    // 도움말 내용 입력
-    var helpStr = "◈  ";    
+    // ?룄??留? ?궡?슜 ?엯?젰
+    var helpStr = "?뿀  ";    
     helpCont.innerHTML = helpStr;
     hDynamicHeight = 0; 
            
