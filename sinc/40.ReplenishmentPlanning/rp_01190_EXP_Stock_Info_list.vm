@@ -1,23 +1,23 @@
 ##############################################################
-## ÇÁ·Î±×·¥ID      : rp_01190_EXP_Stock_Info_list.vm
-## ÇÁ·Î±×·¥¸í      : ¼öÃâÃâ°íÀå Àç°íºĞ¼®
-## °³¹ßÀÚ          : ³²¿õ¿ë
-## °³¹ßÀÏÀÚ        : 2016-08-09
+## í”„ë¡œê·¸ë¨ID      : rp_01190_EXP_Stock_Info_list.vm
+## í”„ë¡œê·¸ë¨ëª…      : ìˆ˜ì¶œì¶œê³ ì¥ ì¬ê³ ë¶„ì„
+## ê°œë°œì          : ë‚¨ì›…ìš©
+## ê°œë°œì¼ì        : 2016-08-09
 ##
-## °ü·Ã job file   : job_sinc_40_replenishmentPlanning_03.xml
-## °ü·Ã query file : query_sinc_40_replenishmentPlanning_03.xml
+## ê´€ë ¨ job file   : job_sinc_40_replenishmentPlanning_03.xml
+## ê´€ë ¨ query file : query_sinc_40_replenishmentPlanning_03.xml
 ##
 ## REVISIONS
 ## VER        DATE        AUTHOR    DESCRIPTION
 ## ---------  ----------  --------  ------------------------------------
-## 1.0        2016-08-09  ³²¿õ¿ë          create
+## 1.0        2016-08-09  ë‚¨ì›…ìš©          create
 
 
+## gitì„œë²„ì—ì„œ ì§ì ‘ë³€ê²½
 
-
-## ºñÁ¤»óÀû Á¢±Ù ¹æÁö 
+## ë¹„ì •ìƒì  ì ‘ê·¼ ë°©ì§€ 
 #loginCheck()
-## È­¸é resizing À» À§ÇÑ size º¯¼ö 
+## í™”ë©´ resizing ì„ ìœ„í•œ size ë³€ìˆ˜ 
 #set( $resizeFuncCallCode = "setGridAutoResize('79', '270')" ) 
 
 <script type='text/javascript' src='${project}/dwr/interface/commonUtil.js'></script>
@@ -33,18 +33,18 @@
 	init2();
 </script>
 
-## DoQuery ¸Ş¼Òµå°¡ ½ÇÇàµÇ°í ¼­¹ö¿ÍÀÇ Åë½ÅÀÌ Á¤»óÀûÀ¸·Î ¿Ï·áµÇ¸é ¹ß»ıÇÑ´Ù. 
+## DoQuery ë©”ì†Œë“œê°€ ì‹¤í–‰ë˜ê³  ì„œë²„ì™€ì˜ í†µì‹ ì´ ì •ìƒì ìœ¼ë¡œ ì™„ë£Œë˜ë©´ ë°œìƒí•œë‹¤. 
 <script language="javascript" for="WiseGrid2" event="EndQuery()">
 	GridEndQuery2();
 </script>
 
-## µî·Ï/¼öÁ¤ È­¸é ÀÌµ¿ÇÑ ÈÄ, º» È­¸éÀ¸·Î ÀÌµ¿ÇÒ ¶§ Á¶È¸Á¶°ÇÀ» ±â¾ïÇÏ±â À§ÇÑ parameter
+## ë“±ë¡/ìˆ˜ì • í™”ë©´ ì´ë™í•œ í›„, ë³¸ í™”ë©´ìœ¼ë¡œ ì´ë™í•  ë•Œ ì¡°íšŒì¡°ê±´ì„ ê¸°ì–µí•˜ê¸° ìœ„í•œ parameter
 <input type="hidden" name="cd_grp_pre" value="$!{cd_grp}">
 <input type="hidden" name="perpage_pre" value="${_moon_perpage}">
 <input type="hidden" name="pagenumber_pre" value="$!{_moon_pagenumber}">
 
 <table border="0" width="100%" height="100%" cellpading="0" cellspacing="0">
-    ## ±â´É ¹öÆ° ¿µ¿ª
+    ## ê¸°ëŠ¥ ë²„íŠ¼ ì˜ì—­
     <tr>
         <td height="25" align="right">
             <table width="100%" border="0" cellspacing="0" cellpadding="0" class="pd_top10 pd_bot10">
@@ -56,7 +56,7 @@
             </table>
         </td>
     </tr>    
-    ## Á¶È¸ ¿µ¿ª
+    ## ì¡°íšŒ ì˜ì—­
 	
     <tr>
         <td width="100%" valign="top">
@@ -70,14 +70,14 @@
                         <table border="0" width="100%" cellpading="0" cellspacing="0" id="search_menu" style="background-color:#f2f2f2; display:block; ">
                             <tr>            
 								<td width="35%" align="left"> 
-    								Á¶È¸±â°£ :&nbsp;
+    								ì¡°íšŒê¸°ê°„ :&nbsp;
 									#date_sole_no_title( "cnfm_date" "10" "normal" "work_dateBtn" $commonUtil.toDate($date.get('yyyy-MM-dd'),'YYYY-MM-DD','DAY',0) )
 								</td>
             					<td width="65%" align="left">  
                 					<select name="sel_gubn" style="width:100px; ">
-										<option value="%" #if( "$!{sel_gubn}" == "%" ) selected #end >ÀüÃ¼</option>
-        								<option value="10" #if( "$!{sel_gubn}" == "10" ) selected #end >¸é</option>
-        								<option value="20" #if( "$!{sel_gubn}" == "20" ) selected #end >½º³¼</option>
+										<option value="%" #if( "$!{sel_gubn}" == "%" ) selected #end >ì „ì²´</option>
+        								<option value="10" #if( "$!{sel_gubn}" == "10" ) selected #end >ë©´</option>
+        								<option value="20" #if( "$!{sel_gubn}" == "20" ) selected #end >ìŠ¤ë‚µ</option>
                 					</select>	             									
             					</td> 
                             </tr>                            
@@ -90,12 +90,12 @@
         </td> 
     </tr>
 
-    <input name="search_h" type="hidden" value="45"> ## search Á¶°Ç ºÎºĞ ³ôÀÌ 
+    <input name="search_h" type="hidden" value="45"> ## search ì¡°ê±´ ë¶€ë¶„ ë†’ì´ 
     <tr><td height="1"></td></tr>
-    ## TAB ¿µ¿ª
+    ## TAB ì˜ì—­
     <tr>
         <td valign="top">
-        ## tab ÁÂÃø ¿©¹é
+        ## tab ì¢Œì¸¡ ì—¬ë°±
         ##tabLeft()               
  			<table id="tbBottom" border="0" width="100%" cellpadding="0" cellspacing="0" width="100%" height="170px">
 				<tr height="100%">
@@ -127,12 +127,12 @@
 
 <script>
     
-    // È­¸é resize
+    // í™”ë©´ resize
     $!{resizeFuncCallCode};
     function window.onresize() { $!{resizeFuncCallCode}; }
     
-    // µµ¿ò¸» ³»¿ë ÀÔ·Â
-    var helpStr = "¢Â  ";    
+    // ë„ì›€ë§ ë‚´ìš© ì…ë ¥
+    var helpStr = "â—ˆ  ";    
     helpCont.innerHTML = helpStr;
     hDynamicHeight = 0; 
            
