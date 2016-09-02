@@ -1,65 +1,65 @@
-<?xml version="1.0" encoding="euc-kr"?>
-
-<jobs>
-
-<!--
-=====================================================================================================
-	재고운영계획 >> 운영정보
-=====================================================================================================
--->
-	
-	<!--
-	======================================================================
-		유통본부 미납 추적 분석
-	======================================================================
-	-->
-	
-	<!-- 유통본부 미납 추적 분석 -->
-	<job id="ip_02070_Edi_Default_List" job_type="single" check_permission="no">
-		<path>/sinc/10.InventoryPlanning</path>
-		<navigation>재고운영계획 >> 운영정보 >> 유통본부 미납 추적 분석</navigation>
-		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>유통본부 미납 추적 분석</title>
-		<authority>1</authority>		
-		<description>유통본부 미납 추적 분석</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="ip_02070_Edi_Default_code_combo" datasource="t3sinc"/>
-		</queries>
-	</job>
-
-
-	<!-- 유통본부 미납 추적 분석 EXCEL 업로드 팝업-->
-	<job id="ip_02070_Edi_Default_List_excel_reg_pop" job_type="single" check_permission="no">
-		<path>/sinc/10.InventoryPlanning</path>
-		<navigation>재고운영계획 >> 운영정보 >> 유통본부 미납 추적 분석 EXCEL 업로드</navigation>
-		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>유통본부 미납 추적 분석 EXCEL 업로드</title>
-		<authority>1</authority>		
-		<description>유통본부 미납 추적 분석 EXCEL 업로드</description>
-		<request_type>list</request_type>
-		<queries>
-		</queries>
-	</job>
-
-	<!-- 유통본부 미납 추적 분석 월간 집계-->
-	<job id="ip_02070_Edi_Default_List_Monthly_popup" job_type="single" check_permission="no">
-		<path>/sinc/10.InventoryPlanning</path>
-		<navigation>재고운영계획 >> 운영정보 >> 월간 EDI 미납현황</navigation>
-		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>월간 EDI 미납현황</title>
-		<authority>1</authority>		
-		<description>월간 EDI 미납현황</description>
-		<request_type>list</request_type>
-		<queries>
-		</queries>
-	</job>
-
-
-<!--
-=====================================================================================================
- 끝 
-=====================================================================================================
---> 
-
-</jobs>	
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+<!--
+=====================================================================================================
+	재고운영계획 >> 운영정보
+=====================================================================================================
+-->
+	
+	<!--
+	======================================================================
+		유통본부 미납 추적 분석
+	======================================================================
+	-->
+	
+	<!-- 유통본부 미납 추적 분석 -->
+	<job id="ip_02070_Edi_Default_List" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 운영정보 >> 유통본부 미납 추적 분석</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>유통본부 미납 추적 분석</title>
+		<authority>1</authority>		
+		<description>유통본부 미납 추적 분석</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="ip_02070_Edi_Default_code_combo" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+
+	<!-- 유통본부 미납 추적 분석 EXCEL 업로드 팝업-->
+	<job id="ip_02070_Edi_Default_List_excel_reg_pop" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 운영정보 >> 유통본부 미납 추적 분석 EXCEL 업로드</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>유통본부 미납 추적 분석 EXCEL 업로드</title>
+		<authority>1</authority>		
+		<description>유통본부 미납 추적 분석 EXCEL 업로드</description>
+		<request_type>list</request_type>
+		<queries>
+		</queries>
+	</job>
+
+	<!-- 유통본부 미납 추적 분석 월간 집계-->
+	<job id="ip_02070_Edi_Default_List_Monthly_popup" job_type="single" check_permission="no">
+		<path>/sinc/10.InventoryPlanning</path>
+		<navigation>재고운영계획 >> 운영정보 >> 월간 EDI 미납현황</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>월간 EDI 미납현황</title>
+		<authority>1</authority>		
+		<description>월간 EDI 미납현황</description>
+		<request_type>list</request_type>
+		<queries>
+		</queries>
+	</job>
+
+
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</jobs>	

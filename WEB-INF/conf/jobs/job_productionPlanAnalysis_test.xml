@@ -1,70 +1,70 @@
-<?xml version="1.0" encoding="euc-kr"?>
-
-<jobs>
-
-<!--
-=====================================================================================================
-	WISEGRID 
-=====================================================================================================
---> 
-
-	<!-- 
-	=======================
-	  완제품 생산계획 조정
-	=======================
-	-->
-	
-	<!--  완제품 생산계획 조정  조회 -->
-	<job id="productionPlanAnalysis_test" job_type="single" check_permission="no">
-		<path>/sinc/wisegrid</path>
-		<navigation>생산계획 >> 운영정보 >> 완제품 생산계획 조정</navigation>
-		<toolbars>1010</toolbars><!--(등록/수정/저장/삭제)-->
-		<title>완제품 생산계획 조정</title>
-		<authority>1</authority>		
-		<description>완제품 생산계획 조정</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="plant_and_version_list" datasource="t3sinc"/>
-			<query idref="weekly_3_start_end_date" datasource="t3sinc"/>
-			<query idref="msg_group_code_list" datasource="t3sinc"/>
-			<query idref="msg_group_detail_list" datasource="t3sinc"/>
-			<!--query idref="sc_11020_dailyProductionPlanAnalysisNew_list" datasource="t3sinc"/-->
-		</queries>
-	</job>
-	
-	<!-- 완제품 생산계획 조정 : POPUP : 공장, 버전 선택 화면 --> 
-	<job id="sc_11020_dailyProductionPlanAnalysisNewSelectPlantAndVersion_popup" job_type="single">
-		<path>/sinc/wisegrid</path>
-		<navigation>생산계획 >> 운영정보 >> 완제품 생산계획 조정</navigation>
-		<toolbars>0000</toolbars>
-		<title>공장 및 버전 선택</title>
-		<authority>1</authority>
-		<description>popup</description>
-		<request_type>list</request_type> 
-		<queries> 
-			<query idref="daily_prod_analysis_new_plant_list" datasource="t3sinc"/>
-			<query idref="daily_prod_analysis_new_version_list" datasource="t3sinc"/>
-		</queries>
-	</job>
-	
-	<!-- 완제품 생산계획 조정 : POPUP : 보정내역 확인 --> 
-	<job id="productionPlanAnalysis_test_pop" job_type="single">
-		<path>/sinc/wisegrid</path>
-		<navigation>생산계획 >> 운영정보 >> 완제품 생산계획 조정-변경이력</navigation>
-		<toolbars>0000</toolbars>
-		<title>계획 변경 이력</title>
-		<authority>1</authority>
-		<description>popup</description>
-		<request_type>list</request_type> 
-		<queries> 
-			<query idref="dumy_lst" datasource="t3sinc"/>
-		</queries>
-	</job>
-	
-<!--
-=====================================================================================================
- 끝 
-=====================================================================================================
---> 
-
-</jobs>	
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+<!--
+=====================================================================================================
+	WISEGRID 
+=====================================================================================================
+--> 
+
+	<!-- 
+	=======================
+	  완제품 생산계획 조정
+	=======================
+	-->
+	
+	<!--  완제품 생산계획 조정  조회 -->
+	<job id="productionPlanAnalysis_test" job_type="single" check_permission="no">
+		<path>/sinc/wisegrid</path>
+		<navigation>생산계획 >> 운영정보 >> 완제품 생산계획 조정</navigation>
+		<toolbars>1010</toolbars><!--(등록/수정/저장/삭제)-->
+		<title>완제품 생산계획 조정</title>
+		<authority>1</authority>		
+		<description>완제품 생산계획 조정</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="plant_and_version_list" datasource="t3sinc"/>
+			<query idref="weekly_3_start_end_date" datasource="t3sinc"/>
+			<query idref="msg_group_code_list" datasource="t3sinc"/>
+			<query idref="msg_group_detail_list" datasource="t3sinc"/>
+			<!--query idref="sc_11020_dailyProductionPlanAnalysisNew_list" datasource="t3sinc"/-->
+		</queries>
+	</job>
+	
+	<!-- 완제품 생산계획 조정 : POPUP : 공장, 버전 선택 화면 --> 
+	<job id="sc_11020_dailyProductionPlanAnalysisNewSelectPlantAndVersion_popup" job_type="single">
+		<path>/sinc/wisegrid</path>
+		<navigation>생산계획 >> 운영정보 >> 완제품 생산계획 조정</navigation>
+		<toolbars>0000</toolbars>
+		<title>공장 및 버전 선택</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type> 
+		<queries> 
+			<query idref="daily_prod_analysis_new_plant_list" datasource="t3sinc"/>
+			<query idref="daily_prod_analysis_new_version_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 완제품 생산계획 조정 : POPUP : 보정내역 확인 --> 
+	<job id="productionPlanAnalysis_test_pop" job_type="single">
+		<path>/sinc/wisegrid</path>
+		<navigation>생산계획 >> 운영정보 >> 완제품 생산계획 조정-변경이력</navigation>
+		<toolbars>0000</toolbars>
+		<title>계획 변경 이력</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type> 
+		<queries> 
+			<query idref="dumy_lst" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</jobs>	

@@ -1,437 +1,437 @@
-<?xml version="1.0" encoding="euc-kr"?>
-
-<jobs>
-  
-<!--
-=====================================================================================================
-	수요예측 >> 수요예측분석 
-=====================================================================================================
--->  
-
-	<!-- 공통 쿼리 By KCKIM, start -->
-    <!-- 제품 코드(multi) 조회팝업, By KCKIM, start -->
-	<job id="fc_item_mCodePopup_header" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 분석 >> 주요품목 판매현황(popup)</navigation>
-		<toolbars>0000</toolbars>
-		<title>주요품목</title> 
-		<authority>1</authority>
-		<description>popup</description>
-		<request_type>list</request_type> 
-	</job>  
-	<job id="fc_item_mCodePopup_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>코드 검색</navigation>
-		<toolbars>0000</toolbars>
-		<title>코드 검색</title>
-		<authority>1</authority>		
-		<description>iframe</description>
-		<request_type>list</request_type>  
-		<queries>    
-			<query idref="select_item" datasource="t3sinc"/>						
-		</queries>
-	</job>
-    <!-- 제품 코드(multi) 조회 팝업, By KCKIM, end -->
-
-    <!-- 거래처 코드 조회 팝업, By KCKIM, start -->
-	<job id="fc_customer_codePopup_header" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 공통 >> 거래처 코드 조회(popup)</navigation>
-		<toolbars>0000</toolbars> 
-		<title>주요품목</title> 
-		<authority>1</authority>
-		<description>popup</description>
-		<request_type>list</request_type> 
-	</job>  
-	<job id="fc_customer_codePopup_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>거래처 코드 조회</navigation>
-		<toolbars>0000</toolbars>
-		<title>거래처 코드 조회</title>
-		<authority>1</authority>		
-		<description>iframe</description>
-		<request_type>list</request_type>  
-		<queries>     
-			<query idref="customer_code_list" datasource="t3sinc"/>
-		</queries>
-	</job>  
-    <!-- 거래처 코드 조회 팝업, By KCKIM, end -->
-	
-    <!-- 거래처 코드(multi) 조회팝업, By KCKIM, start -->
-	<job id="fc_customer_mCodePopup_header" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 분석 >> 유통재고 실판매정보 분석(popup)</navigation>
-		<toolbars>0000</toolbars>
-		<title>유통재고 실판매정보 분석</title> 
-		<authority>1</authority>
-		<description>popup</description>
-		<request_type>list</request_type> 
-	</job>  
-	<job id="fc_customer_mCodePopup_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>거래처(본부) 코드 검색</navigation>
-		<toolbars>0000</toolbars>
-		<title>거래처(본부) 코드 검색</title>
-		<authority>1</authority>		
-		<description>iframe</description>
-		<request_type>list</request_type>  
-		<queries>     
-			<query idref="customer_mCode_list" datasource="t3sinc"/>						
-		</queries>
-	</job>
-	<job id="fc_customer_cCodePopup_header" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 분석 >> 유통재고 실판매정보 분석(popup)</navigation>
-		<toolbars>0000</toolbars>
-		<title>유통재고 실판매정보 분석</title> 
-		<authority>1</authority>
-		<description>popup</description>
-		<request_type>list</request_type> 
-	</job>  
-	<job id="fc_customer_cCodePopup_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>거래처(본부) 코드 검색</navigation>
-		<toolbars>0000</toolbars>
-		<title>거래처(본부) 코드 검색</title>
-		<authority>1</authority>		
-		<description>iframe</description>
-		<request_type>list</request_type>  
-		<queries>      
-			<query idref="customer_cCode_list" datasource="t3sinc"/>						
-		</queries> 
-	</job> 
-    <!-- 제품 코드(multi) 조회 팝업, By KCKIM, end -->
-  	
-	<!-- 공통 쿼리 By KCKIM, end -->	
-	
-    <!-- 수요예측 분석 2008.08.20 By KCKIM  start -->    
-    <!-- 판매실적 편차분석(NEW) , By KCKIM, start -->
-	<job id="fc_05010_deflectionAnalysis_header" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 분석 >> 판매실적 편차분석</navigation>
-		<toolbars>0000</toolbars>
-		<title>판매실적 편차분석</title>
-		<authority>1</authority>
-		<description>판매실적 편차분석</description>
-		<request_type>list</request_type>
-		<queries>     
-		    <query idref="org_list" datasource="t3sinc"/>     <!-- 구분2 : 조직(대분류) -->
-		    <query idref="new_org_list" datasource="t3sinc"/> <!-- 구분2 : 영업지점별 분류  -->
-		</queries>   
-	</job> 
-	
-    <!-- 판매실적 편차분석(NEW) 월간 CHILD_1 -->
-	<job id="fc_05020_deflectionAnalysisMonthly_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation></navigation>
-		<toolbars></toolbars>
-		<title>판매실적 편차분석(월간)</title>
-		<authority>1</authority>
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries>  
-			<query idref="month12_list"    datasource="t3sinc"/>
-			<query idref="fc_05020_deflectionAnalysisMonthly_tailer"    datasource="t3sinc"/>			
-		</queries>   
-	</job>
-	<!-- 판매실적 편차분석(NEW) , By KCKIM, end -->
-
-    <!-- 판매실적 편차분석(NEW) 주_일간 CHILD_2 -->
-	<job id="fc_05030_deflectionAnalysisDaily_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation></navigation>
-		<toolbars></toolbars>
-		<title>판매실적 편차분석(주_일간)</title>
-		<authority>1</authority>
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries>   
-			<query idref="day_Weekly_main_list" datasource="t3sinc"/>
-			<query idref="day_Weekly_sub_list" datasource="t3sinc"/>				 	
-			<query idref="fc_05030_deflectionAnalysisDaily_tailer"    datasource="t3sinc"/>			
-		</queries>   
-	</job>
-	<!-- 판매실적 편차분석(NEW) , By KCKIM, end --> 
-
-     <!-- 판매실적 편차분석(NEW) 판매계획vs수요예측 CHILD_3 -->
-	<job id="fc_05040_deflectionAnalysisWeekly_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation></navigation>
-		<toolbars></toolbars>
-		<title>판매실적 편차분석(주간)</title>
-		<authority>1</authority>
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries>  
-			<query idref="day_Weekly_main_list" datasource="t3sinc"/>
-			<query idref="day_Weekly_sub_list" datasource="t3sinc"/>	
-			<query idref="fc_05040_deflectionAnalysisWeekly_tailer"    datasource="t3sinc"/>			
-		</queries>    
-	</job>
-	<!-- 판매실적 편차분석(NEW) , By KCKIM, end -->
-
-   <!-- 판매실적 편차분석(NEW) EXCEL -->
-	<job id="fc_05020_deflectionAnalysisMonthly_excel" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation></navigation>
-		<toolbars></toolbars>
-		<title>판매실적 편차분석(월간)</title>
-		<authority>1</authority>
-		<description>판매실적 편차분석(월간)</description>
-		<request_type>list</request_type> 
-		<queries>  
-			<query idref="month12_list"    datasource="t3sinc"/>
-			<query idref="fc_05020_deflectionAnalysisMonthly_excel"    datasource="t3sinc"/>			
-		</queries>    
-	</job>
-   <!-- 판매실적 편차분석(NEW) EXCEL --> 
-	
-    <!-- 주요품목 판매추세 분석(월/주간) , By KCKIM, start -->
-    <!-- 주요품목 판매추세 분석(NEW) -->
-	<job id="fc_05050_majorItemSalesTrend_header" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 분석 >> 주요품목 판매현황</navigation>
-		<toolbars>0000</toolbars>
-		<title>주요품목 판매현황</title>
-		<authority>1</authority>
-		<description>주요품목 판매현황</description>
-		<request_type>list</request_type>
-		<queries>    
-			<query idref="grup_code1_list"    datasource="t3sinc"/>
-		</queries>   
-	</job>   
-	
-	<!-- 주요품목 판매추세(NEW) CHILD1 --> 
-	<job id="fc_05050_majorItemSalesTrend_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 분석 >> 주요품목 판매현황</navigation>
-		<toolbars>0000</toolbars>
-		<title>주요품목 판매현황</title>
-		<authority>1</authority>
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries>    
-			<query idref="month12_list"    datasource="t3sinc"/>
-			<query idref="fc_05050_majorItemSalesTrend_tailer"    datasource="t3sinc"/>
-		</queries>   
-	</job> 
-	
-	<!-- 주요품목 판매현황(NEW) CHILD2 --> 
-	<job id="fc_05060_majorItemSalesTrend_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 분석 >> 주요품목 판매현황</navigation>
-		<toolbars>0000</toolbars>
-		<title>주요품목 판매현황</title>
-		<authority>1</authority>
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries>     
-			<query idref="daily31_list"    datasource="t3sinc"/>
-			<query idref="fc_05060_majorItemSalesTrend_tailer"    datasource="t3sinc"/>
-		</queries>   
-	</job> 
-	 
-    <!-- 판매현황1 조회(NEW) start -->
-	<job id="fc_05070_salesMonitoring_header" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 분석 >> 판매현황(조직) 조회</navigation>
-		<toolbars>0000</toolbars>
-		<title>판매현황(조직) 조회</title>
-		<authority>1</authority>
-		<description>판매현황(조직) 조회</description>
-		<request_type>list</request_type>
-		<queries>      
-		</queries>   
-	</job> 
-	<job id="fc_05070_salesMonitoring_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 분석 >> 판매현황(조직) 조회</navigation>
-		<toolbars>0000</toolbars>
-		<title>판매현황(조직) 조회</title>
-		<authority>1</authority>
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries>      
-			<query idref="month12_list"    datasource="t3sinc"/>
-			<query idref="fc_05070_salesMonitoring_tailer" datasource="t3sinc"/> <!-- 페이징 기준위해  맨 아래 둘것 -->			
-		</queries>   
-	</job>  
-	<job id="fc_05080_salesMonitoring_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 분석 >> 판매현황(조직) 조회</navigation>
-		<toolbars>0000</toolbars>
-		<title>판매현황(조직) 조회</title>
-		<authority>1</authority>
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries>    
-			<query idref="daily31_list"    datasource="t3sinc"/>			
-			<query idref="fc_05080_salesMonitoring_tailer" datasource="t3sinc"/> <!-- 페이징 기준위해  맨 아래 둘것 -->			
-		</queries>   
-	</job>     
-    <!-- 판매현황1 조회(NEW) end -->
-
-    <!-- 판매현황 품종별 조회(NEW) , By KCKIM, start -->
-	<job id="fc_05090_itemSalesMonitoring_header" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 분석 >> 판매현황(품종) 조회</navigation>
-		<toolbars>0000</toolbars>
-		<title>판매현황(품종) 조회</title>
-		<authority>1</authority>
-		<description>판매현황(품종) 조회</description>
-		<request_type>list</request_type>
-		<queries>       
-			<query idref="grup_code1_list"    datasource="t3sinc"/>
-		</queries>   
-	</job>  
-	<job id="fc_05090_itemSalesMonitoring_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 분석 >> 판매현황(품종) 조회</navigation>
-		<toolbars>0000</toolbars>
-		<title>판매현황(품종) 조회</title>
-		<authority>1</authority>
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries>    
-			<query idref="month12_list"    datasource="t3sinc"/>
-			<query idref="fc_05090_itemSalesMonitoring_tailer" datasource="t3sinc"/> <!-- 페이징 기준위해  맨 아래 둘것 -->			
-		</queries>   
-	</job>  
-	<job id="fc_05100_itemSalesMonitoring_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 분석 >> 판매현황(품종) 조회</navigation>
-		<toolbars>0000</toolbars>
-		<title>판매현황(품종) 조회</title>
-		<authority>1</authority>
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries>      
-			<query idref="daily31_list"    datasource="t3sinc"/>		
-			<query idref="fc_05100_itemSalesMonitoring_tailer" datasource="t3sinc"/> <!-- 페이징 기준위해  맨 아래 둘것 -->			
-		</queries>     
-	</job>   
-    <!-- 판매현황 품종별 조회(일간) , By KCKIM, end -->
-    	
-	<!-- 유통채널별 판매현황 조회 , By KCKIM, start -->
-	<job id="fc_05110_chanelSalesMonitoring_header" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 분석 >> 유통채널별 판매현황 조회</navigation>
-		<toolbars>0000</toolbars>
-		<title>유통채널별 판매현황 조회</title>
-		<authority>1</authority>
-		<description>유통채널별 판매현황 조회</description>
-		<request_type>list</request_type>
-		<queries>     
-		    <query idref="custGB_B_list"     datasource="t3sinc"/> <!-- 품종구분(대) -->
-		    <query idref="fcst_grp_list"     datasource="t3sinc"/> <!-- 유통채널별조회 -->
-		</queries>   
-	</job>  
-	<job id="fc_05110_chanelSalesMonitoring_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 분석 >>유통채널별 판매현황 조회</navigation>
-		<toolbars>0000</toolbars>
-		<title>유통채널별 판매현황 조회</title>
-		<authority>1</authority>
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries>     
-		    <query idref="fcst_grp_list"     datasource="t3sinc"/> <!-- 유통채널별조회 -->
-			<query idref="fc_05110_chanelSalesMonitoring_tailer" datasource="t3sinc"/> <!-- 페이징 기준위해  맨 아래 둘것 -->			
-		</queries>    
-	</job>  
-	
-	
-	<!-- 유통채널별 판매현황 조회 , By KCKIM, end -->
-
-	<!-- 판매계획 변동률 분석(NEW) , By KCKIM, start -->
-	<job id="fc_05120_salesPlan_Rate_header" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 분석 >>판매계획 변동률 분석</navigation>
-		<toolbars>0000</toolbars>
-		<title>판매계획 변동률 분석</title>
-		<authority>1</authority>
-		<description>판매계획 변동률 분석</description> 
-		<request_type>list</request_type>
-		<queries>      
-		    <query idref="custGB_B_list"       datasource="t3sinc"/> <!-- 품종구분(대) -->
-		    <query idref="new_org_list"     datasource="t3sinc"/> <!-- 영업점 조회 -->
-		</queries>     
-	</job>  
-	<job id="fc_05120_salesPlan_Rate_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 분석 >>판매계획 변동률 분석</navigation>
-		<toolbars>0000</toolbars>
-		<title>판매계획 변동률 분석</title>
-		<authority>1</authority> 
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries>       
-			<query idref="month12_list"    datasource="t3sinc"/>		
-			<query idref="fc_05120_salesPlan_Rate_tailer" datasource="t3sinc"/> <!-- 페이징 기준위해  맨 아래 둘것 -->			
-		</queries>   
-	</job>  
-	<job id="fc_05130_salesPlan_Rate_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 분석 >>판매계획 변동률 분석</navigation>
-		<toolbars>0000</toolbars>
-		<title>판매계획 변동률 분석</title>
-		<authority>1</authority> 
-		<description>iframe</description>
-		<request_type>list</request_type> 
-		<queries>      
-			<query idref="daily31_list"    datasource="t3sinc"/>							
-			<query idref="fc_05130_salesPlan_Rate_tailer" datasource="t3sinc"/> <!-- 페이징 기준위해  맨 아래 둘것 -->			
-		</queries>   
-	</job>  
-	<!-- 판매계획 변동률 분석(NEW) , By KCKIM, start -->
-
-	<!-- 유통재고/실판매정보 분석    , By KCKIM, start -->
-	<job id="fc_05140_disInvActSalesInfo_header" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 분석 >>유통재고 실판매정보 분석 </navigation>
-		<toolbars>0000</toolbars>
-		<title>유통재고 실판매정보 분석</title>
-		<authority>1</authority>
-		<description>유통재고 실판매정보 분석</description>
-		<request_type>list</request_type>
-		<queries>       
-		    <query idref="grup_code1_list"    datasource="t3sinc"/>
-		</queries>   
-	</job>  
-	<!-- 월/주 -->
-	<job id="fc_05140_disInvActSalesInfo_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 분석 >>유통재고 실판매정보 분석 </navigation>
-		<toolbars>0000</toolbars>
-		<title>유통재고 실판매정보 분석</title>
-		<authority>1</authority>
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries>      
-		    <query idref="month12_list"     datasource="t3sinc"/> 
-			<query idref="fc_05140_disInvActSalesInfo_tailer" datasource="t3sinc"/> <!-- 페이징 기준위해  맨 아래 둘것 -->			
-		</queries>   
-	</job>  
-	<!-- 일 -->
-	<job id="fc_05150_disInvActSalesInfo_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>  
-		<navigation>수요예측 >> 수요예측 분석 >>유통재고 실판매정보 분석</navigation>
-		<toolbars>0000</toolbars>
-		<title>유통재고 실판매정보 분석</title>
-		<authority>1</authority>
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries>      
-		    <query idref="daily31_list"     datasource="t3sinc"/>
-			<query idref="fc_05150_disInvActSalesInfo_tailer" datasource="t3sinc"/> <!-- 페이징 기준위해  맨 아래 둘것 -->			
-		</queries>    
-	</job>   	   
-	<!-- 유통재고 실판매정보 분석 , By KCKIM, end --> 
-<!--
-=====================================================================================================
-	수요예측 >> 수요예측분석  end
-=====================================================================================================
--->  			
-</jobs>
-
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+  
+<!--
+=====================================================================================================
+	수요예측 >> 수요예측분석 
+=====================================================================================================
+-->  
+
+	<!-- 공통 쿼리 By KCKIM, start -->
+    <!-- 제품 코드(multi) 조회팝업, By KCKIM, start -->
+	<job id="fc_item_mCodePopup_header" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 분석 >> 주요품목 판매현황(popup)</navigation>
+		<toolbars>0000</toolbars>
+		<title>주요품목</title> 
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type> 
+	</job>  
+	<job id="fc_item_mCodePopup_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>코드 검색</navigation>
+		<toolbars>0000</toolbars>
+		<title>코드 검색</title>
+		<authority>1</authority>		
+		<description>iframe</description>
+		<request_type>list</request_type>  
+		<queries>    
+			<query idref="select_item" datasource="t3sinc"/>						
+		</queries>
+	</job>
+    <!-- 제품 코드(multi) 조회 팝업, By KCKIM, end -->
+
+    <!-- 거래처 코드 조회 팝업, By KCKIM, start -->
+	<job id="fc_customer_codePopup_header" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 공통 >> 거래처 코드 조회(popup)</navigation>
+		<toolbars>0000</toolbars> 
+		<title>주요품목</title> 
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type> 
+	</job>  
+	<job id="fc_customer_codePopup_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>거래처 코드 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>거래처 코드 조회</title>
+		<authority>1</authority>		
+		<description>iframe</description>
+		<request_type>list</request_type>  
+		<queries>     
+			<query idref="customer_code_list" datasource="t3sinc"/>
+		</queries>
+	</job>  
+    <!-- 거래처 코드 조회 팝업, By KCKIM, end -->
+	
+    <!-- 거래처 코드(multi) 조회팝업, By KCKIM, start -->
+	<job id="fc_customer_mCodePopup_header" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 분석 >> 유통재고 실판매정보 분석(popup)</navigation>
+		<toolbars>0000</toolbars>
+		<title>유통재고 실판매정보 분석</title> 
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type> 
+	</job>  
+	<job id="fc_customer_mCodePopup_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>거래처(본부) 코드 검색</navigation>
+		<toolbars>0000</toolbars>
+		<title>거래처(본부) 코드 검색</title>
+		<authority>1</authority>		
+		<description>iframe</description>
+		<request_type>list</request_type>  
+		<queries>     
+			<query idref="customer_mCode_list" datasource="t3sinc"/>						
+		</queries>
+	</job>
+	<job id="fc_customer_cCodePopup_header" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 분석 >> 유통재고 실판매정보 분석(popup)</navigation>
+		<toolbars>0000</toolbars>
+		<title>유통재고 실판매정보 분석</title> 
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type> 
+	</job>  
+	<job id="fc_customer_cCodePopup_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>거래처(본부) 코드 검색</navigation>
+		<toolbars>0000</toolbars>
+		<title>거래처(본부) 코드 검색</title>
+		<authority>1</authority>		
+		<description>iframe</description>
+		<request_type>list</request_type>  
+		<queries>      
+			<query idref="customer_cCode_list" datasource="t3sinc"/>						
+		</queries> 
+	</job> 
+    <!-- 제품 코드(multi) 조회 팝업, By KCKIM, end -->
+  	
+	<!-- 공통 쿼리 By KCKIM, end -->	
+	
+    <!-- 수요예측 분석 2008.08.20 By KCKIM  start -->    
+    <!-- 판매실적 편차분석(NEW) , By KCKIM, start -->
+	<job id="fc_05010_deflectionAnalysis_header" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 분석 >> 판매실적 편차분석</navigation>
+		<toolbars>0000</toolbars>
+		<title>판매실적 편차분석</title>
+		<authority>1</authority>
+		<description>판매실적 편차분석</description>
+		<request_type>list</request_type>
+		<queries>     
+		    <query idref="org_list" datasource="t3sinc"/>     <!-- 구분2 : 조직(대분류) -->
+		    <query idref="new_org_list" datasource="t3sinc"/> <!-- 구분2 : 영업지점별 분류  -->
+		</queries>   
+	</job> 
+	
+    <!-- 판매실적 편차분석(NEW) 월간 CHILD_1 -->
+	<job id="fc_05020_deflectionAnalysisMonthly_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation></navigation>
+		<toolbars></toolbars>
+		<title>판매실적 편차분석(월간)</title>
+		<authority>1</authority>
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries>  
+			<query idref="month12_list"    datasource="t3sinc"/>
+			<query idref="fc_05020_deflectionAnalysisMonthly_tailer"    datasource="t3sinc"/>			
+		</queries>   
+	</job>
+	<!-- 판매실적 편차분석(NEW) , By KCKIM, end -->
+
+    <!-- 판매실적 편차분석(NEW) 주_일간 CHILD_2 -->
+	<job id="fc_05030_deflectionAnalysisDaily_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation></navigation>
+		<toolbars></toolbars>
+		<title>판매실적 편차분석(주_일간)</title>
+		<authority>1</authority>
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries>   
+			<query idref="day_Weekly_main_list" datasource="t3sinc"/>
+			<query idref="day_Weekly_sub_list" datasource="t3sinc"/>				 	
+			<query idref="fc_05030_deflectionAnalysisDaily_tailer"    datasource="t3sinc"/>			
+		</queries>   
+	</job>
+	<!-- 판매실적 편차분석(NEW) , By KCKIM, end --> 
+
+     <!-- 판매실적 편차분석(NEW) 판매계획vs수요예측 CHILD_3 -->
+	<job id="fc_05040_deflectionAnalysisWeekly_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation></navigation>
+		<toolbars></toolbars>
+		<title>판매실적 편차분석(주간)</title>
+		<authority>1</authority>
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries>  
+			<query idref="day_Weekly_main_list" datasource="t3sinc"/>
+			<query idref="day_Weekly_sub_list" datasource="t3sinc"/>	
+			<query idref="fc_05040_deflectionAnalysisWeekly_tailer"    datasource="t3sinc"/>			
+		</queries>    
+	</job>
+	<!-- 판매실적 편차분석(NEW) , By KCKIM, end -->
+
+   <!-- 판매실적 편차분석(NEW) EXCEL -->
+	<job id="fc_05020_deflectionAnalysisMonthly_excel" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation></navigation>
+		<toolbars></toolbars>
+		<title>판매실적 편차분석(월간)</title>
+		<authority>1</authority>
+		<description>판매실적 편차분석(월간)</description>
+		<request_type>list</request_type> 
+		<queries>  
+			<query idref="month12_list"    datasource="t3sinc"/>
+			<query idref="fc_05020_deflectionAnalysisMonthly_excel"    datasource="t3sinc"/>			
+		</queries>    
+	</job>
+   <!-- 판매실적 편차분석(NEW) EXCEL --> 
+	
+    <!-- 주요품목 판매추세 분석(월/주간) , By KCKIM, start -->
+    <!-- 주요품목 판매추세 분석(NEW) -->
+	<job id="fc_05050_majorItemSalesTrend_header" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 분석 >> 주요품목 판매현황</navigation>
+		<toolbars>0000</toolbars>
+		<title>주요품목 판매현황</title>
+		<authority>1</authority>
+		<description>주요품목 판매현황</description>
+		<request_type>list</request_type>
+		<queries>    
+			<query idref="grup_code1_list"    datasource="t3sinc"/>
+		</queries>   
+	</job>   
+	
+	<!-- 주요품목 판매추세(NEW) CHILD1 --> 
+	<job id="fc_05050_majorItemSalesTrend_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 분석 >> 주요품목 판매현황</navigation>
+		<toolbars>0000</toolbars>
+		<title>주요품목 판매현황</title>
+		<authority>1</authority>
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries>    
+			<query idref="month12_list"    datasource="t3sinc"/>
+			<query idref="fc_05050_majorItemSalesTrend_tailer"    datasource="t3sinc"/>
+		</queries>   
+	</job> 
+	
+	<!-- 주요품목 판매현황(NEW) CHILD2 --> 
+	<job id="fc_05060_majorItemSalesTrend_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 분석 >> 주요품목 판매현황</navigation>
+		<toolbars>0000</toolbars>
+		<title>주요품목 판매현황</title>
+		<authority>1</authority>
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries>     
+			<query idref="daily31_list"    datasource="t3sinc"/>
+			<query idref="fc_05060_majorItemSalesTrend_tailer"    datasource="t3sinc"/>
+		</queries>   
+	</job> 
+	 
+    <!-- 판매현황1 조회(NEW) start -->
+	<job id="fc_05070_salesMonitoring_header" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 분석 >> 판매현황(조직) 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>판매현황(조직) 조회</title>
+		<authority>1</authority>
+		<description>판매현황(조직) 조회</description>
+		<request_type>list</request_type>
+		<queries>      
+		</queries>   
+	</job> 
+	<job id="fc_05070_salesMonitoring_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 분석 >> 판매현황(조직) 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>판매현황(조직) 조회</title>
+		<authority>1</authority>
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries>      
+			<query idref="month12_list"    datasource="t3sinc"/>
+			<query idref="fc_05070_salesMonitoring_tailer" datasource="t3sinc"/> <!-- 페이징 기준위해  맨 아래 둘것 -->			
+		</queries>   
+	</job>  
+	<job id="fc_05080_salesMonitoring_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 분석 >> 판매현황(조직) 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>판매현황(조직) 조회</title>
+		<authority>1</authority>
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries>    
+			<query idref="daily31_list"    datasource="t3sinc"/>			
+			<query idref="fc_05080_salesMonitoring_tailer" datasource="t3sinc"/> <!-- 페이징 기준위해  맨 아래 둘것 -->			
+		</queries>   
+	</job>     
+    <!-- 판매현황1 조회(NEW) end -->
+
+    <!-- 판매현황 품종별 조회(NEW) , By KCKIM, start -->
+	<job id="fc_05090_itemSalesMonitoring_header" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 분석 >> 판매현황(품종) 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>판매현황(품종) 조회</title>
+		<authority>1</authority>
+		<description>판매현황(품종) 조회</description>
+		<request_type>list</request_type>
+		<queries>       
+			<query idref="grup_code1_list"    datasource="t3sinc"/>
+		</queries>   
+	</job>  
+	<job id="fc_05090_itemSalesMonitoring_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 분석 >> 판매현황(품종) 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>판매현황(품종) 조회</title>
+		<authority>1</authority>
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries>    
+			<query idref="month12_list"    datasource="t3sinc"/>
+			<query idref="fc_05090_itemSalesMonitoring_tailer" datasource="t3sinc"/> <!-- 페이징 기준위해  맨 아래 둘것 -->			
+		</queries>   
+	</job>  
+	<job id="fc_05100_itemSalesMonitoring_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 분석 >> 판매현황(품종) 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>판매현황(품종) 조회</title>
+		<authority>1</authority>
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries>      
+			<query idref="daily31_list"    datasource="t3sinc"/>		
+			<query idref="fc_05100_itemSalesMonitoring_tailer" datasource="t3sinc"/> <!-- 페이징 기준위해  맨 아래 둘것 -->			
+		</queries>     
+	</job>   
+    <!-- 판매현황 품종별 조회(일간) , By KCKIM, end -->
+    	
+	<!-- 유통채널별 판매현황 조회 , By KCKIM, start -->
+	<job id="fc_05110_chanelSalesMonitoring_header" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 분석 >> 유통채널별 판매현황 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>유통채널별 판매현황 조회</title>
+		<authority>1</authority>
+		<description>유통채널별 판매현황 조회</description>
+		<request_type>list</request_type>
+		<queries>     
+		    <query idref="custGB_B_list"     datasource="t3sinc"/> <!-- 품종구분(대) -->
+		    <query idref="fcst_grp_list"     datasource="t3sinc"/> <!-- 유통채널별조회 -->
+		</queries>   
+	</job>  
+	<job id="fc_05110_chanelSalesMonitoring_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 분석 >>유통채널별 판매현황 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>유통채널별 판매현황 조회</title>
+		<authority>1</authority>
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries>     
+		    <query idref="fcst_grp_list"     datasource="t3sinc"/> <!-- 유통채널별조회 -->
+			<query idref="fc_05110_chanelSalesMonitoring_tailer" datasource="t3sinc"/> <!-- 페이징 기준위해  맨 아래 둘것 -->			
+		</queries>    
+	</job>  
+	
+	
+	<!-- 유통채널별 판매현황 조회 , By KCKIM, end -->
+
+	<!-- 판매계획 변동률 분석(NEW) , By KCKIM, start -->
+	<job id="fc_05120_salesPlan_Rate_header" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 분석 >>판매계획 변동률 분석</navigation>
+		<toolbars>0000</toolbars>
+		<title>판매계획 변동률 분석</title>
+		<authority>1</authority>
+		<description>판매계획 변동률 분석</description> 
+		<request_type>list</request_type>
+		<queries>      
+		    <query idref="custGB_B_list"       datasource="t3sinc"/> <!-- 품종구분(대) -->
+		    <query idref="new_org_list"     datasource="t3sinc"/> <!-- 영업점 조회 -->
+		</queries>     
+	</job>  
+	<job id="fc_05120_salesPlan_Rate_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 분석 >>판매계획 변동률 분석</navigation>
+		<toolbars>0000</toolbars>
+		<title>판매계획 변동률 분석</title>
+		<authority>1</authority> 
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries>       
+			<query idref="month12_list"    datasource="t3sinc"/>		
+			<query idref="fc_05120_salesPlan_Rate_tailer" datasource="t3sinc"/> <!-- 페이징 기준위해  맨 아래 둘것 -->			
+		</queries>   
+	</job>  
+	<job id="fc_05130_salesPlan_Rate_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 분석 >>판매계획 변동률 분석</navigation>
+		<toolbars>0000</toolbars>
+		<title>판매계획 변동률 분석</title>
+		<authority>1</authority> 
+		<description>iframe</description>
+		<request_type>list</request_type> 
+		<queries>      
+			<query idref="daily31_list"    datasource="t3sinc"/>							
+			<query idref="fc_05130_salesPlan_Rate_tailer" datasource="t3sinc"/> <!-- 페이징 기준위해  맨 아래 둘것 -->			
+		</queries>   
+	</job>  
+	<!-- 판매계획 변동률 분석(NEW) , By KCKIM, start -->
+
+	<!-- 유통재고/실판매정보 분석    , By KCKIM, start -->
+	<job id="fc_05140_disInvActSalesInfo_header" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 분석 >>유통재고 실판매정보 분석 </navigation>
+		<toolbars>0000</toolbars>
+		<title>유통재고 실판매정보 분석</title>
+		<authority>1</authority>
+		<description>유통재고 실판매정보 분석</description>
+		<request_type>list</request_type>
+		<queries>       
+		    <query idref="grup_code1_list"    datasource="t3sinc"/>
+		</queries>   
+	</job>  
+	<!-- 월/주 -->
+	<job id="fc_05140_disInvActSalesInfo_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 분석 >>유통재고 실판매정보 분석 </navigation>
+		<toolbars>0000</toolbars>
+		<title>유통재고 실판매정보 분석</title>
+		<authority>1</authority>
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries>      
+		    <query idref="month12_list"     datasource="t3sinc"/> 
+			<query idref="fc_05140_disInvActSalesInfo_tailer" datasource="t3sinc"/> <!-- 페이징 기준위해  맨 아래 둘것 -->			
+		</queries>   
+	</job>  
+	<!-- 일 -->
+	<job id="fc_05150_disInvActSalesInfo_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>  
+		<navigation>수요예측 >> 수요예측 분석 >>유통재고 실판매정보 분석</navigation>
+		<toolbars>0000</toolbars>
+		<title>유통재고 실판매정보 분석</title>
+		<authority>1</authority>
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries>      
+		    <query idref="daily31_list"     datasource="t3sinc"/>
+			<query idref="fc_05150_disInvActSalesInfo_tailer" datasource="t3sinc"/> <!-- 페이징 기준위해  맨 아래 둘것 -->			
+		</queries>    
+	</job>   	   
+	<!-- 유통재고 실판매정보 분석 , By KCKIM, end --> 
+<!--
+=====================================================================================================
+	수요예측 >> 수요예측분석  end
+=====================================================================================================
+-->  			
+</jobs>
+
  

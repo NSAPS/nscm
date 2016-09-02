@@ -1,109 +1,109 @@
-<?xml version="1.0" encoding="euc-kr"?>
-
-<jobs>
-
-<!--
-=====================================================================================================
-	생산계획 >> 월간 생산계획
-=====================================================================================================
--->
-	<!-- 
-	=======================
-	  월간 완제품 생산계획 분석
-	=======================
-	-->
-	<!--  월간 완제품 생산계획 분석 : 조회 -->
-	<job id="sc_01030_monthlyProductionPlanAnalysis_list" job_type="single" check_permission="no">
-		<path>/sinc/20.Scheduling</path>
-		<navigation>생산계획 >> 월간 생산계획 >> 월간 완제품 생산계획 분석</navigation>
-		<toolbars>0000</toolbars><!--(등록/수정/저장/삭제)-->
-		<title>월간 완제품 생산계획 분석</title>
-		<authority>1</authority>		
-		<description>월간 완제품 생산계획 분석</description>
-		<request_type>list</request_type>
-		<queries> 
-			<query idref="combo_plant_list" datasource="t3sinc"/> <!-- 각 공장 조회 조건  -->
-			<query idref="monthlyProductionPlan_version_list" datasource="t3sinc"/> <!-- 공장별 월간 완제품 생산계획 버전  -->
-			<query idref="combo_won_list" datasource="t3sinc"/>	<!-- 원가 부문 조회 조건-->	   
-			<query idref="combo_sales_cat1_list" datasource="t3sinc"/> <!-- 영업품종분류1 조회 조건 -->
-			<query idref="combo_sales_cat2_list" datasource="t3sinc"/> <!-- 영업품종분류2 조회 조건 -->	 	
-			<query idref="combo_cat01_list" datasource="t3sinc"/> <!-- 품종특성분류 조회 조건 -->
-			<query idref="monthlyProductionPlanAnalysis_list_header" datasource="t3sinc"/>	<!-- GRID HEADER 생성 -->														
-			<query idref="sc_01030_monthlyProductionPlanAnalysis_list" datasource="t3sinc"/>
-		</queries>
-	</job>
-	
-	
-	<!-- 
-	=======================
-	  월간 반제품 생산계획 분석
-	=======================
-	-->
-	<!--  월간 반제품 생산계획 분석 : 조회 -->
-	<job id="sc_01050_monthlySemifinishedProductPlanAnalysis_list" job_type="single" check_permission="no">
-		<path>/sinc/20.Scheduling</path>
-		<navigation>생산계획 >> 월간 생산계획 >> 월간 반제품 생산계획 분석</navigation>
-		<toolbars>0000</toolbars><!--(등록/수정/저장/삭제)-->
-		<title>월간 반제품 생산계획 분석</title>
-		<authority>1</authority>		
-		<description>월간 반제품 생산계획 분석</description>
-		<request_type>list</request_type>
-		<queries> 
-			<query idref="monthly_semi_combo_plant_list" datasource="t3sinc"/> <!-- 반제품 공장 조회 조건  -->
-			<query idref="monthlySemifinishedProductionPlan_version_list" datasource="t3sinc"/> <!-- 공장별 월간 반제품 생산계획 버전  -->
-			<query idref="combo_won_list" datasource="t3sinc"/>	<!-- 원가 부문 조회 조건-->	    	
-			<query idref="semi_combo_type" datasource="t3sinc"/> <!-- 반제품종류 조회 조건 -->
-			<query idref="monthlyProductionPlanAnalysis_list_header" datasource="t3sinc"/>	<!-- GRID HEADER 생성 -->														
-			<query idref="sc_01050_monthlySemifinishedProductPlanAnalysis_list" datasource="t3sinc"/>
-		</queries>
-	</job>
-	
-	
-<!--
-=====================================================================================================
-	생산계획 >> 분석정보
-=====================================================================================================
--->
-	<!-- 
-	=======================
-	  Demand대비 주일간결과 검증(품목기준)
-	=======================
-	-->
-	<!--  1.Demand대비 주일간결과 검증(품목기준) : 조회 -->
-	<job id="sc_02170_dailySchResultVsDemandByItem_list" job_type="single" check_permission="no">
-		<path>/sinc/20.Scheduling</path>
-		<navigation>생산계획 >> 분석정보 >> Demand대비 주일간결과 검증(품목기준)</navigation>
-		<toolbars>0000</toolbars><!--(등록/수정/저장/삭제)-->
-		<title>Demand대비 주일간결과 검증</title>
-		<authority>1</authority>		
-		<description>Demand대비 주일간결과 검증</description>
-		<request_type>list</request_type>
-		<queries> 
-			<query idref="combo_plant_list" datasource="t3sinc"/> <!-- 각 공장 조회 조건  -->	
-			<query idref="run_date_in_plan_version_log" datasource="t3sinc"/> <!-- RUN_DATE 조회 조건  -->																	
-			<query idref="sc_02170_dailySchResultVsDemandByItem_list_02" datasource="t3sinc"/>
-			<query idref="sc_02170_dailySchResultVsDemandByItem_list_01" datasource="t3sinc"/>
-		</queries>
-	</job>
-
-	<!-- 2.Demand대비 주일간결과 검증(품목기준) : 프로시저 호출 -->
-	<job id="sc_02170_dailySchResultVsDemandByItem_list_create_comp" job_type="composite" check_permission="no">
-		<sub_job id="sc_02170_dailySchResultVsDemandByItem_list_create"/>		
-		<sub_job id="sc_02170_dailySchResultVsDemandByItem_list"/>
-		<permission_desc>Demand대비 주일간결과 검증-호출</permission_desc>
-	</job>
-	<job id="sc_02170_dailySchResultVsDemandByItem_list_create" job_type="single">
-		<request_type>insert</request_type>
-		<queries>
-			<query idref="sc_02170_dailySchResultVsDemandByItem_list_create" datasource="t3sinc"/>
-		</queries>
-	</job>
-<!--
-=====================================================================================================
- 끝 
-=====================================================================================================
---> 
-
-
-
-</jobs>	
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+<!--
+=====================================================================================================
+	생산계획 >> 월간 생산계획
+=====================================================================================================
+-->
+	<!-- 
+	=======================
+	  월간 완제품 생산계획 분석
+	=======================
+	-->
+	<!--  월간 완제품 생산계획 분석 : 조회 -->
+	<job id="sc_01030_monthlyProductionPlanAnalysis_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 월간 생산계획 >> 월간 완제품 생산계획 분석</navigation>
+		<toolbars>0000</toolbars><!--(등록/수정/저장/삭제)-->
+		<title>월간 완제품 생산계획 분석</title>
+		<authority>1</authority>		
+		<description>월간 완제품 생산계획 분석</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="combo_plant_list" datasource="t3sinc"/> <!-- 각 공장 조회 조건  -->
+			<query idref="monthlyProductionPlan_version_list" datasource="t3sinc"/> <!-- 공장별 월간 완제품 생산계획 버전  -->
+			<query idref="combo_won_list" datasource="t3sinc"/>	<!-- 원가 부문 조회 조건-->	   
+			<query idref="combo_sales_cat1_list" datasource="t3sinc"/> <!-- 영업품종분류1 조회 조건 -->
+			<query idref="combo_sales_cat2_list" datasource="t3sinc"/> <!-- 영업품종분류2 조회 조건 -->	 	
+			<query idref="combo_cat01_list" datasource="t3sinc"/> <!-- 품종특성분류 조회 조건 -->
+			<query idref="monthlyProductionPlanAnalysis_list_header" datasource="t3sinc"/>	<!-- GRID HEADER 생성 -->														
+			<query idref="sc_01030_monthlyProductionPlanAnalysis_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	
+	<!-- 
+	=======================
+	  월간 반제품 생산계획 분석
+	=======================
+	-->
+	<!--  월간 반제품 생산계획 분석 : 조회 -->
+	<job id="sc_01050_monthlySemifinishedProductPlanAnalysis_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 월간 생산계획 >> 월간 반제품 생산계획 분석</navigation>
+		<toolbars>0000</toolbars><!--(등록/수정/저장/삭제)-->
+		<title>월간 반제품 생산계획 분석</title>
+		<authority>1</authority>		
+		<description>월간 반제품 생산계획 분석</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="monthly_semi_combo_plant_list" datasource="t3sinc"/> <!-- 반제품 공장 조회 조건  -->
+			<query idref="monthlySemifinishedProductionPlan_version_list" datasource="t3sinc"/> <!-- 공장별 월간 반제품 생산계획 버전  -->
+			<query idref="combo_won_list" datasource="t3sinc"/>	<!-- 원가 부문 조회 조건-->	    	
+			<query idref="semi_combo_type" datasource="t3sinc"/> <!-- 반제품종류 조회 조건 -->
+			<query idref="monthlyProductionPlanAnalysis_list_header" datasource="t3sinc"/>	<!-- GRID HEADER 생성 -->														
+			<query idref="sc_01050_monthlySemifinishedProductPlanAnalysis_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	
+<!--
+=====================================================================================================
+	생산계획 >> 분석정보
+=====================================================================================================
+-->
+	<!-- 
+	=======================
+	  Demand대비 주일간결과 검증(품목기준)
+	=======================
+	-->
+	<!--  1.Demand대비 주일간결과 검증(품목기준) : 조회 -->
+	<job id="sc_02170_dailySchResultVsDemandByItem_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >> Demand대비 주일간결과 검증(품목기준)</navigation>
+		<toolbars>0000</toolbars><!--(등록/수정/저장/삭제)-->
+		<title>Demand대비 주일간결과 검증</title>
+		<authority>1</authority>		
+		<description>Demand대비 주일간결과 검증</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="combo_plant_list" datasource="t3sinc"/> <!-- 각 공장 조회 조건  -->	
+			<query idref="run_date_in_plan_version_log" datasource="t3sinc"/> <!-- RUN_DATE 조회 조건  -->																	
+			<query idref="sc_02170_dailySchResultVsDemandByItem_list_02" datasource="t3sinc"/>
+			<query idref="sc_02170_dailySchResultVsDemandByItem_list_01" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+	<!-- 2.Demand대비 주일간결과 검증(품목기준) : 프로시저 호출 -->
+	<job id="sc_02170_dailySchResultVsDemandByItem_list_create_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_02170_dailySchResultVsDemandByItem_list_create"/>		
+		<sub_job id="sc_02170_dailySchResultVsDemandByItem_list"/>
+		<permission_desc>Demand대비 주일간결과 검증-호출</permission_desc>
+	</job>
+	<job id="sc_02170_dailySchResultVsDemandByItem_list_create" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="sc_02170_dailySchResultVsDemandByItem_list_create" datasource="t3sinc"/>
+		</queries>
+	</job>
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+
+
+</jobs>	

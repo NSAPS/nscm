@@ -1,25 +1,25 @@
-<?xml version="1.0" encoding="euc-kr"?>
-
-<jobs>
-
-
-	<!-- 
-	=======================
-	  일간생산계획 분석(재구성)
-	=======================
-	-->
-	
-	<!--  일간생산계획 분석(재구성)  조회 -->
-	<job id="sc_11020_dailyProductionPlan_totalization" job_type="single" check_permission="no">
-		<path>/sinc/20.Scheduling</path>
-		<navigation>생산계획 >> 운영정보 >> 일간 생산계획 변경요인 집계</navigation>
-		<toolbars>1010</toolbars><!--(등록/수정/저장/삭제)-->
-		<title>일간 생산계획 변경요인 집계</title>
-		<authority>1</authority>		
-		<description>일간 생산계획 변경요인 집계</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="combo_plant_list" datasource="t3sinc"/>
-		</queries>
-	</job>
-</jobs>	
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+
+	<!-- 
+	=======================
+	  일간생산계획 분석(재구성)
+	=======================
+	-->
+	
+	<!--  일간생산계획 분석(재구성)  조회 -->
+	<job id="sc_11020_dailyProductionPlan_totalization" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 일간 생산계획 변경요인 집계</navigation>
+		<toolbars>1010</toolbars><!--(등록/수정/저장/삭제)-->
+		<title>일간 생산계획 변경요인 집계</title>
+		<authority>1</authority>		
+		<description>일간 생산계획 변경요인 집계</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="combo_plant_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+</jobs>	

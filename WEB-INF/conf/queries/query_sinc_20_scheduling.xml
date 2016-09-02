@@ -221,7 +221,7 @@
                     , SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+6, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END) D07A 
                     , SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+6, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END) D07B 
                     , SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+6, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END) D07C 
-                    /*
+                    /*
                     , SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+7, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END) D08A 
                     , SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+7, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END) D08B 
                     , SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+7, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END) D08C 
@@ -264,75 +264,75 @@
                     , SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+20, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END) D21A 
                     , SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+20, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END) D21B 
                     , SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+20, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END) D21C
-                    */
-                     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                    /* 제품별 합계 */  
-                    , SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+0, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+0, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+0, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)             
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+1, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+1, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+1, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+2, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+2, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+2, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+3, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+3, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+3, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+4, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+4, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+4, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+5, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+5, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+5, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)        
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+6, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+6, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+6, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    /*
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+7, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+7, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+7, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+8, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+8, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+8, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+9, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+9, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+9, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+10, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+10, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+10, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+11, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+11, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+11, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+12, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END) 
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+12, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END) 
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+12, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)          
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+13, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+13, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+13, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END) 
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+14, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+14, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+14, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)  
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+15, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+15, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+15, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END) 
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+16, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END) 
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+16, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+16, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+17, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+17, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+17, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+18, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END) 
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+18, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+18, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+19, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+19, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+19, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+20, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+20, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
-                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+20, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END) TOT
-                    */
-                    , IM.RECIPE_TYPE
+                    */
+                     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                    /* 제품별 합계 */  
+                    , SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+0, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+0, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+0, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)             
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+1, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+1, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+1, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+2, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+2, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+2, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+3, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+3, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+3, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+4, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+4, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+4, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+5, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+5, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+5, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)        
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+6, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+6, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+6, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    /*
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+7, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+7, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+7, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+8, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+8, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+8, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+9, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+9, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+9, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+10, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+10, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+10, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+11, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+11, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+11, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+12, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END) 
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+12, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END) 
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+12, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)          
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+13, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+13, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+13, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END) 
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+14, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+14, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+14, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)  
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+15, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+15, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+15, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END) 
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+16, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END) 
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+16, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+16, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+17, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+17, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+17, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+18, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END) 
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+18, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+18, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+19, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+19, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+19, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+20, 'YYYYMMDD') AND DS.SHIFT_TYPE = '1' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+20, 'YYYYMMDD') AND DS.SHIFT_TYPE = '3' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END)
+                    + SUM(CASE WHEN DS.PROD_DATES = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+20, 'YYYYMMDD') AND DS.SHIFT_TYPE = '5' THEN #if("$!{checked_uom}" == "box") DS.SHIFT_QTY #else DS.SHIFT_QTY * NVL(IM.QTY,1) #end ELSE 0 END) TOT
+                    */
+                    , IM.RECIPE_TYPE
             FROM    DAILY_SCH_PLAN_SHIFT DS, ITEM_MST IM, V_HRCHY_PROC HR
             WHERE   DS.CAT_ID = 'PS'
             AND     HR.CAT = '포장' -- 포장단 작업장(라인의 마지막 작업장)
@@ -4711,13 +4711,13 @@
 			
 	</query>	
 	
-	<!--  차주이후 조운영칼레다 적용 : 프로시저 호출 -->
-	<query id="sc_01050_SP_PS_WORK_DIARY_PLANT" >
-			
-			CALL SP_PS_WORK_DIARY_PLANT('CRE_DATA', TRUNC(SYSDATE), 1, 1, '$!{selected_plant}', SYSDATE, '$!{duty_date}')
-			
-	</query>	
-
+	<!--  차주이후 조운영칼레다 적용 : 프로시저 호출 -->
+	<query id="sc_01050_SP_PS_WORK_DIARY_PLANT" >
+			
+			CALL SP_PS_WORK_DIARY_PLANT('CRE_DATA', TRUNC(SYSDATE), 1, 1, '$!{selected_plant}', SYSDATE, '$!{duty_date}')
+			
+	</query>	
+
 	<!-- 헤더에 주차별 날짜 (일~토) -->
 	<query id="shift_oper_cal_header_dates">
 		

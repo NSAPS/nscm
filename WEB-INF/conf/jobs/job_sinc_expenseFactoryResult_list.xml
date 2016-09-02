@@ -1,61 +1,61 @@
-<?xml version="1.0" encoding="euc-kr"?>
-
-<jobs>
-
-<!--
-=====================================================================================================
-	비용기반 공장할당결과
-=====================================================================================================
---> 
-	<!-- 
-	=======================
-	  비용기반 공장할당결과
-	=======================
-	-->
-	<!-- 비용기반 공장할당결과 --> 
-	<job id="expenseFactoryResult_list" job_type="single" check_permission="no">
-		<path>/sinc/wisegrid</path>
-		<navigation>생산계획 >> 분석정보 >> 비용기반 공장할당결과</navigation>
-		<toolbars>0011</toolbars>
-		<title>비용기반 공장할당결과</title>
-		<authority>1</authority>		
-		<description>비용기반 공장할당결과</description>
-		<request_type>list</request_type>
-		<queries> 
-			<query idref="expenseFactoryResult_list_combo_version" datasource="t3sinc"/>
-			<query idref="expenseFactoryResult_list_combo_res_code" datasource="t3sinc"/>
-			<query idref="expenseFactoryResult_list_combo_item_list" datasource="t3sinc"/>
-			<query idref="expenseFactoryResult_list_combo_path2" datasource="t3sinc"/>
-			<query idref="expenseFactoryResult_list_combo_path4" datasource="t3sinc"/>			
-			<!--<query idref="ip_02030combo_allocReason" datasource="t3sinc"/>-->
-			<!-- <query idref="factory_list_combo_res_code" datasource="t3sinc"/> -->
-		</queries>
-	</job>
-	
-	
-	<!-- 비용기반 공장할당결과 팝업 --> 
-	<job id="expenseFactoryResult_popup" job_type="single" check_permission="no">
-		<path>/sinc/wisegrid</path>
-		<navigation>생산계획 >> 분석정보 >> 비용기반 공장할당결과 팝업</navigation>
-		<toolbars>0011</toolbars>
-		<title>비용기반 공장할당결과 팝업</title>
-		<authority>1</authority>		
-		<description>비용기반 공장할당결과 팝업</description>
-		<request_type>list</request_type>
-		<queries> 
-			<query idref="expenseFactoryResult_list_combo_version" datasource="t3sinc"/>
-			<query idref="expenseFactoryResult_list_combo_res_code" datasource="t3sinc"/>
-			<!--<query idref="ip_02030combo_allocReason" datasource="t3sinc"/>-->
-			<!-- <query idref="factory_list_combo_res_code" datasource="t3sinc"/> -->
-		</queries>
-	</job>	 	
-	
-	
-	
-<!--
-=====================================================================================================
- 끝 
-=====================================================================================================
---> 
-
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+<!--
+=====================================================================================================
+	비용기반 공장할당결과
+=====================================================================================================
+--> 
+	<!-- 
+	=======================
+	  비용기반 공장할당결과
+	=======================
+	-->
+	<!-- 비용기반 공장할당결과 --> 
+	<job id="expenseFactoryResult_list" job_type="single" check_permission="no">
+		<path>/sinc/wisegrid</path>
+		<navigation>생산계획 >> 분석정보 >> 비용기반 공장할당결과</navigation>
+		<toolbars>0011</toolbars>
+		<title>비용기반 공장할당결과</title>
+		<authority>1</authority>		
+		<description>비용기반 공장할당결과</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="expenseFactoryResult_list_combo_version" datasource="t3sinc"/>
+			<query idref="expenseFactoryResult_list_combo_res_code" datasource="t3sinc"/>
+			<query idref="expenseFactoryResult_list_combo_item_list" datasource="t3sinc"/>
+			<query idref="expenseFactoryResult_list_combo_path2" datasource="t3sinc"/>
+			<query idref="expenseFactoryResult_list_combo_path4" datasource="t3sinc"/>			
+			<!--<query idref="ip_02030combo_allocReason" datasource="t3sinc"/>-->
+			<!-- <query idref="factory_list_combo_res_code" datasource="t3sinc"/> -->
+		</queries>
+	</job>
+	
+	
+	<!-- 비용기반 공장할당결과 팝업 --> 
+	<job id="expenseFactoryResult_popup" job_type="single" check_permission="no">
+		<path>/sinc/wisegrid</path>
+		<navigation>생산계획 >> 분석정보 >> 비용기반 공장할당결과 팝업</navigation>
+		<toolbars>0011</toolbars>
+		<title>비용기반 공장할당결과 팝업</title>
+		<authority>1</authority>		
+		<description>비용기반 공장할당결과 팝업</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="expenseFactoryResult_list_combo_version" datasource="t3sinc"/>
+			<query idref="expenseFactoryResult_list_combo_res_code" datasource="t3sinc"/>
+			<!--<query idref="ip_02030combo_allocReason" datasource="t3sinc"/>-->
+			<!-- <query idref="factory_list_combo_res_code" datasource="t3sinc"/> -->
+		</queries>
+	</job>	 	
+	
+	
+	
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
 </jobs>		

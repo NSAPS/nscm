@@ -1,7 +1,7 @@
-
-function addCheckedItem(varItem, varTitle) {	
-	   
-    parent.addItem(varItem, varTitle); 	
-}  
-
+
+function addCheckedItem(varItem, varTitle) {	
+	   
+    parent.addItem(varItem, varTitle); 	
+}  
+
  

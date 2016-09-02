@@ -1,100 +1,100 @@
-<?xml version="1.0" encoding="euc-kr"?>
-
-<jobs>
-
-<!--
-=====================================================================================================
-	생산계획 >> 기준정보
-=====================================================================================================
---> 
-	
-	<!--
-	======================================================================
-		Job Change 시간관리
-	======================================================================
-	-->
-	
-	
-	
-	<!-- Job Change 시간관리 조회 --> 
-	<job id="sc_01090_jobChangeMgmt_list" job_type="single" check_permission="no">
-		<path>/sinc/20.Scheduling</path>
-		<navigation>생산계획 >> 기준정보 >> Job Change 시간관리 조회</navigation>
-		<toolbars>0010</toolbars>
-		<title>Job Change 시간관리 조회</title>
-		<authority>1</authority>		
-		<description>Job Change 시간관리 조회</description>		
-		<request_type>list</request_type>
-		<queries>
-			<query idref="line_name_list" datasource="t3sinc"/>
-			<query idref="proc_name_list" datasource="t3sinc"/>
-			<query idref="plant_name_list" datasource="t3sinc"/>
-			<query idref="sc_01090_jobChangeMgmt_list" datasource="t3sinc"/>
-		</queries>
-	</job>
-	
-	
-	<!-- Job Change 계획등록 팝업 리스트 쿼리. --> 
-	<job id="sc_01090_jobChangeMgmt_list_pop" job_type="single">
-		<path>/sinc/20.Scheduling</path>
-		<navigation>생산계획 >> 기준정보 >> Job Change 시간관리 수정</navigation>
-		<toolbars>0000</toolbars>
-		<title>Job Change 등록</title>
-		<authority>1</authority>
-		<description>popup</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="sc_01090_jobChangeMgmt_list_pop" datasource="t3sinc"/>
-		</queries>
-	</job>
-	
-	
-
-
-<!--
-=====================================================================================================
-	생산계획 >> 분석정보
-=====================================================================================================
---> 
-
-
-
-	<!--
-	======================================================================
-		ERP PO 리스트
-	======================================================================
-	-->
-
-
-
-
-	<!-- ERP PO 리스트 조회 -->
-	<job id="sc_02180_erpPoInfo_list" job_type="single" check_permission="no">
-		<path>/sinc/20.Scheduling</path>
-		<navigation>생산계획 >> 분석정보 >> ERP_PO 리스트 조회</navigation>
-		<toolbars>0000</toolbars>
-		<title>ERP_PO 리스트 조회</title>
-		<authority>1</authority>		
-		<description>ERP_PO 리스트</description>		
-		<request_type>list</request_type>
-		<queries>
-			<query idref="combo_plant_list" datasource="t3sinc"/>
-			<query idref="combo_sales_cat1_list" datasource="t3sinc"/>
-			<query idref="combo_sales_cat2_list" datasource="t3sinc"/>
-			<query idref="combo_cat01_list" datasource="t3sinc"/>
-			<query idref="erppoinfo_descr_list" datasource="t3sinc"/>
-			<query idref="sc_02180_erpPoInfo_list" datasource="t3sinc"/>
-		</queries>
-	</job>
-
-
-
-
-	
-<!--
-=====================================================================================================
- 끝 
-=====================================================================================================
---> 
-
-</jobs>	
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+<!--
+=====================================================================================================
+	생산계획 >> 기준정보
+=====================================================================================================
+--> 
+	
+	<!--
+	======================================================================
+		Job Change 시간관리
+	======================================================================
+	-->
+	
+	
+	
+	<!-- Job Change 시간관리 조회 --> 
+	<job id="sc_01090_jobChangeMgmt_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 기준정보 >> Job Change 시간관리 조회</navigation>
+		<toolbars>0010</toolbars>
+		<title>Job Change 시간관리 조회</title>
+		<authority>1</authority>		
+		<description>Job Change 시간관리 조회</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="line_name_list" datasource="t3sinc"/>
+			<query idref="proc_name_list" datasource="t3sinc"/>
+			<query idref="plant_name_list" datasource="t3sinc"/>
+			<query idref="sc_01090_jobChangeMgmt_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	
+	<!-- Job Change 계획등록 팝업 리스트 쿼리. --> 
+	<job id="sc_01090_jobChangeMgmt_list_pop" job_type="single">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 기준정보 >> Job Change 시간관리 수정</navigation>
+		<toolbars>0000</toolbars>
+		<title>Job Change 등록</title>
+		<authority>1</authority>
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="sc_01090_jobChangeMgmt_list_pop" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	
+
+
+<!--
+=====================================================================================================
+	생산계획 >> 분석정보
+=====================================================================================================
+--> 
+
+
+
+	<!--
+	======================================================================
+		ERP PO 리스트
+	======================================================================
+	-->
+
+
+
+
+	<!-- ERP PO 리스트 조회 -->
+	<job id="sc_02180_erpPoInfo_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 분석정보 >> ERP_PO 리스트 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>ERP_PO 리스트 조회</title>
+		<authority>1</authority>		
+		<description>ERP_PO 리스트</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="combo_plant_list" datasource="t3sinc"/>
+			<query idref="combo_sales_cat1_list" datasource="t3sinc"/>
+			<query idref="combo_sales_cat2_list" datasource="t3sinc"/>
+			<query idref="combo_cat01_list" datasource="t3sinc"/>
+			<query idref="erppoinfo_descr_list" datasource="t3sinc"/>
+			<query idref="sc_02180_erpPoInfo_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+
+
+
+	
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</jobs>	

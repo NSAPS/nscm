@@ -1,1288 +1,1288 @@
-<?xml version="1.0" encoding="EUC-KR"?>
-<queries>	
-
-<!--
-=====================================================================================================
-	생산계획 >> 운영정보
-=====================================================================================================
--->
-    <!--
-    =======================
-	  공통
-	=======================
-	-->
-
-
-	<!-- 
-	=======================
-	  공장할당 결과 조정
-	=======================
-	-->
-	
-	<!-- 공장할당 버전 -->
-	<query id="plant_alloc_version2">
-	
-            SELECT  MAX(PV.VERSION) VER, ''
-            FROM    PLAN_VERSION_LOG PV
-            WHERE   PV.MADE_TYPE != 'DE'
-            AND     PV.PERIOD_TYPE = 'DAILY'
-            AND     PV.CAT_ID = 'FA'
-            AND     PV.SEQ = 2
-            AND		TRUNC(PV.RUN_DATE) &lt;= TO_DATE('$!{sdate}','YYYY-MM-DD')
-	
-	</query>
-	
-	<!-- 그룹 업데이트 -->
-	<query id="group_list_update" paging="true">
-
-      update REG_GROUP
-         SET GROUP_ID='${group_id}',GROUP_NAME='${group_name}'
-       WHERE GROUP_ID='${group_id}'                 
-			 
-	</query>	
-	
-	
-	<!-- 업데이트 -->
-	<query id="sc_01060_plantAllocationPlanResultAnalysis_grid_save" paging="true">
-
-      update REG_GROUP
-         SET GROUP_ID='${group_id}',GROUP_NAME='${group_name}'
-       WHERE GROUP_ID='${group_id}'                 
-			 
-	</query>		
-	
-	
-	<!-- 01. PLANT_ALLOC_ITEM_ADJ 테이블에 수정한 VERSION의 데이터 DELETE  -->	
-	<query id="sc_01060_plantAllocationPlanResultAnalysis_list_save_01">
-	
-			DELETE  PLANT_ALLOC_ITEM_ADJ
-			WHERE   VERSION = '$!{plant_alloc_version}'
-		 #if("$!{checked_domain}" == "DO")
-          	/* 내수 제품*/
-          	AND		ITEM_ID IN (
-          				SELECT 	ITEM_ID 
-          				FROM 	ITEM_MST IM 
-          				WHERE 	IM.MATERIAL_GROUP &lt; '5K000' OR  IM.MATERIAL_GROUP &gt; '5S999'
-          			)
-         #elseif("$!{checked_domain}" == "EXMTS")
-          	/* 수출 제품(MTS) */
-          	AND		ITEM_ID	IN (
-          				SELECT  ITEM_ID
-          				FROM	ITEM_MST IM
-          				WHERE   IM.MATERIAL_GROUP &gt;= '5K000'
-            			AND     IM.MATERIAL_GROUP &lt;= '5S999'
-            			AND		IM.MTO_MTS_TYPE	= '0002'
-          			)
-         #elseif("$!{checked_domain}" == "EXMTO")
-          	/* 수출 제품(MTO) */
-          	AND		ITEM_ID	IN (
-          				SELECT  ITEM_ID
-          				FROM	ITEM_MST IM
-          				WHERE   IM.MATERIAL_GROUP &gt;= '5K000'
-            			AND     IM.MATERIAL_GROUP &lt;= '5S999'
-            			AND		IM.MTO_MTS_TYPE	= '0001'
-          			)
-         #end
-			 	
-	</query>
-	
-	<!-- 02. 수정된 데이터 PLANT_ALLOC_ITEM_ADJ 테이블에 INSERT( 생산 필요량이 0 이 아닌것 만 )  -->
-	<query id="sc_01060_plantAllocationPlanResultAnalysis_list_save_02" fix="_user_id"  iterator="version item_id due_date nwk_lst_prodqty">
-	
-        INSERT  INTO PLANT_ALLOC_ITEM_ADJ(VERSION, ITEM_ID, DUE_DATE, LST_PRODQTY, MADE_TYPE, MADE_DTTM, MADE_BY)
-        SELECT  '$!{version}'                       	AS VERSION,
-                '$!{item_id}'                       	AS ITEM_ID,        
-                TO_DATE('$!{due_date}','YYYY-MM-DD')	AS DUE_DATE,           
-                REPLACE('$!{nwk_lst_prodqty}',',')  	AS LST_PRODQTY,
-                'AD'                                	AS MADE_TYPE,
-                SYSDATE                             	AS MADE_DTTM,
-                '$!{_user_id}'                      	AS MADE_BY  
-        FROM    DUAL
-        WHERE   REPLACE('$!{nwk_lst_prodqty}',',') &gt; 0
-            
-	</query>
-	
-	
-	<!-- 03. PLANT_ALLOC_ITEM_ADJ 테이블에서 파라미터로 넘어온 버젼이 있는지 없는지를 체크하는 쿼리!!! -->
-	<query id="sc_01060_plantAllocationPlanResultAnalysis_grid_version">
-	
-        SELECT COUNT(*) AS CNT
-  		  FROM PLANT_ALLOC_ITEM_ADJ PA
- 		 WHERE PA.VERSION = '$!{plant_alloc_version}'
-            
-	</query>
-	
-	<!--  공장할당 결과 조정 조회 --> 
-	<!-- 공장할당 결고 조정 조회 개발 원본 쿼리 가져와서 수정 -->
-	<query id="sc_01060_plantAllocationPlanResultAnalysis_grid">
-	
-            SELECT  NO, -- 0
-                    MAX(VERSION) VERSION, --공장할당VERSION 1
-                    DECODE(NO,1,RES_TP,2, RES_TP, NULL) RES_TP,     --설비유형 2 
-                    DECODE(NO,1,ITEM_ID,2,'소계') ITEM_ID, --자재코드 3 
-                    MAX(DECODE(NO,1, ITEM_NAME,2, RES_TP_NM||'소계','총계')) ITEM_NAME, --자재코드명 4
-                    ROUND(AVG(DECODE(NO,1,W3_AVG_RATIO,2,W3_AVG_RATIO,W3_AVG_RATIO)),2) W3_AVG_RATIO, --3주평균접근율 5
-                    ROUND(AVG(DECODE(NO,1,W1_AVG_RATIO,2,W1_AVG_RATIO,W1_AVG_RATIO)),2) W1_AVG_RATIO, --1주평균접근율 6
-                    TO_CHAR(SUM(DECODE(NO,1,SAFETY_STOCK,2,SAFETY_STOCK,SAFETY_STOCK)),'999,999,999') SAFETY_STOCK, --안전재고 7
-                    TO_CHAR(SUM(DECODE(NO,1,BASE_STOCK,2,BASE_STOCK,BASE_STOCK)),'999,999,999') BASE_STOCK, --기초재고 8
-                    TO_CHAR(SUM(DECODE(NO,1,RECEIPT_EXPT,2,RECEIPT_EXPT,RECEIPT_EXPT)),'999,999,999') RECEIPT_EXPT, --금주생산계획 9
-                    TO_CHAR(SUM(DECODE(NO,1,SALES_PLAN,2,SALES_PLAN,SALES_PLAN)),'999,999,999') SALES_PLAN, --금주판매계획 10
-                    ROUND(AVG(DECODE(NO,1,SALES_VS_WEEK1_AVG,2,SALES_VS_WEEK1_AVG,SALES_VS_WEEK1_AVG)),2) SALES_VS_WEEK1_AVG, --1주평균판매대비 11
-                    TO_CHAR(SUM(DECODE(NO,1,EXPERT_STOCK,2,EXPERT_STOCK,EXPERT_STOCK)),'999,999,999') EXPERT_STOCK, --예상재고(차주초) 12
-                    TO_CHAR(SUM(DECODE(NO,1,N_RECEIPT_EXPT,2,N_RECEIPT_EXPT,N_RECEIPT_EXPT)),'999,999,999') N_RECEIPT_EXPT, --차주생산계획 13
-                    -------------------------------------------------------------------------------------------------          
-                    TO_CHAR(TRUNC(TO_DATE('$!{sdate}','YYYY-MM-DD'),'D')+6+(7*0),'YYYY-MM-DD') RP0_DAY, --당주(월) 14 -- 변경(토)
-                    TO_CHAR(TRUNC(TO_DATE('$!{sdate}','YYYY-MM-DD'),'D')+6+(7*1),'YYYY-MM-DD') RP1_DAY, --차주(월) 15 -- 변경(토)
-                    TO_CHAR(TRUNC(TO_DATE('$!{sdate}','YYYY-MM-DD'),'D')+6+(7*2),'YYYY-MM-DD') RP2_DAY, --차차주(월) 16 -- 변경(토)
-                    TO_CHAR(SUM(DECODE(NO,1,RP_QTY0,2,RP_QTY0,RP_QTY0)),'999,999,999') RP0_QTY, --보충요구량(당주) 17
-                    TO_CHAR(SUM(DECODE(NO,1,RP_QTY1,2,RP_QTY1,RP_QTY1)),'999,999,999') RP1_QTY, --보충요구량(차주) 18
-                    TO_CHAR(SUM(DECODE(NO,1,RP_QTY2,2,RP_QTY2,RP_QTY2)),'999,999,999') RP2_QTY, --보충요구량(차차주) 19
-                    NVL(TRIM(TO_CHAR(SUM(DECODE(NO,1,PO_QTY1,2,PO_QTY1,PO_QTY1)),'999,999,999')),0) PO_QTY1, --생산필요량(차주) 20
-                    NVL(TRIM(TO_CHAR(SUM(DECODE(NO,1,PO_QTY2,2,PO_QTY2,PO_QTY2)),'999,999,999')),0) PO_QTY2, --생산필요량(차차주) 21
-                    TO_CHAR(SUM(DECODE(NO,1,NN_SALES_PLAN,2,NN_SALES_PLAN,NN_SALES_PLAN)),'999,999,999') NN_SALES_PLAN,   --차차주판매계획 22        
-                    TO_CHAR(SUM(DECODE(NO,1,EXPERT_STOCK3,2,EXPERT_STOCK3,EXPERT_STOCK3)),'999,999,999') EXPERT_STOCK3,   --예상재고(차차주) 23
-                    -------------------------------------------------------------------------------------------------          
-                    TO_CHAR(SUM(DECODE(NO,1,NWK_ADJ_QTY,2,NWK_ADJ_QTY,NWK_ADJ_QTY)),'999,999,999') NWK_ADJ_QTY, --요구/생산 차이 24
-                    TO_CHAR(SUM(DECODE(NO,1,N_SALES_PLAN,2,N_SALES_PLAN,N_SALES_PLAN)),'999,999,999') N_SALES_PLAN,           --차주판매계획 25
-                    TO_CHAR(SUM(DECODE(NO,1,EXPERT_STOCK2,2,EXPERT_STOCK2,EXPERT_STOCK2)),'999,999,999') EXPERT_STOCK2,        --예상재고 26   
-            		MAX(W1_NFOS),	-- 1주판매계획 27
-            		MAX(W1_ACT),	-- 1주판매실적 28
-            		MAX(W3_NFOS),	-- 3주판매계획 29
-            		MAX(W3_ACT),	-- 3주판매실적 30
-            		ROUND(SUM(DECODE(NO,1,N_PLAN_VS_STOCK_WORK,2,N_PLAN_VS_STOCK_WORK,N_PLAN_VS_STOCK_WORK)),1) N_PLAN_VS_STOCK_WORK,  --차주계획대비재고일수 31
-            		ROUND(SUM(DECODE(NO,1,N_ACT_VS_STOCK_WORK,2,N_ACT_VS_STOCK_WORK,N_ACT_VS_STOCK_WORK)),1) N_ACT_VS_STOCK_WORK,	  --차주실적대비재고일수 32
-            		ROUND(SUM(DECODE(NO,1,NN_PLAN_VS_STOCK_WORK,2,NN_PLAN_VS_STOCK_WORK,NN_PLAN_VS_STOCK_WORK)),1) NN_PLAN_VS_STOCK_WORK, --차차주계획대비재고일수 33
-            		ROUND(SUM(DECODE(NO,1,NN_ACT_VS_STOCK_WORK, 2,NN_ACT_VS_STOCK_WORK,NN_ACT_VS_STOCK_WORK)),1) NN_ACT_VS_STOCK_WORK, --차차주계획대비재고일수 34
-           			MAX(NN_WORK) NNWK_WORK, -- 차차주 영업일수 35
-           			MAX(SALES_MEAN_1WEEK) SALES_MEAN_1WEEK, --1주 평균 판매 36
-           			ROUND(SUM(DECODE(NO,1,NNN_ACT_VS_STOCK_WORK, 2,NNN_ACT_VS_STOCK_WORK,NNN_ACT_VS_STOCK_WORK)),1) NNN_ACT_VS_STOCK_WORK,	--차차차주실적대비재고일수 37
-           			SUM(DECODE(NO,1,SALES_ACT_VS_SALES_PLAN_1,2,SALES_ACT_VS_SALES_PLAN_1,SALES_ACT_VS_SALES_PLAN_1)) SALES_ACT_VS_SALES_PLAN_1, --금주 판매계획 - 금주 1주 평균 판매실적 38
-           			SUM(DECODE(NO,1,SALES_ACT_VS_SALES_PLAN_2,2,SALES_ACT_VS_SALES_PLAN_2,SALES_ACT_VS_SALES_PLAN_2)) SALES_ACT_VS_SALES_PLAN_2, --차주 판매계획 - 차주 1주 평균 판매실적 39
-           			SUM(DECODE(NO,1,SALES_ACT_VS_SALES_PLAN_3,2,SALES_ACT_VS_SALES_PLAN_3,SALES_ACT_VS_SALES_PLAN_3)) SALES_ACT_VS_SALES_PLAN_3, --차차주 판매계획 - 차차주 1주 평균 판매실적 40
-           			SUM(DECODE(NO,1,SALES_ACT_VS_SALES_PLAN_1 + SALES_ACT_VS_SALES_PLAN_2,2,SALES_ACT_VS_SALES_PLAN_1 + SALES_ACT_VS_SALES_PLAN_2,SALES_ACT_VS_SALES_PLAN_1 + SALES_ACT_VS_SALES_PLAN_2)) W1_SALES_PLAN_DIFF, -- 1주평균 판매 계획 가감량 41  
-           			SUM(DECODE(NO,1,SALES_ACT_3W_VS_SALES_PLAN_1 + SALES_ACT_3W_VS_SALES_PLAN_2,2,SALES_ACT_3W_VS_SALES_PLAN_1 + SALES_ACT_3W_VS_SALES_PLAN_2,SALES_ACT_3W_VS_SALES_PLAN_1 + SALES_ACT_3W_VS_SALES_PLAN_2)) W3_SALES_PLAN_DIFF -- 3주평균 판매 계획 가감량 42
-           			,'' AS CRUD, --와이즈그리드의 crud 상태값을 가져옴 (수정 삭제 삽입)
-           			W1, W2, W3, --당주, 차주, 차차주 DUE_DATE (해당 주의 토요일을 가져옴)
-           			TO_CHAR(SUM(DECODE(NO,1,MI_CHGO,2,MI_CHGO,MI_CHGO)),'999,999,999') MI_CHGO --수출 미출고물량         			       
-            FROM    
-                    ( 
-                    SELECT  RES_TP.CD1    RES_TP,    --설비유형
-                            RES_TP.CD1_NM RES_TP_NM, --설비유형명 
-                            D.VERSION,               --공장할당VERSION
-                            D.ITEM_ID,               --자재코드
-                            IM.ITEM_NAME,            --자재코드명          
-                            A.W3_AVG_RATIO,          --3주평균접근율
-                            A.W1_AVG_RATIO,          --1주평균접근율
-                            C.SAFETY_STOCK,          --안전재고
-                            B.BASE_STOCK,            --기초재고
-                            B.RECEIPT_EXPT,          --금주생산계획
-                            B.SALES_PLAN,            --금주판매계획
-                            B.SALES_VS_WEEK1_AVG,    --1주평균판매대비
-                            B.EXPERT_STOCK,          --예상재고(차주초)
-                            B.EXPERT_STOCK*WO.N_WORK / DECODE(B.N_SALES_PLAN, 0, 1, B.N_SALES_PLAN)		  N_PLAN_VS_STOCK_WORK, --차주계획대비재고일수
-                            B.EXPERT_STOCK / DECODE(B.SALES_MEAN_1WEEK, 0, 1, B.SALES_MEAN_1WEEK) N_ACT_VS_STOCK_WORK,  --차주실적대비재고일수
-                            B.N_RECEIPT_EXPT,        --차주생산계획
-                            D.RP_QTY0 RP_QTY0,       --보충요구량(당주)               
-                            D.RP_QTY1 RP_QTY1,       --보충요구량(차주)                                  
-                            B.N_SALES_PLAN ,         --차주판매계획
-                        #if("$!{checked_pa_pr}" == "PR")
-                        	NVL(B.N_RECEIPT_EXPT ,0) - NVL(D.RP_QTY1,0) NWK_ADJ_QTY,        --요구/생산 차이
-                        	B.N_RECEIPT_EXPT PO_QTY1,       --생산필요량(차주)
-                            NVL(B.EXPERT_STOCK,0)+(NVL(B.N_RECEIPT_EXPT,0)-NVL(B.N_SALES_PLAN,0)) EXPERT_STOCK2, --예상재고(차주)  
-                            (NVL(B.EXPERT_STOCK,0)+(NVL(B.N_RECEIPT_EXPT,0)-NVL(B.N_SALES_PLAN,0)))*WO.NN_WORK / DECODE(NVL(B.NN_SALES_PLAN,1), 0, 1, NVL(B.NN_SALES_PLAN,1))		  NN_PLAN_VS_STOCK_WORK, --차차주계획대비재고일수
-                            (NVL(B.EXPERT_STOCK,0)+(NVL(B.N_RECEIPT_EXPT,0)-NVL(B.N_SALES_PLAN,0))) / DECODE(NVL(B.SALES_MEAN_1WEEK,1), 0, 1, NVL(B.SALES_MEAN_1WEEK,1)) NN_ACT_VS_STOCK_WORK,  --차차주실적대비재고일수
-                            NVL(B.EXPERT_STOCK,0)+(NVL(B.N_RECEIPT_EXPT,0)-NVL(B.N_SALES_PLAN,0))+(NVL(D.RP_QTY2,0)-NVL(B.NN_SALES_PLAN,0)) EXPERT_STOCK3,  --예상재고(차차주)
-                            (NVL(B.EXPERT_STOCK,0)+(NVL(B.N_RECEIPT_EXPT,0)-NVL(B.N_SALES_PLAN,0))+(NVL(D.RP_QTY2,0)-NVL(B.NN_SALES_PLAN,0))) /
-                            DECODE(NVL(B.SALES_MEAN_1WEEK,1), 0, 1, NVL(B.SALES_MEAN_1WEEK,1)) NNN_ACT_VS_STOCK_WORK,  --차차차주실적대비재고일수
-                        #else
-                        	NVL(D.RP_QTY1,0) - NVL(D.RP_QTY1,0) NWK_ADJ_QTY,        --요구/생산 차이
-                        	D.RP_QTY1 PO_QTY1,       --생산필요량(차주)
-                            NVL(B.EXPERT_STOCK,0)+(NVL(D.RP_QTY1,0)-NVL(B.N_SALES_PLAN,0)) EXPERT_STOCK2, --예상재고(차주)  
-                            (NVL(B.EXPERT_STOCK,0)+(NVL(D.RP_QTY1,0)-NVL(B.N_SALES_PLAN,0)))*WO.NN_WORK / DECODE(NVL(B.NN_SALES_PLAN,1), 0, 1, NVL(B.NN_SALES_PLAN,1))		  NN_PLAN_VS_STOCK_WORK, --차차주계획대비재고일수
-                            (NVL(B.EXPERT_STOCK,0)+(NVL(D.RP_QTY1,0)-NVL(B.N_SALES_PLAN,0))) / DECODE(NVL(B.SALES_MEAN_1WEEK,1), 0, 1, NVL(B.SALES_MEAN_1WEEK,1)) NN_ACT_VS_STOCK_WORK,  --차차주실적대비재고일수
-                            NVL(B.EXPERT_STOCK,0)+(NVL(D.RP_QTY1,0)-NVL(B.N_SALES_PLAN,0))+(NVL(D.RP_QTY2,0)-NVL(B.NN_SALES_PLAN,0)) EXPERT_STOCK3,  --예상재고(차차주)
-                            (NVL(B.EXPERT_STOCK,0)+(NVL(D.RP_QTY1,0)-NVL(B.N_SALES_PLAN,0))+(NVL(D.RP_QTY2,0)-NVL(B.NN_SALES_PLAN,0))) /
-                            DECODE(NVL(B.SALES_MEAN_1WEEK,1), 0, 1, NVL(B.SALES_MEAN_1WEEK,1)) NNN_ACT_VS_STOCK_WORK,  --차차차주실적대비재고일수
-                        #end
-                            D.RP_QTY2 RP_QTY2,       --보충요구량(차차주)               
-                            D.RP_QTY2 PO_QTY2,       --생산필요량(차차주)
-                            B.NN_SALES_PLAN,         --판매계획(차차주)                     
-                    		A.W1_NFOS,	-- 1주판매계획
-                    		A.W1_ACT,	-- 1주판매실적
-                    		A.W3_NFOS,	-- 3주판매계획
-                    		A.W3_ACT,	-- 3주판매실적                  
-                    		WO.NN_WORK,  -- 차차주 영업일수
-                    		DECODE(B.SALES_MEAN_1WEEK, 0, 1, B.SALES_MEAN_1WEEK) SALES_MEAN_1WEEK, -- 1주평균 판매
-                    		B.SALES_PLAN - (NVL(A.W1_ACT,0) * (NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD'), 1)- TO_DATE('$!{sdate}','YYYY-MM-DD'))) SALES_ACT_VS_SALES_PLAN_1,
-                    		B.N_SALES_PLAN - (NVL(A.W1_ACT,0) * 6) SALES_ACT_VS_SALES_PLAN_2,
-                    		B.NN_SALES_PLAN - (NVL(A.W1_ACT,0) * 6) SALES_ACT_VS_SALES_PLAN_3,
-                    		B.SALES_PLAN - (NVL(A.W3_ACT,0) * (NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD'), 1)- TO_DATE('$!{sdate}','YYYY-MM-DD'))) SALES_ACT_3W_VS_SALES_PLAN_1,
-                    		B.N_SALES_PLAN - (NVL(A.W3_ACT,0) * 6) SALES_ACT_3W_VS_SALES_PLAN_2,
-                    		B.MI_CHGO
-                    FROM
-                            (
-                            --1. 판매계획/판매실적
-                            SELECT  ITEM_ID,
-                                    --1. 전월(판매계획/판매실적)
-                                    /*
-                                    ROUND(MAX(CASE WHEN  (M_ACT>0) THEN M_NFOS/M_ACT
-                                    ELSE 0
-                                    END),2) M_AVG_RATIO,
-                                    */
-                                    W1_NFOS,	-- 1주판매계획
-                                    W1_ACT,		-- 1주평균판매실적
-                                    W3_NFOS,	-- 3주판매계획
-                                    W3_ACT,		-- 3주평균판매실적
-                                    --2. 3주평균(판매계획/판매실적)
-                                    ROUND(MAX(CASE WHEN  (W3_ACT>0) THEN W3_NFOS/W3_ACT
-                                    ELSE 0
-                                    END),2) W3_AVG_RATIO,
-                                    --3. 1주평균(판매계획/판매실적)
-                                    ROUND(MAX(CASE WHEN  (W1_ACT>0) THEN W1_NFOS/W1_ACT
-                                    ELSE 0
-                                    END),2) W1_AVG_RATIO
-                                    --4. 당월경영계획
-                                    --SUM(M_NFO_QTY) M_NFO_QTY                          
-                            FROM    
-                                    (
-                                    SELECT  ITEM_ID,     
-                                            --1. 전월(판매계획,판매실적)
-                                            ---------------------------------------------------------
-                                            SUM(CASE WHEN YYYYMM = TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'), -1),'YYYYMM') THEN NFO_QTY END) M_NFOS,  
-                                            SUM(CASE WHEN YYYYMM = TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'), -1),'YYYYMM') THEN ACT_QTY END) M_ACT, 
-                                            ---------------------------------------------------------      
-                                            --2. 3주평균접근율
-                                            --------------------------------------------------------------------------------------
-                                            ROUND(SUM(CASE WHEN YYYYWW  BETWEEN TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')-( 7*3), 'IYYYIW') 
-                                                 AND TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')-( 7*1), 'IYYYIW')
-                                             THEN NFO_QTY
-                                            ELSE 0
-                                            END
-                                            )/18,2) W3_NFOS,
-                                            ROUND(SUM(CASE WHEN YYYYWW  BETWEEN TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')-( 7*3), 'IYYYIW') 
-                                                 AND TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')-( 7*1), 'IYYYIW')
-                                             THEN ACT_QTY
-                                            ELSE 0
-                                            END
-                                            )/18,2) W3_ACT,
-                                            --------------------------------------------------------------------------------------
-                                            --3. 1주평균접근율
-                                            ROUND(SUM(CASE WHEN YYYYWW  = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')-( 7*1), 'IYYYIW')
-                                               THEN NFO_QTY
-                                            ELSE 0
-                                            END
-                                            )/6,2) W1_NFOS,
-                                            ROUND(SUM(CASE WHEN YYYYWW  = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')-( 7*1), 'IYYYIW')
-                                               THEN ACT_QTY
-                                            ELSE 0
-                                            END
-                                            )/6,2) W1_ACT,       
-                                            SUM(CASE WHEN YYYYMM = TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'), 0),'YYYYMM') THEN NFO_QTY
-                                            END 
-                                            ) M_NFO_QTY --당월경영계획      
-                                    FROM    
-                                            (
-                                            --1. 전월 2개월간의 판매계획 
-                                            SELECT    s1.ITEM_ID,
-											        s2.YYYYMM, 
-											        s2.YYYYWW,
-											        s2.YYYYMMDD,       
-											        SUM(NORMAL_QTY+PROM_QTY+SUPT_QTY+SAMP_QTY) NFO_QTY,
-											        0 ACT_QTY
-											FROM    NFOS_SALES_PLAN_WEEKLY    S1,
-											        (
-											        SELECT    CASE
-											                    WHEN    (CAL_DATE - TO_DATE('$!{sdate}','YYYY-MM-DD')) >= 0 THEN
-											                        CASE 
-											                            WHEN TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IW') = '01' AND TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'MM') = '12' THEN TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'),1), 'yyyy')
-											                            ELSE TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'yyyy') 
-											                        END
-											                    ELSE
-											                        CASE 
-											                            WHEN TO_CHAR(CAL_DATE, 'IW') = '01' AND TO_CHAR(CAL_DATE, 'MM') = '12' THEN TO_CHAR(ADD_MONTHS(CAL_DATE,1), 'yyyy')
-											                            ELSE TO_CHAR(CAL_DATE, 'yyyy') 
-											                        END
-											                END                                 YYYY,
-											                CASE
-											                    WHEN    (CAL_DATE - TO_DATE('$!{sdate}','YYYY-MM-DD')) >= 0 THEN
-											                        TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IW')
-											                    ELSE
-											                        TO_CHAR(CAL_DATE, 'IW')
-											                END        VERSION,
-											                YYYYMMDD    YYYYMMDD,
-											                YYYYMM        YYYYMM,
-											                YYYYWW        YYYYWW
-											        FROM    CAL_MST
-											        WHERE    YYYYMM  BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'), -1),'YYYYMM')
-											                                            AND     TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'), 0),'YYYYMM')
-											        AND        HOLIDAY_FLAG    IS NULL
-											        )                        S2
-											WHERE    S1.YYYY        = S2.YYYY
-											AND        S1.VERSION    = S2.VERSION
-											AND        S1.YYYYMMDD    = S2.YYYYMMDD
-											GROUP
-											BY        S1.ITEM_ID,  S2.YYYYMM, s2.YYYYWW, s2.YYYYMMDD
-                                            UNION   ALL
-                                            --2. 전월 2개월간의 판매실적
-                                            SELECT  ITEM_ID, 
-                                                    CAL.YYYYMM, 
-                                                    CAL.YYYYWW,
-                                                    CAL.YYYYMMDD,  
-                                                    0 NFO_QTY,
-                                                    SUM(ACT.QTY) ACT_QTY
-                                            FROM    SALES_ACT_RECENT ACT, CAL_MST CAL
-                                            WHERE   ACT.SALE_DATE = CAL.CAL_DATE
-                                            AND     CAL.YYYYMM  BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'), -1),'YYYYMM')
-                                                                AND     TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'), 0),'YYYYMM')
-                                            GROUP   BY ITEM_ID, CAL.YYYYMM, CAL.YYYYWW, CAL.YYYYMMDD
-                                            )
-                                    GROUP BY ITEM_ID   
-                                    )
-                            GROUP BY ITEM_ID,W1_NFOS,W1_ACT,W3_NFOS,W3_ACT
-                            )   A,
-                            (
-                             /*   
-                            *  1. 기초재고            : 조회일자(오늘)에 해당하는 BASE_STOCK  SUM
-                            *  2. 금주생산계획        : 조회일자(오늘)에서 마지막 영업일까지(조회일자 주의 토요일)  SUM
-                            *  3. 금주판매계획        : 조회일자(오늘)에서 마지막 영업일까지(조회일자 주의 토요일)  SUM
-                            *  4. 1주일 평균판매      : 조회일자(오늘)에 해당하는 SALES_MEAN_1WEEK SUM
-                            *  5. 금주잔여판매일수    :  조회일자(오늘)을 포함해서 영업 마감일까지(조회일자 주의 토요일) 일수
-                            *  6. 1주평균판매대비     : (금주판매계획/(1주일평균판매*금주잔여판매일수)) * 100
-                            *  7. 예상재고(차주초)    : 기초재고 + 금주생산계획 - 금주판매계획 - 수출미출고
-                            *  8. 차주생산계획        : 조회일자(오늘)기준 차주에서 차주 마지막 영업일까지(조회일자 주의 토요일)  SUM
-                            *  9. 수출 미출고물량     : 생산요청일이 전주이전대상 중 미출고 오더수량
-                            */ 
-                            SELECT	ITEM_ID,
-                            		MAX(BASE_STOCK)		BASE_STOCK,
-                            		MAX(RECEIPT_EXPT)	RECEIPT_EXPT,
-                            		MAX(SALES_PLAN)		SALES_PLAN,
-                            		MAX(SALES_VS_WEEK1_AVG)	SALES_VS_WEEK1_AVG,
-                            		MAX(EXPERT_STOCK) - NVL(MAX(MI_CHGO),0)	EXPERT_STOCK,
-                            		MAX(N_RECEIPT_EXPT)	N_RECEIPT_EXPT,
-                            		MAX(N_SALES_PLAN)	N_SALES_PLAN,
-                            		MAX(NN_SALES_PLAN)	NN_SALES_PLAN,
-                            		MAX(SALES_MEAN_1WEEK)	SALES_MEAN_1WEEK,
-                            		MAX(MI_CHGO)		MI_CHGO
-                            FROM	(
-		                            SELECT  ITEM_ID,
-		                                    BASE_STOCK,         --기초재고
-		                                    RECEIPT_EXPT,       --금주생산계획
-		                                    SALES_PLAN ,        --금주판매계획
-		                                    ROUND(SALES_PLAN / DECODE((SALES_MEAN_1WEEK * SALES_DAY),0,1,(SALES_MEAN_1WEEK * SALES_DAY)),2) 
-		                                    SALES_VS_WEEK1_AVG,    -- 1주평균판매대비
-		                                    BASE_STOCK + RECEIPT_EXPT - SALES_PLAN  EXPERT_STOCK,  -- 예상재고(차주초)
-		                                    N_RECEIPT_EXPT,     --차주생산계획
-		                                    N_SALES_PLAN,       --차주판매계획 
-		                                    NN_SALES_PLAN,      --차주판매계획
-		                                    SALES_MEAN_1WEEK,	--1주평균판매
-		                                    0		MI_CHGO		--수출 미출고물량                   
-		                            FROM        
-		                                    (
-		                                    SELECT  ITEM_ID,
-		                                            SUM(DECODE(YYYYMMDD, REPLACE ('$!{sdate}', '-', ''),BASE_STOCK,0))                              BASE_STOCK,                        --기초재고
-		                                            SUM(CASE WHEN  YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IYYYIW')
-											                       AND YYYYMMDD >= TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'YYYYMMDD')
-											                 THEN  RECEIPT_EXPT
-											                 ELSE  0
-											            END)       RECEIPT_EXPT,                      --금주생산계획
-		                                            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 'IYYYIW'),RECEIPT_EXPT))  N_RECEIPT_EXPT,                    --차주생산계획        
-		                                            SUM(CASE WHEN  YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IYYYIW')
-											                       AND YYYYMMDD >= TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'YYYYMMDD')
-											                 THEN  SALES_PLAN
-											                 ELSE  0
-											            END)       SALES_PLAN,                      --금주판매계획                                             
-		                                            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 'IYYYIW'),SALES_PLAN))    N_SALES_PLAN,                      --차주판매계획
-		                                            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2), 'IYYYIW'),SALES_PLAN))    NN_SALES_PLAN,                     --차차주판매계획                                      
-		                                            SUM(DECODE(YYYYMMDD, REPLACE ('$!{sdate}', '-', ''),SALES_MEAN_1WEEK,0))                        SALES_MEAN_1WEEK,                  --1주일 평균판매
-		                                            NEXT_DAY(TO_DATE(REPLACE ('$!{sdate}', '-', ''),'YYYYMMDD'), 1)- TO_DATE(REPLACE ('$!{sdate}', '-', ''),'YYYYMMDD') SALES_DAY      --금주잔여판매일수
-		                                    FROM
-		                                            (
-		                                            SELECT  DD.ITEM_ID,
-		                                                    DD.BASE_STOCK,
-		                                                    DD.RECEIPT_EXPT,
-		                                                    (DD.SALES_PLAN+DD.PROM_PLAN) SALES_PLAN, --판매계획수량수정(2008.11.12 수정)
-		                                                    SALES_MEAN_1WEEK,
-		                                                    CAL.YYYYWW,
-		                                                    CAL.YYYYMMDD
-		                                            FROM    DC_DATAWAREHOUSE DD, CAL_MST CAL,
-		                                            		(
-		                                            		SELECT	DC_ID
-		                                            		FROM	DC_MST
-		                                            		WHERE	(CDC_FLAG = 'Y' OR RDC_FLAG = 'Y')
-		                                            		)	DC
-		                                          	WHERE   DD.CNFM_DATE = CAL.YYYYMMDD
-		                                            /* 당주 월요일부터 ~ 당주 일요일까지 */    
-		                                            AND     DD.CNFM_DATE BETWEEN  TO_CHAR(NEXT_DAY(TO_DATE(REPLACE ('$!{sdate}', '-', ''),'YYYYMMDD')+(7*-1), 2), 'YYYYMMDD')
-		                                                                 AND      TO_CHAR(NEXT_DAY(TO_DATE(REPLACE ('$!{sdate}', '-', ''),'YYYYMMDD')+(7*2) , 1)  , 'YYYYMMDD')
-		                                            AND		DD.DC_ID	= DC.DC_ID
-		                                            UNION	ALL
-													/* 당주 생산요청일 수출물량 */
-													SELECT  B.PROD_CODE			ITEM_CD,
-															0					BASE_STOCK,
-															0					RECEIPT_EXPT,
-															SUM(B.REQT_BOX)		SALES_PLAN,
-															0					SALES_MEAN_1WEEK,
-															T2.YYYYWW,
-															T2.YYYYMMDD
-													FROM    SDORT101    A,
-															SDORT102    B,
-															ITEM_MST	C,
-															CAL_MST 	T2
-													WHERE   A.SLIP_NO						=	B.SLIP_NO
-													AND     A.PRDT_PLAN_DATE				>= TRUNC(TO_DATE(REPLACE ('$!{sdate}', '-', '')),'D')
-													AND		SUBSTR(A.SLIP_GUBN_CODE,1,1)	= 'X'
-													AND		LENGTH(A.CNFM_DATE) 			= 8  
-													AND		B.PROD_CODE						= C.ITEM_ID
-													AND		C.ITYPE							= 'FERT'
-													AND		A.UPDT_GUBN						!= 'DE'
-													AND		A.PRDT_PLAN_DATE				= T2.CAL_DATE
-													GROUP
-													BY		B.PROD_CODE,
-															T2.YYYYWW,
-															T2.YYYYMMDD
-													)
-		                                    GROUP BY ITEM_ID, NEXT_DAY(TO_DATE(REPLACE ('$!{sdate}', '-', ''),'YYYYMMDD'), 1)- TO_DATE(REPLACE ('$!{sdate}', '-', ''),'YYYYMMDD')
-		                                    )   
-								)
-							GROUP
-							BY		ITEM_ID	                            
-                            )   B,
-                            (
-                            /* 
-                          *  조회 일자에 해당하는 안전재고 (DC_ID에 해당 없이 모두 SUM) 
-                          */
-                            SELECT SP.WORK_DATE, SP.ITEM_ID, ROUND(SUM(SP.SAFETY_STOCK)+SUM(SP.CAMP_STOC)+ SUM(NVL(SP.FA_STOCK,0)) +
-                                    SUM(DECODE(SIGN(TO_DATE(REPLACE('$!{sdate}', '-', ''),'YYYYMMDD')-TO_DATE(SP.START_DATE,'YYYYMMDD')),-1,0,
-                                        DECODE(SIGN(TO_DATE(SP.END_DATE,'YYYYMMDD')-TO_DATE(REPLACE('$!{sdate}', '-', ''),'YYYYMMDD')),-1,0,
-                                        NVL(SP.SAVE_STOC,0)))),0)      SAFETY_STOCK
-                            FROM    STOCK_POLICY_QTY  SP,
-                                    (
-                                    SELECT  MAX(WORK_DATE) WORK_DATE
-                                    FROM    STOCK_POLICY_QTY
-                                    WHERE   LOC_TYPE = 'DC'
-                                    )   MV
-                            WHERE   SP.WORK_DATE = MV.WORK_DATE
-                            GROUP   BY SP.WORK_DATE, SP.ITEM_ID
-                            --ORDER    BY PY.ITEM_ID
-                            )   C,
-                            (
-                            /*
-                          * 당주, 차주, 차차주 보충 요구량
-                          *//*
-                            SELECT  PA.VERSION VERSION,
-                                    ITEM_ID,
-                                    SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW') THEN QTY
-                                    ELSE 0
-                                    END) RP_QTY0,
-                                    SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*1), 'IYYYIW') THEN QTY
-                                    ELSE 0
-                                    END) RP_QTY1,
-                                    SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*2), 'IYYYIW') THEN QTY
-                                    ELSE 0
-                                  END) +
-                                    SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW') THEN QTY
-                                    ELSE 0
-                                    END) RP_QTY2
-                            FROM    PLANT_ALLOC_PLAN PA, CAL_MST CAL
-                            WHERE   PA.DUE_DATE = CAL.CAL_DATE
-                            AND     PA.VERSION||'2' = '$!{plant_alloc_version}'||'2'
-                            AND     CAL.YYYYWW  BETWEEN TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW')
-                                                AND     TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*2), 'IYYYIW')  
-                            GROUP   BY PA.VERSION, ITEM_ID
-                            */
-                            SELECT '$!{plant_alloc_version}' VERSION, IM.ITEM_ID
-                            	   , NVL(PA.RP_QTY0, 0) RP_QTY0, NVL(PA.RP_QTY1, 0) RP_QTY1, NVL(PA.RP_QTY2, 0) RP_QTY2--, IM.ITEM_NAME, IM.CAT03
-                            FROM (
-                                    SELECT  PA.VERSION VERSION,
-                                            PA.ITEM_ID,
-                                            SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW') THEN PA.QTY
-                                            ELSE 0
-                                            END) RP_QTY0,
-                                            SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*1), 'IYYYIW') THEN PA.QTY
-                                            ELSE 0
-                                            END) 
-                                            /*+
-                                            SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW') THEN PA.QTY
-                                            ELSE 0
-                                            END)*/ 
-                                            RP_QTY1,
-                                            SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*2), 'IYYYIW') THEN PA.QTY
-                                            ELSE 0
-                                            END) RP_QTY2
-                                    FROM    PLANT_ALLOC_PLAN PA, CAL_MST CAL
-                                    WHERE   PA.DUE_DATE = CAL.CAL_DATE
-		                            AND     PA.VERSION = '$!{plant_alloc_version}'
-		                            AND     PA.SEQ = 2
-                                    AND     CAL.YYYYWW  BETWEEN TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW')
-                                                        AND     TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*2), 'IYYYIW')
-                                    GROUP   BY PA.VERSION, PA.ITEM_ID
-                                    ) PA, ITEM_MST IM
-                            WHERE IM.ITEM_ID = PA.ITEM_ID(+)
-                            AND 	(    (IM.ITYPE = 'FERT' AND IM.CAT03 IN ('P10', 'P11', 'F10'))
-                                      OR (IM.ITYPE IN ('FERT') AND IM.ETC_FLAG = '900') )
-                            AND 	IM.ITEM_STATUS = 'ST'
-                            AND 	'$!{plant_alloc_version}' IS NOT NULL
-                            --
-                            UNION ALL
-                            --
-                            SELECT  PA.VERSION VERSION,
-                                    PA.ITEM_ID,
-                                    SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW') THEN PA.QTY
-                                    ELSE 0
-                                    END) RP_QTY0,
-                                    SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*1), 'IYYYIW') THEN PA.QTY
-                                    ELSE 0
-                                    END) RP_QTY1,
-                                    SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*2), 'IYYYIW') THEN PA.QTY
-                                    ELSE 0
-                                    END) RP_QTY2
-                            FROM    PLANT_ALLOC_PLAN PA, CAL_MST CAL, ITEM_MST IM
-                            WHERE   PA.DUE_DATE = CAL.CAL_DATE
-                            AND     PA.VERSION = '$!{plant_alloc_version}'
-                            AND     PA.SEQ = 2
-                            AND     CAL.YYYYWW  BETWEEN TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW')
-                                                AND     TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*2), 'IYYYIW')
-                            AND 	PA.ITEM_ID = IM.ITEM_ID
-                            AND 	IM.ITEM_STATUS = 'ST' AND IM.CAT03 = 'O10'
-                            AND 	'$!{plant_alloc_version}' IS NOT NULL
-                            GROUP   BY PA.VERSION, PA.ITEM_ID
-                            --
-                            UNION	ALL
-                            --
-                            /* 수출 MTS는 모두 보이게 한다. */
-                            SELECT	'$!{plant_alloc_version}'	VERSION,
-									ITEM_ID,
-									0	RP_QTY0,
-									0	RP_QTY1,
-									0	RP_QTY2
-							FROM	ITEM_MST
-							WHERE	ITEM_STATUS	= 'ST'
-							AND		CAT03 		= 'O10'
-							AND		MTO_MTS_TYPE = '0002'
-							AND		ITEM_ID	NOT IN 
-									(
-									SELECT	PA.ITEM_ID
-									FROM	PLANT_ALLOC_PLAN PA,
-											ITEM_MST IM
-									WHERE	PA.ITEM_ID	= IM.ITEM_ID
-									AND 	IM.ITEM_STATUS = 'ST' AND IM.CAT03 = 'O10'
-									AND     PA.VERSION = '$!{plant_alloc_version}'
-									)
-							AND		'$!{checked_domain}' IS NOT NULL
-                            )   D,
-                            (
-                            /*
-                          *      임시 품종 분류 대분류(설비유형이 정의되면 변경 예정)
-                          */
-                            SELECT  ITEM.ITEM_ID,
-                                    CD1.CD         CD1, 
-                                    CD1.CD_NAME    CD1_NM
-                            FROM    ITEM_MST ITEM, 
-                                    CODE_MST CD1
-                            WHERE   ITEM.CAT06 = CD1.CD
-                            AND     CD1.CD_GRP = 'CAT06'
-                            )   RES_TP,
-                            ( 
-                            SELECT  IM.ITEM_ID,
-                                    IM.ITEM_NAME
-                            FROM    ITEM_MST IM
-                            WHERE   IM.MADE_TYPE != 'DE' 
-                            AND		(IM.SELL_STOP_DATE = '99991231' or IM.SELL_STOP_DATE ='00000000')
-                        #if("$!{checked_domain}" == "DO")
-                        	/* 내수 제품*/
-                            AND     (IM.MATERIAL_GROUP &lt; '5K000' OR  IM.MATERIAL_GROUP &gt; '5S999')
-                        #elseif("$!{checked_domain}" == "EXMTS")
-                        	/* 수출 제품(MTS) */
-                            AND     IM.MATERIAL_GROUP &gt;= '5K000'
-                            AND     IM.MATERIAL_GROUP &lt;= '5S999'
-                            AND		IM.MTO_MTS_TYPE	= '0002'
-                        #elseif("$!{checked_domain}" == "EXMTO")
-                        	/* 수출 제품(MTO) */
-                            AND     IM.MATERIAL_GROUP &gt;= '5K000'
-                            AND     IM.MATERIAL_GROUP &lt;= '5S999'
-                            AND		IM.MTO_MTS_TYPE	= '0001'
-                        #end                            
-                            )   IM,
-                            /* 차주, 차차주 영업 일수 */
-                            (
-                            SELECT  fn_nscm_get_workingday01(REPLACE('2009-01-14','-',''), 
-                                 							 TO_CHAR(NEXT_DAY(TO_DATE('2009-01-14','YYYY-MM-DD'), 1), 'YYYYMMDD')) T_WORK, -- 금주 영업일수
-                            		fn_nscm_get_workingday01(TO_CHAR(NEXT_DAY('$!{sdate}',2),'YYYYMMDD'), 
-							                                 TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+6, 1), 'YYYYMMDD')) N_WORK, -- 차주 영업일수
-							        fn_nscm_get_workingday01(TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+7, 2),'YYYYMMDD'),
-							                                 TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+13, 1), 'YYYYMMDD')) NN_WORK,  -- 차차주 영업일수
-							        TO_CHAR(NEXT_DAY('$!{sdate}',2),'YYYYMMDD') N_MON,  -- 차주 월요일                               
-							        TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+6, 1), 'YYYYMMDD') N_SUN,	-- 차주 일요일 
-							        TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+7, 2),'YYYYMMDD') NN_MON, 	-- 차차주 월요일
-							        TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+13, 1), 'YYYYMMDD') NN_SUN	-- 차차주 일요일
-							FROM DUAL
-                            ) WO           
-                    WHERE   D.ITEM_ID = B.ITEM_ID(+)
-                    AND     D.ITEM_ID = C.ITEM_ID(+)    
-                    AND     D.ITEM_ID = A.ITEM_ID(+)
-                    AND     D.ITEM_ID = IM.ITEM_ID
-                    AND     D.ITEM_ID = RES_TP.ITEM_ID(+)
-                    )   A,
-                    (
-                    /*
-                        1 : 제품별 수량
-                        2 : 설비유형별 소계
-                        3 : 총계
-                    */
-                    SELECT  1 NO FROM DUAL
-                    UNION   ALL
-                    SELECT  2 NO FROM DUAL       
-                    UNION   ALL
-                    SELECT  3 NO FROM DUAL
-                    )   B,
-                    (--해당하는 주의 토요일 날짜를 뽑음!
-                    SELECT MAX(DECODE(SEQ, 1, DD_DATE)) AS W1 --당주 due_date
-                          ,MAX(DECODE(SEQ, 2, DD_DATE)) AS W2 --차주 due_date
-                          ,MAX(DECODE(SEQ, 3, DD_DATE)) AS W3 --차차주 due_date
-                      FROM (
-                            SELECT AA.DD_DATE, dense_rank() over(order by AA.DD_DATE asc) as SEQ
-                              FROM (
-                                    select yyyymmdd as DD_DATE
-                                      from cal_mst
-                                     where yyyyww in ( 
-                                            select yyyyww
-                                              from cal_mst
-                                             where yyyymmdd between to_char(TO_DATE('$!{sdate}','YYYY-MM-DD'),'yyyymmdd') and to_char(TO_DATE('$!{sdate}','YYYY-MM-DD')+14,'yyyymmdd')
-                                     )
-                                     and week_day = '토'
-                                   ) AA
-                           )
-                    )   C 
-            --WHEREITEM_ID IN ('101000982', '101000066')
-            /* 
-                최신 공장할당 버전이 PLANT_ALLOC_ITEM_ADJ 테이블에있으면 
-                UNION ALL 위쪽 쿼리 실행 안함 
-           */
-            WHERE   NOT EXISTS ( 
-                                SELECT  DISTINCT PA.VERSION
-	                            FROM    PLANT_ALLOC_ITEM_ADJ PA,
-	                            		(
-	                            		SELECT  IM.ITEM_ID,
-			                                    IM.ITEM_NAME
-			                            FROM    ITEM_MST IM
-			                            WHERE   IM.MADE_TYPE != 'DE' 
-			                        #if("$!{checked_domain}" == "DO")
-			                        	/* 내수 제품*/
-			                            AND     (IM.MATERIAL_GROUP &lt; '5K000' OR  IM.MATERIAL_GROUP &gt; '5S999')
-			                        #elseif("$!{checked_domain}" == "EXMTS")
-			                        	/* 수출 제품(MTS) */
-			                            AND     IM.MATERIAL_GROUP &gt;= '5K000'
-			                            AND     IM.MATERIAL_GROUP &lt;= '5S999'
-			                            AND		IM.MTO_MTS_TYPE	= '0002'
-			                        #elseif("$!{checked_domain}" == "EXMTO")
-			                        	/* 수출 제품(MTO) */
-			                            AND     IM.MATERIAL_GROUP &gt;= '5K000'
-			                            AND     IM.MATERIAL_GROUP &lt;= '5S999'
-			                            AND		IM.MTO_MTS_TYPE	= '0001'
-			                        #end
-	                            		) IM
-	                            WHERE   PA.VERSION = '$!{plant_alloc_version}'
-	                            AND		PA.ITEM_ID	= IM.ITEM_ID
-                               )   
-            GROUP   BY DECODE(NO,1,RES_TP,2,RES_TP, NULL), DECODE(NO,1,ITEM_ID,2,'소계'), NO, W1, W2, W3
-            UNION   ALL
-            /* 
-                PLANT_ALLOC_ITEM_ADJ 테이블에 공장할당 버전과 일치하는 버전이 존재하면 실행 
-           */
-            SELECT  NO, -- 0
-                    MAX(VERSION) VERSION, --공장할당VERSION 1
-                    DECODE(NO,1,RES_TP,2, RES_TP, NULL) RES_TP,     --설비유형 2 
-                    DECODE(NO,1,ITEM_ID,2,'소계') ITEM_ID, --자재코드 3 
-                    MAX(DECODE(NO,1, ITEM_NAME,2, RES_TP_NM||'소계','총계')) ITEM_NAME, --자재코드명 4
-                    ROUND(AVG(DECODE(NO,1,W3_AVG_RATIO,2,W3_AVG_RATIO,W3_AVG_RATIO)),2) W3_AVG_RATIO, --3주평균접근율 5
-                    ROUND(AVG(DECODE(NO,1,W1_AVG_RATIO,2,W1_AVG_RATIO,W1_AVG_RATIO)),2) W1_AVG_RATIO, --1주평균접근율 6
-                    TO_CHAR(SUM(DECODE(NO,1,SAFETY_STOCK,2,SAFETY_STOCK,SAFETY_STOCK)),'999,999,999') SAFETY_STOCK, --안전재고 7
-                    TO_CHAR(SUM(DECODE(NO,1,BASE_STOCK,2,BASE_STOCK,BASE_STOCK)),'999,999,999') BASE_STOCK, --기초재고 8
-                    TO_CHAR(SUM(DECODE(NO,1,RECEIPT_EXPT,2,RECEIPT_EXPT,RECEIPT_EXPT)),'999,999,999') RECEIPT_EXPT, --금주생산계획 9
-                    TO_CHAR(SUM(DECODE(NO,1,SALES_PLAN,2,SALES_PLAN,SALES_PLAN)),'999,999,999') SALES_PLAN, --금주판매계획 10
-                    ROUND(AVG(DECODE(NO,1,SALES_VS_WEEK1_AVG,2,SALES_VS_WEEK1_AVG,SALES_VS_WEEK1_AVG)),2) SALES_VS_WEEK1_AVG, --1주평균판매대비 11
-                    TO_CHAR(SUM(DECODE(NO,1,EXPERT_STOCK,2,EXPERT_STOCK,EXPERT_STOCK)),'999,999,999') EXPERT_STOCK, --예상재고(차주초) 12
-                    TO_CHAR(SUM(DECODE(NO,1,N_RECEIPT_EXPT,2,N_RECEIPT_EXPT,N_RECEIPT_EXPT)),'999,999,999') N_RECEIPT_EXPT, --차주생산계획 13
-                    -------------------------------------------------------------------------------------------------          
-                    TO_CHAR(TRUNC(TO_DATE('$!{sdate}','YYYY-MM-DD'),'D')+6+(7*0),'YYYY-MM-DD') RP0_DAY, --당주(월) -- 변경(토)
-                    TO_CHAR(TRUNC(TO_DATE('$!{sdate}','YYYY-MM-DD'),'D')+6+(7*1),'YYYY-MM-DD') RP1_DAY, --차주(월) -- 변경(토)
-                    TO_CHAR(TRUNC(TO_DATE('$!{sdate}','YYYY-MM-DD'),'D')+6+(7*2),'YYYY-MM-DD') RP2_DAY, --차차주(월) -- 변경(토)
-                    TO_CHAR(SUM(DECODE(NO,1,RP_QTY0,2,RP_QTY0,RP_QTY0)),'999,999,999') RP0_QTY, --보충요구량(당주) 
-                    TO_CHAR(SUM(DECODE(NO,1,RP_QTY1,2,RP_QTY1,RP_QTY1)),'999,999,999') RP1_QTY, --보충요구량(차주) 
-                    TO_CHAR(SUM(DECODE(NO,1,RP_QTY2,2,RP_QTY2,RP_QTY2)),'999,999,999') RP2_QTY, --보충요구량(차차주) 
-                    NVL(TRIM(TO_CHAR(SUM(DECODE(NO,1,PO_QTY1,2,PO_QTY1,PO_QTY1)),'999,999,999')),0) PO_QTY1, --생산필요량(차주)
-                    NVL(TRIM(TO_CHAR(SUM(DECODE(NO,1,PO_QTY2,2,PO_QTY2,PO_QTY2)),'999,999,999')),0) PO_QTY2, --생산필요량(차차주)
-                    TO_CHAR(SUM(DECODE(NO,1,NN_SALES_PLAN,2,NN_SALES_PLAN,NN_SALES_PLAN)),'999,999,999') NN_SALES_PLAN,   --차차주판매계획           
-                    TO_CHAR(SUM(DECODE(NO,1,EXPERT_STOCK3,2,EXPERT_STOCK3,EXPERT_STOCK3)),'999,999,999') EXPERT_STOCK3,   --예상재고(차차주)   
-                    -------------------------------------------------------------------------------------------------          
-                    TO_CHAR(SUM(DECODE(NO,1,NWK_ADJ_QTY,2,NWK_ADJ_QTY,NWK_ADJ_QTY)),'999,999,999') NWK_ADJ_QTY, --요구/생산 차이 16
-                    TO_CHAR(SUM(DECODE(NO,1,N_SALES_PLAN,2,N_SALES_PLAN,N_SALES_PLAN)),'999,999,999') N_SALES_PLAN,           --차주판매계획 17
-                    TO_CHAR(SUM(DECODE(NO,1,EXPERT_STOCK2,2,EXPERT_STOCK2,EXPERT_STOCK2)),'999,999,999') EXPERT_STOCK2,        --예상재고 18   
-            		MAX(W1_NFOS),	-- 1주판매계획
-            		MAX(W1_ACT),	-- 1주판매실적
-            		MAX(W3_NFOS),	-- 3주판매계획
-            		MAX(W3_ACT),		-- 3주판매실적
-            		ROUND(SUM(DECODE(NO,1,N_PLAN_VS_STOCK_WORK,2,N_PLAN_VS_STOCK_WORK,N_PLAN_VS_STOCK_WORK)),1) N_PLAN_VS_STOCK_WORK,  --차주계획대비재고일수 31
-            		ROUND(SUM(DECODE(NO,1,N_ACT_VS_STOCK_WORK,2,N_ACT_VS_STOCK_WORK,N_ACT_VS_STOCK_WORK)),1) N_ACT_VS_STOCK_WORK,	  --차주실적대비재고일수 32
-            		ROUND(SUM(DECODE(NO,1,NN_PLAN_VS_STOCK_WORK,2,NN_PLAN_VS_STOCK_WORK,NN_PLAN_VS_STOCK_WORK)),1) NN_PLAN_VS_STOCK_WORK, --차차주계획대비재고일수 33
-            		ROUND(SUM(DECODE(NO,1,NN_ACT_VS_STOCK_WORK, 2,NN_ACT_VS_STOCK_WORK,NN_ACT_VS_STOCK_WORK)),1) NN_ACT_VS_STOCK_WORK, --차차주계획대비재고일수 34
-            		MAX(NN_WORK) NNWK_WORK, -- 차차주 영업일수 35
-            		MAX(SALES_MEAN_1WEEK) SALES_MEAN_1WEEK, --1주 평균 판매 36
-            		ROUND(SUM(DECODE(NO,1,NNN_ACT_VS_STOCK_WORK, 2,NNN_ACT_VS_STOCK_WORK,NNN_ACT_VS_STOCK_WORK)),1) NNN_ACT_VS_STOCK_WORK,	--차차차주실적대비재고일수 37
-            		SUM(DECODE(NO,1,SALES_ACT_VS_SALES_PLAN_1,2,SALES_ACT_VS_SALES_PLAN_1,SALES_ACT_VS_SALES_PLAN_1)) SALES_ACT_VS_SALES_PLAN_1, --금주 판매계획 - 금주 1주 평균 판매실적 38
-           			SUM(DECODE(NO,1,SALES_ACT_VS_SALES_PLAN_2,2,SALES_ACT_VS_SALES_PLAN_2,SALES_ACT_VS_SALES_PLAN_2)) SALES_ACT_VS_SALES_PLAN_2, --차주 판매계획 - 차주 1주 평균 판매실적 39
-           			SUM(DECODE(NO,1,SALES_ACT_VS_SALES_PLAN_3,2,SALES_ACT_VS_SALES_PLAN_3,SALES_ACT_VS_SALES_PLAN_3)) SALES_ACT_VS_SALES_PLAN_3, --차차주 판매계획 - 차차주 1주 평균 판매실적 40
-           			SUM(DECODE(NO,1,SALES_ACT_VS_SALES_PLAN_1 + SALES_ACT_VS_SALES_PLAN_2,2,SALES_ACT_VS_SALES_PLAN_1 + SALES_ACT_VS_SALES_PLAN_2,SALES_ACT_VS_SALES_PLAN_1 + SALES_ACT_VS_SALES_PLAN_2)) W1_SALES_PLAN_DIFF, -- 1주평균 판매 계획 가감량 
-           			SUM(DECODE(NO,1,SALES_ACT_3W_VS_SALES_PLAN_1 + SALES_ACT_3W_VS_SALES_PLAN_2,2,SALES_ACT_3W_VS_SALES_PLAN_1 + SALES_ACT_3W_VS_SALES_PLAN_2,SALES_ACT_3W_VS_SALES_PLAN_1 + SALES_ACT_3W_VS_SALES_PLAN_2)) W3_SALES_PLAN_DIFF -- 3주평균 판매 계획 가감량 42
-           			,'' AS CRUD, --와이즈그리드의 crud 상태값을 가져옴 (수정 삭제 삽입)
-           			W1, W2, W3, --당주, 차주, 차차주 DUE_DATE (해당 주의 토요일을 가져옴)  
-           			TO_CHAR(SUM(DECODE(NO,1,MI_CHGO,2,MI_CHGO,MI_CHGO)),'999,999,999') MI_CHGO --수출 미출고물량         			
-    FROM    
-                    ( 
-                    SELECT  RES_TP.CD1    RES_TP,    --설비유형
-                            RES_TP.CD1_NM RES_TP_NM, --설비유형명 
-                            D.VERSION,               --공장할당VERSION
-                            D.ITEM_ID,               --자재코드
-                            IM.ITEM_NAME,            --자재코드명          
-                            A.W3_AVG_RATIO,          --3주평균접근율
-                            A.W1_AVG_RATIO,          --1주평균접근율
-                            C.SAFETY_STOCK,          --안전재고
-                            B.BASE_STOCK,            --기초재고
-                            B.RECEIPT_EXPT,          --금주생산계획
-                            B.SALES_PLAN,            --금주판매계획
-                            B.SALES_VS_WEEK1_AVG,    --1주평균판매대비
-                            B.EXPERT_STOCK,          --예상재고(차주초)
-                            B.EXPERT_STOCK*WO.N_WORK / DECODE(B.N_SALES_PLAN, 0, 1, B.N_SALES_PLAN)		  N_PLAN_VS_STOCK_WORK, --차주계획대비재고일수
-                            B.EXPERT_STOCK / DECODE(B.SALES_MEAN_1WEEK, 0, 1, B.SALES_MEAN_1WEEK) N_ACT_VS_STOCK_WORK,  --차주실적대비재고일수
-                            B.N_RECEIPT_EXPT,        --차주생산계획
-                            D.RP_QTY0 RP_QTY0,       --보충요구량(당주)               
-                            D.RP_QTY1 RP_QTY1,       --보충요구량(차주)               
-                            PT.W02_LST_PRODQTY PO_QTY1,       --생산필요량(차주)
-                            NVL(PT.W02_LST_PRODQTY,0) - NVL(D.RP_QTY1,0) NWK_ADJ_QTY,        --요구/생산 차이
-                            B.N_SALES_PLAN ,         --차주판매계획                                            
-                            NVL(B.EXPERT_STOCK,0)+(NVL(PT.W02_LST_PRODQTY,0)-NVL(B.N_SALES_PLAN,0)) EXPERT_STOCK2, --예상재고(차주)  
-                            (NVL(B.EXPERT_STOCK,0)+(NVL(PT.W02_LST_PRODQTY,0)-NVL(B.N_SALES_PLAN,0)))*WO.NN_WORK / DECODE(NVL(B.NN_SALES_PLAN,1), 0, 1, NVL(B.NN_SALES_PLAN,1))		  NN_PLAN_VS_STOCK_WORK, --차차주계획대비재고일수
-                            (NVL(B.EXPERT_STOCK,0)+(NVL(PT.W02_LST_PRODQTY,0)-NVL(B.N_SALES_PLAN,0))) / DECODE(NVL(B.SALES_MEAN_1WEEK,1), 0, 1, NVL(B.SALES_MEAN_1WEEK,1)) NN_ACT_VS_STOCK_WORK,  --차차주실적대비재고일수
-                            NVL(B.EXPERT_STOCK,0)+(NVL(PT.W02_LST_PRODQTY,0)-NVL(B.N_SALES_PLAN,0))+(NVL(D.RP_QTY2,0)-NVL(B.NN_SALES_PLAN,0)) EXPERT_STOCK3,  --예상재고(차차주)
-                            (NVL(B.EXPERT_STOCK,0)+(NVL(PT.W02_LST_PRODQTY,0)-NVL(B.N_SALES_PLAN,0))+(NVL(D.RP_QTY2,0)-NVL(B.NN_SALES_PLAN,0))) /
-                            DECODE(NVL(B.SALES_MEAN_1WEEK,1), 0, 1, NVL(B.SALES_MEAN_1WEEK,1)) NNN_ACT_VS_STOCK_WORK,  --차차차주실적대비재고일수
-                            D.RP_QTY2 RP_QTY2,       --보충요구량(차차주)               
-                            PT.W03_LST_PRODQTY PO_QTY2,       --생산필요량(차차주)
-                            B.NN_SALES_PLAN,         --판매계획(차차주)                              
-                    		A.W1_NFOS,	-- 1주판매계획
-                    		A.W1_ACT,	-- 1주판매실적
-                    		A.W3_NFOS,	-- 3주판매계획
-                    		A.W3_ACT,   -- 3주판매실적
-                    		WO.NN_WORK,  -- 차차주 영업일수
-                    		DECODE(B.SALES_MEAN_1WEEK, 0, 1, B.SALES_MEAN_1WEEK) SALES_MEAN_1WEEK, -- 1주평균 판매
-                    		B.SALES_PLAN - (NVL(A.W1_ACT,0) * (NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD'), 1)- TO_DATE('$!{sdate}','YYYY-MM-DD'))) SALES_ACT_VS_SALES_PLAN_1,
-		            		B.N_SALES_PLAN - (NVL(A.W1_ACT,0) * 6) SALES_ACT_VS_SALES_PLAN_2,
-		            		B.NN_SALES_PLAN - (NVL(A.W1_ACT,0) * 6) SALES_ACT_VS_SALES_PLAN_3,
-                    		B.SALES_PLAN - (NVL(A.W3_ACT,0) * (NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD'), 1)- TO_DATE('$!{sdate}','YYYY-MM-DD'))) SALES_ACT_3W_VS_SALES_PLAN_1,
-                    		B.N_SALES_PLAN - (NVL(A.W3_ACT,0) * 6) SALES_ACT_3W_VS_SALES_PLAN_2,
-                    		B.MI_CHGO                  		
-                    FROM
-                            (
-                            --1. 판매계획/판매실적
-                            SELECT  ITEM_ID,
-                                    --1. 전월(판매계획/판매실적)
-                                    /*
-                                    ROUND(MAX(CASE WHEN  (M_ACT &gt; 0) THEN M_NFOS/M_ACT
-                                    ELSE 0
-                                    END),2) M_AVG_RATIO,
-                                    */
-                                    W1_NFOS,	-- 1주판매계획
-                                    W1_ACT,		-- 1주판매실적
-                                    W3_NFOS,	-- 3주판매계획
-                                    W3_ACT,		-- 3주판매실적
-                                    --2. 3주평균(판매계획/판매실적)
-                                    ROUND(MAX(CASE WHEN  (W3_ACT &gt; 0) THEN W3_NFOS/W3_ACT
-                                    ELSE 0
-                                    END),2) W3_AVG_RATIO,
-                                    --3. 1주평균(판매계획/판매실적)
-                                    ROUND(MAX(CASE WHEN  (W1_ACT &gt; 0) THEN W1_NFOS/W1_ACT
-                                    ELSE 0
-                                    END),2) W1_AVG_RATIO
-                                    --4. 당월경영계획
-                                    --SUM(M_NFO_QTY) M_NFO_QTY                          
-                            FROM    
-                                    (
-                                    SELECT  ITEM_ID,     
-                                            --1. 전월(판매계획,판매실적)
-                                            ---------------------------------------------------------
-                                            SUM(CASE WHEN YYYYMM = TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'), -1),'YYYYMM') THEN NFO_QTY END) M_NFOS,  
-                                            SUM(CASE WHEN YYYYMM = TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'), -1),'YYYYMM') THEN ACT_QTY END) M_ACT, 
-                                            ---------------------------------------------------------      
-                                            --2. 3주평균접근율
-                                            --------------------------------------------------------------------------------------
-                                            ROUND(SUM(CASE WHEN YYYYWW  BETWEEN TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')-( 7*3), 'IYYYIW') 
-                                                 AND TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')-( 7*1), 'IYYYIW')
-                                             THEN NFO_QTY
-                                            ELSE 0
-                                            END
-                                            )/18,2) W3_NFOS,
-                                            ROUND(SUM(CASE WHEN YYYYWW  BETWEEN TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')-( 7*3), 'IYYYIW') 
-                                                 AND TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')-( 7*1), 'IYYYIW')
-                                             THEN ACT_QTY
-                                            ELSE 0
-                                            END
-                                            )/18,2) W3_ACT,
-                                            --------------------------------------------------------------------------------------
-                                            --3. 1주평균접근율
-                                            ROUND(SUM(CASE WHEN YYYYWW  = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')-( 7*1), 'IYYYIW')
-                                               THEN NFO_QTY
-                                            ELSE 0
-                                            END
-                                            )/6,2) W1_NFOS,
-                                            ROUND(SUM(CASE WHEN YYYYWW  = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')-( 7*1), 'IYYYIW')
-                                               THEN ACT_QTY
-                                            ELSE 0
-                                            END
-                                            )/6,2) W1_ACT,       
-                                            SUM(CASE WHEN YYYYMM = TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'), 0),'YYYYMM') THEN NFO_QTY
-                                            END 
-                                            ) M_NFO_QTY --당월경영계획      
-                                    FROM    
-                                            (
-                                            --1. 전월 2개월간의 판매계획 
-                                            SELECT    s1.ITEM_ID,
-											        s2.YYYYMM, 
-											        s2.YYYYWW,
-											        s2.YYYYMMDD,       
-											        SUM(NORMAL_QTY+PROM_QTY+SUPT_QTY+SAMP_QTY) NFO_QTY,
-											        0 ACT_QTY
-											FROM    NFOS_SALES_PLAN_WEEKLY    S1,
-											        (
-											        SELECT    CASE
-											                    WHEN    (CAL_DATE - TO_DATE('$!{sdate}','YYYY-MM-DD')) &gt;= 0 THEN
-											                        CASE 
-											                            WHEN TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IW') = '01' AND TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'MM') = '12' THEN TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'),1), 'yyyy')
-											                            ELSE TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'yyyy') 
-											                        END
-											                    ELSE
-											                        CASE 
-											                            WHEN TO_CHAR(CAL_DATE, 'IW') = '01' AND TO_CHAR(CAL_DATE, 'MM') = '12' THEN TO_CHAR(ADD_MONTHS(CAL_DATE,1), 'yyyy')
-											                            ELSE TO_CHAR(CAL_DATE, 'yyyy') 
-											                        END
-											                END                                 YYYY,
-											                CASE
-											                    WHEN    (CAL_DATE - TO_DATE('$!{sdate}','YYYY-MM-DD')) &gt;= 0 THEN
-											                        TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IW')
-											                    ELSE
-											                        TO_CHAR(CAL_DATE, 'IW')
-											                END        VERSION,
-											                YYYYMMDD    YYYYMMDD,
-											                YYYYMM        YYYYMM,
-											                YYYYWW        YYYYWW
-											        FROM    CAL_MST
-											        WHERE    YYYYMM  BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'), -1),'YYYYMM')
-											                                            AND     TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'), 0),'YYYYMM')
-											        AND        HOLIDAY_FLAG    IS NULL
-											        )                        S2
-											WHERE    S1.YYYY        = S2.YYYY
-											AND        S1.VERSION    = S2.VERSION
-											AND        S1.YYYYMMDD    = S2.YYYYMMDD
-											GROUP
-											BY        S1.ITEM_ID,  S2.YYYYMM, s2.YYYYWW, s2.YYYYMMDD
-                                            UNION   ALL
-                                            --2. 전월 2개월간의 판매실적
-                                            SELECT  ITEM_ID, 
-                                                    CAL.YYYYMM, 
-                                                    CAL.YYYYWW,
-                                                    CAL.YYYYMMDD,  
-                                                    0 NFO_QTY,
-                                                    SUM(ACT.QTY) ACT_QTY
-                                            FROM    SALES_ACT_RECENT ACT, CAL_MST CAL
-                                            WHERE   ACT.SALE_DATE = CAL.CAL_DATE
-                                            AND     CAL.YYYYMM  BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'), -1),'YYYYMM')
-                                                                AND     TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'), 0),'YYYYMM')
-                                            GROUP   BY ITEM_ID, CAL.YYYYMM, CAL.YYYYWW, CAL.YYYYMMDD
-                                            )
-                                    --WHERE ITEM_ID  IN ('102000124', '101000057')    
-                                    GROUP BY ITEM_ID   
-                                    )
-                            GROUP BY ITEM_ID,W1_NFOS,W1_ACT,W3_NFOS,W3_ACT
-                            )   A,
-                            (
-                            /*   
-                            *  1. 기초재고            : 조회일자(오늘)에 해당하는 BASE_STOCK  SUM
-                            *  2. 금주생산계획        : 조회일자(오늘)에서 마지막 영업일까지(조회일자 주의 토요일)  SUM
-                            *  3. 금주판매계획        : 조회일자(오늘)에서 마지막 영업일까지(조회일자 주의 토요일)  SUM
-                            *  4. 1주일 평균판매      : 조회일자(오늘)에 해당하는 SALES_MEAN_1WEEK SUM
-                            *  5. 금주잔여판매일수    :  조회일자(오늘)을 포함해서 영업 마감일까지(조회일자 주의 토요일) 일수
-                            *  6. 1주평균판매대비     : (금주판매계획/(1주일평균판매*금주잔여판매일수)) * 100
-                            *  7. 예상재고(차주초)    : 기초재고 + 금주생산계획 - 금주판매계획 - 수출미출고
-                            *  8. 차주생산계획        : 조회일자(오늘)기준 차주에서 차주 마지막 영업일까지(조회일자 주의 토요일)  SUM
-                            *  9. 수출 미출고물량     : 생산요청일이 전주이전대상 중 미출고 오더수량
-                            */ 
-                            SELECT	ITEM_ID,
-                            		MAX(BASE_STOCK)		BASE_STOCK,
-                            		MAX(RECEIPT_EXPT)	RECEIPT_EXPT,
-                            		MAX(SALES_PLAN)		SALES_PLAN,
-                            		MAX(SALES_VS_WEEK1_AVG)	SALES_VS_WEEK1_AVG,
-                            		MAX(EXPERT_STOCK) - NVL(MAX(MI_CHGO),0)	EXPERT_STOCK,
-                            		MAX(N_RECEIPT_EXPT)	N_RECEIPT_EXPT,
-                            		MAX(N_SALES_PLAN)	N_SALES_PLAN,
-                            		MAX(NN_SALES_PLAN)	NN_SALES_PLAN,
-                            		MAX(SALES_MEAN_1WEEK)	SALES_MEAN_1WEEK,
-                            		MAX(MI_CHGO)		MI_CHGO
-                            FROM	(
-		                            SELECT  ITEM_ID,
-		                                    BASE_STOCK,         --기초재고
-		                                    RECEIPT_EXPT,       --금주생산계획
-		                                    SALES_PLAN ,        --금주판매계획
-		                                    ROUND(SALES_PLAN / DECODE((SALES_MEAN_1WEEK * SALES_DAY),0,1,(SALES_MEAN_1WEEK * SALES_DAY)),2) 
-		                                    SALES_VS_WEEK1_AVG,    -- 1주평균판매대비
-		                                    BASE_STOCK + RECEIPT_EXPT - SALES_PLAN  EXPERT_STOCK,  -- 예상재고(차주초)
-		                                    N_RECEIPT_EXPT,     --차주생산계획
-		                                    N_SALES_PLAN,       --차주판매계획 
-		                                    NN_SALES_PLAN,      --차주판매계획
-		                                    SALES_MEAN_1WEEK,	--1주평균판매
-		                                    0	MI_CHGO			--수출 미출고물량                   
-		                            FROM        
-		                                    (
-		                                    SELECT  ITEM_ID,
-		                                            SUM(DECODE(YYYYMMDD, REPLACE ('$!{sdate}', '-', ''),BASE_STOCK,0))                              BASE_STOCK,                        --기초재고
-		                                            SUM(CASE WHEN  YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IYYYIW')
-											                       AND YYYYMMDD >= TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'YYYYMMDD')
-											                 THEN  RECEIPT_EXPT
-											                 ELSE  0
-											            END)       RECEIPT_EXPT,                      --금주생산계획
-		                                            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 'IYYYIW'),RECEIPT_EXPT))  N_RECEIPT_EXPT,                    --차주생산계획        
-		                                            SUM(CASE WHEN  YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IYYYIW')
-											                       AND YYYYMMDD >= TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'YYYYMMDD')
-											                 THEN  SALES_PLAN
-											                 ELSE  0
-											            END)       SALES_PLAN,                      --금주판매계획                                             
-		                                            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 'IYYYIW'),SALES_PLAN))    N_SALES_PLAN,                      --차주판매계획
-		                                            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2), 'IYYYIW'),SALES_PLAN))    NN_SALES_PLAN,                     --차차주판매계획                                      
-		                                            SUM(DECODE(YYYYMMDD, REPLACE ('$!{sdate}', '-', ''),SALES_MEAN_1WEEK,0))                        SALES_MEAN_1WEEK,                  --1주일 평균판매
-		                                            NEXT_DAY(TO_DATE(REPLACE ('$!{sdate}', '-', ''),'YYYYMMDD'), 1)- TO_DATE(REPLACE ('$!{sdate}', '-', ''),'YYYYMMDD') SALES_DAY      --금주잔여판매일수
-		                                    FROM
-		                                            (
-		                                            SELECT  DD.ITEM_ID,
-		                                                    DD.BASE_STOCK,
-		                                                    DD.RECEIPT_EXPT,
-		                                                    (DD.SALES_PLAN+DD.PROM_PLAN) SALES_PLAN, --판매계획수량수정(2008.11.12 수정)
-		                                                    SALES_MEAN_1WEEK,
-		                                                    CAL.YYYYWW,
-		                                                    CAL.YYYYMMDD
-		                                            FROM    DC_DATAWAREHOUSE DD, CAL_MST CAL,
-		                                            		(
-		                                            		SELECT	DC_ID
-		                                            		FROM	DC_MST
-		                                            		WHERE	(CDC_FLAG = 'Y' OR RDC_FLAG = 'Y')
-		                                            		)	DC
-		                                          	WHERE   DD.CNFM_DATE = CAL.YYYYMMDD
-		                                            /* 당주 월요일부터 ~ 당주 일요일까지 */    
-		                                            AND     DD.CNFM_DATE BETWEEN  TO_CHAR(NEXT_DAY(TO_DATE(REPLACE ('$!{sdate}', '-', ''),'YYYYMMDD')+(7*-1), 2), 'YYYYMMDD')
-		                                                                 AND      TO_CHAR(NEXT_DAY(TO_DATE(REPLACE ('$!{sdate}', '-', ''),'YYYYMMDD')+(7*2) , 1)  , 'YYYYMMDD')
-		                                            AND		DD.DC_ID	= DC.DC_ID
-		                                            UNION	ALL
-													/* 당주 생산요청일 수출물량 */
-													SELECT  B.PROD_CODE			ITEM_CD,
-															0					BASE_STOCK,
-															0					RECEIPT_EXPT,
-															SUM(B.REQT_BOX)		SALES_PLAN,
-															0					SALES_MEAN_1WEEK,
-															T2.YYYYWW,
-															T2.YYYYMMDD
-													FROM    SDORT101    A,
-															SDORT102    B,
-															ITEM_MST	C,
-															CAL_MST 	T2
-													WHERE   A.SLIP_NO						=	B.SLIP_NO
-													AND     A.PRDT_PLAN_DATE				>= TRUNC(TO_DATE(REPLACE ('$!{sdate}', '-', '')),'D')
-													AND		SUBSTR(A.SLIP_GUBN_CODE,1,1)	= 'X'
-													AND		LENGTH(A.CNFM_DATE) 			= 8  
-													AND		B.PROD_CODE						= C.ITEM_ID
-													AND		C.ITYPE							= 'FERT'
-													AND		A.UPDT_GUBN						!= 'DE'
-													AND		A.PRDT_PLAN_DATE				= T2.CAL_DATE
-													GROUP
-													BY		B.PROD_CODE,
-															T2.YYYYWW,
-															T2.YYYYMMDD
-													)
-		                                    GROUP BY ITEM_ID, NEXT_DAY(TO_DATE(REPLACE ('$!{sdate}', '-', ''),'YYYYMMDD'), 1)- TO_DATE(REPLACE ('$!{sdate}', '-', ''),'YYYYMMDD')
-		                                    )   
-									)
-							GROUP
-							BY		ITEM_ID	     
-                            )B,
-                            (
-                            /* 
-                            * 조회 일자에 해당하는 안전재고 (DC_ID에 해당 없이 모두 SUM) 
-                            */
-                            SELECT SP.WORK_DATE, SP.ITEM_ID, ROUND(SUM(SP.SAFETY_STOCK)+SUM(SP.CAMP_STOC)+ SUM(NVL(SP.FA_STOCK,0)) +
-                                    SUM(DECODE(SIGN(TO_DATE(REPLACE('$!{sdate}', '-', ''),'YYYYMMDD')-TO_DATE(SP.START_DATE,'YYYYMMDD')),-1,0,
-                                        DECODE(SIGN(TO_DATE(SP.END_DATE,'YYYYMMDD')-TO_DATE(REPLACE('$!{sdate}', '-', ''),'YYYYMMDD')),-1,0,
-                                        NVL(SP.SAVE_STOC,0)))),0)     SAFETY_STOCK
-                            FROM    STOCK_POLICY_QTY  SP,
-                                    (
-                                    SELECT  MAX(WORK_DATE) WORK_DATE
-                                    FROM    STOCK_POLICY_QTY
-                                    WHERE   LOC_TYPE = 'DC'
-                                    )   MV
-                            WHERE   SP.WORK_DATE = MV.WORK_DATE
-                            GROUP   BY SP.WORK_DATE, SP.ITEM_ID
-                            ) C,
-                            (
-                            /*
-                            SELECT  PA.VERSION VERSION,
-                                    ITEM_ID,
-                                    SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW') THEN QTY
-                                    ELSE 0
-                                    END) RP_QTY0,
-                                    SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*1), 'IYYYIW') THEN QTY
-                                    ELSE 0
-                                    END) RP_QTY1,
-                                    SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*2), 'IYYYIW') THEN QTY
-                                    ELSE 0
-                                    END) RP_QTY2
-                            FROM    PLANT_ALLOC_PLAN PA, CAL_MST CAL
-                            WHERE   PA.DUE_DATE = CAL.CAL_DATE
-                            AND     PA.VERSION||'2' = '$!{plant_alloc_version}'||'2'
-                            AND     CAL.YYYYWW  BETWEEN TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW')
-                                                AND     TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*2), 'IYYYIW')  
-                            GROUP   BY PA.VERSION, ITEM_ID
-                            */
-                            SELECT '$!{plant_alloc_version}' VERSION, IM.ITEM_ID
-                            	   , NVL(PA.RP_QTY0, 0) RP_QTY0, NVL(PA.RP_QTY1, 0) RP_QTY1, NVL(PA.RP_QTY2, 0) RP_QTY2--, IM.ITEM_NAME, IM.CAT03
-                            FROM (
-                                    SELECT  PA.VERSION VERSION,
-                                            PA.ITEM_ID,
-                                            SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW') THEN PA.QTY
-                                            ELSE 0
-                                            END) RP_QTY0,
-                                            SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*1), 'IYYYIW') THEN PA.QTY
-                                            ELSE 0
-                                            END) 
-                                            /*+
-                                            SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW') THEN PA.QTY
-                                            ELSE 0
-                                            END) */
-                                            RP_QTY1,
-                                            SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*2), 'IYYYIW') THEN PA.QTY
-                                            ELSE 0
-                                            END) RP_QTY2
-                                    FROM    PLANT_ALLOC_PLAN PA, CAL_MST CAL
-                                    WHERE   PA.DUE_DATE = CAL.CAL_DATE
-		                            AND     PA.VERSION = '$!{plant_alloc_version}'
-		                            AND     PA.SEQ = 2
-                                    AND     CAL.YYYYWW  BETWEEN TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW')
-                                                        AND     TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*2), 'IYYYIW')
-                                    GROUP   BY PA.VERSION, PA.ITEM_ID
-                                    ) PA, ITEM_MST IM
-                            WHERE IM.ITEM_ID = PA.ITEM_ID(+)
-                            AND 	(    (IM.ITYPE = 'FERT' AND IM.CAT03 IN ('P10', 'P11', 'F10'))
-                                      OR (IM.ITYPE IN ('FERT') AND IM.ETC_FLAG = '900') )
-                            AND 	IM.ITEM_STATUS = 'ST'
-                            AND 	'$!{plant_alloc_version}' IS NOT NULL
-                            --
-                            UNION ALL
-                            --
-                            SELECT  PA.VERSION VERSION,
-                                    PA.ITEM_ID,
-                                    SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW') THEN PA.QTY
-                                    ELSE 0
-                                    END) RP_QTY0,
-                                    SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*1), 'IYYYIW') THEN PA.QTY
-                                    ELSE 0
-                                    END) 
-                                    /*+
-                                    SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW') THEN PA.QTY
-                                    ELSE 0
-                                    END) */
-                                    RP_QTY1,
-                                    SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*2), 'IYYYIW') THEN PA.QTY
-                                    ELSE 0
-                                    END) RP_QTY2
-                            FROM    PLANT_ALLOC_PLAN PA, CAL_MST CAL, ITEM_MST IM
-                            WHERE   PA.DUE_DATE = CAL.CAL_DATE
-                            AND     PA.VERSION = '$!{plant_alloc_version}'
-                            AND     PA.SEQ = 2
-                            AND     CAL.YYYYWW  BETWEEN TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW')
-                                                AND     TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*2), 'IYYYIW')
-                            AND 	PA.ITEM_ID = IM.ITEM_ID
-                            AND 	IM.ITEM_STATUS = 'ST' AND IM.CAT03 = 'O10'
-                            AND 	'$!{plant_alloc_version}' IS NOT NULL
-                            GROUP   BY PA.VERSION, PA.ITEM_ID
-                            --
-                            UNION	ALL
-                            --
-                            /* 수출 MTS는 모두 보이게 한다. */
-                            SELECT	'$!{plant_alloc_version}'	VERSION,
-									ITEM_ID,
-									0	RP_QTY0,
-									0	RP_QTY1,
-									0	RP_QTY2
-							FROM	ITEM_MST
-							WHERE	ITEM_STATUS	= 'ST'
-							AND		CAT03 		= 'O10'
-							AND		MTO_MTS_TYPE = '0002'
-							AND		ITEM_ID	NOT IN 
-									(
-									SELECT	PA.ITEM_ID
-									FROM	PLANT_ALLOC_PLAN PA,
-											ITEM_MST IM
-									WHERE	PA.ITEM_ID	= IM.ITEM_ID
-									AND 	IM.ITEM_STATUS = 'ST' AND IM.CAT03 = 'O10'
-									AND     PA.VERSION = '$!{plant_alloc_version}'
-									)
-							AND		'$!{checked_domain}' IS NOT NULL
-                            ) D,
-                            (
-                            /*
-                            당주, 차주, 차차주 생산 필요량  
-                          */
-                            SELECT  IL.VERSION, IL.ITEM_ID, 
-                                    A.DUE_DATE AS W01_DUE_DATE, A.LST_PRODQTY AS W01_LST_PRODQTY, 
-                                    B.DUE_DATE AS W02_DUE_DATE, B.LST_PRODQTY AS W02_LST_PRODQTY, 
-                                    C.DUE_DATE AS W03_DUE_DATE, C.LST_PRODQTY AS W03_LST_PRODQTY 
-                            FROM    (
-                                    SELECT  DISTINCT PT.VERSION, PT.ITEM_ID
-                                    FROM    PLANT_ALLOC_ITEM_ADJ PT
-                                    WHERE   VERSION = '$!{plant_alloc_version}'
-                                    )   IL,   
-                                    (
-                                    SELECT  PT.VERSION, PT.ITEM_ID, PT.DUE_DATE, PT.LST_PRODQTY 
-                                    FROM    PLANT_ALLOC_ITEM_ADJ PT  
-                                    WHERE   VERSION = '$!{plant_alloc_version}'
-                                    AND     PT.DUE_DATE = TRUNC(TO_DATE('$!{sdate}','YYYY-MM-DD'),'D')+6+(7*0)
-                                    )   A, -- 당주
-                                    ( 
-                                    SELECT  PT.VERSION, PT.ITEM_ID, PT.DUE_DATE, PT.LST_PRODQTY 
-                                    FROM    PLANT_ALLOC_ITEM_ADJ PT  
-                                    WHERE   VERSION = '$!{plant_alloc_version}'
-                                    AND     PT.DUE_DATE = TRUNC(TO_DATE('$!{sdate}','YYYY-MM-DD'),'D')+6+(7*1)
-                                    )   B, -- 차주
-                                    ( 
-                                    SELECT  PT.VERSION, PT.ITEM_ID, PT.DUE_DATE, PT.LST_PRODQTY 
-                                    FROM    PLANT_ALLOC_ITEM_ADJ PT  
-                                    WHERE   VERSION = '$!{plant_alloc_version}'
-                                    AND     PT.DUE_DATE = TRUNC(TO_DATE('$!{sdate}','YYYY-MM-DD'),'D')+6+(7*2)
-                                    )   C -- 차차주
-                            WHERE   IL.VERSION = A.VERSION(+)
-                            AND     IL.VERSION = B.VERSION(+)
-                            AND     IL.VERSION = C.VERSION(+)
-                            AND     IL.ITEM_ID = A.ITEM_ID(+)
-                            AND     IL.ITEM_ID = B.ITEM_ID(+)
-                            AND     IL.ITEM_ID = C.ITEM_ID(+)      
-                            )   PT,
-                            (
-                            SELECT  ITEM.ITEM_ID,
-                                    CD1.CD         CD1, 
-                                    CD1.CD_NAME    CD1_NM
-                            FROM    ITEM_MST ITEM, 
-                                    CODE_MST CD1
-                            WHERE   ITEM.CAT06 = CD1.CD
-                            AND     CD1.CD_GRP = 'CAT06'
-                            )   RES_TP,
-                            ( 
-                            SELECT  IM.ITEM_ID,
-                                    IM.ITEM_NAME
-                            FROM    ITEM_MST IM
-                            WHERE   IM.MADE_TYPE != 'DE' 
-                            AND		(IM.SELL_STOP_DATE = '99991231' or IM.SELL_STOP_DATE ='00000000')
-                        #if("$!{checked_domain}" == "DO")
-                        	/* 내수 제품*/
-                            AND     (IM.MATERIAL_GROUP &lt; '5K000' OR  IM.MATERIAL_GROUP &gt; '5S999')
-                        #elseif("$!{checked_domain}" == "EXMTS")
-                        	/* 수출 제품(MTS) */
-                            AND     IM.MATERIAL_GROUP &gt;= '5K000'
-                            AND     IM.MATERIAL_GROUP &lt;= '5S999'
-                            AND		IM.MTO_MTS_TYPE	= '0002'
-                        #elseif("$!{checked_domain}" == "EXMTO")
-                        	/* 수출 제품(MTO) */
-                            AND     IM.MATERIAL_GROUP &gt;= '5K000'
-                            AND     IM.MATERIAL_GROUP &lt;= '5S999'
-                            AND		IM.MTO_MTS_TYPE	= '0001'
-                        #end
-                            ) IM ,
-                            /* 차주, 차차주 영업 일수 */
-                            (
-                            SELECT  fn_nscm_get_workingday01(TO_CHAR(NEXT_DAY('$!{sdate}',2),'YYYYMMDD'), 
-							                                 TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+6, 1), 'YYYYMMDD')) N_WORK, -- 차주 영업일수
-							        fn_nscm_get_workingday01(TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+7, 2),'YYYYMMDD'),
-							                                 TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+13, 1), 'YYYYMMDD')) NN_WORK,  -- 차차주 영업일수
-							        TO_CHAR(NEXT_DAY('$!{sdate}',2),'YYYYMMDD') N_MON,  -- 차주 월요일                               
-							        TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+6, 1), 'YYYYMMDD') N_SUN,	-- 차주 일요일 
-							        TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+7, 2),'YYYYMMDD') NN_MON, 	-- 차차주 월요일
-							        TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+13, 1), 'YYYYMMDD') NN_SUN	-- 차차주 일요일
-							FROM DUAL
-                            ) WO                
-                    WHERE   D.ITEM_ID = B.ITEM_ID(+)
-                    AND     D.ITEM_ID = C.ITEM_ID(+)    
-                    AND     D.ITEM_ID = A.ITEM_ID(+)
-                    AND     D.ITEM_ID = IM.ITEM_ID
-                    AND     D.ITEM_ID = RES_TP.ITEM_ID(+)
-                    AND     D.VERSION = PT.VERSION(+)
-                    AND     D.ITEM_ID = PT.ITEM_ID(+)
-                    )   A,
-                    (
-                    SELECT  1 NO FROM DUAL
-                    UNION   ALL
-                    SELECT  2 NO FROM DUAL       
-                    UNION   ALL
-                    SELECT  3 NO FROM DUAL
-                    )   B,
-                    (--해당하는 주의 토요일 날짜를 뽑음!
-                    SELECT MAX(DECODE(SEQ, 1, DD_DATE)) AS W1 --당주 due_date
-                          ,MAX(DECODE(SEQ, 2, DD_DATE)) AS W2 --차주 due_date
-                          ,MAX(DECODE(SEQ, 3, DD_DATE)) AS W3 --차차주 due_date
-                      FROM (
-                            SELECT AA.DD_DATE, dense_rank() over(order by AA.DD_DATE asc) as SEQ
-                              FROM (
-                                    select yyyymmdd as DD_DATE
-                                      from cal_mst
-                                     where yyyyww in ( 
-                                            select yyyyww
-                                              from cal_mst
-                                             where yyyymmdd between to_char(TO_DATE('$!{sdate}','YYYY-MM-DD'),'yyyymmdd') and to_char(TO_DATE('$!{sdate}','YYYY-MM-DD')+14,'yyyymmdd')
-                                     )
-                                     and week_day = '토'
-                                   ) AA
-                           )
-                    )   C 
-            WHERE   EXISTS ( 
-                            SELECT  DISTINCT PA.VERSION
-                            FROM    PLANT_ALLOC_ITEM_ADJ PA,
-                            		(
-                            		SELECT  IM.ITEM_ID,
-		                                    IM.ITEM_NAME
-		                            FROM    ITEM_MST IM
-		                            WHERE   IM.MADE_TYPE != 'DE' 
-		                        #if("$!{checked_domain}" == "DO")
-		                        	/* 내수 제품*/
-		                            AND     (IM.MATERIAL_GROUP &lt; '5K000' OR  IM.MATERIAL_GROUP &gt; '5S999')
-		                        #elseif("$!{checked_domain}" == "EXMTS")
-		                        	/* 수출 제품(MTS) */
-		                            AND     IM.MATERIAL_GROUP &gt;= '5K000'
-		                            AND     IM.MATERIAL_GROUP &lt;= '5S999'
-		                            AND		IM.MTO_MTS_TYPE	= '0002'
-		                        #elseif("$!{checked_domain}" == "EXMTO")
-		                        	/* 수출 제품(MTO) */
-		                            AND     IM.MATERIAL_GROUP &gt;= '5K000'
-		                            AND     IM.MATERIAL_GROUP &lt;= '5S999'
-		                            AND		IM.MTO_MTS_TYPE	= '0001'
-		                        #end
-                            		) IM
-                            WHERE   PA.VERSION = '$!{plant_alloc_version}'
-                            AND		PA.ITEM_ID	= IM.ITEM_ID
-                           )   
-            GROUP   BY DECODE(NO,1,RES_TP,2,RES_TP, NULL), DECODE(NO,1,ITEM_ID,2,'소계'), NO, W1, W2, W3
-            --ORDER	BY 4,3,1 
-            ORDER   BY 3,4,1 --설비유형
-      				  
-	</query>	
-	
-	
-	
-<!--
-=====================================================================================================
- 끝  
-=====================================================================================================
---> 
-
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>	
+
+<!--
+=====================================================================================================
+	생산계획 >> 운영정보
+=====================================================================================================
+-->
+    <!--
+    =======================
+	  공통
+	=======================
+	-->
+
+
+	<!-- 
+	=======================
+	  공장할당 결과 조정
+	=======================
+	-->
+	
+	<!-- 공장할당 버전 -->
+	<query id="plant_alloc_version2">
+	
+            SELECT  MAX(PV.VERSION) VER, ''
+            FROM    PLAN_VERSION_LOG PV
+            WHERE   PV.MADE_TYPE != 'DE'
+            AND     PV.PERIOD_TYPE = 'DAILY'
+            AND     PV.CAT_ID = 'FA'
+            AND     PV.SEQ = 2
+            AND		TRUNC(PV.RUN_DATE) &lt;= TO_DATE('$!{sdate}','YYYY-MM-DD')
+	
+	</query>
+	
+	<!-- 그룹 업데이트 -->
+	<query id="group_list_update" paging="true">
+
+      update REG_GROUP
+         SET GROUP_ID='${group_id}',GROUP_NAME='${group_name}'
+       WHERE GROUP_ID='${group_id}'                 
+			 
+	</query>	
+	
+	
+	<!-- 업데이트 -->
+	<query id="sc_01060_plantAllocationPlanResultAnalysis_grid_save" paging="true">
+
+      update REG_GROUP
+         SET GROUP_ID='${group_id}',GROUP_NAME='${group_name}'
+       WHERE GROUP_ID='${group_id}'                 
+			 
+	</query>		
+	
+	
+	<!-- 01. PLANT_ALLOC_ITEM_ADJ 테이블에 수정한 VERSION의 데이터 DELETE  -->	
+	<query id="sc_01060_plantAllocationPlanResultAnalysis_list_save_01">
+	
+			DELETE  PLANT_ALLOC_ITEM_ADJ
+			WHERE   VERSION = '$!{plant_alloc_version}'
+		 #if("$!{checked_domain}" == "DO")
+          	/* 내수 제품*/
+          	AND		ITEM_ID IN (
+          				SELECT 	ITEM_ID 
+          				FROM 	ITEM_MST IM 
+          				WHERE 	IM.MATERIAL_GROUP &lt; '5K000' OR  IM.MATERIAL_GROUP &gt; '5S999'
+          			)
+         #elseif("$!{checked_domain}" == "EXMTS")
+          	/* 수출 제품(MTS) */
+          	AND		ITEM_ID	IN (
+          				SELECT  ITEM_ID
+          				FROM	ITEM_MST IM
+          				WHERE   IM.MATERIAL_GROUP &gt;= '5K000'
+            			AND     IM.MATERIAL_GROUP &lt;= '5S999'
+            			AND		IM.MTO_MTS_TYPE	= '0002'
+          			)
+         #elseif("$!{checked_domain}" == "EXMTO")
+          	/* 수출 제품(MTO) */
+          	AND		ITEM_ID	IN (
+          				SELECT  ITEM_ID
+          				FROM	ITEM_MST IM
+          				WHERE   IM.MATERIAL_GROUP &gt;= '5K000'
+            			AND     IM.MATERIAL_GROUP &lt;= '5S999'
+            			AND		IM.MTO_MTS_TYPE	= '0001'
+          			)
+         #end
+			 	
+	</query>
+	
+	<!-- 02. 수정된 데이터 PLANT_ALLOC_ITEM_ADJ 테이블에 INSERT( 생산 필요량이 0 이 아닌것 만 )  -->
+	<query id="sc_01060_plantAllocationPlanResultAnalysis_list_save_02" fix="_user_id"  iterator="version item_id due_date nwk_lst_prodqty">
+	
+        INSERT  INTO PLANT_ALLOC_ITEM_ADJ(VERSION, ITEM_ID, DUE_DATE, LST_PRODQTY, MADE_TYPE, MADE_DTTM, MADE_BY)
+        SELECT  '$!{version}'                       	AS VERSION,
+                '$!{item_id}'                       	AS ITEM_ID,        
+                TO_DATE('$!{due_date}','YYYY-MM-DD')	AS DUE_DATE,           
+                REPLACE('$!{nwk_lst_prodqty}',',')  	AS LST_PRODQTY,
+                'AD'                                	AS MADE_TYPE,
+                SYSDATE                             	AS MADE_DTTM,
+                '$!{_user_id}'                      	AS MADE_BY  
+        FROM    DUAL
+        WHERE   REPLACE('$!{nwk_lst_prodqty}',',') &gt; 0
+            
+	</query>
+	
+	
+	<!-- 03. PLANT_ALLOC_ITEM_ADJ 테이블에서 파라미터로 넘어온 버젼이 있는지 없는지를 체크하는 쿼리!!! -->
+	<query id="sc_01060_plantAllocationPlanResultAnalysis_grid_version">
+	
+        SELECT COUNT(*) AS CNT
+  		  FROM PLANT_ALLOC_ITEM_ADJ PA
+ 		 WHERE PA.VERSION = '$!{plant_alloc_version}'
+            
+	</query>
+	
+	<!--  공장할당 결과 조정 조회 --> 
+	<!-- 공장할당 결고 조정 조회 개발 원본 쿼리 가져와서 수정 -->
+	<query id="sc_01060_plantAllocationPlanResultAnalysis_grid">
+	
+            SELECT  NO, -- 0
+                    MAX(VERSION) VERSION, --공장할당VERSION 1
+                    DECODE(NO,1,RES_TP,2, RES_TP, NULL) RES_TP,     --설비유형 2 
+                    DECODE(NO,1,ITEM_ID,2,'소계') ITEM_ID, --자재코드 3 
+                    MAX(DECODE(NO,1, ITEM_NAME,2, RES_TP_NM||'소계','총계')) ITEM_NAME, --자재코드명 4
+                    ROUND(AVG(DECODE(NO,1,W3_AVG_RATIO,2,W3_AVG_RATIO,W3_AVG_RATIO)),2) W3_AVG_RATIO, --3주평균접근율 5
+                    ROUND(AVG(DECODE(NO,1,W1_AVG_RATIO,2,W1_AVG_RATIO,W1_AVG_RATIO)),2) W1_AVG_RATIO, --1주평균접근율 6
+                    TO_CHAR(SUM(DECODE(NO,1,SAFETY_STOCK,2,SAFETY_STOCK,SAFETY_STOCK)),'999,999,999') SAFETY_STOCK, --안전재고 7
+                    TO_CHAR(SUM(DECODE(NO,1,BASE_STOCK,2,BASE_STOCK,BASE_STOCK)),'999,999,999') BASE_STOCK, --기초재고 8
+                    TO_CHAR(SUM(DECODE(NO,1,RECEIPT_EXPT,2,RECEIPT_EXPT,RECEIPT_EXPT)),'999,999,999') RECEIPT_EXPT, --금주생산계획 9
+                    TO_CHAR(SUM(DECODE(NO,1,SALES_PLAN,2,SALES_PLAN,SALES_PLAN)),'999,999,999') SALES_PLAN, --금주판매계획 10
+                    ROUND(AVG(DECODE(NO,1,SALES_VS_WEEK1_AVG,2,SALES_VS_WEEK1_AVG,SALES_VS_WEEK1_AVG)),2) SALES_VS_WEEK1_AVG, --1주평균판매대비 11
+                    TO_CHAR(SUM(DECODE(NO,1,EXPERT_STOCK,2,EXPERT_STOCK,EXPERT_STOCK)),'999,999,999') EXPERT_STOCK, --예상재고(차주초) 12
+                    TO_CHAR(SUM(DECODE(NO,1,N_RECEIPT_EXPT,2,N_RECEIPT_EXPT,N_RECEIPT_EXPT)),'999,999,999') N_RECEIPT_EXPT, --차주생산계획 13
+                    -------------------------------------------------------------------------------------------------          
+                    TO_CHAR(TRUNC(TO_DATE('$!{sdate}','YYYY-MM-DD'),'D')+6+(7*0),'YYYY-MM-DD') RP0_DAY, --당주(월) 14 -- 변경(토)
+                    TO_CHAR(TRUNC(TO_DATE('$!{sdate}','YYYY-MM-DD'),'D')+6+(7*1),'YYYY-MM-DD') RP1_DAY, --차주(월) 15 -- 변경(토)
+                    TO_CHAR(TRUNC(TO_DATE('$!{sdate}','YYYY-MM-DD'),'D')+6+(7*2),'YYYY-MM-DD') RP2_DAY, --차차주(월) 16 -- 변경(토)
+                    TO_CHAR(SUM(DECODE(NO,1,RP_QTY0,2,RP_QTY0,RP_QTY0)),'999,999,999') RP0_QTY, --보충요구량(당주) 17
+                    TO_CHAR(SUM(DECODE(NO,1,RP_QTY1,2,RP_QTY1,RP_QTY1)),'999,999,999') RP1_QTY, --보충요구량(차주) 18
+                    TO_CHAR(SUM(DECODE(NO,1,RP_QTY2,2,RP_QTY2,RP_QTY2)),'999,999,999') RP2_QTY, --보충요구량(차차주) 19
+                    NVL(TRIM(TO_CHAR(SUM(DECODE(NO,1,PO_QTY1,2,PO_QTY1,PO_QTY1)),'999,999,999')),0) PO_QTY1, --생산필요량(차주) 20
+                    NVL(TRIM(TO_CHAR(SUM(DECODE(NO,1,PO_QTY2,2,PO_QTY2,PO_QTY2)),'999,999,999')),0) PO_QTY2, --생산필요량(차차주) 21
+                    TO_CHAR(SUM(DECODE(NO,1,NN_SALES_PLAN,2,NN_SALES_PLAN,NN_SALES_PLAN)),'999,999,999') NN_SALES_PLAN,   --차차주판매계획 22        
+                    TO_CHAR(SUM(DECODE(NO,1,EXPERT_STOCK3,2,EXPERT_STOCK3,EXPERT_STOCK3)),'999,999,999') EXPERT_STOCK3,   --예상재고(차차주) 23
+                    -------------------------------------------------------------------------------------------------          
+                    TO_CHAR(SUM(DECODE(NO,1,NWK_ADJ_QTY,2,NWK_ADJ_QTY,NWK_ADJ_QTY)),'999,999,999') NWK_ADJ_QTY, --요구/생산 차이 24
+                    TO_CHAR(SUM(DECODE(NO,1,N_SALES_PLAN,2,N_SALES_PLAN,N_SALES_PLAN)),'999,999,999') N_SALES_PLAN,           --차주판매계획 25
+                    TO_CHAR(SUM(DECODE(NO,1,EXPERT_STOCK2,2,EXPERT_STOCK2,EXPERT_STOCK2)),'999,999,999') EXPERT_STOCK2,        --예상재고 26   
+            		MAX(W1_NFOS),	-- 1주판매계획 27
+            		MAX(W1_ACT),	-- 1주판매실적 28
+            		MAX(W3_NFOS),	-- 3주판매계획 29
+            		MAX(W3_ACT),	-- 3주판매실적 30
+            		ROUND(SUM(DECODE(NO,1,N_PLAN_VS_STOCK_WORK,2,N_PLAN_VS_STOCK_WORK,N_PLAN_VS_STOCK_WORK)),1) N_PLAN_VS_STOCK_WORK,  --차주계획대비재고일수 31
+            		ROUND(SUM(DECODE(NO,1,N_ACT_VS_STOCK_WORK,2,N_ACT_VS_STOCK_WORK,N_ACT_VS_STOCK_WORK)),1) N_ACT_VS_STOCK_WORK,	  --차주실적대비재고일수 32
+            		ROUND(SUM(DECODE(NO,1,NN_PLAN_VS_STOCK_WORK,2,NN_PLAN_VS_STOCK_WORK,NN_PLAN_VS_STOCK_WORK)),1) NN_PLAN_VS_STOCK_WORK, --차차주계획대비재고일수 33
+            		ROUND(SUM(DECODE(NO,1,NN_ACT_VS_STOCK_WORK, 2,NN_ACT_VS_STOCK_WORK,NN_ACT_VS_STOCK_WORK)),1) NN_ACT_VS_STOCK_WORK, --차차주계획대비재고일수 34
+           			MAX(NN_WORK) NNWK_WORK, -- 차차주 영업일수 35
+           			MAX(SALES_MEAN_1WEEK) SALES_MEAN_1WEEK, --1주 평균 판매 36
+           			ROUND(SUM(DECODE(NO,1,NNN_ACT_VS_STOCK_WORK, 2,NNN_ACT_VS_STOCK_WORK,NNN_ACT_VS_STOCK_WORK)),1) NNN_ACT_VS_STOCK_WORK,	--차차차주실적대비재고일수 37
+           			SUM(DECODE(NO,1,SALES_ACT_VS_SALES_PLAN_1,2,SALES_ACT_VS_SALES_PLAN_1,SALES_ACT_VS_SALES_PLAN_1)) SALES_ACT_VS_SALES_PLAN_1, --금주 판매계획 - 금주 1주 평균 판매실적 38
+           			SUM(DECODE(NO,1,SALES_ACT_VS_SALES_PLAN_2,2,SALES_ACT_VS_SALES_PLAN_2,SALES_ACT_VS_SALES_PLAN_2)) SALES_ACT_VS_SALES_PLAN_2, --차주 판매계획 - 차주 1주 평균 판매실적 39
+           			SUM(DECODE(NO,1,SALES_ACT_VS_SALES_PLAN_3,2,SALES_ACT_VS_SALES_PLAN_3,SALES_ACT_VS_SALES_PLAN_3)) SALES_ACT_VS_SALES_PLAN_3, --차차주 판매계획 - 차차주 1주 평균 판매실적 40
+           			SUM(DECODE(NO,1,SALES_ACT_VS_SALES_PLAN_1 + SALES_ACT_VS_SALES_PLAN_2,2,SALES_ACT_VS_SALES_PLAN_1 + SALES_ACT_VS_SALES_PLAN_2,SALES_ACT_VS_SALES_PLAN_1 + SALES_ACT_VS_SALES_PLAN_2)) W1_SALES_PLAN_DIFF, -- 1주평균 판매 계획 가감량 41  
+           			SUM(DECODE(NO,1,SALES_ACT_3W_VS_SALES_PLAN_1 + SALES_ACT_3W_VS_SALES_PLAN_2,2,SALES_ACT_3W_VS_SALES_PLAN_1 + SALES_ACT_3W_VS_SALES_PLAN_2,SALES_ACT_3W_VS_SALES_PLAN_1 + SALES_ACT_3W_VS_SALES_PLAN_2)) W3_SALES_PLAN_DIFF -- 3주평균 판매 계획 가감량 42
+           			,'' AS CRUD, --와이즈그리드의 crud 상태값을 가져옴 (수정 삭제 삽입)
+           			W1, W2, W3, --당주, 차주, 차차주 DUE_DATE (해당 주의 토요일을 가져옴)
+           			TO_CHAR(SUM(DECODE(NO,1,MI_CHGO,2,MI_CHGO,MI_CHGO)),'999,999,999') MI_CHGO --수출 미출고물량         			       
+            FROM    
+                    ( 
+                    SELECT  RES_TP.CD1    RES_TP,    --설비유형
+                            RES_TP.CD1_NM RES_TP_NM, --설비유형명 
+                            D.VERSION,               --공장할당VERSION
+                            D.ITEM_ID,               --자재코드
+                            IM.ITEM_NAME,            --자재코드명          
+                            A.W3_AVG_RATIO,          --3주평균접근율
+                            A.W1_AVG_RATIO,          --1주평균접근율
+                            C.SAFETY_STOCK,          --안전재고
+                            B.BASE_STOCK,            --기초재고
+                            B.RECEIPT_EXPT,          --금주생산계획
+                            B.SALES_PLAN,            --금주판매계획
+                            B.SALES_VS_WEEK1_AVG,    --1주평균판매대비
+                            B.EXPERT_STOCK,          --예상재고(차주초)
+                            B.EXPERT_STOCK*WO.N_WORK / DECODE(B.N_SALES_PLAN, 0, 1, B.N_SALES_PLAN)		  N_PLAN_VS_STOCK_WORK, --차주계획대비재고일수
+                            B.EXPERT_STOCK / DECODE(B.SALES_MEAN_1WEEK, 0, 1, B.SALES_MEAN_1WEEK) N_ACT_VS_STOCK_WORK,  --차주실적대비재고일수
+                            B.N_RECEIPT_EXPT,        --차주생산계획
+                            D.RP_QTY0 RP_QTY0,       --보충요구량(당주)               
+                            D.RP_QTY1 RP_QTY1,       --보충요구량(차주)                                  
+                            B.N_SALES_PLAN ,         --차주판매계획
+                        #if("$!{checked_pa_pr}" == "PR")
+                        	NVL(B.N_RECEIPT_EXPT ,0) - NVL(D.RP_QTY1,0) NWK_ADJ_QTY,        --요구/생산 차이
+                        	B.N_RECEIPT_EXPT PO_QTY1,       --생산필요량(차주)
+                            NVL(B.EXPERT_STOCK,0)+(NVL(B.N_RECEIPT_EXPT,0)-NVL(B.N_SALES_PLAN,0)) EXPERT_STOCK2, --예상재고(차주)  
+                            (NVL(B.EXPERT_STOCK,0)+(NVL(B.N_RECEIPT_EXPT,0)-NVL(B.N_SALES_PLAN,0)))*WO.NN_WORK / DECODE(NVL(B.NN_SALES_PLAN,1), 0, 1, NVL(B.NN_SALES_PLAN,1))		  NN_PLAN_VS_STOCK_WORK, --차차주계획대비재고일수
+                            (NVL(B.EXPERT_STOCK,0)+(NVL(B.N_RECEIPT_EXPT,0)-NVL(B.N_SALES_PLAN,0))) / DECODE(NVL(B.SALES_MEAN_1WEEK,1), 0, 1, NVL(B.SALES_MEAN_1WEEK,1)) NN_ACT_VS_STOCK_WORK,  --차차주실적대비재고일수
+                            NVL(B.EXPERT_STOCK,0)+(NVL(B.N_RECEIPT_EXPT,0)-NVL(B.N_SALES_PLAN,0))+(NVL(D.RP_QTY2,0)-NVL(B.NN_SALES_PLAN,0)) EXPERT_STOCK3,  --예상재고(차차주)
+                            (NVL(B.EXPERT_STOCK,0)+(NVL(B.N_RECEIPT_EXPT,0)-NVL(B.N_SALES_PLAN,0))+(NVL(D.RP_QTY2,0)-NVL(B.NN_SALES_PLAN,0))) /
+                            DECODE(NVL(B.SALES_MEAN_1WEEK,1), 0, 1, NVL(B.SALES_MEAN_1WEEK,1)) NNN_ACT_VS_STOCK_WORK,  --차차차주실적대비재고일수
+                        #else
+                        	NVL(D.RP_QTY1,0) - NVL(D.RP_QTY1,0) NWK_ADJ_QTY,        --요구/생산 차이
+                        	D.RP_QTY1 PO_QTY1,       --생산필요량(차주)
+                            NVL(B.EXPERT_STOCK,0)+(NVL(D.RP_QTY1,0)-NVL(B.N_SALES_PLAN,0)) EXPERT_STOCK2, --예상재고(차주)  
+                            (NVL(B.EXPERT_STOCK,0)+(NVL(D.RP_QTY1,0)-NVL(B.N_SALES_PLAN,0)))*WO.NN_WORK / DECODE(NVL(B.NN_SALES_PLAN,1), 0, 1, NVL(B.NN_SALES_PLAN,1))		  NN_PLAN_VS_STOCK_WORK, --차차주계획대비재고일수
+                            (NVL(B.EXPERT_STOCK,0)+(NVL(D.RP_QTY1,0)-NVL(B.N_SALES_PLAN,0))) / DECODE(NVL(B.SALES_MEAN_1WEEK,1), 0, 1, NVL(B.SALES_MEAN_1WEEK,1)) NN_ACT_VS_STOCK_WORK,  --차차주실적대비재고일수
+                            NVL(B.EXPERT_STOCK,0)+(NVL(D.RP_QTY1,0)-NVL(B.N_SALES_PLAN,0))+(NVL(D.RP_QTY2,0)-NVL(B.NN_SALES_PLAN,0)) EXPERT_STOCK3,  --예상재고(차차주)
+                            (NVL(B.EXPERT_STOCK,0)+(NVL(D.RP_QTY1,0)-NVL(B.N_SALES_PLAN,0))+(NVL(D.RP_QTY2,0)-NVL(B.NN_SALES_PLAN,0))) /
+                            DECODE(NVL(B.SALES_MEAN_1WEEK,1), 0, 1, NVL(B.SALES_MEAN_1WEEK,1)) NNN_ACT_VS_STOCK_WORK,  --차차차주실적대비재고일수
+                        #end
+                            D.RP_QTY2 RP_QTY2,       --보충요구량(차차주)               
+                            D.RP_QTY2 PO_QTY2,       --생산필요량(차차주)
+                            B.NN_SALES_PLAN,         --판매계획(차차주)                     
+                    		A.W1_NFOS,	-- 1주판매계획
+                    		A.W1_ACT,	-- 1주판매실적
+                    		A.W3_NFOS,	-- 3주판매계획
+                    		A.W3_ACT,	-- 3주판매실적                  
+                    		WO.NN_WORK,  -- 차차주 영업일수
+                    		DECODE(B.SALES_MEAN_1WEEK, 0, 1, B.SALES_MEAN_1WEEK) SALES_MEAN_1WEEK, -- 1주평균 판매
+                    		B.SALES_PLAN - (NVL(A.W1_ACT,0) * (NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD'), 1)- TO_DATE('$!{sdate}','YYYY-MM-DD'))) SALES_ACT_VS_SALES_PLAN_1,
+                    		B.N_SALES_PLAN - (NVL(A.W1_ACT,0) * 6) SALES_ACT_VS_SALES_PLAN_2,
+                    		B.NN_SALES_PLAN - (NVL(A.W1_ACT,0) * 6) SALES_ACT_VS_SALES_PLAN_3,
+                    		B.SALES_PLAN - (NVL(A.W3_ACT,0) * (NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD'), 1)- TO_DATE('$!{sdate}','YYYY-MM-DD'))) SALES_ACT_3W_VS_SALES_PLAN_1,
+                    		B.N_SALES_PLAN - (NVL(A.W3_ACT,0) * 6) SALES_ACT_3W_VS_SALES_PLAN_2,
+                    		B.MI_CHGO
+                    FROM
+                            (
+                            --1. 판매계획/판매실적
+                            SELECT  ITEM_ID,
+                                    --1. 전월(판매계획/판매실적)
+                                    /*
+                                    ROUND(MAX(CASE WHEN  (M_ACT>0) THEN M_NFOS/M_ACT
+                                    ELSE 0
+                                    END),2) M_AVG_RATIO,
+                                    */
+                                    W1_NFOS,	-- 1주판매계획
+                                    W1_ACT,		-- 1주평균판매실적
+                                    W3_NFOS,	-- 3주판매계획
+                                    W3_ACT,		-- 3주평균판매실적
+                                    --2. 3주평균(판매계획/판매실적)
+                                    ROUND(MAX(CASE WHEN  (W3_ACT>0) THEN W3_NFOS/W3_ACT
+                                    ELSE 0
+                                    END),2) W3_AVG_RATIO,
+                                    --3. 1주평균(판매계획/판매실적)
+                                    ROUND(MAX(CASE WHEN  (W1_ACT>0) THEN W1_NFOS/W1_ACT
+                                    ELSE 0
+                                    END),2) W1_AVG_RATIO
+                                    --4. 당월경영계획
+                                    --SUM(M_NFO_QTY) M_NFO_QTY                          
+                            FROM    
+                                    (
+                                    SELECT  ITEM_ID,     
+                                            --1. 전월(판매계획,판매실적)
+                                            ---------------------------------------------------------
+                                            SUM(CASE WHEN YYYYMM = TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'), -1),'YYYYMM') THEN NFO_QTY END) M_NFOS,  
+                                            SUM(CASE WHEN YYYYMM = TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'), -1),'YYYYMM') THEN ACT_QTY END) M_ACT, 
+                                            ---------------------------------------------------------      
+                                            --2. 3주평균접근율
+                                            --------------------------------------------------------------------------------------
+                                            ROUND(SUM(CASE WHEN YYYYWW  BETWEEN TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')-( 7*3), 'IYYYIW') 
+                                                 AND TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')-( 7*1), 'IYYYIW')
+                                             THEN NFO_QTY
+                                            ELSE 0
+                                            END
+                                            )/18,2) W3_NFOS,
+                                            ROUND(SUM(CASE WHEN YYYYWW  BETWEEN TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')-( 7*3), 'IYYYIW') 
+                                                 AND TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')-( 7*1), 'IYYYIW')
+                                             THEN ACT_QTY
+                                            ELSE 0
+                                            END
+                                            )/18,2) W3_ACT,
+                                            --------------------------------------------------------------------------------------
+                                            --3. 1주평균접근율
+                                            ROUND(SUM(CASE WHEN YYYYWW  = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')-( 7*1), 'IYYYIW')
+                                               THEN NFO_QTY
+                                            ELSE 0
+                                            END
+                                            )/6,2) W1_NFOS,
+                                            ROUND(SUM(CASE WHEN YYYYWW  = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')-( 7*1), 'IYYYIW')
+                                               THEN ACT_QTY
+                                            ELSE 0
+                                            END
+                                            )/6,2) W1_ACT,       
+                                            SUM(CASE WHEN YYYYMM = TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'), 0),'YYYYMM') THEN NFO_QTY
+                                            END 
+                                            ) M_NFO_QTY --당월경영계획      
+                                    FROM    
+                                            (
+                                            --1. 전월 2개월간의 판매계획 
+                                            SELECT    s1.ITEM_ID,
+											        s2.YYYYMM, 
+											        s2.YYYYWW,
+											        s2.YYYYMMDD,       
+											        SUM(NORMAL_QTY+PROM_QTY+SUPT_QTY+SAMP_QTY) NFO_QTY,
+											        0 ACT_QTY
+											FROM    NFOS_SALES_PLAN_WEEKLY    S1,
+											        (
+											        SELECT    CASE
+											                    WHEN    (CAL_DATE - TO_DATE('$!{sdate}','YYYY-MM-DD')) >= 0 THEN
+											                        CASE 
+											                            WHEN TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IW') = '01' AND TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'MM') = '12' THEN TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'),1), 'yyyy')
+											                            ELSE TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'yyyy') 
+											                        END
+											                    ELSE
+											                        CASE 
+											                            WHEN TO_CHAR(CAL_DATE, 'IW') = '01' AND TO_CHAR(CAL_DATE, 'MM') = '12' THEN TO_CHAR(ADD_MONTHS(CAL_DATE,1), 'yyyy')
+											                            ELSE TO_CHAR(CAL_DATE, 'yyyy') 
+											                        END
+											                END                                 YYYY,
+											                CASE
+											                    WHEN    (CAL_DATE - TO_DATE('$!{sdate}','YYYY-MM-DD')) >= 0 THEN
+											                        TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IW')
+											                    ELSE
+											                        TO_CHAR(CAL_DATE, 'IW')
+											                END        VERSION,
+											                YYYYMMDD    YYYYMMDD,
+											                YYYYMM        YYYYMM,
+											                YYYYWW        YYYYWW
+											        FROM    CAL_MST
+											        WHERE    YYYYMM  BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'), -1),'YYYYMM')
+											                                            AND     TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'), 0),'YYYYMM')
+											        AND        HOLIDAY_FLAG    IS NULL
+											        )                        S2
+											WHERE    S1.YYYY        = S2.YYYY
+											AND        S1.VERSION    = S2.VERSION
+											AND        S1.YYYYMMDD    = S2.YYYYMMDD
+											GROUP
+											BY        S1.ITEM_ID,  S2.YYYYMM, s2.YYYYWW, s2.YYYYMMDD
+                                            UNION   ALL
+                                            --2. 전월 2개월간의 판매실적
+                                            SELECT  ITEM_ID, 
+                                                    CAL.YYYYMM, 
+                                                    CAL.YYYYWW,
+                                                    CAL.YYYYMMDD,  
+                                                    0 NFO_QTY,
+                                                    SUM(ACT.QTY) ACT_QTY
+                                            FROM    SALES_ACT_RECENT ACT, CAL_MST CAL
+                                            WHERE   ACT.SALE_DATE = CAL.CAL_DATE
+                                            AND     CAL.YYYYMM  BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'), -1),'YYYYMM')
+                                                                AND     TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'), 0),'YYYYMM')
+                                            GROUP   BY ITEM_ID, CAL.YYYYMM, CAL.YYYYWW, CAL.YYYYMMDD
+                                            )
+                                    GROUP BY ITEM_ID   
+                                    )
+                            GROUP BY ITEM_ID,W1_NFOS,W1_ACT,W3_NFOS,W3_ACT
+                            )   A,
+                            (
+                             /*   
+                            *  1. 기초재고            : 조회일자(오늘)에 해당하는 BASE_STOCK  SUM
+                            *  2. 금주생산계획        : 조회일자(오늘)에서 마지막 영업일까지(조회일자 주의 토요일)  SUM
+                            *  3. 금주판매계획        : 조회일자(오늘)에서 마지막 영업일까지(조회일자 주의 토요일)  SUM
+                            *  4. 1주일 평균판매      : 조회일자(오늘)에 해당하는 SALES_MEAN_1WEEK SUM
+                            *  5. 금주잔여판매일수    :  조회일자(오늘)을 포함해서 영업 마감일까지(조회일자 주의 토요일) 일수
+                            *  6. 1주평균판매대비     : (금주판매계획/(1주일평균판매*금주잔여판매일수)) * 100
+                            *  7. 예상재고(차주초)    : 기초재고 + 금주생산계획 - 금주판매계획 - 수출미출고
+                            *  8. 차주생산계획        : 조회일자(오늘)기준 차주에서 차주 마지막 영업일까지(조회일자 주의 토요일)  SUM
+                            *  9. 수출 미출고물량     : 생산요청일이 전주이전대상 중 미출고 오더수량
+                            */ 
+                            SELECT	ITEM_ID,
+                            		MAX(BASE_STOCK)		BASE_STOCK,
+                            		MAX(RECEIPT_EXPT)	RECEIPT_EXPT,
+                            		MAX(SALES_PLAN)		SALES_PLAN,
+                            		MAX(SALES_VS_WEEK1_AVG)	SALES_VS_WEEK1_AVG,
+                            		MAX(EXPERT_STOCK) - NVL(MAX(MI_CHGO),0)	EXPERT_STOCK,
+                            		MAX(N_RECEIPT_EXPT)	N_RECEIPT_EXPT,
+                            		MAX(N_SALES_PLAN)	N_SALES_PLAN,
+                            		MAX(NN_SALES_PLAN)	NN_SALES_PLAN,
+                            		MAX(SALES_MEAN_1WEEK)	SALES_MEAN_1WEEK,
+                            		MAX(MI_CHGO)		MI_CHGO
+                            FROM	(
+		                            SELECT  ITEM_ID,
+		                                    BASE_STOCK,         --기초재고
+		                                    RECEIPT_EXPT,       --금주생산계획
+		                                    SALES_PLAN ,        --금주판매계획
+		                                    ROUND(SALES_PLAN / DECODE((SALES_MEAN_1WEEK * SALES_DAY),0,1,(SALES_MEAN_1WEEK * SALES_DAY)),2) 
+		                                    SALES_VS_WEEK1_AVG,    -- 1주평균판매대비
+		                                    BASE_STOCK + RECEIPT_EXPT - SALES_PLAN  EXPERT_STOCK,  -- 예상재고(차주초)
+		                                    N_RECEIPT_EXPT,     --차주생산계획
+		                                    N_SALES_PLAN,       --차주판매계획 
+		                                    NN_SALES_PLAN,      --차주판매계획
+		                                    SALES_MEAN_1WEEK,	--1주평균판매
+		                                    0		MI_CHGO		--수출 미출고물량                   
+		                            FROM        
+		                                    (
+		                                    SELECT  ITEM_ID,
+		                                            SUM(DECODE(YYYYMMDD, REPLACE ('$!{sdate}', '-', ''),BASE_STOCK,0))                              BASE_STOCK,                        --기초재고
+		                                            SUM(CASE WHEN  YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IYYYIW')
+											                       AND YYYYMMDD >= TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'YYYYMMDD')
+											                 THEN  RECEIPT_EXPT
+											                 ELSE  0
+											            END)       RECEIPT_EXPT,                      --금주생산계획
+		                                            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 'IYYYIW'),RECEIPT_EXPT))  N_RECEIPT_EXPT,                    --차주생산계획        
+		                                            SUM(CASE WHEN  YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IYYYIW')
+											                       AND YYYYMMDD >= TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'YYYYMMDD')
+											                 THEN  SALES_PLAN
+											                 ELSE  0
+											            END)       SALES_PLAN,                      --금주판매계획                                             
+		                                            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 'IYYYIW'),SALES_PLAN))    N_SALES_PLAN,                      --차주판매계획
+		                                            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2), 'IYYYIW'),SALES_PLAN))    NN_SALES_PLAN,                     --차차주판매계획                                      
+		                                            SUM(DECODE(YYYYMMDD, REPLACE ('$!{sdate}', '-', ''),SALES_MEAN_1WEEK,0))                        SALES_MEAN_1WEEK,                  --1주일 평균판매
+		                                            NEXT_DAY(TO_DATE(REPLACE ('$!{sdate}', '-', ''),'YYYYMMDD'), 1)- TO_DATE(REPLACE ('$!{sdate}', '-', ''),'YYYYMMDD') SALES_DAY      --금주잔여판매일수
+		                                    FROM
+		                                            (
+		                                            SELECT  DD.ITEM_ID,
+		                                                    DD.BASE_STOCK,
+		                                                    DD.RECEIPT_EXPT,
+		                                                    (DD.SALES_PLAN+DD.PROM_PLAN) SALES_PLAN, --판매계획수량수정(2008.11.12 수정)
+		                                                    SALES_MEAN_1WEEK,
+		                                                    CAL.YYYYWW,
+		                                                    CAL.YYYYMMDD
+		                                            FROM    DC_DATAWAREHOUSE DD, CAL_MST CAL,
+		                                            		(
+		                                            		SELECT	DC_ID
+		                                            		FROM	DC_MST
+		                                            		WHERE	(CDC_FLAG = 'Y' OR RDC_FLAG = 'Y')
+		                                            		)	DC
+		                                          	WHERE   DD.CNFM_DATE = CAL.YYYYMMDD
+		                                            /* 당주 월요일부터 ~ 당주 일요일까지 */    
+		                                            AND     DD.CNFM_DATE BETWEEN  TO_CHAR(NEXT_DAY(TO_DATE(REPLACE ('$!{sdate}', '-', ''),'YYYYMMDD')+(7*-1), 2), 'YYYYMMDD')
+		                                                                 AND      TO_CHAR(NEXT_DAY(TO_DATE(REPLACE ('$!{sdate}', '-', ''),'YYYYMMDD')+(7*2) , 1)  , 'YYYYMMDD')
+		                                            AND		DD.DC_ID	= DC.DC_ID
+		                                            UNION	ALL
+													/* 당주 생산요청일 수출물량 */
+													SELECT  B.PROD_CODE			ITEM_CD,
+															0					BASE_STOCK,
+															0					RECEIPT_EXPT,
+															SUM(B.REQT_BOX)		SALES_PLAN,
+															0					SALES_MEAN_1WEEK,
+															T2.YYYYWW,
+															T2.YYYYMMDD
+													FROM    SDORT101    A,
+															SDORT102    B,
+															ITEM_MST	C,
+															CAL_MST 	T2
+													WHERE   A.SLIP_NO						=	B.SLIP_NO
+													AND     A.PRDT_PLAN_DATE				>= TRUNC(TO_DATE(REPLACE ('$!{sdate}', '-', '')),'D')
+													AND		SUBSTR(A.SLIP_GUBN_CODE,1,1)	= 'X'
+													AND		LENGTH(A.CNFM_DATE) 			= 8  
+													AND		B.PROD_CODE						= C.ITEM_ID
+													AND		C.ITYPE							= 'FERT'
+													AND		A.UPDT_GUBN						!= 'DE'
+													AND		A.PRDT_PLAN_DATE				= T2.CAL_DATE
+													GROUP
+													BY		B.PROD_CODE,
+															T2.YYYYWW,
+															T2.YYYYMMDD
+													)
+		                                    GROUP BY ITEM_ID, NEXT_DAY(TO_DATE(REPLACE ('$!{sdate}', '-', ''),'YYYYMMDD'), 1)- TO_DATE(REPLACE ('$!{sdate}', '-', ''),'YYYYMMDD')
+		                                    )   
+								)
+							GROUP
+							BY		ITEM_ID	                            
+                            )   B,
+                            (
+                            /* 
+                          *  조회 일자에 해당하는 안전재고 (DC_ID에 해당 없이 모두 SUM) 
+                          */
+                            SELECT SP.WORK_DATE, SP.ITEM_ID, ROUND(SUM(SP.SAFETY_STOCK)+SUM(SP.CAMP_STOC)+ SUM(NVL(SP.FA_STOCK,0)) +
+                                    SUM(DECODE(SIGN(TO_DATE(REPLACE('$!{sdate}', '-', ''),'YYYYMMDD')-TO_DATE(SP.START_DATE,'YYYYMMDD')),-1,0,
+                                        DECODE(SIGN(TO_DATE(SP.END_DATE,'YYYYMMDD')-TO_DATE(REPLACE('$!{sdate}', '-', ''),'YYYYMMDD')),-1,0,
+                                        NVL(SP.SAVE_STOC,0)))),0)      SAFETY_STOCK
+                            FROM    STOCK_POLICY_QTY  SP,
+                                    (
+                                    SELECT  MAX(WORK_DATE) WORK_DATE
+                                    FROM    STOCK_POLICY_QTY
+                                    WHERE   LOC_TYPE = 'DC'
+                                    )   MV
+                            WHERE   SP.WORK_DATE = MV.WORK_DATE
+                            GROUP   BY SP.WORK_DATE, SP.ITEM_ID
+                            --ORDER    BY PY.ITEM_ID
+                            )   C,
+                            (
+                            /*
+                          * 당주, 차주, 차차주 보충 요구량
+                          *//*
+                            SELECT  PA.VERSION VERSION,
+                                    ITEM_ID,
+                                    SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW') THEN QTY
+                                    ELSE 0
+                                    END) RP_QTY0,
+                                    SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*1), 'IYYYIW') THEN QTY
+                                    ELSE 0
+                                    END) RP_QTY1,
+                                    SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*2), 'IYYYIW') THEN QTY
+                                    ELSE 0
+                                  END) +
+                                    SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW') THEN QTY
+                                    ELSE 0
+                                    END) RP_QTY2
+                            FROM    PLANT_ALLOC_PLAN PA, CAL_MST CAL
+                            WHERE   PA.DUE_DATE = CAL.CAL_DATE
+                            AND     PA.VERSION||'2' = '$!{plant_alloc_version}'||'2'
+                            AND     CAL.YYYYWW  BETWEEN TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW')
+                                                AND     TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*2), 'IYYYIW')  
+                            GROUP   BY PA.VERSION, ITEM_ID
+                            */
+                            SELECT '$!{plant_alloc_version}' VERSION, IM.ITEM_ID
+                            	   , NVL(PA.RP_QTY0, 0) RP_QTY0, NVL(PA.RP_QTY1, 0) RP_QTY1, NVL(PA.RP_QTY2, 0) RP_QTY2--, IM.ITEM_NAME, IM.CAT03
+                            FROM (
+                                    SELECT  PA.VERSION VERSION,
+                                            PA.ITEM_ID,
+                                            SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW') THEN PA.QTY
+                                            ELSE 0
+                                            END) RP_QTY0,
+                                            SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*1), 'IYYYIW') THEN PA.QTY
+                                            ELSE 0
+                                            END) 
+                                            /*+
+                                            SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW') THEN PA.QTY
+                                            ELSE 0
+                                            END)*/ 
+                                            RP_QTY1,
+                                            SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*2), 'IYYYIW') THEN PA.QTY
+                                            ELSE 0
+                                            END) RP_QTY2
+                                    FROM    PLANT_ALLOC_PLAN PA, CAL_MST CAL
+                                    WHERE   PA.DUE_DATE = CAL.CAL_DATE
+		                            AND     PA.VERSION = '$!{plant_alloc_version}'
+		                            AND     PA.SEQ = 2
+                                    AND     CAL.YYYYWW  BETWEEN TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW')
+                                                        AND     TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*2), 'IYYYIW')
+                                    GROUP   BY PA.VERSION, PA.ITEM_ID
+                                    ) PA, ITEM_MST IM
+                            WHERE IM.ITEM_ID = PA.ITEM_ID(+)
+                            AND 	(    (IM.ITYPE = 'FERT' AND IM.CAT03 IN ('P10', 'P11', 'F10'))
+                                      OR (IM.ITYPE IN ('FERT') AND IM.ETC_FLAG = '900') )
+                            AND 	IM.ITEM_STATUS = 'ST'
+                            AND 	'$!{plant_alloc_version}' IS NOT NULL
+                            --
+                            UNION ALL
+                            --
+                            SELECT  PA.VERSION VERSION,
+                                    PA.ITEM_ID,
+                                    SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW') THEN PA.QTY
+                                    ELSE 0
+                                    END) RP_QTY0,
+                                    SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*1), 'IYYYIW') THEN PA.QTY
+                                    ELSE 0
+                                    END) RP_QTY1,
+                                    SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*2), 'IYYYIW') THEN PA.QTY
+                                    ELSE 0
+                                    END) RP_QTY2
+                            FROM    PLANT_ALLOC_PLAN PA, CAL_MST CAL, ITEM_MST IM
+                            WHERE   PA.DUE_DATE = CAL.CAL_DATE
+                            AND     PA.VERSION = '$!{plant_alloc_version}'
+                            AND     PA.SEQ = 2
+                            AND     CAL.YYYYWW  BETWEEN TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW')
+                                                AND     TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*2), 'IYYYIW')
+                            AND 	PA.ITEM_ID = IM.ITEM_ID
+                            AND 	IM.ITEM_STATUS = 'ST' AND IM.CAT03 = 'O10'
+                            AND 	'$!{plant_alloc_version}' IS NOT NULL
+                            GROUP   BY PA.VERSION, PA.ITEM_ID
+                            --
+                            UNION	ALL
+                            --
+                            /* 수출 MTS는 모두 보이게 한다. */
+                            SELECT	'$!{plant_alloc_version}'	VERSION,
+									ITEM_ID,
+									0	RP_QTY0,
+									0	RP_QTY1,
+									0	RP_QTY2
+							FROM	ITEM_MST
+							WHERE	ITEM_STATUS	= 'ST'
+							AND		CAT03 		= 'O10'
+							AND		MTO_MTS_TYPE = '0002'
+							AND		ITEM_ID	NOT IN 
+									(
+									SELECT	PA.ITEM_ID
+									FROM	PLANT_ALLOC_PLAN PA,
+											ITEM_MST IM
+									WHERE	PA.ITEM_ID	= IM.ITEM_ID
+									AND 	IM.ITEM_STATUS = 'ST' AND IM.CAT03 = 'O10'
+									AND     PA.VERSION = '$!{plant_alloc_version}'
+									)
+							AND		'$!{checked_domain}' IS NOT NULL
+                            )   D,
+                            (
+                            /*
+                          *      임시 품종 분류 대분류(설비유형이 정의되면 변경 예정)
+                          */
+                            SELECT  ITEM.ITEM_ID,
+                                    CD1.CD         CD1, 
+                                    CD1.CD_NAME    CD1_NM
+                            FROM    ITEM_MST ITEM, 
+                                    CODE_MST CD1
+                            WHERE   ITEM.CAT06 = CD1.CD
+                            AND     CD1.CD_GRP = 'CAT06'
+                            )   RES_TP,
+                            ( 
+                            SELECT  IM.ITEM_ID,
+                                    IM.ITEM_NAME
+                            FROM    ITEM_MST IM
+                            WHERE   IM.MADE_TYPE != 'DE' 
+                            AND		(IM.SELL_STOP_DATE = '99991231' or IM.SELL_STOP_DATE ='00000000')
+                        #if("$!{checked_domain}" == "DO")
+                        	/* 내수 제품*/
+                            AND     (IM.MATERIAL_GROUP &lt; '5K000' OR  IM.MATERIAL_GROUP &gt; '5S999')
+                        #elseif("$!{checked_domain}" == "EXMTS")
+                        	/* 수출 제품(MTS) */
+                            AND     IM.MATERIAL_GROUP &gt;= '5K000'
+                            AND     IM.MATERIAL_GROUP &lt;= '5S999'
+                            AND		IM.MTO_MTS_TYPE	= '0002'
+                        #elseif("$!{checked_domain}" == "EXMTO")
+                        	/* 수출 제품(MTO) */
+                            AND     IM.MATERIAL_GROUP &gt;= '5K000'
+                            AND     IM.MATERIAL_GROUP &lt;= '5S999'
+                            AND		IM.MTO_MTS_TYPE	= '0001'
+                        #end                            
+                            )   IM,
+                            /* 차주, 차차주 영업 일수 */
+                            (
+                            SELECT  fn_nscm_get_workingday01(REPLACE('2009-01-14','-',''), 
+                                 							 TO_CHAR(NEXT_DAY(TO_DATE('2009-01-14','YYYY-MM-DD'), 1), 'YYYYMMDD')) T_WORK, -- 금주 영업일수
+                            		fn_nscm_get_workingday01(TO_CHAR(NEXT_DAY('$!{sdate}',2),'YYYYMMDD'), 
+							                                 TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+6, 1), 'YYYYMMDD')) N_WORK, -- 차주 영업일수
+							        fn_nscm_get_workingday01(TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+7, 2),'YYYYMMDD'),
+							                                 TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+13, 1), 'YYYYMMDD')) NN_WORK,  -- 차차주 영업일수
+							        TO_CHAR(NEXT_DAY('$!{sdate}',2),'YYYYMMDD') N_MON,  -- 차주 월요일                               
+							        TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+6, 1), 'YYYYMMDD') N_SUN,	-- 차주 일요일 
+							        TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+7, 2),'YYYYMMDD') NN_MON, 	-- 차차주 월요일
+							        TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+13, 1), 'YYYYMMDD') NN_SUN	-- 차차주 일요일
+							FROM DUAL
+                            ) WO           
+                    WHERE   D.ITEM_ID = B.ITEM_ID(+)
+                    AND     D.ITEM_ID = C.ITEM_ID(+)    
+                    AND     D.ITEM_ID = A.ITEM_ID(+)
+                    AND     D.ITEM_ID = IM.ITEM_ID
+                    AND     D.ITEM_ID = RES_TP.ITEM_ID(+)
+                    )   A,
+                    (
+                    /*
+                        1 : 제품별 수량
+                        2 : 설비유형별 소계
+                        3 : 총계
+                    */
+                    SELECT  1 NO FROM DUAL
+                    UNION   ALL
+                    SELECT  2 NO FROM DUAL       
+                    UNION   ALL
+                    SELECT  3 NO FROM DUAL
+                    )   B,
+                    (--해당하는 주의 토요일 날짜를 뽑음!
+                    SELECT MAX(DECODE(SEQ, 1, DD_DATE)) AS W1 --당주 due_date
+                          ,MAX(DECODE(SEQ, 2, DD_DATE)) AS W2 --차주 due_date
+                          ,MAX(DECODE(SEQ, 3, DD_DATE)) AS W3 --차차주 due_date
+                      FROM (
+                            SELECT AA.DD_DATE, dense_rank() over(order by AA.DD_DATE asc) as SEQ
+                              FROM (
+                                    select yyyymmdd as DD_DATE
+                                      from cal_mst
+                                     where yyyyww in ( 
+                                            select yyyyww
+                                              from cal_mst
+                                             where yyyymmdd between to_char(TO_DATE('$!{sdate}','YYYY-MM-DD'),'yyyymmdd') and to_char(TO_DATE('$!{sdate}','YYYY-MM-DD')+14,'yyyymmdd')
+                                     )
+                                     and week_day = '토'
+                                   ) AA
+                           )
+                    )   C 
+            --WHEREITEM_ID IN ('101000982', '101000066')
+            /* 
+                최신 공장할당 버전이 PLANT_ALLOC_ITEM_ADJ 테이블에있으면 
+                UNION ALL 위쪽 쿼리 실행 안함 
+           */
+            WHERE   NOT EXISTS ( 
+                                SELECT  DISTINCT PA.VERSION
+	                            FROM    PLANT_ALLOC_ITEM_ADJ PA,
+	                            		(
+	                            		SELECT  IM.ITEM_ID,
+			                                    IM.ITEM_NAME
+			                            FROM    ITEM_MST IM
+			                            WHERE   IM.MADE_TYPE != 'DE' 
+			                        #if("$!{checked_domain}" == "DO")
+			                        	/* 내수 제품*/
+			                            AND     (IM.MATERIAL_GROUP &lt; '5K000' OR  IM.MATERIAL_GROUP &gt; '5S999')
+			                        #elseif("$!{checked_domain}" == "EXMTS")
+			                        	/* 수출 제품(MTS) */
+			                            AND     IM.MATERIAL_GROUP &gt;= '5K000'
+			                            AND     IM.MATERIAL_GROUP &lt;= '5S999'
+			                            AND		IM.MTO_MTS_TYPE	= '0002'
+			                        #elseif("$!{checked_domain}" == "EXMTO")
+			                        	/* 수출 제품(MTO) */
+			                            AND     IM.MATERIAL_GROUP &gt;= '5K000'
+			                            AND     IM.MATERIAL_GROUP &lt;= '5S999'
+			                            AND		IM.MTO_MTS_TYPE	= '0001'
+			                        #end
+	                            		) IM
+	                            WHERE   PA.VERSION = '$!{plant_alloc_version}'
+	                            AND		PA.ITEM_ID	= IM.ITEM_ID
+                               )   
+            GROUP   BY DECODE(NO,1,RES_TP,2,RES_TP, NULL), DECODE(NO,1,ITEM_ID,2,'소계'), NO, W1, W2, W3
+            UNION   ALL
+            /* 
+                PLANT_ALLOC_ITEM_ADJ 테이블에 공장할당 버전과 일치하는 버전이 존재하면 실행 
+           */
+            SELECT  NO, -- 0
+                    MAX(VERSION) VERSION, --공장할당VERSION 1
+                    DECODE(NO,1,RES_TP,2, RES_TP, NULL) RES_TP,     --설비유형 2 
+                    DECODE(NO,1,ITEM_ID,2,'소계') ITEM_ID, --자재코드 3 
+                    MAX(DECODE(NO,1, ITEM_NAME,2, RES_TP_NM||'소계','총계')) ITEM_NAME, --자재코드명 4
+                    ROUND(AVG(DECODE(NO,1,W3_AVG_RATIO,2,W3_AVG_RATIO,W3_AVG_RATIO)),2) W3_AVG_RATIO, --3주평균접근율 5
+                    ROUND(AVG(DECODE(NO,1,W1_AVG_RATIO,2,W1_AVG_RATIO,W1_AVG_RATIO)),2) W1_AVG_RATIO, --1주평균접근율 6
+                    TO_CHAR(SUM(DECODE(NO,1,SAFETY_STOCK,2,SAFETY_STOCK,SAFETY_STOCK)),'999,999,999') SAFETY_STOCK, --안전재고 7
+                    TO_CHAR(SUM(DECODE(NO,1,BASE_STOCK,2,BASE_STOCK,BASE_STOCK)),'999,999,999') BASE_STOCK, --기초재고 8
+                    TO_CHAR(SUM(DECODE(NO,1,RECEIPT_EXPT,2,RECEIPT_EXPT,RECEIPT_EXPT)),'999,999,999') RECEIPT_EXPT, --금주생산계획 9
+                    TO_CHAR(SUM(DECODE(NO,1,SALES_PLAN,2,SALES_PLAN,SALES_PLAN)),'999,999,999') SALES_PLAN, --금주판매계획 10
+                    ROUND(AVG(DECODE(NO,1,SALES_VS_WEEK1_AVG,2,SALES_VS_WEEK1_AVG,SALES_VS_WEEK1_AVG)),2) SALES_VS_WEEK1_AVG, --1주평균판매대비 11
+                    TO_CHAR(SUM(DECODE(NO,1,EXPERT_STOCK,2,EXPERT_STOCK,EXPERT_STOCK)),'999,999,999') EXPERT_STOCK, --예상재고(차주초) 12
+                    TO_CHAR(SUM(DECODE(NO,1,N_RECEIPT_EXPT,2,N_RECEIPT_EXPT,N_RECEIPT_EXPT)),'999,999,999') N_RECEIPT_EXPT, --차주생산계획 13
+                    -------------------------------------------------------------------------------------------------          
+                    TO_CHAR(TRUNC(TO_DATE('$!{sdate}','YYYY-MM-DD'),'D')+6+(7*0),'YYYY-MM-DD') RP0_DAY, --당주(월) -- 변경(토)
+                    TO_CHAR(TRUNC(TO_DATE('$!{sdate}','YYYY-MM-DD'),'D')+6+(7*1),'YYYY-MM-DD') RP1_DAY, --차주(월) -- 변경(토)
+                    TO_CHAR(TRUNC(TO_DATE('$!{sdate}','YYYY-MM-DD'),'D')+6+(7*2),'YYYY-MM-DD') RP2_DAY, --차차주(월) -- 변경(토)
+                    TO_CHAR(SUM(DECODE(NO,1,RP_QTY0,2,RP_QTY0,RP_QTY0)),'999,999,999') RP0_QTY, --보충요구량(당주) 
+                    TO_CHAR(SUM(DECODE(NO,1,RP_QTY1,2,RP_QTY1,RP_QTY1)),'999,999,999') RP1_QTY, --보충요구량(차주) 
+                    TO_CHAR(SUM(DECODE(NO,1,RP_QTY2,2,RP_QTY2,RP_QTY2)),'999,999,999') RP2_QTY, --보충요구량(차차주) 
+                    NVL(TRIM(TO_CHAR(SUM(DECODE(NO,1,PO_QTY1,2,PO_QTY1,PO_QTY1)),'999,999,999')),0) PO_QTY1, --생산필요량(차주)
+                    NVL(TRIM(TO_CHAR(SUM(DECODE(NO,1,PO_QTY2,2,PO_QTY2,PO_QTY2)),'999,999,999')),0) PO_QTY2, --생산필요량(차차주)
+                    TO_CHAR(SUM(DECODE(NO,1,NN_SALES_PLAN,2,NN_SALES_PLAN,NN_SALES_PLAN)),'999,999,999') NN_SALES_PLAN,   --차차주판매계획           
+                    TO_CHAR(SUM(DECODE(NO,1,EXPERT_STOCK3,2,EXPERT_STOCK3,EXPERT_STOCK3)),'999,999,999') EXPERT_STOCK3,   --예상재고(차차주)   
+                    -------------------------------------------------------------------------------------------------          
+                    TO_CHAR(SUM(DECODE(NO,1,NWK_ADJ_QTY,2,NWK_ADJ_QTY,NWK_ADJ_QTY)),'999,999,999') NWK_ADJ_QTY, --요구/생산 차이 16
+                    TO_CHAR(SUM(DECODE(NO,1,N_SALES_PLAN,2,N_SALES_PLAN,N_SALES_PLAN)),'999,999,999') N_SALES_PLAN,           --차주판매계획 17
+                    TO_CHAR(SUM(DECODE(NO,1,EXPERT_STOCK2,2,EXPERT_STOCK2,EXPERT_STOCK2)),'999,999,999') EXPERT_STOCK2,        --예상재고 18   
+            		MAX(W1_NFOS),	-- 1주판매계획
+            		MAX(W1_ACT),	-- 1주판매실적
+            		MAX(W3_NFOS),	-- 3주판매계획
+            		MAX(W3_ACT),		-- 3주판매실적
+            		ROUND(SUM(DECODE(NO,1,N_PLAN_VS_STOCK_WORK,2,N_PLAN_VS_STOCK_WORK,N_PLAN_VS_STOCK_WORK)),1) N_PLAN_VS_STOCK_WORK,  --차주계획대비재고일수 31
+            		ROUND(SUM(DECODE(NO,1,N_ACT_VS_STOCK_WORK,2,N_ACT_VS_STOCK_WORK,N_ACT_VS_STOCK_WORK)),1) N_ACT_VS_STOCK_WORK,	  --차주실적대비재고일수 32
+            		ROUND(SUM(DECODE(NO,1,NN_PLAN_VS_STOCK_WORK,2,NN_PLAN_VS_STOCK_WORK,NN_PLAN_VS_STOCK_WORK)),1) NN_PLAN_VS_STOCK_WORK, --차차주계획대비재고일수 33
+            		ROUND(SUM(DECODE(NO,1,NN_ACT_VS_STOCK_WORK, 2,NN_ACT_VS_STOCK_WORK,NN_ACT_VS_STOCK_WORK)),1) NN_ACT_VS_STOCK_WORK, --차차주계획대비재고일수 34
+            		MAX(NN_WORK) NNWK_WORK, -- 차차주 영업일수 35
+            		MAX(SALES_MEAN_1WEEK) SALES_MEAN_1WEEK, --1주 평균 판매 36
+            		ROUND(SUM(DECODE(NO,1,NNN_ACT_VS_STOCK_WORK, 2,NNN_ACT_VS_STOCK_WORK,NNN_ACT_VS_STOCK_WORK)),1) NNN_ACT_VS_STOCK_WORK,	--차차차주실적대비재고일수 37
+            		SUM(DECODE(NO,1,SALES_ACT_VS_SALES_PLAN_1,2,SALES_ACT_VS_SALES_PLAN_1,SALES_ACT_VS_SALES_PLAN_1)) SALES_ACT_VS_SALES_PLAN_1, --금주 판매계획 - 금주 1주 평균 판매실적 38
+           			SUM(DECODE(NO,1,SALES_ACT_VS_SALES_PLAN_2,2,SALES_ACT_VS_SALES_PLAN_2,SALES_ACT_VS_SALES_PLAN_2)) SALES_ACT_VS_SALES_PLAN_2, --차주 판매계획 - 차주 1주 평균 판매실적 39
+           			SUM(DECODE(NO,1,SALES_ACT_VS_SALES_PLAN_3,2,SALES_ACT_VS_SALES_PLAN_3,SALES_ACT_VS_SALES_PLAN_3)) SALES_ACT_VS_SALES_PLAN_3, --차차주 판매계획 - 차차주 1주 평균 판매실적 40
+           			SUM(DECODE(NO,1,SALES_ACT_VS_SALES_PLAN_1 + SALES_ACT_VS_SALES_PLAN_2,2,SALES_ACT_VS_SALES_PLAN_1 + SALES_ACT_VS_SALES_PLAN_2,SALES_ACT_VS_SALES_PLAN_1 + SALES_ACT_VS_SALES_PLAN_2)) W1_SALES_PLAN_DIFF, -- 1주평균 판매 계획 가감량 
+           			SUM(DECODE(NO,1,SALES_ACT_3W_VS_SALES_PLAN_1 + SALES_ACT_3W_VS_SALES_PLAN_2,2,SALES_ACT_3W_VS_SALES_PLAN_1 + SALES_ACT_3W_VS_SALES_PLAN_2,SALES_ACT_3W_VS_SALES_PLAN_1 + SALES_ACT_3W_VS_SALES_PLAN_2)) W3_SALES_PLAN_DIFF -- 3주평균 판매 계획 가감량 42
+           			,'' AS CRUD, --와이즈그리드의 crud 상태값을 가져옴 (수정 삭제 삽입)
+           			W1, W2, W3, --당주, 차주, 차차주 DUE_DATE (해당 주의 토요일을 가져옴)  
+           			TO_CHAR(SUM(DECODE(NO,1,MI_CHGO,2,MI_CHGO,MI_CHGO)),'999,999,999') MI_CHGO --수출 미출고물량         			
+    FROM    
+                    ( 
+                    SELECT  RES_TP.CD1    RES_TP,    --설비유형
+                            RES_TP.CD1_NM RES_TP_NM, --설비유형명 
+                            D.VERSION,               --공장할당VERSION
+                            D.ITEM_ID,               --자재코드
+                            IM.ITEM_NAME,            --자재코드명          
+                            A.W3_AVG_RATIO,          --3주평균접근율
+                            A.W1_AVG_RATIO,          --1주평균접근율
+                            C.SAFETY_STOCK,          --안전재고
+                            B.BASE_STOCK,            --기초재고
+                            B.RECEIPT_EXPT,          --금주생산계획
+                            B.SALES_PLAN,            --금주판매계획
+                            B.SALES_VS_WEEK1_AVG,    --1주평균판매대비
+                            B.EXPERT_STOCK,          --예상재고(차주초)
+                            B.EXPERT_STOCK*WO.N_WORK / DECODE(B.N_SALES_PLAN, 0, 1, B.N_SALES_PLAN)		  N_PLAN_VS_STOCK_WORK, --차주계획대비재고일수
+                            B.EXPERT_STOCK / DECODE(B.SALES_MEAN_1WEEK, 0, 1, B.SALES_MEAN_1WEEK) N_ACT_VS_STOCK_WORK,  --차주실적대비재고일수
+                            B.N_RECEIPT_EXPT,        --차주생산계획
+                            D.RP_QTY0 RP_QTY0,       --보충요구량(당주)               
+                            D.RP_QTY1 RP_QTY1,       --보충요구량(차주)               
+                            PT.W02_LST_PRODQTY PO_QTY1,       --생산필요량(차주)
+                            NVL(PT.W02_LST_PRODQTY,0) - NVL(D.RP_QTY1,0) NWK_ADJ_QTY,        --요구/생산 차이
+                            B.N_SALES_PLAN ,         --차주판매계획                                            
+                            NVL(B.EXPERT_STOCK,0)+(NVL(PT.W02_LST_PRODQTY,0)-NVL(B.N_SALES_PLAN,0)) EXPERT_STOCK2, --예상재고(차주)  
+                            (NVL(B.EXPERT_STOCK,0)+(NVL(PT.W02_LST_PRODQTY,0)-NVL(B.N_SALES_PLAN,0)))*WO.NN_WORK / DECODE(NVL(B.NN_SALES_PLAN,1), 0, 1, NVL(B.NN_SALES_PLAN,1))		  NN_PLAN_VS_STOCK_WORK, --차차주계획대비재고일수
+                            (NVL(B.EXPERT_STOCK,0)+(NVL(PT.W02_LST_PRODQTY,0)-NVL(B.N_SALES_PLAN,0))) / DECODE(NVL(B.SALES_MEAN_1WEEK,1), 0, 1, NVL(B.SALES_MEAN_1WEEK,1)) NN_ACT_VS_STOCK_WORK,  --차차주실적대비재고일수
+                            NVL(B.EXPERT_STOCK,0)+(NVL(PT.W02_LST_PRODQTY,0)-NVL(B.N_SALES_PLAN,0))+(NVL(D.RP_QTY2,0)-NVL(B.NN_SALES_PLAN,0)) EXPERT_STOCK3,  --예상재고(차차주)
+                            (NVL(B.EXPERT_STOCK,0)+(NVL(PT.W02_LST_PRODQTY,0)-NVL(B.N_SALES_PLAN,0))+(NVL(D.RP_QTY2,0)-NVL(B.NN_SALES_PLAN,0))) /
+                            DECODE(NVL(B.SALES_MEAN_1WEEK,1), 0, 1, NVL(B.SALES_MEAN_1WEEK,1)) NNN_ACT_VS_STOCK_WORK,  --차차차주실적대비재고일수
+                            D.RP_QTY2 RP_QTY2,       --보충요구량(차차주)               
+                            PT.W03_LST_PRODQTY PO_QTY2,       --생산필요량(차차주)
+                            B.NN_SALES_PLAN,         --판매계획(차차주)                              
+                    		A.W1_NFOS,	-- 1주판매계획
+                    		A.W1_ACT,	-- 1주판매실적
+                    		A.W3_NFOS,	-- 3주판매계획
+                    		A.W3_ACT,   -- 3주판매실적
+                    		WO.NN_WORK,  -- 차차주 영업일수
+                    		DECODE(B.SALES_MEAN_1WEEK, 0, 1, B.SALES_MEAN_1WEEK) SALES_MEAN_1WEEK, -- 1주평균 판매
+                    		B.SALES_PLAN - (NVL(A.W1_ACT,0) * (NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD'), 1)- TO_DATE('$!{sdate}','YYYY-MM-DD'))) SALES_ACT_VS_SALES_PLAN_1,
+		            		B.N_SALES_PLAN - (NVL(A.W1_ACT,0) * 6) SALES_ACT_VS_SALES_PLAN_2,
+		            		B.NN_SALES_PLAN - (NVL(A.W1_ACT,0) * 6) SALES_ACT_VS_SALES_PLAN_3,
+                    		B.SALES_PLAN - (NVL(A.W3_ACT,0) * (NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD'), 1)- TO_DATE('$!{sdate}','YYYY-MM-DD'))) SALES_ACT_3W_VS_SALES_PLAN_1,
+                    		B.N_SALES_PLAN - (NVL(A.W3_ACT,0) * 6) SALES_ACT_3W_VS_SALES_PLAN_2,
+                    		B.MI_CHGO                  		
+                    FROM
+                            (
+                            --1. 판매계획/판매실적
+                            SELECT  ITEM_ID,
+                                    --1. 전월(판매계획/판매실적)
+                                    /*
+                                    ROUND(MAX(CASE WHEN  (M_ACT &gt; 0) THEN M_NFOS/M_ACT
+                                    ELSE 0
+                                    END),2) M_AVG_RATIO,
+                                    */
+                                    W1_NFOS,	-- 1주판매계획
+                                    W1_ACT,		-- 1주판매실적
+                                    W3_NFOS,	-- 3주판매계획
+                                    W3_ACT,		-- 3주판매실적
+                                    --2. 3주평균(판매계획/판매실적)
+                                    ROUND(MAX(CASE WHEN  (W3_ACT &gt; 0) THEN W3_NFOS/W3_ACT
+                                    ELSE 0
+                                    END),2) W3_AVG_RATIO,
+                                    --3. 1주평균(판매계획/판매실적)
+                                    ROUND(MAX(CASE WHEN  (W1_ACT &gt; 0) THEN W1_NFOS/W1_ACT
+                                    ELSE 0
+                                    END),2) W1_AVG_RATIO
+                                    --4. 당월경영계획
+                                    --SUM(M_NFO_QTY) M_NFO_QTY                          
+                            FROM    
+                                    (
+                                    SELECT  ITEM_ID,     
+                                            --1. 전월(판매계획,판매실적)
+                                            ---------------------------------------------------------
+                                            SUM(CASE WHEN YYYYMM = TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'), -1),'YYYYMM') THEN NFO_QTY END) M_NFOS,  
+                                            SUM(CASE WHEN YYYYMM = TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'), -1),'YYYYMM') THEN ACT_QTY END) M_ACT, 
+                                            ---------------------------------------------------------      
+                                            --2. 3주평균접근율
+                                            --------------------------------------------------------------------------------------
+                                            ROUND(SUM(CASE WHEN YYYYWW  BETWEEN TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')-( 7*3), 'IYYYIW') 
+                                                 AND TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')-( 7*1), 'IYYYIW')
+                                             THEN NFO_QTY
+                                            ELSE 0
+                                            END
+                                            )/18,2) W3_NFOS,
+                                            ROUND(SUM(CASE WHEN YYYYWW  BETWEEN TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')-( 7*3), 'IYYYIW') 
+                                                 AND TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')-( 7*1), 'IYYYIW')
+                                             THEN ACT_QTY
+                                            ELSE 0
+                                            END
+                                            )/18,2) W3_ACT,
+                                            --------------------------------------------------------------------------------------
+                                            --3. 1주평균접근율
+                                            ROUND(SUM(CASE WHEN YYYYWW  = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')-( 7*1), 'IYYYIW')
+                                               THEN NFO_QTY
+                                            ELSE 0
+                                            END
+                                            )/6,2) W1_NFOS,
+                                            ROUND(SUM(CASE WHEN YYYYWW  = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')-( 7*1), 'IYYYIW')
+                                               THEN ACT_QTY
+                                            ELSE 0
+                                            END
+                                            )/6,2) W1_ACT,       
+                                            SUM(CASE WHEN YYYYMM = TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'), 0),'YYYYMM') THEN NFO_QTY
+                                            END 
+                                            ) M_NFO_QTY --당월경영계획      
+                                    FROM    
+                                            (
+                                            --1. 전월 2개월간의 판매계획 
+                                            SELECT    s1.ITEM_ID,
+											        s2.YYYYMM, 
+											        s2.YYYYWW,
+											        s2.YYYYMMDD,       
+											        SUM(NORMAL_QTY+PROM_QTY+SUPT_QTY+SAMP_QTY) NFO_QTY,
+											        0 ACT_QTY
+											FROM    NFOS_SALES_PLAN_WEEKLY    S1,
+											        (
+											        SELECT    CASE
+											                    WHEN    (CAL_DATE - TO_DATE('$!{sdate}','YYYY-MM-DD')) &gt;= 0 THEN
+											                        CASE 
+											                            WHEN TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IW') = '01' AND TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'MM') = '12' THEN TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'),1), 'yyyy')
+											                            ELSE TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'yyyy') 
+											                        END
+											                    ELSE
+											                        CASE 
+											                            WHEN TO_CHAR(CAL_DATE, 'IW') = '01' AND TO_CHAR(CAL_DATE, 'MM') = '12' THEN TO_CHAR(ADD_MONTHS(CAL_DATE,1), 'yyyy')
+											                            ELSE TO_CHAR(CAL_DATE, 'yyyy') 
+											                        END
+											                END                                 YYYY,
+											                CASE
+											                    WHEN    (CAL_DATE - TO_DATE('$!{sdate}','YYYY-MM-DD')) &gt;= 0 THEN
+											                        TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IW')
+											                    ELSE
+											                        TO_CHAR(CAL_DATE, 'IW')
+											                END        VERSION,
+											                YYYYMMDD    YYYYMMDD,
+											                YYYYMM        YYYYMM,
+											                YYYYWW        YYYYWW
+											        FROM    CAL_MST
+											        WHERE    YYYYMM  BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'), -1),'YYYYMM')
+											                                            AND     TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'), 0),'YYYYMM')
+											        AND        HOLIDAY_FLAG    IS NULL
+											        )                        S2
+											WHERE    S1.YYYY        = S2.YYYY
+											AND        S1.VERSION    = S2.VERSION
+											AND        S1.YYYYMMDD    = S2.YYYYMMDD
+											GROUP
+											BY        S1.ITEM_ID,  S2.YYYYMM, s2.YYYYWW, s2.YYYYMMDD
+                                            UNION   ALL
+                                            --2. 전월 2개월간의 판매실적
+                                            SELECT  ITEM_ID, 
+                                                    CAL.YYYYMM, 
+                                                    CAL.YYYYWW,
+                                                    CAL.YYYYMMDD,  
+                                                    0 NFO_QTY,
+                                                    SUM(ACT.QTY) ACT_QTY
+                                            FROM    SALES_ACT_RECENT ACT, CAL_MST CAL
+                                            WHERE   ACT.SALE_DATE = CAL.CAL_DATE
+                                            AND     CAL.YYYYMM  BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'), -1),'YYYYMM')
+                                                                AND     TO_CHAR(ADD_MONTHS(TO_DATE('$!{sdate}','YYYY-MM-DD'), 0),'YYYYMM')
+                                            GROUP   BY ITEM_ID, CAL.YYYYMM, CAL.YYYYWW, CAL.YYYYMMDD
+                                            )
+                                    --WHERE ITEM_ID  IN ('102000124', '101000057')    
+                                    GROUP BY ITEM_ID   
+                                    )
+                            GROUP BY ITEM_ID,W1_NFOS,W1_ACT,W3_NFOS,W3_ACT
+                            )   A,
+                            (
+                            /*   
+                            *  1. 기초재고            : 조회일자(오늘)에 해당하는 BASE_STOCK  SUM
+                            *  2. 금주생산계획        : 조회일자(오늘)에서 마지막 영업일까지(조회일자 주의 토요일)  SUM
+                            *  3. 금주판매계획        : 조회일자(오늘)에서 마지막 영업일까지(조회일자 주의 토요일)  SUM
+                            *  4. 1주일 평균판매      : 조회일자(오늘)에 해당하는 SALES_MEAN_1WEEK SUM
+                            *  5. 금주잔여판매일수    :  조회일자(오늘)을 포함해서 영업 마감일까지(조회일자 주의 토요일) 일수
+                            *  6. 1주평균판매대비     : (금주판매계획/(1주일평균판매*금주잔여판매일수)) * 100
+                            *  7. 예상재고(차주초)    : 기초재고 + 금주생산계획 - 금주판매계획 - 수출미출고
+                            *  8. 차주생산계획        : 조회일자(오늘)기준 차주에서 차주 마지막 영업일까지(조회일자 주의 토요일)  SUM
+                            *  9. 수출 미출고물량     : 생산요청일이 전주이전대상 중 미출고 오더수량
+                            */ 
+                            SELECT	ITEM_ID,
+                            		MAX(BASE_STOCK)		BASE_STOCK,
+                            		MAX(RECEIPT_EXPT)	RECEIPT_EXPT,
+                            		MAX(SALES_PLAN)		SALES_PLAN,
+                            		MAX(SALES_VS_WEEK1_AVG)	SALES_VS_WEEK1_AVG,
+                            		MAX(EXPERT_STOCK) - NVL(MAX(MI_CHGO),0)	EXPERT_STOCK,
+                            		MAX(N_RECEIPT_EXPT)	N_RECEIPT_EXPT,
+                            		MAX(N_SALES_PLAN)	N_SALES_PLAN,
+                            		MAX(NN_SALES_PLAN)	NN_SALES_PLAN,
+                            		MAX(SALES_MEAN_1WEEK)	SALES_MEAN_1WEEK,
+                            		MAX(MI_CHGO)		MI_CHGO
+                            FROM	(
+		                            SELECT  ITEM_ID,
+		                                    BASE_STOCK,         --기초재고
+		                                    RECEIPT_EXPT,       --금주생산계획
+		                                    SALES_PLAN ,        --금주판매계획
+		                                    ROUND(SALES_PLAN / DECODE((SALES_MEAN_1WEEK * SALES_DAY),0,1,(SALES_MEAN_1WEEK * SALES_DAY)),2) 
+		                                    SALES_VS_WEEK1_AVG,    -- 1주평균판매대비
+		                                    BASE_STOCK + RECEIPT_EXPT - SALES_PLAN  EXPERT_STOCK,  -- 예상재고(차주초)
+		                                    N_RECEIPT_EXPT,     --차주생산계획
+		                                    N_SALES_PLAN,       --차주판매계획 
+		                                    NN_SALES_PLAN,      --차주판매계획
+		                                    SALES_MEAN_1WEEK,	--1주평균판매
+		                                    0	MI_CHGO			--수출 미출고물량                   
+		                            FROM        
+		                                    (
+		                                    SELECT  ITEM_ID,
+		                                            SUM(DECODE(YYYYMMDD, REPLACE ('$!{sdate}', '-', ''),BASE_STOCK,0))                              BASE_STOCK,                        --기초재고
+		                                            SUM(CASE WHEN  YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IYYYIW')
+											                       AND YYYYMMDD >= TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'YYYYMMDD')
+											                 THEN  RECEIPT_EXPT
+											                 ELSE  0
+											            END)       RECEIPT_EXPT,                      --금주생산계획
+		                                            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 'IYYYIW'),RECEIPT_EXPT))  N_RECEIPT_EXPT,                    --차주생산계획        
+		                                            SUM(CASE WHEN  YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'IYYYIW')
+											                       AND YYYYMMDD >= TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD'), 'YYYYMMDD')
+											                 THEN  SALES_PLAN
+											                 ELSE  0
+											            END)       SALES_PLAN,                      --금주판매계획                                             
+		                                            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*1), 'IYYYIW'),SALES_PLAN))    N_SALES_PLAN,                      --차주판매계획
+		                                            SUM(DECODE(YYYYWW  , TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+(7*2), 'IYYYIW'),SALES_PLAN))    NN_SALES_PLAN,                     --차차주판매계획                                      
+		                                            SUM(DECODE(YYYYMMDD, REPLACE ('$!{sdate}', '-', ''),SALES_MEAN_1WEEK,0))                        SALES_MEAN_1WEEK,                  --1주일 평균판매
+		                                            NEXT_DAY(TO_DATE(REPLACE ('$!{sdate}', '-', ''),'YYYYMMDD'), 1)- TO_DATE(REPLACE ('$!{sdate}', '-', ''),'YYYYMMDD') SALES_DAY      --금주잔여판매일수
+		                                    FROM
+		                                            (
+		                                            SELECT  DD.ITEM_ID,
+		                                                    DD.BASE_STOCK,
+		                                                    DD.RECEIPT_EXPT,
+		                                                    (DD.SALES_PLAN+DD.PROM_PLAN) SALES_PLAN, --판매계획수량수정(2008.11.12 수정)
+		                                                    SALES_MEAN_1WEEK,
+		                                                    CAL.YYYYWW,
+		                                                    CAL.YYYYMMDD
+		                                            FROM    DC_DATAWAREHOUSE DD, CAL_MST CAL,
+		                                            		(
+		                                            		SELECT	DC_ID
+		                                            		FROM	DC_MST
+		                                            		WHERE	(CDC_FLAG = 'Y' OR RDC_FLAG = 'Y')
+		                                            		)	DC
+		                                          	WHERE   DD.CNFM_DATE = CAL.YYYYMMDD
+		                                            /* 당주 월요일부터 ~ 당주 일요일까지 */    
+		                                            AND     DD.CNFM_DATE BETWEEN  TO_CHAR(NEXT_DAY(TO_DATE(REPLACE ('$!{sdate}', '-', ''),'YYYYMMDD')+(7*-1), 2), 'YYYYMMDD')
+		                                                                 AND      TO_CHAR(NEXT_DAY(TO_DATE(REPLACE ('$!{sdate}', '-', ''),'YYYYMMDD')+(7*2) , 1)  , 'YYYYMMDD')
+		                                            AND		DD.DC_ID	= DC.DC_ID
+		                                            UNION	ALL
+													/* 당주 생산요청일 수출물량 */
+													SELECT  B.PROD_CODE			ITEM_CD,
+															0					BASE_STOCK,
+															0					RECEIPT_EXPT,
+															SUM(B.REQT_BOX)		SALES_PLAN,
+															0					SALES_MEAN_1WEEK,
+															T2.YYYYWW,
+															T2.YYYYMMDD
+													FROM    SDORT101    A,
+															SDORT102    B,
+															ITEM_MST	C,
+															CAL_MST 	T2
+													WHERE   A.SLIP_NO						=	B.SLIP_NO
+													AND     A.PRDT_PLAN_DATE				>= TRUNC(TO_DATE(REPLACE ('$!{sdate}', '-', '')),'D')
+													AND		SUBSTR(A.SLIP_GUBN_CODE,1,1)	= 'X'
+													AND		LENGTH(A.CNFM_DATE) 			= 8  
+													AND		B.PROD_CODE						= C.ITEM_ID
+													AND		C.ITYPE							= 'FERT'
+													AND		A.UPDT_GUBN						!= 'DE'
+													AND		A.PRDT_PLAN_DATE				= T2.CAL_DATE
+													GROUP
+													BY		B.PROD_CODE,
+															T2.YYYYWW,
+															T2.YYYYMMDD
+													)
+		                                    GROUP BY ITEM_ID, NEXT_DAY(TO_DATE(REPLACE ('$!{sdate}', '-', ''),'YYYYMMDD'), 1)- TO_DATE(REPLACE ('$!{sdate}', '-', ''),'YYYYMMDD')
+		                                    )   
+									)
+							GROUP
+							BY		ITEM_ID	     
+                            )B,
+                            (
+                            /* 
+                            * 조회 일자에 해당하는 안전재고 (DC_ID에 해당 없이 모두 SUM) 
+                            */
+                            SELECT SP.WORK_DATE, SP.ITEM_ID, ROUND(SUM(SP.SAFETY_STOCK)+SUM(SP.CAMP_STOC)+ SUM(NVL(SP.FA_STOCK,0)) +
+                                    SUM(DECODE(SIGN(TO_DATE(REPLACE('$!{sdate}', '-', ''),'YYYYMMDD')-TO_DATE(SP.START_DATE,'YYYYMMDD')),-1,0,
+                                        DECODE(SIGN(TO_DATE(SP.END_DATE,'YYYYMMDD')-TO_DATE(REPLACE('$!{sdate}', '-', ''),'YYYYMMDD')),-1,0,
+                                        NVL(SP.SAVE_STOC,0)))),0)     SAFETY_STOCK
+                            FROM    STOCK_POLICY_QTY  SP,
+                                    (
+                                    SELECT  MAX(WORK_DATE) WORK_DATE
+                                    FROM    STOCK_POLICY_QTY
+                                    WHERE   LOC_TYPE = 'DC'
+                                    )   MV
+                            WHERE   SP.WORK_DATE = MV.WORK_DATE
+                            GROUP   BY SP.WORK_DATE, SP.ITEM_ID
+                            ) C,
+                            (
+                            /*
+                            SELECT  PA.VERSION VERSION,
+                                    ITEM_ID,
+                                    SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW') THEN QTY
+                                    ELSE 0
+                                    END) RP_QTY0,
+                                    SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*1), 'IYYYIW') THEN QTY
+                                    ELSE 0
+                                    END) RP_QTY1,
+                                    SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*2), 'IYYYIW') THEN QTY
+                                    ELSE 0
+                                    END) RP_QTY2
+                            FROM    PLANT_ALLOC_PLAN PA, CAL_MST CAL
+                            WHERE   PA.DUE_DATE = CAL.CAL_DATE
+                            AND     PA.VERSION||'2' = '$!{plant_alloc_version}'||'2'
+                            AND     CAL.YYYYWW  BETWEEN TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW')
+                                                AND     TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*2), 'IYYYIW')  
+                            GROUP   BY PA.VERSION, ITEM_ID
+                            */
+                            SELECT '$!{plant_alloc_version}' VERSION, IM.ITEM_ID
+                            	   , NVL(PA.RP_QTY0, 0) RP_QTY0, NVL(PA.RP_QTY1, 0) RP_QTY1, NVL(PA.RP_QTY2, 0) RP_QTY2--, IM.ITEM_NAME, IM.CAT03
+                            FROM (
+                                    SELECT  PA.VERSION VERSION,
+                                            PA.ITEM_ID,
+                                            SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW') THEN PA.QTY
+                                            ELSE 0
+                                            END) RP_QTY0,
+                                            SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*1), 'IYYYIW') THEN PA.QTY
+                                            ELSE 0
+                                            END) 
+                                            /*+
+                                            SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW') THEN PA.QTY
+                                            ELSE 0
+                                            END) */
+                                            RP_QTY1,
+                                            SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*2), 'IYYYIW') THEN PA.QTY
+                                            ELSE 0
+                                            END) RP_QTY2
+                                    FROM    PLANT_ALLOC_PLAN PA, CAL_MST CAL
+                                    WHERE   PA.DUE_DATE = CAL.CAL_DATE
+		                            AND     PA.VERSION = '$!{plant_alloc_version}'
+		                            AND     PA.SEQ = 2
+                                    AND     CAL.YYYYWW  BETWEEN TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW')
+                                                        AND     TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*2), 'IYYYIW')
+                                    GROUP   BY PA.VERSION, PA.ITEM_ID
+                                    ) PA, ITEM_MST IM
+                            WHERE IM.ITEM_ID = PA.ITEM_ID(+)
+                            AND 	(    (IM.ITYPE = 'FERT' AND IM.CAT03 IN ('P10', 'P11', 'F10'))
+                                      OR (IM.ITYPE IN ('FERT') AND IM.ETC_FLAG = '900') )
+                            AND 	IM.ITEM_STATUS = 'ST'
+                            AND 	'$!{plant_alloc_version}' IS NOT NULL
+                            --
+                            UNION ALL
+                            --
+                            SELECT  PA.VERSION VERSION,
+                                    PA.ITEM_ID,
+                                    SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW') THEN PA.QTY
+                                    ELSE 0
+                                    END) RP_QTY0,
+                                    SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*1), 'IYYYIW') THEN PA.QTY
+                                    ELSE 0
+                                    END) 
+                                    /*+
+                                    SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW') THEN PA.QTY
+                                    ELSE 0
+                                    END) */
+                                    RP_QTY1,
+                                    SUM(CASE WHEN CAL.YYYYWW = TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*2), 'IYYYIW') THEN PA.QTY
+                                    ELSE 0
+                                    END) RP_QTY2
+                            FROM    PLANT_ALLOC_PLAN PA, CAL_MST CAL, ITEM_MST IM
+                            WHERE   PA.DUE_DATE = CAL.CAL_DATE
+                            AND     PA.VERSION = '$!{plant_alloc_version}'
+                            AND     PA.SEQ = 2
+                            AND     CAL.YYYYWW  BETWEEN TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*0), 'IYYYIW')
+                                                AND     TO_CHAR(TO_DATE('$!{sdate}','YYYY-MM-DD')+( 7*2), 'IYYYIW')
+                            AND 	PA.ITEM_ID = IM.ITEM_ID
+                            AND 	IM.ITEM_STATUS = 'ST' AND IM.CAT03 = 'O10'
+                            AND 	'$!{plant_alloc_version}' IS NOT NULL
+                            GROUP   BY PA.VERSION, PA.ITEM_ID
+                            --
+                            UNION	ALL
+                            --
+                            /* 수출 MTS는 모두 보이게 한다. */
+                            SELECT	'$!{plant_alloc_version}'	VERSION,
+									ITEM_ID,
+									0	RP_QTY0,
+									0	RP_QTY1,
+									0	RP_QTY2
+							FROM	ITEM_MST
+							WHERE	ITEM_STATUS	= 'ST'
+							AND		CAT03 		= 'O10'
+							AND		MTO_MTS_TYPE = '0002'
+							AND		ITEM_ID	NOT IN 
+									(
+									SELECT	PA.ITEM_ID
+									FROM	PLANT_ALLOC_PLAN PA,
+											ITEM_MST IM
+									WHERE	PA.ITEM_ID	= IM.ITEM_ID
+									AND 	IM.ITEM_STATUS = 'ST' AND IM.CAT03 = 'O10'
+									AND     PA.VERSION = '$!{plant_alloc_version}'
+									)
+							AND		'$!{checked_domain}' IS NOT NULL
+                            ) D,
+                            (
+                            /*
+                            당주, 차주, 차차주 생산 필요량  
+                          */
+                            SELECT  IL.VERSION, IL.ITEM_ID, 
+                                    A.DUE_DATE AS W01_DUE_DATE, A.LST_PRODQTY AS W01_LST_PRODQTY, 
+                                    B.DUE_DATE AS W02_DUE_DATE, B.LST_PRODQTY AS W02_LST_PRODQTY, 
+                                    C.DUE_DATE AS W03_DUE_DATE, C.LST_PRODQTY AS W03_LST_PRODQTY 
+                            FROM    (
+                                    SELECT  DISTINCT PT.VERSION, PT.ITEM_ID
+                                    FROM    PLANT_ALLOC_ITEM_ADJ PT
+                                    WHERE   VERSION = '$!{plant_alloc_version}'
+                                    )   IL,   
+                                    (
+                                    SELECT  PT.VERSION, PT.ITEM_ID, PT.DUE_DATE, PT.LST_PRODQTY 
+                                    FROM    PLANT_ALLOC_ITEM_ADJ PT  
+                                    WHERE   VERSION = '$!{plant_alloc_version}'
+                                    AND     PT.DUE_DATE = TRUNC(TO_DATE('$!{sdate}','YYYY-MM-DD'),'D')+6+(7*0)
+                                    )   A, -- 당주
+                                    ( 
+                                    SELECT  PT.VERSION, PT.ITEM_ID, PT.DUE_DATE, PT.LST_PRODQTY 
+                                    FROM    PLANT_ALLOC_ITEM_ADJ PT  
+                                    WHERE   VERSION = '$!{plant_alloc_version}'
+                                    AND     PT.DUE_DATE = TRUNC(TO_DATE('$!{sdate}','YYYY-MM-DD'),'D')+6+(7*1)
+                                    )   B, -- 차주
+                                    ( 
+                                    SELECT  PT.VERSION, PT.ITEM_ID, PT.DUE_DATE, PT.LST_PRODQTY 
+                                    FROM    PLANT_ALLOC_ITEM_ADJ PT  
+                                    WHERE   VERSION = '$!{plant_alloc_version}'
+                                    AND     PT.DUE_DATE = TRUNC(TO_DATE('$!{sdate}','YYYY-MM-DD'),'D')+6+(7*2)
+                                    )   C -- 차차주
+                            WHERE   IL.VERSION = A.VERSION(+)
+                            AND     IL.VERSION = B.VERSION(+)
+                            AND     IL.VERSION = C.VERSION(+)
+                            AND     IL.ITEM_ID = A.ITEM_ID(+)
+                            AND     IL.ITEM_ID = B.ITEM_ID(+)
+                            AND     IL.ITEM_ID = C.ITEM_ID(+)      
+                            )   PT,
+                            (
+                            SELECT  ITEM.ITEM_ID,
+                                    CD1.CD         CD1, 
+                                    CD1.CD_NAME    CD1_NM
+                            FROM    ITEM_MST ITEM, 
+                                    CODE_MST CD1
+                            WHERE   ITEM.CAT06 = CD1.CD
+                            AND     CD1.CD_GRP = 'CAT06'
+                            )   RES_TP,
+                            ( 
+                            SELECT  IM.ITEM_ID,
+                                    IM.ITEM_NAME
+                            FROM    ITEM_MST IM
+                            WHERE   IM.MADE_TYPE != 'DE' 
+                            AND		(IM.SELL_STOP_DATE = '99991231' or IM.SELL_STOP_DATE ='00000000')
+                        #if("$!{checked_domain}" == "DO")
+                        	/* 내수 제품*/
+                            AND     (IM.MATERIAL_GROUP &lt; '5K000' OR  IM.MATERIAL_GROUP &gt; '5S999')
+                        #elseif("$!{checked_domain}" == "EXMTS")
+                        	/* 수출 제품(MTS) */
+                            AND     IM.MATERIAL_GROUP &gt;= '5K000'
+                            AND     IM.MATERIAL_GROUP &lt;= '5S999'
+                            AND		IM.MTO_MTS_TYPE	= '0002'
+                        #elseif("$!{checked_domain}" == "EXMTO")
+                        	/* 수출 제품(MTO) */
+                            AND     IM.MATERIAL_GROUP &gt;= '5K000'
+                            AND     IM.MATERIAL_GROUP &lt;= '5S999'
+                            AND		IM.MTO_MTS_TYPE	= '0001'
+                        #end
+                            ) IM ,
+                            /* 차주, 차차주 영업 일수 */
+                            (
+                            SELECT  fn_nscm_get_workingday01(TO_CHAR(NEXT_DAY('$!{sdate}',2),'YYYYMMDD'), 
+							                                 TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+6, 1), 'YYYYMMDD')) N_WORK, -- 차주 영업일수
+							        fn_nscm_get_workingday01(TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+7, 2),'YYYYMMDD'),
+							                                 TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+13, 1), 'YYYYMMDD')) NN_WORK,  -- 차차주 영업일수
+							        TO_CHAR(NEXT_DAY('$!{sdate}',2),'YYYYMMDD') N_MON,  -- 차주 월요일                               
+							        TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+6, 1), 'YYYYMMDD') N_SUN,	-- 차주 일요일 
+							        TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+7, 2),'YYYYMMDD') NN_MON, 	-- 차차주 월요일
+							        TO_CHAR(NEXT_DAY(TO_DATE('$!{sdate}','YYYY-MM-DD')+13, 1), 'YYYYMMDD') NN_SUN	-- 차차주 일요일
+							FROM DUAL
+                            ) WO                
+                    WHERE   D.ITEM_ID = B.ITEM_ID(+)
+                    AND     D.ITEM_ID = C.ITEM_ID(+)    
+                    AND     D.ITEM_ID = A.ITEM_ID(+)
+                    AND     D.ITEM_ID = IM.ITEM_ID
+                    AND     D.ITEM_ID = RES_TP.ITEM_ID(+)
+                    AND     D.VERSION = PT.VERSION(+)
+                    AND     D.ITEM_ID = PT.ITEM_ID(+)
+                    )   A,
+                    (
+                    SELECT  1 NO FROM DUAL
+                    UNION   ALL
+                    SELECT  2 NO FROM DUAL       
+                    UNION   ALL
+                    SELECT  3 NO FROM DUAL
+                    )   B,
+                    (--해당하는 주의 토요일 날짜를 뽑음!
+                    SELECT MAX(DECODE(SEQ, 1, DD_DATE)) AS W1 --당주 due_date
+                          ,MAX(DECODE(SEQ, 2, DD_DATE)) AS W2 --차주 due_date
+                          ,MAX(DECODE(SEQ, 3, DD_DATE)) AS W3 --차차주 due_date
+                      FROM (
+                            SELECT AA.DD_DATE, dense_rank() over(order by AA.DD_DATE asc) as SEQ
+                              FROM (
+                                    select yyyymmdd as DD_DATE
+                                      from cal_mst
+                                     where yyyyww in ( 
+                                            select yyyyww
+                                              from cal_mst
+                                             where yyyymmdd between to_char(TO_DATE('$!{sdate}','YYYY-MM-DD'),'yyyymmdd') and to_char(TO_DATE('$!{sdate}','YYYY-MM-DD')+14,'yyyymmdd')
+                                     )
+                                     and week_day = '토'
+                                   ) AA
+                           )
+                    )   C 
+            WHERE   EXISTS ( 
+                            SELECT  DISTINCT PA.VERSION
+                            FROM    PLANT_ALLOC_ITEM_ADJ PA,
+                            		(
+                            		SELECT  IM.ITEM_ID,
+		                                    IM.ITEM_NAME
+		                            FROM    ITEM_MST IM
+		                            WHERE   IM.MADE_TYPE != 'DE' 
+		                        #if("$!{checked_domain}" == "DO")
+		                        	/* 내수 제품*/
+		                            AND     (IM.MATERIAL_GROUP &lt; '5K000' OR  IM.MATERIAL_GROUP &gt; '5S999')
+		                        #elseif("$!{checked_domain}" == "EXMTS")
+		                        	/* 수출 제품(MTS) */
+		                            AND     IM.MATERIAL_GROUP &gt;= '5K000'
+		                            AND     IM.MATERIAL_GROUP &lt;= '5S999'
+		                            AND		IM.MTO_MTS_TYPE	= '0002'
+		                        #elseif("$!{checked_domain}" == "EXMTO")
+		                        	/* 수출 제품(MTO) */
+		                            AND     IM.MATERIAL_GROUP &gt;= '5K000'
+		                            AND     IM.MATERIAL_GROUP &lt;= '5S999'
+		                            AND		IM.MTO_MTS_TYPE	= '0001'
+		                        #end
+                            		) IM
+                            WHERE   PA.VERSION = '$!{plant_alloc_version}'
+                            AND		PA.ITEM_ID	= IM.ITEM_ID
+                           )   
+            GROUP   BY DECODE(NO,1,RES_TP,2,RES_TP, NULL), DECODE(NO,1,ITEM_ID,2,'소계'), NO, W1, W2, W3
+            --ORDER	BY 4,3,1 
+            ORDER   BY 3,4,1 --설비유형
+      				  
+	</query>	
+	
+	
+	
+<!--
+=====================================================================================================
+ 끝  
+=====================================================================================================
+--> 
+
 </queries>	

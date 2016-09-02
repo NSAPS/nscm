@@ -1,157 +1,157 @@
-<?xml version="1.0" encoding="EUC-KR"?>
-<queries>
-
-<!--
-=====================================================================================================
-	재고정책 >> 분석정보
-=====================================================================================================
--->
-	
-	<!-- 
-	=======================
-	  수입햄류 추적조회
-	=======================
-	-->	
-	<!-- 수입햄류 추적조회_MAIN --> 
-	<query id="ip_07030_Item_Trace_report_DW1" paging="false"> 
-		
-		/* 수입정보 기간,품목,BL */
-		SELECT	IPGO_DATE,
-				DC_ID,
-				F_GETDCNAME(DC_ID)	DC_NAME,
-				ITEM_ID,
-				F_GET_ITEM_NAME(ITEM_ID),
-				IPGO,
-				BL_NO
-		FROM	ITEM_BL_STOCK	
-		WHERE	DC_ID	= '1811'		
-		AND		IPGO_DATE	BETWEEN  REPLACE('$!{in_fr_date}','-','')	AND REPLACE('$!{in_to_date}','-','')
-		AND		ITEM_ID		LIKE '%'||'$!{in_item_id}'||'%'
-		AND		BL_NO		LIKE '%'||'$!{in_bl_no}'
-		ORDER
-		BY		1	DESC, 2,4
-
-	</query> 	
-
-	<!-- 수입햄류 추적조회_재고정보 --> 
-	<query id="ip_07030_Item_Trace_report_DW2" paging="false"> 
-
-		/* 수입햄류 추적조회_재고정보 */
-		SELECT	DC_ID,
-				F_GETDCNAME(DC_ID)	DC_NAME,
-				STOCK
-		FROM	ITEM_BL_STOCK
-		WHERE	STOCK > 0
-		AND		BL_NO	= '$!{sel_bl_no}'
-		AND		ITEM_ID	= '$!{sel_item_id}'
-		UNION	ALL
-		SELECT	DC_ID,
-				F_GETDCNAME(DC_ID)	DC_NAME,
-				CHGO				STOCK
-		FROM	DAILY_ITEM_BL_CHGO
-		WHERE	CHGO_GUBN	= '재고'
-		AND		BL_NO	= '$!{sel_bl_no}'
-		AND		ITEM_ID	= '$!{sel_item_id}'
-		AND		CHGO > 0
-		ORDER
-		BY		1
-
-	</query> 
-
-	<!-- 수입햄류 추적조회_거래처_출고정보 --> 
-	<query id="ip_07030_Item_Trace_report_DW3" paging="false"> 
-
-		/* 수입햄류 추적조회_거래처_출고정보 */
-		SELECT	T1.CNFM_DATE,
-				T1.DC_ID,
-				T4.CUST_NAME,
-				T5.ADRS_SIDO||' '||T5.ADRS_GUGUN||' '||T5.ADRS_DONG||' '||REPLACE(T4.CUST_ADRS,T5.ADRS_DONG,'') ADRS_NAME,
-				T4.TEL_NO,
-				SUM(T1.CHGO)	CHGO
-		FROM	DAILY_ITEM_BL_CHGO	T1,
-				SDSTT101	T4,
-				SDSTT002	T5
-		WHERE	T1.BL_NO	= '$!{sel_bl_no}'
-		AND		T1.ITEM_ID	= '$!{sel_item_id}'
-		AND		T1.CUST_CODE	= T4.CUST_CODE
-		AND		T4.CUST_POST_NO	= 	T5.POST_NO
-		GROUP
-		BY		T1.CNFM_DATE,
-				T1.DC_ID,
-				T4.CUST_NAME,
-				T5.ADRS_SIDO||' '||T5.ADRS_GUGUN||' '||T5.ADRS_DONG||' '||REPLACE(T4.CUST_ADRS,T5.ADRS_DONG,''),
-				T4.TEL_NO
-		ORDER
-		BY		1, 3
-		
-	</query> 
-
-	<!-- 수입햄류 추적조회_B/L POPUP --> 
-	<query id="ip_07030_BL_popup" paging="false"> 
-
-		SELECT	TO_DATE(IPGO_DATE,'YYYY-MM-DD'),
-				BL_NO
-		FROM	ITEM_BL_STOCK, DUAL
-		WHERE	IPGO_DATE	BETWEEN REPLACE('$!{in_fr_date}','-','')	AND REPLACE('$!{in_to_date}','-','')
-		AND		BL_NO	LIKE '%'||'$!{sel_bl_no}'||'%'
-		AND		ITEM_ID	LIKE '%'||'$!{in_item_id}'||'%'
-		ORDER
-		BY		1	DESC,2
-
-	</query> 		
-
-	<!-- 수입햄류 추적조회_품목Popup  --> 
-	<query id="ip_07030_Item_popup" paging="false"> 
-
-		SELECT	DISTINCT
-				T2.ITEM_ID,
-				T2.ITEM_NAME,
-				CASE
-					WHEN SELL_STOP_DATE	>= TO_CHAR(SYSDATE,'YYYYMMDD') THEN '판매중'
-					ELSE '판매중지'
-				END	SELL_STOP_DATE,
-				CASE
-					WHEN ITEM_STATUS = 'ST' AND ITYPE = 'FERT' THEN '생산가능'
-					WHEN ITEM_STATUS = 'ST' AND ITYPE = 'HAWA' THEN '매입가능'
-					WHEN ITEM_STATUS = 'D1' AND ITYPE = 'FERT' THEN '생산중지'
-					WHEN ITEM_STATUS = 'D1' AND ITYPE = 'HAWA' THEN '매입중지'
-					ELSE '확인필요'
-				END	ITEM_STATUS
-		FROM	ITEM_BL_STOCK	T1, ITEM_MST	T2
-		WHERE	T1.ITEM_ID	= T2.ITEM_ID
-		AND		(	
-					(
-					/* 판매중 */
-					'$!{in_item_status}' = '01'
-					AND	SELL_STOP_DATE	&gt;= TO_CHAR(SYSDATE,'YYYYMMDD')
-					)
-					OR
-					(
-					/* 생산/매입중 */
-					'$!{in_item_status}'	= '02'
-					AND	ITEM_STATUS	= 'ST'
-					)
-					OR
-					(
-					/* 판매중지 */
-					'$!{in_item_status}' = '03'
-					AND	SELL_STOP_DATE	&lt; TO_CHAR(SYSDATE,'YYYYMMDD')
-					)
-					OR
-					/* 전체조회 */
-					'$!{in_item_status}' = '00'
-				)
-		AND		ITYPE	IN ('FERT','HAWA')
-		[AND	(T2.ITEM_ID	LIKE '%'||'$!{selected_item_id}'||'%'
-						OR ITEM_NAME	LIKE '%'||'$!{selected_item_id}'||'%')]
-		ORDER
-		BY		T2.ITEM_ID	
-
-	</query> 
-<!--
-=====================================================================================================
- 끝 
-=====================================================================================================
---> 
-
-</queries>
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>
+
+<!--
+=====================================================================================================
+	재고정책 >> 분석정보
+=====================================================================================================
+-->
+	
+	<!-- 
+	=======================
+	  수입햄류 추적조회
+	=======================
+	-->	
+	<!-- 수입햄류 추적조회_MAIN --> 
+	<query id="ip_07030_Item_Trace_report_DW1" paging="false"> 
+		
+		/* 수입정보 기간,품목,BL */
+		SELECT	IPGO_DATE,
+				DC_ID,
+				F_GETDCNAME(DC_ID)	DC_NAME,
+				ITEM_ID,
+				F_GET_ITEM_NAME(ITEM_ID),
+				IPGO,
+				BL_NO
+		FROM	ITEM_BL_STOCK	
+		WHERE	DC_ID	= '1811'		
+		AND		IPGO_DATE	BETWEEN  REPLACE('$!{in_fr_date}','-','')	AND REPLACE('$!{in_to_date}','-','')
+		AND		ITEM_ID		LIKE '%'||'$!{in_item_id}'||'%'
+		AND		BL_NO		LIKE '%'||'$!{in_bl_no}'
+		ORDER
+		BY		1	DESC, 2,4
+
+	</query> 	
+
+	<!-- 수입햄류 추적조회_재고정보 --> 
+	<query id="ip_07030_Item_Trace_report_DW2" paging="false"> 
+
+		/* 수입햄류 추적조회_재고정보 */
+		SELECT	DC_ID,
+				F_GETDCNAME(DC_ID)	DC_NAME,
+				STOCK
+		FROM	ITEM_BL_STOCK
+		WHERE	STOCK > 0
+		AND		BL_NO	= '$!{sel_bl_no}'
+		AND		ITEM_ID	= '$!{sel_item_id}'
+		UNION	ALL
+		SELECT	DC_ID,
+				F_GETDCNAME(DC_ID)	DC_NAME,
+				CHGO				STOCK
+		FROM	DAILY_ITEM_BL_CHGO
+		WHERE	CHGO_GUBN	= '재고'
+		AND		BL_NO	= '$!{sel_bl_no}'
+		AND		ITEM_ID	= '$!{sel_item_id}'
+		AND		CHGO > 0
+		ORDER
+		BY		1
+
+	</query> 
+
+	<!-- 수입햄류 추적조회_거래처_출고정보 --> 
+	<query id="ip_07030_Item_Trace_report_DW3" paging="false"> 
+
+		/* 수입햄류 추적조회_거래처_출고정보 */
+		SELECT	T1.CNFM_DATE,
+				T1.DC_ID,
+				T4.CUST_NAME,
+				T5.ADRS_SIDO||' '||T5.ADRS_GUGUN||' '||T5.ADRS_DONG||' '||REPLACE(T4.CUST_ADRS,T5.ADRS_DONG,'') ADRS_NAME,
+				T4.TEL_NO,
+				SUM(T1.CHGO)	CHGO
+		FROM	DAILY_ITEM_BL_CHGO	T1,
+				SDSTT101	T4,
+				SDSTT002	T5
+		WHERE	T1.BL_NO	= '$!{sel_bl_no}'
+		AND		T1.ITEM_ID	= '$!{sel_item_id}'
+		AND		T1.CUST_CODE	= T4.CUST_CODE
+		AND		T4.CUST_POST_NO	= 	T5.POST_NO
+		GROUP
+		BY		T1.CNFM_DATE,
+				T1.DC_ID,
+				T4.CUST_NAME,
+				T5.ADRS_SIDO||' '||T5.ADRS_GUGUN||' '||T5.ADRS_DONG||' '||REPLACE(T4.CUST_ADRS,T5.ADRS_DONG,''),
+				T4.TEL_NO
+		ORDER
+		BY		1, 3
+		
+	</query> 
+
+	<!-- 수입햄류 추적조회_B/L POPUP --> 
+	<query id="ip_07030_BL_popup" paging="false"> 
+
+		SELECT	TO_DATE(IPGO_DATE,'YYYY-MM-DD'),
+				BL_NO
+		FROM	ITEM_BL_STOCK, DUAL
+		WHERE	IPGO_DATE	BETWEEN REPLACE('$!{in_fr_date}','-','')	AND REPLACE('$!{in_to_date}','-','')
+		AND		BL_NO	LIKE '%'||'$!{sel_bl_no}'||'%'
+		AND		ITEM_ID	LIKE '%'||'$!{in_item_id}'||'%'
+		ORDER
+		BY		1	DESC,2
+
+	</query> 		
+
+	<!-- 수입햄류 추적조회_품목Popup  --> 
+	<query id="ip_07030_Item_popup" paging="false"> 
+
+		SELECT	DISTINCT
+				T2.ITEM_ID,
+				T2.ITEM_NAME,
+				CASE
+					WHEN SELL_STOP_DATE	>= TO_CHAR(SYSDATE,'YYYYMMDD') THEN '판매중'
+					ELSE '판매중지'
+				END	SELL_STOP_DATE,
+				CASE
+					WHEN ITEM_STATUS = 'ST' AND ITYPE = 'FERT' THEN '생산가능'
+					WHEN ITEM_STATUS = 'ST' AND ITYPE = 'HAWA' THEN '매입가능'
+					WHEN ITEM_STATUS = 'D1' AND ITYPE = 'FERT' THEN '생산중지'
+					WHEN ITEM_STATUS = 'D1' AND ITYPE = 'HAWA' THEN '매입중지'
+					ELSE '확인필요'
+				END	ITEM_STATUS
+		FROM	ITEM_BL_STOCK	T1, ITEM_MST	T2
+		WHERE	T1.ITEM_ID	= T2.ITEM_ID
+		AND		(	
+					(
+					/* 판매중 */
+					'$!{in_item_status}' = '01'
+					AND	SELL_STOP_DATE	&gt;= TO_CHAR(SYSDATE,'YYYYMMDD')
+					)
+					OR
+					(
+					/* 생산/매입중 */
+					'$!{in_item_status}'	= '02'
+					AND	ITEM_STATUS	= 'ST'
+					)
+					OR
+					(
+					/* 판매중지 */
+					'$!{in_item_status}' = '03'
+					AND	SELL_STOP_DATE	&lt; TO_CHAR(SYSDATE,'YYYYMMDD')
+					)
+					OR
+					/* 전체조회 */
+					'$!{in_item_status}' = '00'
+				)
+		AND		ITYPE	IN ('FERT','HAWA')
+		[AND	(T2.ITEM_ID	LIKE '%'||'$!{selected_item_id}'||'%'
+						OR ITEM_NAME	LIKE '%'||'$!{selected_item_id}'||'%')]
+		ORDER
+		BY		T2.ITEM_ID	
+
+	</query> 
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</queries>

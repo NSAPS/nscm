@@ -1,40 +1,40 @@
-<?xml version="1.0" encoding="euc-kr"?>
-
-<jobs>
-
-
-	<!-- 
-	=======================
-	  일간생산계획 분석(재구성)
-	=======================
-	-->
-	
-	<!--  일간생산계획 분석(재구성)  조회 -->
-	<job id="sc_12020_dailySemifinishedProductPlanAnalysis_psi" job_type="single" check_permission="no">
-		<path>/sinc/wisegrid</path>
-		<navigation>생산계획 >> 운영정보 >> 일간 반제품생산계획 분석(스프)</navigation>
-		<toolbars>1000</toolbars><!--(등록/수정/저장/삭제)-->
-		<title>일간 반제품생산계획 분석(스프)</title>
-		<authority>1</authority>		
-		<description>일간 반제품생산계획 분석(스프)</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="weekly_3_start_end_date" datasource="t3sinc"/>
-		</queries>
-	</job>
-
-	<!--  일간생산계획 일별근무 집계 : 건수(팝업) -->
-	<job id="sc_12020_dailySemifinishedProductPlanAnalysis_psi_pop" job_type="single" check_permission="no">
-		<path>/sinc/wisegrid</path>
-		<navigation>생산계획 >> 운영정보 >> 일간 반제품생산계획 분석(스프)</navigation>
-		<toolbars>0000</toolbars><!--(등록/수정/저장/삭제)-->
-		<title>일간 반제품생산계획 분석(스프)</title>
-		<authority>1</authority>		
-		<description>popup</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="weekly_3_start_end_date" datasource="t3sinc"/>
-		</queries>
-	</job>
-
-</jobs>	
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+
+	<!-- 
+	=======================
+	  일간생산계획 분석(재구성)
+	=======================
+	-->
+	
+	<!--  일간생산계획 분석(재구성)  조회 -->
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysis_psi" job_type="single" check_permission="no">
+		<path>/sinc/wisegrid</path>
+		<navigation>생산계획 >> 운영정보 >> 일간 반제품생산계획 분석(스프)</navigation>
+		<toolbars>1000</toolbars><!--(등록/수정/저장/삭제)-->
+		<title>일간 반제품생산계획 분석(스프)</title>
+		<authority>1</authority>		
+		<description>일간 반제품생산계획 분석(스프)</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="weekly_3_start_end_date" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+	<!--  일간생산계획 일별근무 집계 : 건수(팝업) -->
+	<job id="sc_12020_dailySemifinishedProductPlanAnalysis_psi_pop" job_type="single" check_permission="no">
+		<path>/sinc/wisegrid</path>
+		<navigation>생산계획 >> 운영정보 >> 일간 반제품생산계획 분석(스프)</navigation>
+		<toolbars>0000</toolbars><!--(등록/수정/저장/삭제)-->
+		<title>일간 반제품생산계획 분석(스프)</title>
+		<authority>1</authority>		
+		<description>popup</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="weekly_3_start_end_date" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+</jobs>	

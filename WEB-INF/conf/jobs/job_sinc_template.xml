@@ -1,65 +1,65 @@
-<?xml version="1.0" encoding="euc-kr"?>
-
-<jobs>
-
-<!--
-=====================================================================================================
-	TEMPLATE 
-=====================================================================================================
---> 
-	
-	<!--
-	======================================================================
-		TEMPLATE
-		2008.05.08 : permission_desc 속성 추가 : 권한관리 화면에서 권한 설명 속성
-	======================================================================
-	======================================================================
-		- POPUP 화면의 경우 description 속성을 popup 으로 한다.
-	======================================================================
-	-->
-	
-	<!-- SINGLE JOB TEMPLATE --> 
-	<job id="sigle_job_template_job_id" job_type="single" check_permission="no">
-		<path>/sinc/temp</path>
-		<navigation>TEMPLATE >> TEMPLATE</navigation>
-		<toolbars>0000</toolbars>
-		<title>TEMPLATE</title>
-		<authority>1</authority>		
-		<description>TEMPLATE</description>
-		<permission_desc>TEMPLATE</permission_desc>
-		<request_type>list</request_type>
-		<queries> 
-			<query idref="query_id_template" datasource="t3sinc"/>
-		</queries>
-	</job> 
-	
-	
-	<!--
-	======================================================================
-		- composite job 에서 navigation 속성은 optional
-		  ( 권한 관리 화면에서의 navigation 표시를 위한 속성인데,
-		        이 속성이 없는 경우, 이전 job 의 navigation 이 표시된다 )
-	======================================================================
-	-->
-	<!-- COMPOSITE JOB TEMPLATE --> 
-	<job id="composite_job_template_job_id" job_type="composite" check_permission="no">
-		<sub_job id="composite_job_template_job_id_do"/>
-		<sub_job id="sigle_job_template_job_id"/>
-		<permission_desc>TEMPLATE</permission_desc>
-		<navigation>TEMPLATE >> TEMPLATE</navigation>
-	</job> 
-	<job id="composite_job_template_job_id_do" job_type="single">
-		<request_type>insert</request_type>
-		<queries> 
-			<query idref="query_id_template" datasource="t3sinc"/> 
-		</queries>
-	</job>
-	
-	
-<!--
-=====================================================================================================
- 끝 
-=====================================================================================================
---> 
-
-</jobs>	
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+<!--
+=====================================================================================================
+	TEMPLATE 
+=====================================================================================================
+--> 
+	
+	<!--
+	======================================================================
+		TEMPLATE
+		2008.05.08 : permission_desc 속성 추가 : 권한관리 화면에서 권한 설명 속성
+	======================================================================
+	======================================================================
+		- POPUP 화면의 경우 description 속성을 popup 으로 한다.
+	======================================================================
+	-->
+	
+	<!-- SINGLE JOB TEMPLATE --> 
+	<job id="sigle_job_template_job_id" job_type="single" check_permission="no">
+		<path>/sinc/temp</path>
+		<navigation>TEMPLATE >> TEMPLATE</navigation>
+		<toolbars>0000</toolbars>
+		<title>TEMPLATE</title>
+		<authority>1</authority>		
+		<description>TEMPLATE</description>
+		<permission_desc>TEMPLATE</permission_desc>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="query_id_template" datasource="t3sinc"/>
+		</queries>
+	</job> 
+	
+	
+	<!--
+	======================================================================
+		- composite job 에서 navigation 속성은 optional
+		  ( 권한 관리 화면에서의 navigation 표시를 위한 속성인데,
+		        이 속성이 없는 경우, 이전 job 의 navigation 이 표시된다 )
+	======================================================================
+	-->
+	<!-- COMPOSITE JOB TEMPLATE --> 
+	<job id="composite_job_template_job_id" job_type="composite" check_permission="no">
+		<sub_job id="composite_job_template_job_id_do"/>
+		<sub_job id="sigle_job_template_job_id"/>
+		<permission_desc>TEMPLATE</permission_desc>
+		<navigation>TEMPLATE >> TEMPLATE</navigation>
+	</job> 
+	<job id="composite_job_template_job_id_do" job_type="single">
+		<request_type>insert</request_type>
+		<queries> 
+			<query idref="query_id_template" datasource="t3sinc"/> 
+		</queries>
+	</job>
+	
+	
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</jobs>	

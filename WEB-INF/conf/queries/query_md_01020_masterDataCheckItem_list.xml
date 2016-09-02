@@ -1,168 +1,168 @@
-<?xml version="1.0" encoding="EUC-KR"?>
-<queries>
-
-<!--
-=====================================================================================================
-	기준정보 >> 공통
-=====================================================================================================
--->
-	
-	<!--
-	======================================================================
-		공통 >> 기준정보 정검(제품별)
-	======================================================================
-	-->
-	
-	<!-- -->
-	<query id="md_01020_masterDataCheckItem_list">
-
-			SELECT  
-			        DATA_TYPE, ITEM_ID, ITEM_TYPE, ITEM_NAME, 
-			        ITEM_DETAIL_FLAG, LINE_SETTING_FLAG, BOM_MASTER_FLAG
-			FROM    (        
-			        SELECT  
-			                CASE WHEN ( (NVL(B.CNT,0) = 0 ) OR (NVL(C.CNT,0) = 0) OR (NVL(D.CNT,0) = 0) ) THEN  1 ELSE 2 END     ORDER_SEQ,
-			                DECODE(A.ITYPE,'FERT',1,'HALB',2,3)                                             ORDER_SEQ2, 
-			                CASE WHEN ( (NVL(B.CNT,0) = 0 ) OR (NVL(C.CNT,0) = 0) OR (NVL(D.CNT,0) = 0) ) THEN  'DATA 누락 건' ELSE '정상 건' END
-			                DATA_TYPE, A.ITEM_ID, 
-			                B.CNT, C.CNT, D.CNT,
-			                SIGN(NVL(C.CNT,0)-1) DD,
-			                DECODE(A.ITYPE,'FERT','완제품','HALB','반제품','ETC') ITEM_TYPE,  A.ITEM_NAME, 
-			                DECODE(SIGN(NVL(B.CNT,0)),1,'정상', 'DATA 없음')     ITEM_DETAIL_FLAG,
-			                DECODE(SIGN(NVL(C.CNT,0)),1,'정상', 'DATA 없음')     LINE_SETTING_FLAG,
-			                DECODE(SIGN(NVL(D.CNT,0)),1,'정상', 'DATA 없음')     BOM_MASTER_FLAG
-			        FROM    ITEM_MST A,
-			                (
-			                SELECT  ITEM_ID, COUNT(ITEM_ID)   CNT
-			                FROM    ITEM_DTL
-			                WHERE   MADE_TYPE != 'DE'
-			                GROUP BY ITEM_ID
-			                ) B,
-			                (
-			                SELECT  ITEM_ID, COUNT(ITEM_ID)   CNT
-			                FROM    ITEM_CAPA
-			                WHERE   MADE_TYPE != 'DE'
-			                GROUP BY ITEM_ID
-			                ) C,
-			                (
-			                SELECT  ITEM_ID, COUNT(CNT) CNT
-			                FROM    (
-			                        SELECT  PROD_ITEM_ID ITEM_ID, COUNT(PROD_ITEM_ID)   CNT
-			                        FROM    MBOM
-			                        WHERE   MADE_TYPE != 'DE'
-			                        GROUP BY PROD_ITEM_ID
-			                        UNION ALL
-			                        SELECT  CONS_ITEM_ID ITEM_ID, COUNT(PROD_ITEM_ID)   CNT
-			                        FROM    MBOM
-			                        WHERE   MADE_TYPE != 'DE'
-			                        GROUP BY CONS_ITEM_ID
-			                        )
-			                GROUP BY ITEM_ID                
-			                ) D
-			        WHERE   A.ITYPE         IN ('FERT','HALB')
-			        AND     A.ITEM_STATUS   = 'ST'
-			        AND     A.ITEM_ID       = B.ITEM_ID (+)
-			        AND     A.ITEM_ID       = C.ITEM_ID (+)  
-			        AND     A.ITEM_ID       = D.ITEM_ID (+) 
-			        )
-			ORDER BY  ORDER_SEQ, ORDER_SEQ2, ITEM_ID
-
-	</query>
-	
-		<query id="md_01020_masterDataCheckItem_list02">
-
-			SELECT  A.DATA_TYPE,  A.DATA_TABLE, 
-			        DECODE(B.ITEM_ID, NULL, 'DATA 없음', '정상')     DATA_EXISTS,
-			        B.NAME_DATA1, B.NAME_DATA2, B.NAME_DATA3
-			FROM    (
-			        SELECT  1 ORDER_SEQ, 'ITEM_MASTER' DATA_TYPE,    'ITEM_MST' DATA_TABLE   FROM DUAL UNION ALL
-			        SELECT  2 ORDER_SEQ, 'ITEM_DETAIL' DATA_TYPE,    'ITEM_DTL' DATA_TABLE   FROM DUAL UNION ALL
-			        SELECT  3 ORDER_SEQ, 'LINE_SETTING' DATA_TYPE,   'ITEM_CAPA' DATA_TABLE  FROM DUAL UNION ALL
-			        SELECT  4 ORDER_SEQ, 'BOM_MASTER' DATA_TYPE,     'MBOM' DATA_TABLE       FROM DUAL
-			        ) A,
-			        (
-			        SELECT  'ITEM_MASTER'  DATA_TYPE, ITEM_ID, 
-			                ITEM_ID  CODE_DATA1, '제품코드 : '||ITEM_ID           NAME_DATA1, 
-			                ITEM_NAME  CODE_DATA2,  'ITEM명 : '||ITEM_NAME        NAME_DATA2, 
-			                ITYPE CODE_DATA3, '제품구분 : '||
-			                DECODE(ITYPE,'FERT','완제품','HALB','반제품','ETC')   NAME_DATA3
-			        FROM    ITEM_MST    
-			        WHERE   ITEM_ID = '$!{item_id}'
-			        UNION ALL
-			        SELECT  'ITEM_DETAIL'  DATA_TYPE, A.ITEM_ID,
-			                A.PLANT_ID  CODE_DATA1,  '생산공장 : '||
-			                DECODE(A.PLANT_ID,'1110','안양공장','1120','안성공장','1130','안성음료','1140','아산공장',
-			                                '1160','구미공장','1170','부산공장','1180','녹산공장','ETC')       
-			                                                                      NAME_DATA1, 
-			                A.DAYWEEK_PATTERN CODE_DATA2,  '선호도 [선호도명] : '||
-			                DECODE(B.CD,NULL,'없음', B.CD||' ['||B.CD_NAME||']')           NAME_DATA2,  
-			                A.MIN_LOT_SIZE||'' CODE_DATA3,  'LOT SIZE : '||A.MIN_LOT_SIZE  NAME_DATA3
-			        FROM    ITEM_DTL A, 
-			                (SELECT CD, CD_NAME FROM CODE_MST WHERE CD_GRP = 'DAYWEEK_PATTERN') B    
-			        WHERE   A.ITEM_ID           = '$!{item_id}'
-			        AND     A.PLANT_ID          IN ('1110','1120','1130','1140','1160','1170','1180')
-			        AND     A.DAYWEEK_PATTERN   = B.CD (+)
-			        AND     MADE_TYPE != 'DE'
-			        UNION ALL
-			        SELECT  DISTINCT
-			                'LINE_SETTING'  DATA_TYPE, A.ITEM_ID, 
-			                A.PLANT_ID  CODE_DATA1,  '생산공장 : '||
-			                DECODE(A.PLANT_ID,'1110','안양공장','1120','안성공장','1130','안성음료','1140','아산공장',
-			                                '1160','구미공장','1170','부산공장','1180','녹산공장','ETC')       
-			                                                                      NAME_DATA1, 
-			                A.PROD_VER||'_'||A.OPER_ID  CODE_DATA2, 
-			                '생산버전 [공정] : '||A.PROD_VER||' ['||A.OPER_ID||']'    NAME_DATA2, 
-			                B.LINE_ID||'_'||B.PROC_ID   CODE_DATA3,
-			                '생산 라인 [작업장] : '||B.LINE_NAME||' ['||B.PROC_NAME||']'  NAME_DATA3
-			        FROM    ITEM_CAPA A, V_HRCHY_PROC B    
-			        WHERE   A.ITEM_ID   = '$!{item_id}'
-			        AND     A.PLANT_ID          IN ('1110','1120','1130','1140','1160','1170','1180')
-			        AND     A.PLANT_ID  = B.PLANT_ID
-			        AND     A.LINE_ID   = B.LINE_ID
-			        AND     A.PROC_ID   = B.PROC_ID  
-			        AND     MADE_TYPE != 'DE'
-			        UNION ALL
-			        SELECT  DISTINCT
-			                'BOM_MASTER'  DATA_TYPE, ITEM_ID, 
-			                PLANT_ID  CODE_DATA1, '생산공장 : '||
-			                DECODE(PLANT_ID,'1110','안양공장','1120','안성공장','1130','안성음료','1140','아산공장',
-			                                '1160','구미공장','1170','부산공장','1180','녹산공장','ETC')       
-			                                                                      NAME_DATA1, 
-			                PROD_ITEM_ID  CODE_DATA2,  PROD_ITEM                  NAME_DATA2, 
-			                CONS_ITEM_ID  CODE_DATA3,  CONS_ITEM                  NAME_DATA3
-			        FROM    (
-			                SELECT  M.PLANT_ID, M.PROD_ITEM_ID  ITEM_ID,
-			                        PROD_ITEM_ID, CONS_ITEM_ID,
-			                        '완제품 [제품명] : '||IMM.ITEM_ID||' ['||IMM.ITEM_NAME||']'     PROD_ITEM, 
-			                        '소요반제품 [제품명] : '||IM.ITEM_ID||' ['||IM.ITEM_NAME||']'       CONS_ITEM
-			                FROM    MBOM M,  ITEM_MST IM, ITEM_MST IMM
-			                WHERE   M.PROD_ITEM_ID      = '$!{item_id}'
-			                AND     M.PLANT_ID          IN ('1110','1120','1130','1140','1160','1170','1180')
-			                AND     M.CONS_ITEM_ID      = IM.ITEM_ID
-			                AND     M.PROD_ITEM_ID      = IMM.ITEM_ID
-			                AND     M.MADE_TYPE != 'DE'
-			                UNION ALL
-			                SELECT  M.PLANT_ID, M.CONS_ITEM_ID  ITEM_ID,
-			                        PROD_ITEM_ID, CONS_ITEM_ID,
-			                        '완제품 [제품명] : '||IMM.ITEM_ID||' ['||IMM.ITEM_NAME||']'     PROD_ITEM, 
-			                        '소요반제품 [제품명] : '||IM.ITEM_ID||' ['||IM.ITEM_NAME||']'       CONS_ITEM
-			                FROM    MBOM M,  ITEM_MST IM, ITEM_MST IMM
-			                WHERE   M.CONS_ITEM_ID      = '$!{item_id}'
-			                AND     M.PLANT_ID          IN ('1110','1120','1130','1140','1160','1170','1180')
-			                AND     M.CONS_ITEM_ID      = IM.ITEM_ID
-			                AND     M.PROD_ITEM_ID      = IMM.ITEM_ID
-			                AND     M.MADE_TYPE != 'DE'
-			                )
-			        ) B
-			WHERE   A.DATA_TYPE = B.DATA_TYPE (+)  
-			ORDER BY A.ORDER_SEQ, B.CODE_DATA1, B.CODE_DATA2, B.CODE_DATA3
-
-	</query>
-
-<!--
-=====================================================================================================
- 끝 
-=====================================================================================================
---> 
-
-</queries>
+<?xml version="1.0" encoding="EUC-KR"?>
+<queries>
+
+<!--
+=====================================================================================================
+	기준정보 >> 공통
+=====================================================================================================
+-->
+	
+	<!--
+	======================================================================
+		공통 >> 기준정보 정검(제품별)
+	======================================================================
+	-->
+	
+	<!-- -->
+	<query id="md_01020_masterDataCheckItem_list">
+
+			SELECT  
+			        DATA_TYPE, ITEM_ID, ITEM_TYPE, ITEM_NAME, 
+			        ITEM_DETAIL_FLAG, LINE_SETTING_FLAG, BOM_MASTER_FLAG
+			FROM    (        
+			        SELECT  
+			                CASE WHEN ( (NVL(B.CNT,0) = 0 ) OR (NVL(C.CNT,0) = 0) OR (NVL(D.CNT,0) = 0) ) THEN  1 ELSE 2 END     ORDER_SEQ,
+			                DECODE(A.ITYPE,'FERT',1,'HALB',2,3)                                             ORDER_SEQ2, 
+			                CASE WHEN ( (NVL(B.CNT,0) = 0 ) OR (NVL(C.CNT,0) = 0) OR (NVL(D.CNT,0) = 0) ) THEN  'DATA 누락 건' ELSE '정상 건' END
+			                DATA_TYPE, A.ITEM_ID, 
+			                B.CNT, C.CNT, D.CNT,
+			                SIGN(NVL(C.CNT,0)-1) DD,
+			                DECODE(A.ITYPE,'FERT','완제품','HALB','반제품','ETC') ITEM_TYPE,  A.ITEM_NAME, 
+			                DECODE(SIGN(NVL(B.CNT,0)),1,'정상', 'DATA 없음')     ITEM_DETAIL_FLAG,
+			                DECODE(SIGN(NVL(C.CNT,0)),1,'정상', 'DATA 없음')     LINE_SETTING_FLAG,
+			                DECODE(SIGN(NVL(D.CNT,0)),1,'정상', 'DATA 없음')     BOM_MASTER_FLAG
+			        FROM    ITEM_MST A,
+			                (
+			                SELECT  ITEM_ID, COUNT(ITEM_ID)   CNT
+			                FROM    ITEM_DTL
+			                WHERE   MADE_TYPE != 'DE'
+			                GROUP BY ITEM_ID
+			                ) B,
+			                (
+			                SELECT  ITEM_ID, COUNT(ITEM_ID)   CNT
+			                FROM    ITEM_CAPA
+			                WHERE   MADE_TYPE != 'DE'
+			                GROUP BY ITEM_ID
+			                ) C,
+			                (
+			                SELECT  ITEM_ID, COUNT(CNT) CNT
+			                FROM    (
+			                        SELECT  PROD_ITEM_ID ITEM_ID, COUNT(PROD_ITEM_ID)   CNT
+			                        FROM    MBOM
+			                        WHERE   MADE_TYPE != 'DE'
+			                        GROUP BY PROD_ITEM_ID
+			                        UNION ALL
+			                        SELECT  CONS_ITEM_ID ITEM_ID, COUNT(PROD_ITEM_ID)   CNT
+			                        FROM    MBOM
+			                        WHERE   MADE_TYPE != 'DE'
+			                        GROUP BY CONS_ITEM_ID
+			                        )
+			                GROUP BY ITEM_ID                
+			                ) D
+			        WHERE   A.ITYPE         IN ('FERT','HALB')
+			        AND     A.ITEM_STATUS   = 'ST'
+			        AND     A.ITEM_ID       = B.ITEM_ID (+)
+			        AND     A.ITEM_ID       = C.ITEM_ID (+)  
+			        AND     A.ITEM_ID       = D.ITEM_ID (+) 
+			        )
+			ORDER BY  ORDER_SEQ, ORDER_SEQ2, ITEM_ID
+
+	</query>
+	
+		<query id="md_01020_masterDataCheckItem_list02">
+
+			SELECT  A.DATA_TYPE,  A.DATA_TABLE, 
+			        DECODE(B.ITEM_ID, NULL, 'DATA 없음', '정상')     DATA_EXISTS,
+			        B.NAME_DATA1, B.NAME_DATA2, B.NAME_DATA3
+			FROM    (
+			        SELECT  1 ORDER_SEQ, 'ITEM_MASTER' DATA_TYPE,    'ITEM_MST' DATA_TABLE   FROM DUAL UNION ALL
+			        SELECT  2 ORDER_SEQ, 'ITEM_DETAIL' DATA_TYPE,    'ITEM_DTL' DATA_TABLE   FROM DUAL UNION ALL
+			        SELECT  3 ORDER_SEQ, 'LINE_SETTING' DATA_TYPE,   'ITEM_CAPA' DATA_TABLE  FROM DUAL UNION ALL
+			        SELECT  4 ORDER_SEQ, 'BOM_MASTER' DATA_TYPE,     'MBOM' DATA_TABLE       FROM DUAL
+			        ) A,
+			        (
+			        SELECT  'ITEM_MASTER'  DATA_TYPE, ITEM_ID, 
+			                ITEM_ID  CODE_DATA1, '제품코드 : '||ITEM_ID           NAME_DATA1, 
+			                ITEM_NAME  CODE_DATA2,  'ITEM명 : '||ITEM_NAME        NAME_DATA2, 
+			                ITYPE CODE_DATA3, '제품구분 : '||
+			                DECODE(ITYPE,'FERT','완제품','HALB','반제품','ETC')   NAME_DATA3
+			        FROM    ITEM_MST    
+			        WHERE   ITEM_ID = '$!{item_id}'
+			        UNION ALL
+			        SELECT  'ITEM_DETAIL'  DATA_TYPE, A.ITEM_ID,
+			                A.PLANT_ID  CODE_DATA1,  '생산공장 : '||
+			                DECODE(A.PLANT_ID,'1110','안양공장','1120','안성공장','1130','안성음료','1140','아산공장',
+			                                '1160','구미공장','1170','부산공장','1180','녹산공장','ETC')       
+			                                                                      NAME_DATA1, 
+			                A.DAYWEEK_PATTERN CODE_DATA2,  '선호도 [선호도명] : '||
+			                DECODE(B.CD,NULL,'없음', B.CD||' ['||B.CD_NAME||']')           NAME_DATA2,  
+			                A.MIN_LOT_SIZE||'' CODE_DATA3,  'LOT SIZE : '||A.MIN_LOT_SIZE  NAME_DATA3
+			        FROM    ITEM_DTL A, 
+			                (SELECT CD, CD_NAME FROM CODE_MST WHERE CD_GRP = 'DAYWEEK_PATTERN') B    
+			        WHERE   A.ITEM_ID           = '$!{item_id}'
+			        AND     A.PLANT_ID          IN ('1110','1120','1130','1140','1160','1170','1180')
+			        AND     A.DAYWEEK_PATTERN   = B.CD (+)
+			        AND     MADE_TYPE != 'DE'
+			        UNION ALL
+			        SELECT  DISTINCT
+			                'LINE_SETTING'  DATA_TYPE, A.ITEM_ID, 
+			                A.PLANT_ID  CODE_DATA1,  '생산공장 : '||
+			                DECODE(A.PLANT_ID,'1110','안양공장','1120','안성공장','1130','안성음료','1140','아산공장',
+			                                '1160','구미공장','1170','부산공장','1180','녹산공장','ETC')       
+			                                                                      NAME_DATA1, 
+			                A.PROD_VER||'_'||A.OPER_ID  CODE_DATA2, 
+			                '생산버전 [공정] : '||A.PROD_VER||' ['||A.OPER_ID||']'    NAME_DATA2, 
+			                B.LINE_ID||'_'||B.PROC_ID   CODE_DATA3,
+			                '생산 라인 [작업장] : '||B.LINE_NAME||' ['||B.PROC_NAME||']'  NAME_DATA3
+			        FROM    ITEM_CAPA A, V_HRCHY_PROC B    
+			        WHERE   A.ITEM_ID   = '$!{item_id}'
+			        AND     A.PLANT_ID          IN ('1110','1120','1130','1140','1160','1170','1180')
+			        AND     A.PLANT_ID  = B.PLANT_ID
+			        AND     A.LINE_ID   = B.LINE_ID
+			        AND     A.PROC_ID   = B.PROC_ID  
+			        AND     MADE_TYPE != 'DE'
+			        UNION ALL
+			        SELECT  DISTINCT
+			                'BOM_MASTER'  DATA_TYPE, ITEM_ID, 
+			                PLANT_ID  CODE_DATA1, '생산공장 : '||
+			                DECODE(PLANT_ID,'1110','안양공장','1120','안성공장','1130','안성음료','1140','아산공장',
+			                                '1160','구미공장','1170','부산공장','1180','녹산공장','ETC')       
+			                                                                      NAME_DATA1, 
+			                PROD_ITEM_ID  CODE_DATA2,  PROD_ITEM                  NAME_DATA2, 
+			                CONS_ITEM_ID  CODE_DATA3,  CONS_ITEM                  NAME_DATA3
+			        FROM    (
+			                SELECT  M.PLANT_ID, M.PROD_ITEM_ID  ITEM_ID,
+			                        PROD_ITEM_ID, CONS_ITEM_ID,
+			                        '완제품 [제품명] : '||IMM.ITEM_ID||' ['||IMM.ITEM_NAME||']'     PROD_ITEM, 
+			                        '소요반제품 [제품명] : '||IM.ITEM_ID||' ['||IM.ITEM_NAME||']'       CONS_ITEM
+			                FROM    MBOM M,  ITEM_MST IM, ITEM_MST IMM
+			                WHERE   M.PROD_ITEM_ID      = '$!{item_id}'
+			                AND     M.PLANT_ID          IN ('1110','1120','1130','1140','1160','1170','1180')
+			                AND     M.CONS_ITEM_ID      = IM.ITEM_ID
+			                AND     M.PROD_ITEM_ID      = IMM.ITEM_ID
+			                AND     M.MADE_TYPE != 'DE'
+			                UNION ALL
+			                SELECT  M.PLANT_ID, M.CONS_ITEM_ID  ITEM_ID,
+			                        PROD_ITEM_ID, CONS_ITEM_ID,
+			                        '완제품 [제품명] : '||IMM.ITEM_ID||' ['||IMM.ITEM_NAME||']'     PROD_ITEM, 
+			                        '소요반제품 [제품명] : '||IM.ITEM_ID||' ['||IM.ITEM_NAME||']'       CONS_ITEM
+			                FROM    MBOM M,  ITEM_MST IM, ITEM_MST IMM
+			                WHERE   M.CONS_ITEM_ID      = '$!{item_id}'
+			                AND     M.PLANT_ID          IN ('1110','1120','1130','1140','1160','1170','1180')
+			                AND     M.CONS_ITEM_ID      = IM.ITEM_ID
+			                AND     M.PROD_ITEM_ID      = IMM.ITEM_ID
+			                AND     M.MADE_TYPE != 'DE'
+			                )
+			        ) B
+			WHERE   A.DATA_TYPE = B.DATA_TYPE (+)  
+			ORDER BY A.ORDER_SEQ, B.CODE_DATA1, B.CODE_DATA2, B.CODE_DATA3
+
+	</query>
+
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</queries>

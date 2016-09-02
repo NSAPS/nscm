@@ -1,336 +1,336 @@
-<?xml version="1.0" encoding="euc-kr"?>
-
-<jobs>
-
-<!--
-=====================================================================================================
-	기준정보  >> 판매계획 >> 일간판매계획
-=====================================================================================================
---> 
-	
-	<!--
-	======================================================================
-		일간판매계획
-	======================================================================
-	-->
-	
-	<!-- 일간판매계획 -->
-	<job id="md_09010_nfosSalesPlanWeekly_list" job_type="single" check_permission="no">
-		<path>/sinc/70.MasterData</path>
-		<navigation>기준정보 >> 판매계획 >> 일간판매계획</navigation>
-		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>일간판매계획조회</title>
-		<authority>1</authority>
-		<description>일간판매계획조회</description>
-		<request_type>list</request_type>
-		<queries> 
-			<query idref="mon_plan_list" datasource="t3sinc"/>
-			<query idref="mon_plan_version_list" datasource="t3sinc"/>
-			<query idref="sale_loc_list" datasource="t3sinc"/>
-			<query idref="del_loc_list" datasource="t3sinc"/>	
-			<query idref="date_list" datasource="t3sinc"/>		
-			<query idref="md_09010_nfosSalesPlanWeekly_list" datasource="t3sinc"/> <!-- 페이징 기준위해  맨 아래 둘것 -->
-		</queries>
-	</job>
-	
-	
-<!--
-=====================================================================================================
-	기준정보 >> 판매계획 >> 월간판매계획
-=====================================================================================================
---> 
-	
-	<!--
-	======================================================================
-		월간판매계획
-	======================================================================
-	-->
-	
-	<!-- 월간판매계획 -->
-	<job id="md_09020_nfosSalesPlanMonthly_list" job_type="single" check_permission="no">
-		<path>/sinc/70.MasterData</path>
-		<navigation>기준정보 >> 판매계획 >> 월간판매계획</navigation>
-		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>월간판매계획조회</title>
-		<authority>1</authority>
-		<description>월간판매계획조회</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="month_version_seq_list" datasource="t3sinc"/>
-			<query idref="month_sale_list" datasource="t3sinc"/>
-			<query idref="month_deliv_list" datasource="t3sinc"/>
-			<query idref="month_list" datasource="t3sinc"/>
-			<query idref="md_09020_nfosSalesPlanMonthly_list" datasource="t3sinc"/> <!-- 페이징 기준위해  맨 아래 둘것 -->			
-		</queries>
-	</job>
-
-<!--
-=====================================================================================================
-	기준정보  >> 공통 >> 주문조회
-=====================================================================================================
---> 
-	
-	<!--
-	======================================================================
-		주문조회
-	======================================================================
-	-->
-	
-	<!-- 주문조회 -->
-	<job id="md_01110_nfosOrder_list" job_type="single" check_permission="no">
-		<path>/sinc/70.MasterData</path>
-		<navigation>기준정보 >> 공통 >> 주문조회</navigation>
-		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>주문조회</title>
-		<authority>1</authority>
-		<description>주문조회</description>
-		<request_type>list</request_type>
-		<queries>
-			<!--query idref="date_list" datasource="t3sinc"/>
-			<query idref="order_combo_if_date_list" datasource="t3sinc"/-->
-			<query idref="del_loc_list" datasource="t3sinc"/>
-			<query idref="md_01110_nfosOrder_list" datasource="t3sinc"/> <!-- 페이징 기준위해  맨 아래 둘것 -->
-		</queries>
-	</job>
-
-<!--
-=====================================================================================================
-	기준정보 >> 공통
-=====================================================================================================
--->
-
-	
-	
-	
-	
-	<!--
-	======================================================================
-		품목별 CAPA 정보 누락 검증
-	======================================================================
-	-->
-	
-	
-	
-	<job id="md_01011_masterDataVerification01_list" job_type="single" check_permission="no">
-		<path>/sinc/70.MasterData</path>
-		<navigation>기준정보 >> 공통 >> 품목별CAPA정보 누락검증</navigation>
-		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>품목별CAPA정보 누락검증 조회</title>
-		<authority>1</authority>
-		<description>품목별CAPA정보 누락검증 조회</description>
-		<request_type>list</request_type>
-		<queries>	
-			<query idref="md_01011_masterDataVerification01_list" datasource="t3sinc"/>
-		</queries>
-	</job>
-	
-	
-	
-	
-	
-	
-	
-	
-	<!--
-	======================================================================
-		품목별 BOM 정보 누락 검증
-	======================================================================
-	-->
-	
-	
-	
-	<job id="md_01012_masterDataVerification02_list" job_type="single" check_permission="no">
-		<path>/sinc/70.MasterData</path>
-		<navigation>기준정보 >> 공통 >> 품목별BOM정보 누락검증</navigation>
-		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>품목별BOM정보 누락검증 조회</title>
-		<authority>1</authority>
-		<description>품목별BOM정보 누락검증 조회</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="md_01012_masterDataVerification02_list" datasource="t3sinc"/>			
-		</queries>
-	</job>
-	
-	
-	
-	
-	
-	
-	<!--
-	======================================================================
-		BOM정보 역전개 누락 검증
-	======================================================================
-	-->
-	
-	
-	
-	<!-- BOM정보 역전개 누락 검증 조회 -->
-	<job id="md_01013_masterDataVerification03_list" job_type="single" check_permission="no">
-		<path>/sinc/70.MasterData</path>
-		<navigation>기준정보 >> 공통 >> BOM정보 역전개 누락 검증</navigation>
-		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>BOM정보 역전개 누락 검증 조회</title>
-		<authority>1</authority>
-		<description>BOM정보 역전개 누락 검증 조회</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="md_01013_masterDataVerification03_list" datasource="t3sinc"/>			
-		</queries>
-	</job>
-		
-	
-	
-	<!-- BOM정보 역전개 누락 검증 (CALL 실행) -->
-	<job id="md_01013_masterDataVerification03_list_comp" job_type="composite" check_permission="no">
-		<sub_job id="md_01013_masterDataVerification03_list_call"/>		
-		<sub_job id="md_01013_masterDataVerification03_list"/>
-		<permission_desc>BOM정보 역전개 누락 검증</permission_desc>
-	</job>
-	<job id="md_01013_masterDataVerification03_list_call" job_type="single">
-		<request_type>insert</request_type>
-		<queries>
-			<query idref="md_01013_masterDataVerification03_list_call" datasource="t3sinc"/>
-		</queries>
-	</job>
-
-	
-
-	
-	
-	
-	<!--
-	======================================================================
-		BOM vs CAPA정보 누락검증
-	======================================================================
-	-->
-	
-		
-	
-	<job id="md_01014_masterDataVerification04_list_comp" job_type="composite" check_permission="no">
-		<sub_job id="md_01014_masterDataVerification04_list_call"/>		
-		<sub_job id="md_01014_masterDataVerification04_list"/>
-		<permission_desc>BOM vs CAPA정보 누락검증</permission_desc>
-	</job>
-	<job id="md_01014_masterDataVerification04_list_call" job_type="single">
-		<request_type>insert</request_type>
-		<queries>
-			<query idref="md_01014_masterDataVerification04_list_call" datasource="t3sinc"/>
-		</queries>
-	</job>
-	<job id="md_01014_masterDataVerification04_list" job_type="single" check_permission="no">
-		<path>/sinc/70.MasterData</path>
-		<navigation>기준정보 >> 공통 >> BOM vs CAPA정보 누락검증</navigation>
-		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>BOM vs CAPA정보 누락검증 조회</title>
-		<authority>1</authority>
-		<description>BOM vs CAPA정보 누락검증 조회</description>
-		<request_type>list</request_type>
-		<queries>	
-			<query idref="md_01014_masterDataVerification04_list" datasource="t3sinc"/>
-		</queries>
-	</job>
-	
-	
-	
-	
-	
-	
-	
-	
-	<!--
-	======================================================================
-		기준정보 Check
-	======================================================================
-	-->
-	
-	
-	<!-- 메인 조회 화면 -->	
-	<job id="md_01015_masterDataCheck_list" job_type="single" check_permission="no">
-		<path>/sinc/70.MasterData</path>
-		<navigation>기준정보 >> 공통 >> 기준정보Check</navigation>
-		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>기준정보Check 조회</title>
-		<authority>1</authority>
-		<description>기준정보Check 조회</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="md_01015_masterDataCheck_list" datasource="t3sinc"/>
-			<query idref="md_01015_masterDataCheck_dtl_list" datasource="t3sinc"/>
-			<query idref="md_01015_masterDataCheck_capa_list" datasource="t3sinc"/>	
-		</queries>
-	</job>
-	
-	
-	
-	<!--iframe 화면 -->
-	<job id="md_01015_masterDataCheckBOM_list" job_type="single" check_permission="no">
-		<path>/sinc/70.MasterData</path>
-		<navigation>기준정보 >> 공통 >> 기준정보Check</navigation>
-		<toolbars>0000</toolbars>
-		<title>기준정보Check 조회</title>
-		<authority>1</authority>		
-		<description>iframe</description>		
-		<request_type>list</request_type>
-		<queries>
-			<query idref="md_01015_masterDataCheckBOM_list" datasource="t3sinc"/>								
-		</queries>
-	</job>
-	
-	
-	
-	
-
-	<!--
-	======================================================================
-		I/F Job Queue 리스트 관리
-	======================================================================
-	-->
-	
-	<!-- I/F Job Queue 리스트 -->
-	<job id="md_01100_ifJobQueueControl_list" job_type="single" check_permission="no">
-		<path>/sinc/70.MasterData</path>
-		<navigation>기준정보 >> 공통 >> I/F Job Queue 리스트 관리</navigation>
-		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>I/F Job Queue 리스트 관리</title>
-		<authority>1</authority>
-		<description>I/F Job Queue 리스트 관리</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="jobqueue_status_list" datasource="t3sinc"/>
-			<query idref="jobqueue_cycle_list" datasource="t3sinc"/>
-			<query idref="md_01100_ifJobQueueControl_list" datasource="t3sinc"/>			
-		</queries>
-	</job>
-	
-
-	<!-- I/F Job Queue 리스트  : 저장 -->
-	<job id="md_01100_ifJobQueueControl_list_save_comp" job_type="composite" check_permission="no">
-		<sub_job id="md_01100_ifJobQueueControl_list_save"/>		
-		<sub_job id="md_01100_ifJobQueueControl_list"/>
-		<permission_desc>적용유무 수정-저장</permission_desc>
-	</job>
-	<job id="md_01100_ifJobQueueControl_list_save" job_type="single">
-		<request_type>insert</request_type>
-		<queries>
-			<!-- 임시테이블에 저장 -->
-			<query idref="md_01100_ifJobQueueControl_list_save_01" datasource="t3sinc"/>
-			<!-- 업데이트 -->
-			<query idref="md_01100_ifJobQueueControl_list_save_02" datasource="t3sinc"/>
-			<!-- SP CALL -->
-			<query idref="md_01100_ifJobQueueControl_list_call" datasource="t3sinc"/>			
-		</queries>
-	</job>
-	
-	
-
-	
-<!--
-=====================================================================================================
- 끝 
-=====================================================================================================
--->
-
-
-
-</jobs>	
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+<!--
+=====================================================================================================
+	기준정보  >> 판매계획 >> 일간판매계획
+=====================================================================================================
+--> 
+	
+	<!--
+	======================================================================
+		일간판매계획
+	======================================================================
+	-->
+	
+	<!-- 일간판매계획 -->
+	<job id="md_09010_nfosSalesPlanWeekly_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 판매계획 >> 일간판매계획</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>일간판매계획조회</title>
+		<authority>1</authority>
+		<description>일간판매계획조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="mon_plan_list" datasource="t3sinc"/>
+			<query idref="mon_plan_version_list" datasource="t3sinc"/>
+			<query idref="sale_loc_list" datasource="t3sinc"/>
+			<query idref="del_loc_list" datasource="t3sinc"/>	
+			<query idref="date_list" datasource="t3sinc"/>		
+			<query idref="md_09010_nfosSalesPlanWeekly_list" datasource="t3sinc"/> <!-- 페이징 기준위해  맨 아래 둘것 -->
+		</queries>
+	</job>
+	
+	
+<!--
+=====================================================================================================
+	기준정보 >> 판매계획 >> 월간판매계획
+=====================================================================================================
+--> 
+	
+	<!--
+	======================================================================
+		월간판매계획
+	======================================================================
+	-->
+	
+	<!-- 월간판매계획 -->
+	<job id="md_09020_nfosSalesPlanMonthly_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 판매계획 >> 월간판매계획</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>월간판매계획조회</title>
+		<authority>1</authority>
+		<description>월간판매계획조회</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="month_version_seq_list" datasource="t3sinc"/>
+			<query idref="month_sale_list" datasource="t3sinc"/>
+			<query idref="month_deliv_list" datasource="t3sinc"/>
+			<query idref="month_list" datasource="t3sinc"/>
+			<query idref="md_09020_nfosSalesPlanMonthly_list" datasource="t3sinc"/> <!-- 페이징 기준위해  맨 아래 둘것 -->			
+		</queries>
+	</job>
+
+<!--
+=====================================================================================================
+	기준정보  >> 공통 >> 주문조회
+=====================================================================================================
+--> 
+	
+	<!--
+	======================================================================
+		주문조회
+	======================================================================
+	-->
+	
+	<!-- 주문조회 -->
+	<job id="md_01110_nfosOrder_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 공통 >> 주문조회</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>주문조회</title>
+		<authority>1</authority>
+		<description>주문조회</description>
+		<request_type>list</request_type>
+		<queries>
+			<!--query idref="date_list" datasource="t3sinc"/>
+			<query idref="order_combo_if_date_list" datasource="t3sinc"/-->
+			<query idref="del_loc_list" datasource="t3sinc"/>
+			<query idref="md_01110_nfosOrder_list" datasource="t3sinc"/> <!-- 페이징 기준위해  맨 아래 둘것 -->
+		</queries>
+	</job>
+
+<!--
+=====================================================================================================
+	기준정보 >> 공통
+=====================================================================================================
+-->
+
+	
+	
+	
+	
+	<!--
+	======================================================================
+		품목별 CAPA 정보 누락 검증
+	======================================================================
+	-->
+	
+	
+	
+	<job id="md_01011_masterDataVerification01_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 공통 >> 품목별CAPA정보 누락검증</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>품목별CAPA정보 누락검증 조회</title>
+		<authority>1</authority>
+		<description>품목별CAPA정보 누락검증 조회</description>
+		<request_type>list</request_type>
+		<queries>	
+			<query idref="md_01011_masterDataVerification01_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	
+	
+	
+	
+	
+	
+	
+	<!--
+	======================================================================
+		품목별 BOM 정보 누락 검증
+	======================================================================
+	-->
+	
+	
+	
+	<job id="md_01012_masterDataVerification02_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 공통 >> 품목별BOM정보 누락검증</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>품목별BOM정보 누락검증 조회</title>
+		<authority>1</authority>
+		<description>품목별BOM정보 누락검증 조회</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="md_01012_masterDataVerification02_list" datasource="t3sinc"/>			
+		</queries>
+	</job>
+	
+	
+	
+	
+	
+	
+	<!--
+	======================================================================
+		BOM정보 역전개 누락 검증
+	======================================================================
+	-->
+	
+	
+	
+	<!-- BOM정보 역전개 누락 검증 조회 -->
+	<job id="md_01013_masterDataVerification03_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 공통 >> BOM정보 역전개 누락 검증</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>BOM정보 역전개 누락 검증 조회</title>
+		<authority>1</authority>
+		<description>BOM정보 역전개 누락 검증 조회</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="md_01013_masterDataVerification03_list" datasource="t3sinc"/>			
+		</queries>
+	</job>
+		
+	
+	
+	<!-- BOM정보 역전개 누락 검증 (CALL 실행) -->
+	<job id="md_01013_masterDataVerification03_list_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_01013_masterDataVerification03_list_call"/>		
+		<sub_job id="md_01013_masterDataVerification03_list"/>
+		<permission_desc>BOM정보 역전개 누락 검증</permission_desc>
+	</job>
+	<job id="md_01013_masterDataVerification03_list_call" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="md_01013_masterDataVerification03_list_call" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+	
+
+	
+	
+	
+	<!--
+	======================================================================
+		BOM vs CAPA정보 누락검증
+	======================================================================
+	-->
+	
+		
+	
+	<job id="md_01014_masterDataVerification04_list_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_01014_masterDataVerification04_list_call"/>		
+		<sub_job id="md_01014_masterDataVerification04_list"/>
+		<permission_desc>BOM vs CAPA정보 누락검증</permission_desc>
+	</job>
+	<job id="md_01014_masterDataVerification04_list_call" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="md_01014_masterDataVerification04_list_call" datasource="t3sinc"/>
+		</queries>
+	</job>
+	<job id="md_01014_masterDataVerification04_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 공통 >> BOM vs CAPA정보 누락검증</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>BOM vs CAPA정보 누락검증 조회</title>
+		<authority>1</authority>
+		<description>BOM vs CAPA정보 누락검증 조회</description>
+		<request_type>list</request_type>
+		<queries>	
+			<query idref="md_01014_masterDataVerification04_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	
+	
+	
+	
+	
+	
+	
+	<!--
+	======================================================================
+		기준정보 Check
+	======================================================================
+	-->
+	
+	
+	<!-- 메인 조회 화면 -->	
+	<job id="md_01015_masterDataCheck_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 공통 >> 기준정보Check</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>기준정보Check 조회</title>
+		<authority>1</authority>
+		<description>기준정보Check 조회</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="md_01015_masterDataCheck_list" datasource="t3sinc"/>
+			<query idref="md_01015_masterDataCheck_dtl_list" datasource="t3sinc"/>
+			<query idref="md_01015_masterDataCheck_capa_list" datasource="t3sinc"/>	
+		</queries>
+	</job>
+	
+	
+	
+	<!--iframe 화면 -->
+	<job id="md_01015_masterDataCheckBOM_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 공통 >> 기준정보Check</navigation>
+		<toolbars>0000</toolbars>
+		<title>기준정보Check 조회</title>
+		<authority>1</authority>		
+		<description>iframe</description>		
+		<request_type>list</request_type>
+		<queries>
+			<query idref="md_01015_masterDataCheckBOM_list" datasource="t3sinc"/>								
+		</queries>
+	</job>
+	
+	
+	
+	
+
+	<!--
+	======================================================================
+		I/F Job Queue 리스트 관리
+	======================================================================
+	-->
+	
+	<!-- I/F Job Queue 리스트 -->
+	<job id="md_01100_ifJobQueueControl_list" job_type="single" check_permission="no">
+		<path>/sinc/70.MasterData</path>
+		<navigation>기준정보 >> 공통 >> I/F Job Queue 리스트 관리</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>I/F Job Queue 리스트 관리</title>
+		<authority>1</authority>
+		<description>I/F Job Queue 리스트 관리</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="jobqueue_status_list" datasource="t3sinc"/>
+			<query idref="jobqueue_cycle_list" datasource="t3sinc"/>
+			<query idref="md_01100_ifJobQueueControl_list" datasource="t3sinc"/>			
+		</queries>
+	</job>
+	
+
+	<!-- I/F Job Queue 리스트  : 저장 -->
+	<job id="md_01100_ifJobQueueControl_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="md_01100_ifJobQueueControl_list_save"/>		
+		<sub_job id="md_01100_ifJobQueueControl_list"/>
+		<permission_desc>적용유무 수정-저장</permission_desc>
+	</job>
+	<job id="md_01100_ifJobQueueControl_list_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<!-- 임시테이블에 저장 -->
+			<query idref="md_01100_ifJobQueueControl_list_save_01" datasource="t3sinc"/>
+			<!-- 업데이트 -->
+			<query idref="md_01100_ifJobQueueControl_list_save_02" datasource="t3sinc"/>
+			<!-- SP CALL -->
+			<query idref="md_01100_ifJobQueueControl_list_call" datasource="t3sinc"/>			
+		</queries>
+	</job>
+	
+	
+
+	
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+-->
+
+
+
+</jobs>	

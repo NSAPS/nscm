@@ -1,721 +1,721 @@
-//############################################################
-//## 프로그램ID      : sc_16010_dailyWorkTotalization_list.vm
-//## 프로그램명      : 일간생산계획 일별 근무 집계
-//## 개발자          : 정재교
-//## 개발일자        : 
-//##
-//## 관련 job file   : job_sc_16010_dailyWorkTotalization_list.xml
-//## 관련 query file : query_sc_16010_dailyWorkTotalization_list.xml
-//##
-//## REVISIONS
-//## VER        DATE        AUTHOR    DESCRIPTION
-//## ---------  ----------  --------  ------------------------------------
-//## 
-//##
-//############################################################
-/************************************************************************************************************************************/
-/**********************************************  WiseGrid Java Script   *************************************************************/
-/************************************************************************************************************************************/
-
-//-----------------------------------------             전역 변수            ----------------------------------------------//
-
-var mode = '';
-var class_path = "com.wisegrid.admin.";						// 서블릿 패키지(class 파일 경로)
-var job_id = 'sc_16010_dailyWorkTotalization_list01';
-var job_id2= 'sc_16010_dailyWorkTotalization_list02';
-var job_id3= 'sc_16010_dailyWorkTotalization_list03';
-
-var GridObj;
-var GridObj2;
-var GridObj3;
-var GridHeaderString = "";
-
-var color01 = '188|210|238'; // 연장 배경색
-var color02 = '238|180|180'; // 휴동 배경색
-
-var weekCnt = 1;
-
-/******************************************          Action Function         **********************************************/
-
-/*┌──────────────────────────────────┐
-  │화면에 '조회'를 누르면 호출 Fnc
-  └──────────────────────────────────┘*/
-function GoSearch(service) 
-{
-    doQuery();
-    doQuery2()
-}
-  
-/*┌──────────────────────────────────┐
-  │화면에 '저장'를 누르면 호출 Fnc
-  └──────────────────────────────────┘*/
-function GoSave  (service)
-{
-	doSave();
-}
- 
-
-/*******************************************   WiseGrid 초기화 및 설정  *****************************************************/
-
-/*┌────────────────────────────────────────────────────────────┐
-  │WiseGrid 오브젝트가 생성되고 초기화된 후 발생하는 
-  │JavaScript Event인 Initialize()를 받아 그리드의 헤더를 셋팅한다.
-  └────────────────────────────────────────────────────────────┘*/
-function init() {
-	
-	GridObj = document.WiseGrid;
-	
-	setProperty(GridObj); //WiseGrid Default설정 부분 (WiseGrid_Property.js파일 내에 선언되어 있다.)
-    //setDefault();        //화면 기본 설정 
-    setHeader();  //해더생성 
-}
-
-function init2() {
-	
-	GridObj2 = document.WiseGrid2;
-	
-	setProperty(GridObj2); //WiseGrid Default설정 부분 (WiseGrid_Property.js파일 내에 선언되어 있다.)
-    //setDefault();        //화면 기본 설정 
-    setHeader2();  //해더생성 
-}	
-
-function init3() {
-	
-	GridObj3 = document.WiseGrid3;
-	
-	setProperty(GridObj3); //WiseGrid Default설정 부분 (WiseGrid_Property.js파일 내에 선언되어 있다.)
-    //setDefault();        //화면 기본 설정 
-    setHeader3();  //해더생성 
-}
-
-/*┌──────────────────────────────────┐
-  │화면 기본 설정 부분.
-  └──────────────────────────────────┘*/
-function setDefault()
-{
-}
-       
-       
-/*┌──────────────────────────────────┐
-  │해더생성
-  └──────────────────────────────────┘*/
-function setHeader() 
-{        
-	//sc_16010_dailyWorkTotalization_list_header
-	var param = "sdate!%!edate!%!job_id";
-	var value = document.frm.sdate.value + "!%!"
-			  + document.frm.edate.value + "!%!"
-			  + job_id;
- 
-	commonUtil.getCodeList(param, value , "sc_16010_dailyWorkTotalization_list_header",defaultHeader); 
-    //commonUtil.getCodeList("job_id", job_id , "gird_header_list",defaultHeader); 
-    
-}
-
-function setHeader2() 
-{        
-    
-	defaultHeader2();
-    
-}   
-
-function setHeader3() 
-{        
-    
-	commonUtil.getCodeList("job_id", job_id3 , "gird_header_list",defaultHeader3); 
-    
-} 
-
-/*┌──────────────────────────────────┐
-  │DB에 등록된 화면 해더 정보를 가져온다.
-  └──────────────────────────────────┘*/
-function defaultHeader(result){
-	
-    var arrHeader = '';
-    var len = result.length;
-    
-	GridObj.AddHeader("CRUD",	"구분",		"t_text", 		8, 		40,		false);	
-	
-	// 헤더 생성
-    for( var i=0 ;i<len ;i++) //전체 Row만큼 반복 한다.
-    {
-        arrHeader = result[i].split('!%!');
-        GridObj.AddHeader(arrHeader[1]  ,arrHeader[2]  ,arrHeader[3]  ,arrHeader[4]  ,arrHeader[5]  ,arrHeader[6]);        
-    }
-         
-	var param = "sdate!%!edate";
-	var value = document.frm.sdate.value + "!%!"
-			  + document.frm.edate.value;
-    commonUtil.getCodeList( param, value, "daily_header2", dailyHeader);// 날짜형 해더그룹을 만들어 준다.
-	    
-}
-/*┌──────────────────────────────────┐
-  │날짜 형태의 값을 가져오는 부분.
-  └──────────────────────────────────┘*/
-function dailyHeader(result){
-	
-	weekCnt = result.length/7;
-	
-   	var dateArray = ''; //날짜Row를 '!%!'기준으로 배열을 만들기 위한 변수.
-   	var dayCount  = 1;  //날짜 순위
-   	
-   	for( var i=0 ;i<result.length ;i++) //전체 Row만큼 반복 한다.
-	{			    
-		dateArray = '';
-		dateArray = result[i].split('!%!'); //'!%!'로 구분된 데이터를 split하여 배열로 저장한다.
-		
-		//해더 그룹생성
-		GridObj.AddGroup("GRP_DATE"+dayCount, dateArray[1]+' '+dateArray[2]+'/'+dateArray[3]+'('+dateArray[4]+')');  //날짜 그룹
-		
-		var str = '';
-		if( dayCount < 10) str = "D0";
-		else str = "D";		                
-		GridObj.AppendHeader("GRP_DATE"+dayCount, str+dayCount+"A");
-		GridObj.AppendHeader("GRP_DATE"+dayCount, str+dayCount+"B");
-		GridObj.AppendHeader("GRP_DATE"+dayCount, str+dayCount+"C"); 
-		dayCount++;			    
-	}	
-	
-	var cnt = result.length/7;
-	for( i = 1 ; i <= cnt ; i++){
-		GridObj.AddGroup("PROD_TYPE" + i, "생산형태");
-	   	GridObj.AppendHeader("PROD_TYPE" + i, "NORMAL" + i);
-	   	GridObj.AppendHeader("PROD_TYPE" + i, "EXTENSION" + i);
-	   	GridObj.AppendHeader("PROD_TYPE" + i, "DAY_OFF" + i);
-	}
-	
-	GridObj.BoundHeader();		
-	GridObj.SetColFix('WORK_TYPE');
-	
-	//해더 Hidden
-   	GridObj.SetColHide("CRUD",true);    
-
-   	GridObj.SetCRUDMode("CRUD", "추가", "수정", "삭제"); //수정,삭제,추가 구분 부분.
-   	
-   	if( mode == "search"){
-	   	var servlet_url = Project_name+"/servlet/" + class_path + job_id;
-	
-		var plant_id  = document.all.selected_plant.value;
-		var sdate = document.frm.sdate.value;
-		var edate = document.frm.edate.value;
-	    
-	    //넘겨줄 값들을만든다.( 파라미터 정의 부분 )
-	    GridObj.SetParam("mode", mode);
-	    GridObj.SetParam("plant_id", plant_id);
-		GridObj.SetParam("sdate", sdate);
-		GridObj.SetParam("edate", edate);
-		GridObj.SetParam("weekCnt", weekCnt);
-		
-	    GridObj.DoQuery(servlet_url);
-		
-		//doQuery2();
-   	}
-   
-}               
-
-/*┌──────────────────────────────────┐
-  │DB에 등록된 화면 해더 정보를 가져온다.
-  └──────────────────────────────────┘*/
-function defaultHeader2(){
-	var param = "sdate!%!edate";
-	var value = document.frm.sdate.value + "!%!"
-			  + document.frm.edate.value;
-	commonUtil.getCodeList( param, value, "daily_header2",{
-		callback:function(result){
-			weekCnt = result.length/7;
-			
-			GridObj2.AddHeader("DIVISION",	"총계",		"t_text", 		8, 		220,		false);	  
-    
-		    var dayCnt = 1;
-		    for( i = 0 ; i < weekCnt*7 ; i++ ){
-		    	var strDay = "";
-		    	if( dayCnt < 10 ) strDay += "0" + dayCnt;
-		    	else strDay += dayCnt;
-		    	GridObj2.AddHeader("D" + strDay + "A",	"조",		"t_text", 		8, 		50,		false);
-		    	GridObj2.AddHeader("D" + strDay + "B",	"주",		"t_text", 		8, 		50,		false);
-		    	GridObj2.AddHeader("D" + strDay + "C",	"야",		"t_text", 		8, 		50,		false);
-		    	
-		    	dayCnt++;
-		    }    
-		    
-		    var param = "sdate!%!edate";
-			var value = document.frm.sdate.value + "!%!"
-					  + document.frm.edate.value;
-		    commonUtil.getCodeList( param, value, "daily_header2", dailyHeader2);// 날짜형 해더그룹을 만들어 준다.
-		}
-	});
-	
-	
-}
-
-/*┌──────────────────────────────────┐
-  │DB에 등록된 화면 해더 정보를 가져온다.
-  └──────────────────────────────────┘*/
-function defaultHeader3(result)
-{
-    var arrHeader = '';
-	for( var i=0 ;i<result.length ;i++) //전체 Row만큼 반복 한다.
-    {
-        arrHeader = result[i].split('!%!');
-        GridObj3.AddHeader(arrHeader[1]  ,arrHeader[2]  ,arrHeader[3]  ,arrHeader[4]  ,arrHeader[5]  ,arrHeader[6]);        
-    }
-    
-    GridObj3.BoundHeader();   
-    //컬럼 Format를 설정 한다.
-
-    //해더 Hidden
-    //GridObj3.SetColHide("CRUD",true);    
-
-    GridObj3.SetCRUDMode("CRUD", "추가", "수정", "삭제"); //수정,삭제,추가 구분 부분.
-}
-     
-/*┌──────────────────────────────────┐
-  │날짜 형태의 값을 가져오는 부분. 
-  └──────────────────────────────────┘*/
-function dailyHeader2(result)
-{
-	
-   	var dateArray = ''; //날짜Row를 '!%!'기준으로 배열을 만들기 위한 변수.
-   	var dayCount  = 1;  //날짜 순위
-   	for( var i=0 ;i<result.length ;i++) //전체 Row만큼 반복 한다.
-	{			    
-		dateArray = '';
-		dateArray = result[i].split('!%!'); //'!%!'로 구분된 데이터를 split하여 배열로 저장한다.
-		
-		//해더 그룹생성
-		GridObj2.AddGroup("GRP_DATE"+dayCount, dateArray[1]+' '+dateArray[2]+'/'+dateArray[3]+'('+dateArray[4]+')');  //날짜 그룹
-		
-		var str = '';
-		if( dayCount < 10) str = "D0";
-		else str = "D";		   
-		             
-		GridObj2.AppendHeader("GRP_DATE"+dayCount, str+dayCount+"A");
-		GridObj2.AppendHeader("GRP_DATE"+dayCount, str+dayCount+"B");
-		GridObj2.AppendHeader("GRP_DATE"+dayCount, str+dayCount+"C"); 
-		
-		dayCount++;			    
-	}	
-	
-	GridObj2.BoundHeader();		
-    GridObj2.SetColFix('DIVISION');  
-    	//해더 Hidden
-   	   	
-   	if( mode == "search"){
-	   	var servlet_url = Project_name+"/servlet/" + class_path + job_id2;
-	
-		var plant_id  = document.all.selected_plant.value;
-		var sdate = document.frm.sdate.value;
-		var edate = document.frm.edate.value;
-	    
-	    //넘겨줄 값들을만든다.( 파라미터 정의 부분 )
-	    GridObj2.SetParam("mode", mode);
-	    GridObj2.SetParam("plant_id", plant_id);
-		GridObj2.SetParam("sdate", sdate);
-		GridObj2.SetParam("edate", edate);
-		GridObj2.SetParam("weekCnt", weekCnt);
-		
-	    GridObj2.DoQuery(servlet_url);
-				
-   	}
-             
-} 
-
-/***********************************************   WiseGrid 통신  **********************************************************/
-
-/*┌──────────────────────────────────┐
-  │첫번째 그리드의 조회 쿼리를 호출 Fnc
-  └──────────────────────────────────┘*/
-function doQuery() {
-	
-	mode = "search";
-	
-	GridObj.ClearGrid();
-	setHeader(GridObj);
-	
-
-}
-
-/*┌──────────────────────────────────┐
-  │두번째 그리드의 조회 쿼리를 호출 Fnc
-  └──────────────────────────────────┘*/
-function doQuery2() 
-{
-	mode = "search";
-	
-	GridObj2.ClearGrid();
-	setHeader2(GridObj2);
-}
-
-/*┌──────────────────────────────────┐
-  │저장 호출 Fnc
-  └──────────────────────────────────┘*/	
-function doSave() {
- 
-	var servlet_url = Project_name+"/servlet/" + class_path + job_id;
-
-	//WiseGrid가 서버에 전송할 mode를 셋팅한다.
-	GridObj.SetParam("mode", "save");
-    	
-    // 주차
-    GridObj.SetParam("weekCnt", weekCnt);
-    
-    // 시작일
-    GridObj.SetParam("sdate", document.frm.sdate.value);
-    	
-	// user_id
-	GridObj.SetParam("user_id", document.frm._user_id.value);
-	
-	//WiseGrid가 서버와 통신시에 데이터를 전달한
-	GridObj.DoQuery(servlet_url, "CRUD");
- 
-}
-
-/* INSERT */
-function doInsert() {
-    
-    GridObj.SetParam("mode", "insert");
-
-    GridObj.DoQuery(servlet_url, "SELECTED");
-}
-
-/* UPDATE */
-function doUpdata() {
-	
-    GridObj.SetParam("mode", "update");
-
-    GridObj.DoQuery(servlet_url, "SELECTED");
-}
-
-/* DELETE */
-function doDelete() {
-    
-    GridObj.SetParam("mode", "delete");
-
-    GridObj.DoQuery(servlet_url, "SELECTED");
-}
-
-/*******************************************   WiseGrid 통신 후  설정  ******************************************************/
-
-/*┌──────────────────────────────────┐
-  │데이터 조회가 정상적으로 완료되면 발생되는 Event에 대한 Fnc
-  └──────────────────────────────────┘*/
-function GridEndQuery() 
-{
-    var mode = GridObj.GetParam("mode");
-    var error_msg = '';
-    
-    if(mode == "search") //조회가 완료된 경우
-    {
-        if(GridObj.GetStatus() == "true") 
-        {                           
-        	var dayCnt = 1;
-        	for( i = 1 ; i <= weekCnt ; i++ ){
-        		for( j = 0 ; j < 7 ; j++ ){
-        			var strDay = "";
-        			if( dayCnt < 10 ) strDay += "0" + dayCnt;
-        			else strDay += dayCnt;
-        			
-		            GridObj.SetColCellAlign("D" + strDay + "A",'right');
-		            GridObj.SetColCellAlign("D" + strDay + "B",'right');
-		            GridObj.SetColCellAlign("D" + strDay + "C",'right');
-		            
-		            dayCnt++;
-        		}
-	            
-	            GridObj.SetColCellAlign("IDX_QTY" + i,'right');      
-				
-				GridObj.SetColCellAlign("NORMAL" + i,'center');
-				GridObj.SetColCellAlign("EXTENSION" + i,'center');
-				GridObj.SetColCellAlign("DAY_OFF" + i,'center');
-				
-				GridObj.SetColCellBgColor("IDX_QTY" + i,'238|238|0');
-        	}
-
-                                
-            //데이터를 그룹핑 한다.                                                     
-            GridObj.SetGroupMerge("PLANT_NAME");             
-			
-			//휴동 연장 색 지정
-			var rowLeng = GridObj.GetRowCount();
-        	for( i = 0 ; i < rowLeng ; i++ ){
-        		for( j = 1 ; j <= weekCnt*7 ; j++ ){
-        			for( m = 0 ; m < 3; m++ ){
-        				var shift;
-        				if(m == 0) shift = "A";
-        				if(m == 1) shift = "B";
-        				if(m == 2) shift = "C";
-						
-						var strDay = "";
-						if( j < 10 ) strDay += "0" + j
-						else strDay += j;
-						var value = GridObj.GetCellHiddenValue("D" + strDay + shift,i);
-        				// 연장
-        				if(value == "2" ){
-        					GridObj.SetCellBgColor("D" + strDay + shift, i, color01);
-        				}
-						// 휴동
-						else if(value == "3" ){
-        					GridObj.SetCellBgColor("D" + strDay + shift, i, color02);
-        				}
-        			}
-        		}
-        	}
-        } else    
-        { 
-            error_msg = GridObj.GetMessage(); 
-            alert(error_msg);            
-        }
-    }
-    if(mode == "save") //조회가 완료된 경우
-    {
-        if(GridObj.GetStatus() == "true") 
-        {                           
-            doQuery(); doQuery2();
-        } else    
-        { 
-            error_msg = GridObj.GetMessage(); 
-            alert(error_msg);            
-        }
-    }
-}
-
-
-/*┌──────────────────────────────────┐
-  │데이터 조회가 정상적으로 완료되면 발생되는 Event에 대한 Fnc
-  └──────────────────────────────────┘*/
-function GridEndQuery2() 
-{
-    var mode = GridObj2.GetParam("mode");
-    var error_msg = 'Grid2에러';
-      
-    if(mode == "search") //조회가 완료된 경우
-    {			
-        if(GridObj2.GetStatus() == "true") 
-        {                           
-            GridObj2.SetColCellAlign("D01A",'right');
-            GridObj2.SetColCellAlign("D01B",'right');
-            GridObj2.SetColCellAlign("D01C",'right');
-            GridObj2.SetColCellAlign("D02A",'right');
-            GridObj2.SetColCellAlign("D02B",'right');
-            GridObj2.SetColCellAlign("D02C",'right');
-            GridObj2.SetColCellAlign("D03A",'right');
-            GridObj2.SetColCellAlign("D03B",'right');
-            GridObj2.SetColCellAlign("D03C",'right');
-            GridObj2.SetColCellAlign("D04A",'right');
-            GridObj2.SetColCellAlign("D04B",'right');
-            GridObj2.SetColCellAlign("D04C",'right');
-            GridObj2.SetColCellAlign("D05A",'right');
-            GridObj2.SetColCellAlign("D05B",'right');
-            GridObj2.SetColCellAlign("D05C",'right');
-            GridObj2.SetColCellAlign("D06A",'right');
-            GridObj2.SetColCellAlign("D06B",'right');
-            GridObj2.SetColCellAlign("D06C",'right');
-            GridObj2.SetColCellAlign("D07A",'right');
-            GridObj2.SetColCellAlign("D07B",'right');
-            GridObj2.SetColCellAlign("D07C",'right');               
-        } else    
-        { 
-            error_msg = GridObj2.GetMessage(); 
-            alert(error_msg);            
-        }
-    }
-}
-   
-
-/*********************************************   WiseGrid Event   *********************************************************/
-
-/*┌──────────────────────────────────┐
-  │그리드의 데이터가 변경 되었을 경우 처리되는 Fnc
-  └──────────────────────────────────┘*/
-function GridChangeCell(strColumnKey, nRow) 
-{
-
-} 
-
-/*┌──────────────────────────────────┐
-  │그리드의 원 클릭 이벤트
-  └──────────────────────────────────┘*/
-function GridCellClick(strColumnKey, nRow){     
-
-}        
-
-/*┌──────────────────────────────────┐
-  │그리드의 더블 클릭 이벤트
-  └──────────────────────────────────┘*/        
-function GridCellDblClickHandler(strColumnKey, nRow){
-	//alert(GridObj.GetCellHiddenValue(strColumnKey, nRow));
-	if ((strColumnKey.substr(0,1)!='D' && strColumnKey.substr(-1)!='A')||(strColumnKey.substr(0,1)!='D' && strColumnKey.substr(-1)!='B')||(strColumnKey.substr(0,1)!='D' && strColumnKey.substr(-1)!='C'))
-	{
-		return false;
-	}
-	
-	if( strToNum(GridObj.GetCellValue(strColumnKey, nRow)) > 0 || GridObj.GetCellHiddenValue(strColumnKey, nRow) == "null") return;
-	
-	var plant_id = GridObj.GetCellHiddenValue("PLANT_NAME", nRow);
-	var line_id = GridObj.GetCellHiddenValue("LINE_NAME", nRow);
-	var sdate = document.frm.sdate.value;
-	var edate = document.frm.edate.value;
-	var date_seq = Number(strColumnKey.substr(1,2))-1;
-	var shift_type;
-	if( strColumnKey.substr(3,1) == "A") shift_type = '1'
-	else if( strColumnKey.substr(3,1) == "B") shift_type = '3'
-	else if( strColumnKey.substr(3,1) == "C") shift_type = '5'
-	var day_off = "";
-	var user_id = document.frm._user_id.value;
-	
-	var param = "plant_id!%!line_id!%!sdate!%!date_seq!%!shift_type!%!day_off!%!user_id!%!edate";
-	
-	if( GridObj.GetCellHiddenValue(strColumnKey, nRow) == "3"){
-		
-		if(confirm("휴동 설정을 해제 하시겠습니까?")){
-		
-			day_off = "N";
-			var value = plant_id + "!%!" + line_id + "!%!" + sdate + "!%!" + date_seq + "!%!"
-						+ shift_type + "!%!" + day_off + "!%!" + user_id + "!%!" + edate;
-			
-			commonUtil.executeQuery(param, value, "daily_shift_day_off_update",{
-				callback:function(result){
-					if(result == "SUCCESS"){
-						//alert(" 성공");
-						GridObj.SetCellBgColor(strColumnKey, nRow, '255|255|255');
-						GridObj.SetCellHiddenValue( strColumnKey, nRow, "1" );
-					}
-					else{
-						alert(" 실패");
-					}
-				}
-			});
-		}
-	}
-	else{
-		if(confirm("휴동으로 설정 하시겠습니까?")){
-			
-			/*
-			GridObj3.InsertRow(-1); // Hidden Gride에 Row 추가
-			var rowIdx = GridObj3.GetRowCount()-1;
-			var date_seq = Number(strColumnKey.substr(1,2))-1;
-			var shift_type;
-			if( strColumnKey.substr(3,1) == "A") shift_type = '1'
-			else if( strColumnKey.substr(3,1) == "B") shift_type = '3'
-			else if( strColumnKey.substr(3,1) == "C") shift_type = '5'
-			//alert(date_seq);
-			
-			// Set Value 
-			GridObj3.SetCellValue("CRUD", rowIdx, "C" );
-			GridObj3.SetCellValue("CAT_ID", rowIdx, "PS" );
-			GridObj3.SetCellValue("PLANT_ID", rowIdx, GridObj.GetCellHiddenValue("PLANT_NAME", nRow) );
-			GridObj3.SetCellValue("LINE_ID", rowIdx, GridObj.GetCellHiddenValue("LINE_NAME", nRow) );
-			GridObj3.SetCellValue("WEEK53_NO", 0, "C" );
-			GridObj3.SetCellValue("PROD_DATES", rowIdx, date_seq );
-			GridObj3.SetCellValue("SHIFT_TYPE", rowIdx, shift_type ); 
-			GridObj3.SetCellValue("DAY_OFF", rowIdx, "Y" ); 
-			*/
-			
-			day_off = "Y";
-			var value = plant_id + "!%!" + line_id + "!%!" + sdate + "!%!" + date_seq + "!%!"
-						+ shift_type + "!%!" + day_off + "!%!" + user_id;
-			
-			commonUtil.executeQuery(param, value, "daily_shift_day_off_update",{
-				callback:function(result){
-					if(result == "SUCCESS"){
-						alert(" 성공");
-						GridObj.SetCellBgColor(strColumnKey, nRow, color02);
-						GridObj.SetCellHiddenValue( strColumnKey, nRow, "3" );
-					}
-					else{
-						alert(" 실패");
-					}
-				}
-			});
-			
-		}
-	}
-	
-}
-
-/*********************************************   기타 Function   **********************************************************/
-
-/*┌──────────────────────────────────┐
-  │그리드의 사이즈 조절 Fnc
-  └──────────────────────────────────┘*/
-function setWiseGridAutoResize( tab_h, table_h ){
-    
-    var maxWidthValue;
-    var maxHeightValue;
-    
-    if (document.layers) {
-        //Nescape
-        maxWidthValue = window.innerWidth;
-        maxHeightValue = window.innerHeight;
-    }
-    if (document.all) {
-        //explore
-        maxWidthValue = document.body.clientWidth;
-        maxHeightValue = document.body.clientHeight;
-    } 
-    
-    var tabHeightValue = Number(maxHeightValue) - Number(tab_h) ; 
-    var tableHeightValue = Number(maxHeightValue) - Number(table_h) ; 
-    
-    var search_h = document.frm.search_h.value; 
-    if( search_menu.style.display == "none" ) 
-    { 
-        tabHeightValue += Number(search_h); 
-        tableHeightValue += Number(search_h); 
-    } 
-    
-    // 화면 size 축소 시 화면이 너무 작아 그리드 크기가 음수가 되면 에러가 나므로 그 경우 무조건 1로 세팅 
-    // ==> 화면이 더이상 축소되지 않음 
-    if( tabHeightValue < 1 ) 
-        tabHeightValue = 1; 
-    if( tableHeightValue < 1 ) 
-        tableHeightValue = 1; 
-    
-    //tabPage1.style.height = tabHeightValue + "px"; 
-    //tbMain.style.height = tableHeightValue + "px"; 
-	document.WiseGrid.height = (tableHeightValue/3*2) + "px"; 
-	document.WiseGrid2.height = (tableHeightValue/3*1) + "px"; 
-        
-}     
- 
-/*┌──────────────────────────────────┐
-  │주차 선택 Fnc
-  └──────────────────────────────────┘*/	
-function onChangeDate(obj){
-	alert("!!");
-	GridObj.ClearGrid();
-	setHeader(GridObj);
-	//doQuery();
-	//GridObj2.ClearGrid();
-	//setHeader2(GridObj2);
-	//doQuery2();
-}
-
-function weeklyCount(){
-//	var plant_id   = document.frm.selected_plant.value ;
-//    var sdate = document.frm.sdate.value;
-//    var edate = document.frm.edate.value;
-    
-    document.frm.weekCnt.value = weekCnt;
- 
-    var paramString = "";
-//    paramString = "&plant_id=" + plant_id;
-//    paramString+= "&sdate="    + sdate;
-//    paramString+= "&edate="    + edate;
-//    paramString+= "&weekCnt="  + weekCnt;
-       
-    
-    var fileName = "sc_16010_dailyWorkTotalization_popup";
-    var service_url = "service.do?_moon_service="+fileName+"&_moon_perpage=200&_moon_pagenumber=1" + paramString;
-    //var newWin = window.showModalDialog(service_url, self, "dialogLeft:0px; dialogTop:0px; dialogWidth:800px; dialogHeight:480px ; dialogScrollbars=no");
-    
-    var pop_win_style = "titlebar=no, menubar=no, toolbar=no, status=yes, scrollbars=no, resizable=yes, width=800, height=400, top=0, left=0";
-	var newWin = window.open(service_url, "sc_16010_dailyWorkTotalization_popup", pop_win_style); 
-	newWin.focus();
-    
-//    if(newWin == -1)
-//    {
-//        GoSearch('xx');
-//    }
-}
-
+//############################################################
+//## 프로그램ID      : sc_16010_dailyWorkTotalization_list.vm
+//## 프로그램명      : 일간생산계획 일별 근무 집계
+//## 개발자          : 정재교
+//## 개발일자        : 
+//##
+//## 관련 job file   : job_sc_16010_dailyWorkTotalization_list.xml
+//## 관련 query file : query_sc_16010_dailyWorkTotalization_list.xml
+//##
+//## REVISIONS
+//## VER        DATE        AUTHOR    DESCRIPTION
+//## ---------  ----------  --------  ------------------------------------
+//## 
+//##
+//############################################################
+/************************************************************************************************************************************/
+/**********************************************  WiseGrid Java Script   *************************************************************/
+/************************************************************************************************************************************/
+
+//-----------------------------------------             전역 변수            ----------------------------------------------//
+
+var mode = '';
+var class_path = "com.wisegrid.admin.";						// 서블릿 패키지(class 파일 경로)
+var job_id = 'sc_16010_dailyWorkTotalization_list01';
+var job_id2= 'sc_16010_dailyWorkTotalization_list02';
+var job_id3= 'sc_16010_dailyWorkTotalization_list03';
+
+var GridObj;
+var GridObj2;
+var GridObj3;
+var GridHeaderString = "";
+
+var color01 = '188|210|238'; // 연장 배경색
+var color02 = '238|180|180'; // 휴동 배경색
+
+var weekCnt = 1;
+
+/******************************************          Action Function         **********************************************/
+
+/*┌──────────────────────────────────┐
+  │화면에 '조회'를 누르면 호출 Fnc
+  └──────────────────────────────────┘*/
+function GoSearch(service) 
+{
+    doQuery();
+    doQuery2()
+}
+  
+/*┌──────────────────────────────────┐
+  │화면에 '저장'를 누르면 호출 Fnc
+  └──────────────────────────────────┘*/
+function GoSave  (service)
+{
+	doSave();
+}
+ 
+
+/*******************************************   WiseGrid 초기화 및 설정  *****************************************************/
+
+/*┌────────────────────────────────────────────────────────────┐
+  │WiseGrid 오브젝트가 생성되고 초기화된 후 발생하는 
+  │JavaScript Event인 Initialize()를 받아 그리드의 헤더를 셋팅한다.
+  └────────────────────────────────────────────────────────────┘*/
+function init() {
+	
+	GridObj = document.WiseGrid;
+	
+	setProperty(GridObj); //WiseGrid Default설정 부분 (WiseGrid_Property.js파일 내에 선언되어 있다.)
+    //setDefault();        //화면 기본 설정 
+    setHeader();  //해더생성 
+}
+
+function init2() {
+	
+	GridObj2 = document.WiseGrid2;
+	
+	setProperty(GridObj2); //WiseGrid Default설정 부분 (WiseGrid_Property.js파일 내에 선언되어 있다.)
+    //setDefault();        //화면 기본 설정 
+    setHeader2();  //해더생성 
+}	
+
+function init3() {
+	
+	GridObj3 = document.WiseGrid3;
+	
+	setProperty(GridObj3); //WiseGrid Default설정 부분 (WiseGrid_Property.js파일 내에 선언되어 있다.)
+    //setDefault();        //화면 기본 설정 
+    setHeader3();  //해더생성 
+}
+
+/*┌──────────────────────────────────┐
+  │화면 기본 설정 부분.
+  └──────────────────────────────────┘*/
+function setDefault()
+{
+}
+       
+       
+/*┌──────────────────────────────────┐
+  │해더생성
+  └──────────────────────────────────┘*/
+function setHeader() 
+{        
+	//sc_16010_dailyWorkTotalization_list_header
+	var param = "sdate!%!edate!%!job_id";
+	var value = document.frm.sdate.value + "!%!"
+			  + document.frm.edate.value + "!%!"
+			  + job_id;
+ 
+	commonUtil.getCodeList(param, value , "sc_16010_dailyWorkTotalization_list_header",defaultHeader); 
+    //commonUtil.getCodeList("job_id", job_id , "gird_header_list",defaultHeader); 
+    
+}
+
+function setHeader2() 
+{        
+    
+	defaultHeader2();
+    
+}   
+
+function setHeader3() 
+{        
+    
+	commonUtil.getCodeList("job_id", job_id3 , "gird_header_list",defaultHeader3); 
+    
+} 
+
+/*┌──────────────────────────────────┐
+  │DB에 등록된 화면 해더 정보를 가져온다.
+  └──────────────────────────────────┘*/
+function defaultHeader(result){
+	
+    var arrHeader = '';
+    var len = result.length;
+    
+	GridObj.AddHeader("CRUD",	"구분",		"t_text", 		8, 		40,		false);	
+	
+	// 헤더 생성
+    for( var i=0 ;i<len ;i++) //전체 Row만큼 반복 한다.
+    {
+        arrHeader = result[i].split('!%!');
+        GridObj.AddHeader(arrHeader[1]  ,arrHeader[2]  ,arrHeader[3]  ,arrHeader[4]  ,arrHeader[5]  ,arrHeader[6]);        
+    }
+         
+	var param = "sdate!%!edate";
+	var value = document.frm.sdate.value + "!%!"
+			  + document.frm.edate.value;
+    commonUtil.getCodeList( param, value, "daily_header2", dailyHeader);// 날짜형 해더그룹을 만들어 준다.
+	    
+}
+/*┌──────────────────────────────────┐
+  │날짜 형태의 값을 가져오는 부분.
+  └──────────────────────────────────┘*/
+function dailyHeader(result){
+	
+	weekCnt = result.length/7;
+	
+   	var dateArray = ''; //날짜Row를 '!%!'기준으로 배열을 만들기 위한 변수.
+   	var dayCount  = 1;  //날짜 순위
+   	
+   	for( var i=0 ;i<result.length ;i++) //전체 Row만큼 반복 한다.
+	{			    
+		dateArray = '';
+		dateArray = result[i].split('!%!'); //'!%!'로 구분된 데이터를 split하여 배열로 저장한다.
+		
+		//해더 그룹생성
+		GridObj.AddGroup("GRP_DATE"+dayCount, dateArray[1]+' '+dateArray[2]+'/'+dateArray[3]+'('+dateArray[4]+')');  //날짜 그룹
+		
+		var str = '';
+		if( dayCount < 10) str = "D0";
+		else str = "D";		                
+		GridObj.AppendHeader("GRP_DATE"+dayCount, str+dayCount+"A");
+		GridObj.AppendHeader("GRP_DATE"+dayCount, str+dayCount+"B");
+		GridObj.AppendHeader("GRP_DATE"+dayCount, str+dayCount+"C"); 
+		dayCount++;			    
+	}	
+	
+	var cnt = result.length/7;
+	for( i = 1 ; i <= cnt ; i++){
+		GridObj.AddGroup("PROD_TYPE" + i, "생산형태");
+	   	GridObj.AppendHeader("PROD_TYPE" + i, "NORMAL" + i);
+	   	GridObj.AppendHeader("PROD_TYPE" + i, "EXTENSION" + i);
+	   	GridObj.AppendHeader("PROD_TYPE" + i, "DAY_OFF" + i);
+	}
+	
+	GridObj.BoundHeader();		
+	GridObj.SetColFix('WORK_TYPE');
+	
+	//해더 Hidden
+   	GridObj.SetColHide("CRUD",true);    
+
+   	GridObj.SetCRUDMode("CRUD", "추가", "수정", "삭제"); //수정,삭제,추가 구분 부분.
+   	
+   	if( mode == "search"){
+	   	var servlet_url = Project_name+"/servlet/" + class_path + job_id;
+	
+		var plant_id  = document.all.selected_plant.value;
+		var sdate = document.frm.sdate.value;
+		var edate = document.frm.edate.value;
+	    
+	    //넘겨줄 값들을만든다.( 파라미터 정의 부분 )
+	    GridObj.SetParam("mode", mode);
+	    GridObj.SetParam("plant_id", plant_id);
+		GridObj.SetParam("sdate", sdate);
+		GridObj.SetParam("edate", edate);
+		GridObj.SetParam("weekCnt", weekCnt);
+		
+	    GridObj.DoQuery(servlet_url);
+		
+		//doQuery2();
+   	}
+   
+}               
+
+/*┌──────────────────────────────────┐
+  │DB에 등록된 화면 해더 정보를 가져온다.
+  └──────────────────────────────────┘*/
+function defaultHeader2(){
+	var param = "sdate!%!edate";
+	var value = document.frm.sdate.value + "!%!"
+			  + document.frm.edate.value;
+	commonUtil.getCodeList( param, value, "daily_header2",{
+		callback:function(result){
+			weekCnt = result.length/7;
+			
+			GridObj2.AddHeader("DIVISION",	"총계",		"t_text", 		8, 		220,		false);	  
+    
+		    var dayCnt = 1;
+		    for( i = 0 ; i < weekCnt*7 ; i++ ){
+		    	var strDay = "";
+		    	if( dayCnt < 10 ) strDay += "0" + dayCnt;
+		    	else strDay += dayCnt;
+		    	GridObj2.AddHeader("D" + strDay + "A",	"조",		"t_text", 		8, 		50,		false);
+		    	GridObj2.AddHeader("D" + strDay + "B",	"주",		"t_text", 		8, 		50,		false);
+		    	GridObj2.AddHeader("D" + strDay + "C",	"야",		"t_text", 		8, 		50,		false);
+		    	
+		    	dayCnt++;
+		    }    
+		    
+		    var param = "sdate!%!edate";
+			var value = document.frm.sdate.value + "!%!"
+					  + document.frm.edate.value;
+		    commonUtil.getCodeList( param, value, "daily_header2", dailyHeader2);// 날짜형 해더그룹을 만들어 준다.
+		}
+	});
+	
+	
+}
+
+/*┌──────────────────────────────────┐
+  │DB에 등록된 화면 해더 정보를 가져온다.
+  └──────────────────────────────────┘*/
+function defaultHeader3(result)
+{
+    var arrHeader = '';
+	for( var i=0 ;i<result.length ;i++) //전체 Row만큼 반복 한다.
+    {
+        arrHeader = result[i].split('!%!');
+        GridObj3.AddHeader(arrHeader[1]  ,arrHeader[2]  ,arrHeader[3]  ,arrHeader[4]  ,arrHeader[5]  ,arrHeader[6]);        
+    }
+    
+    GridObj3.BoundHeader();   
+    //컬럼 Format를 설정 한다.
+
+    //해더 Hidden
+    //GridObj3.SetColHide("CRUD",true);    
+
+    GridObj3.SetCRUDMode("CRUD", "추가", "수정", "삭제"); //수정,삭제,추가 구분 부분.
+}
+     
+/*┌──────────────────────────────────┐
+  │날짜 형태의 값을 가져오는 부분. 
+  └──────────────────────────────────┘*/
+function dailyHeader2(result)
+{
+	
+   	var dateArray = ''; //날짜Row를 '!%!'기준으로 배열을 만들기 위한 변수.
+   	var dayCount  = 1;  //날짜 순위
+   	for( var i=0 ;i<result.length ;i++) //전체 Row만큼 반복 한다.
+	{			    
+		dateArray = '';
+		dateArray = result[i].split('!%!'); //'!%!'로 구분된 데이터를 split하여 배열로 저장한다.
+		
+		//해더 그룹생성
+		GridObj2.AddGroup("GRP_DATE"+dayCount, dateArray[1]+' '+dateArray[2]+'/'+dateArray[3]+'('+dateArray[4]+')');  //날짜 그룹
+		
+		var str = '';
+		if( dayCount < 10) str = "D0";
+		else str = "D";		   
+		             
+		GridObj2.AppendHeader("GRP_DATE"+dayCount, str+dayCount+"A");
+		GridObj2.AppendHeader("GRP_DATE"+dayCount, str+dayCount+"B");
+		GridObj2.AppendHeader("GRP_DATE"+dayCount, str+dayCount+"C"); 
+		
+		dayCount++;			    
+	}	
+	
+	GridObj2.BoundHeader();		
+    GridObj2.SetColFix('DIVISION');  
+    	//해더 Hidden
+   	   	
+   	if( mode == "search"){
+	   	var servlet_url = Project_name+"/servlet/" + class_path + job_id2;
+	
+		var plant_id  = document.all.selected_plant.value;
+		var sdate = document.frm.sdate.value;
+		var edate = document.frm.edate.value;
+	    
+	    //넘겨줄 값들을만든다.( 파라미터 정의 부분 )
+	    GridObj2.SetParam("mode", mode);
+	    GridObj2.SetParam("plant_id", plant_id);
+		GridObj2.SetParam("sdate", sdate);
+		GridObj2.SetParam("edate", edate);
+		GridObj2.SetParam("weekCnt", weekCnt);
+		
+	    GridObj2.DoQuery(servlet_url);
+				
+   	}
+             
+} 
+
+/***********************************************   WiseGrid 통신  **********************************************************/
+
+/*┌──────────────────────────────────┐
+  │첫번째 그리드의 조회 쿼리를 호출 Fnc
+  └──────────────────────────────────┘*/
+function doQuery() {
+	
+	mode = "search";
+	
+	GridObj.ClearGrid();
+	setHeader(GridObj);
+	
+
+}
+
+/*┌──────────────────────────────────┐
+  │두번째 그리드의 조회 쿼리를 호출 Fnc
+  └──────────────────────────────────┘*/
+function doQuery2() 
+{
+	mode = "search";
+	
+	GridObj2.ClearGrid();
+	setHeader2(GridObj2);
+}
+
+/*┌──────────────────────────────────┐
+  │저장 호출 Fnc
+  └──────────────────────────────────┘*/	
+function doSave() {
+ 
+	var servlet_url = Project_name+"/servlet/" + class_path + job_id;
+
+	//WiseGrid가 서버에 전송할 mode를 셋팅한다.
+	GridObj.SetParam("mode", "save");
+    	
+    // 주차
+    GridObj.SetParam("weekCnt", weekCnt);
+    
+    // 시작일
+    GridObj.SetParam("sdate", document.frm.sdate.value);
+    	
+	// user_id
+	GridObj.SetParam("user_id", document.frm._user_id.value);
+	
+	//WiseGrid가 서버와 통신시에 데이터를 전달한
+	GridObj.DoQuery(servlet_url, "CRUD");
+ 
+}
+
+/* INSERT */
+function doInsert() {
+    
+    GridObj.SetParam("mode", "insert");
+
+    GridObj.DoQuery(servlet_url, "SELECTED");
+}
+
+/* UPDATE */
+function doUpdata() {
+	
+    GridObj.SetParam("mode", "update");
+
+    GridObj.DoQuery(servlet_url, "SELECTED");
+}
+
+/* DELETE */
+function doDelete() {
+    
+    GridObj.SetParam("mode", "delete");
+
+    GridObj.DoQuery(servlet_url, "SELECTED");
+}
+
+/*******************************************   WiseGrid 통신 후  설정  ******************************************************/
+
+/*┌──────────────────────────────────┐
+  │데이터 조회가 정상적으로 완료되면 발생되는 Event에 대한 Fnc
+  └──────────────────────────────────┘*/
+function GridEndQuery() 
+{
+    var mode = GridObj.GetParam("mode");
+    var error_msg = '';
+    
+    if(mode == "search") //조회가 완료된 경우
+    {
+        if(GridObj.GetStatus() == "true") 
+        {                           
+        	var dayCnt = 1;
+        	for( i = 1 ; i <= weekCnt ; i++ ){
+        		for( j = 0 ; j < 7 ; j++ ){
+        			var strDay = "";
+        			if( dayCnt < 10 ) strDay += "0" + dayCnt;
+        			else strDay += dayCnt;
+        			
+		            GridObj.SetColCellAlign("D" + strDay + "A",'right');
+		            GridObj.SetColCellAlign("D" + strDay + "B",'right');
+		            GridObj.SetColCellAlign("D" + strDay + "C",'right');
+		            
+		            dayCnt++;
+        		}
+	            
+	            GridObj.SetColCellAlign("IDX_QTY" + i,'right');      
+				
+				GridObj.SetColCellAlign("NORMAL" + i,'center');
+				GridObj.SetColCellAlign("EXTENSION" + i,'center');
+				GridObj.SetColCellAlign("DAY_OFF" + i,'center');
+				
+				GridObj.SetColCellBgColor("IDX_QTY" + i,'238|238|0');
+        	}
+
+                                
+            //데이터를 그룹핑 한다.                                                     
+            GridObj.SetGroupMerge("PLANT_NAME");             
+			
+			//휴동 연장 색 지정
+			var rowLeng = GridObj.GetRowCount();
+        	for( i = 0 ; i < rowLeng ; i++ ){
+        		for( j = 1 ; j <= weekCnt*7 ; j++ ){
+        			for( m = 0 ; m < 3; m++ ){
+        				var shift;
+        				if(m == 0) shift = "A";
+        				if(m == 1) shift = "B";
+        				if(m == 2) shift = "C";
+						
+						var strDay = "";
+						if( j < 10 ) strDay += "0" + j
+						else strDay += j;
+						var value = GridObj.GetCellHiddenValue("D" + strDay + shift,i);
+        				// 연장
+        				if(value == "2" ){
+        					GridObj.SetCellBgColor("D" + strDay + shift, i, color01);
+        				}
+						// 휴동
+						else if(value == "3" ){
+        					GridObj.SetCellBgColor("D" + strDay + shift, i, color02);
+        				}
+        			}
+        		}
+        	}
+        } else    
+        { 
+            error_msg = GridObj.GetMessage(); 
+            alert(error_msg);            
+        }
+    }
+    if(mode == "save") //조회가 완료된 경우
+    {
+        if(GridObj.GetStatus() == "true") 
+        {                           
+            doQuery(); doQuery2();
+        } else    
+        { 
+            error_msg = GridObj.GetMessage(); 
+            alert(error_msg);            
+        }
+    }
+}
+
+
+/*┌──────────────────────────────────┐
+  │데이터 조회가 정상적으로 완료되면 발생되는 Event에 대한 Fnc
+  └──────────────────────────────────┘*/
+function GridEndQuery2() 
+{
+    var mode = GridObj2.GetParam("mode");
+    var error_msg = 'Grid2에러';
+      
+    if(mode == "search") //조회가 완료된 경우
+    {			
+        if(GridObj2.GetStatus() == "true") 
+        {                           
+            GridObj2.SetColCellAlign("D01A",'right');
+            GridObj2.SetColCellAlign("D01B",'right');
+            GridObj2.SetColCellAlign("D01C",'right');
+            GridObj2.SetColCellAlign("D02A",'right');
+            GridObj2.SetColCellAlign("D02B",'right');
+            GridObj2.SetColCellAlign("D02C",'right');
+            GridObj2.SetColCellAlign("D03A",'right');
+            GridObj2.SetColCellAlign("D03B",'right');
+            GridObj2.SetColCellAlign("D03C",'right');
+            GridObj2.SetColCellAlign("D04A",'right');
+            GridObj2.SetColCellAlign("D04B",'right');
+            GridObj2.SetColCellAlign("D04C",'right');
+            GridObj2.SetColCellAlign("D05A",'right');
+            GridObj2.SetColCellAlign("D05B",'right');
+            GridObj2.SetColCellAlign("D05C",'right');
+            GridObj2.SetColCellAlign("D06A",'right');
+            GridObj2.SetColCellAlign("D06B",'right');
+            GridObj2.SetColCellAlign("D06C",'right');
+            GridObj2.SetColCellAlign("D07A",'right');
+            GridObj2.SetColCellAlign("D07B",'right');
+            GridObj2.SetColCellAlign("D07C",'right');               
+        } else    
+        { 
+            error_msg = GridObj2.GetMessage(); 
+            alert(error_msg);            
+        }
+    }
+}
+   
+
+/*********************************************   WiseGrid Event   *********************************************************/
+
+/*┌──────────────────────────────────┐
+  │그리드의 데이터가 변경 되었을 경우 처리되는 Fnc
+  └──────────────────────────────────┘*/
+function GridChangeCell(strColumnKey, nRow) 
+{
+
+} 
+
+/*┌──────────────────────────────────┐
+  │그리드의 원 클릭 이벤트
+  └──────────────────────────────────┘*/
+function GridCellClick(strColumnKey, nRow){     
+
+}        
+
+/*┌──────────────────────────────────┐
+  │그리드의 더블 클릭 이벤트
+  └──────────────────────────────────┘*/        
+function GridCellDblClickHandler(strColumnKey, nRow){
+	//alert(GridObj.GetCellHiddenValue(strColumnKey, nRow));
+	if ((strColumnKey.substr(0,1)!='D' && strColumnKey.substr(-1)!='A')||(strColumnKey.substr(0,1)!='D' && strColumnKey.substr(-1)!='B')||(strColumnKey.substr(0,1)!='D' && strColumnKey.substr(-1)!='C'))
+	{
+		return false;
+	}
+	
+	if( strToNum(GridObj.GetCellValue(strColumnKey, nRow)) > 0 || GridObj.GetCellHiddenValue(strColumnKey, nRow) == "null") return;
+	
+	var plant_id = GridObj.GetCellHiddenValue("PLANT_NAME", nRow);
+	var line_id = GridObj.GetCellHiddenValue("LINE_NAME", nRow);
+	var sdate = document.frm.sdate.value;
+	var edate = document.frm.edate.value;
+	var date_seq = Number(strColumnKey.substr(1,2))-1;
+	var shift_type;
+	if( strColumnKey.substr(3,1) == "A") shift_type = '1'
+	else if( strColumnKey.substr(3,1) == "B") shift_type = '3'
+	else if( strColumnKey.substr(3,1) == "C") shift_type = '5'
+	var day_off = "";
+	var user_id = document.frm._user_id.value;
+	
+	var param = "plant_id!%!line_id!%!sdate!%!date_seq!%!shift_type!%!day_off!%!user_id!%!edate";
+	
+	if( GridObj.GetCellHiddenValue(strColumnKey, nRow) == "3"){
+		
+		if(confirm("휴동 설정을 해제 하시겠습니까?")){
+		
+			day_off = "N";
+			var value = plant_id + "!%!" + line_id + "!%!" + sdate + "!%!" + date_seq + "!%!"
+						+ shift_type + "!%!" + day_off + "!%!" + user_id + "!%!" + edate;
+			
+			commonUtil.executeQuery(param, value, "daily_shift_day_off_update",{
+				callback:function(result){
+					if(result == "SUCCESS"){
+						//alert(" 성공");
+						GridObj.SetCellBgColor(strColumnKey, nRow, '255|255|255');
+						GridObj.SetCellHiddenValue( strColumnKey, nRow, "1" );
+					}
+					else{
+						alert(" 실패");
+					}
+				}
+			});
+		}
+	}
+	else{
+		if(confirm("휴동으로 설정 하시겠습니까?")){
+			
+			/*
+			GridObj3.InsertRow(-1); // Hidden Gride에 Row 추가
+			var rowIdx = GridObj3.GetRowCount()-1;
+			var date_seq = Number(strColumnKey.substr(1,2))-1;
+			var shift_type;
+			if( strColumnKey.substr(3,1) == "A") shift_type = '1'
+			else if( strColumnKey.substr(3,1) == "B") shift_type = '3'
+			else if( strColumnKey.substr(3,1) == "C") shift_type = '5'
+			//alert(date_seq);
+			
+			// Set Value 
+			GridObj3.SetCellValue("CRUD", rowIdx, "C" );
+			GridObj3.SetCellValue("CAT_ID", rowIdx, "PS" );
+			GridObj3.SetCellValue("PLANT_ID", rowIdx, GridObj.GetCellHiddenValue("PLANT_NAME", nRow) );
+			GridObj3.SetCellValue("LINE_ID", rowIdx, GridObj.GetCellHiddenValue("LINE_NAME", nRow) );
+			GridObj3.SetCellValue("WEEK53_NO", 0, "C" );
+			GridObj3.SetCellValue("PROD_DATES", rowIdx, date_seq );
+			GridObj3.SetCellValue("SHIFT_TYPE", rowIdx, shift_type ); 
+			GridObj3.SetCellValue("DAY_OFF", rowIdx, "Y" ); 
+			*/
+			
+			day_off = "Y";
+			var value = plant_id + "!%!" + line_id + "!%!" + sdate + "!%!" + date_seq + "!%!"
+						+ shift_type + "!%!" + day_off + "!%!" + user_id;
+			
+			commonUtil.executeQuery(param, value, "daily_shift_day_off_update",{
+				callback:function(result){
+					if(result == "SUCCESS"){
+						alert(" 성공");
+						GridObj.SetCellBgColor(strColumnKey, nRow, color02);
+						GridObj.SetCellHiddenValue( strColumnKey, nRow, "3" );
+					}
+					else{
+						alert(" 실패");
+					}
+				}
+			});
+			
+		}
+	}
+	
+}
+
+/*********************************************   기타 Function   **********************************************************/
+
+/*┌──────────────────────────────────┐
+  │그리드의 사이즈 조절 Fnc
+  └──────────────────────────────────┘*/
+function setWiseGridAutoResize( tab_h, table_h ){
+    
+    var maxWidthValue;
+    var maxHeightValue;
+    
+    if (document.layers) {
+        //Nescape
+        maxWidthValue = window.innerWidth;
+        maxHeightValue = window.innerHeight;
+    }
+    if (document.all) {
+        //explore
+        maxWidthValue = document.body.clientWidth;
+        maxHeightValue = document.body.clientHeight;
+    } 
+    
+    var tabHeightValue = Number(maxHeightValue) - Number(tab_h) ; 
+    var tableHeightValue = Number(maxHeightValue) - Number(table_h) ; 
+    
+    var search_h = document.frm.search_h.value; 
+    if( search_menu.style.display == "none" ) 
+    { 
+        tabHeightValue += Number(search_h); 
+        tableHeightValue += Number(search_h); 
+    } 
+    
+    // 화면 size 축소 시 화면이 너무 작아 그리드 크기가 음수가 되면 에러가 나므로 그 경우 무조건 1로 세팅 
+    // ==> 화면이 더이상 축소되지 않음 
+    if( tabHeightValue < 1 ) 
+        tabHeightValue = 1; 
+    if( tableHeightValue < 1 ) 
+        tableHeightValue = 1; 
+    
+    //tabPage1.style.height = tabHeightValue + "px"; 
+    //tbMain.style.height = tableHeightValue + "px"; 
+	document.WiseGrid.height = (tableHeightValue/3*2) + "px"; 
+	document.WiseGrid2.height = (tableHeightValue/3*1) + "px"; 
+        
+}     
+ 
+/*┌──────────────────────────────────┐
+  │주차 선택 Fnc
+  └──────────────────────────────────┘*/	
+function onChangeDate(obj){
+	alert("!!");
+	GridObj.ClearGrid();
+	setHeader(GridObj);
+	//doQuery();
+	//GridObj2.ClearGrid();
+	//setHeader2(GridObj2);
+	//doQuery2();
+}
+
+function weeklyCount(){
+//	var plant_id   = document.frm.selected_plant.value ;
+//    var sdate = document.frm.sdate.value;
+//    var edate = document.frm.edate.value;
+    
+    document.frm.weekCnt.value = weekCnt;
+ 
+    var paramString = "";
+//    paramString = "&plant_id=" + plant_id;
+//    paramString+= "&sdate="    + sdate;
+//    paramString+= "&edate="    + edate;
+//    paramString+= "&weekCnt="  + weekCnt;
+       
+    
+    var fileName = "sc_16010_dailyWorkTotalization_popup";
+    var service_url = "service.do?_moon_service="+fileName+"&_moon_perpage=200&_moon_pagenumber=1" + paramString;
+    //var newWin = window.showModalDialog(service_url, self, "dialogLeft:0px; dialogTop:0px; dialogWidth:800px; dialogHeight:480px ; dialogScrollbars=no");
+    
+    var pop_win_style = "titlebar=no, menubar=no, toolbar=no, status=yes, scrollbars=no, resizable=yes, width=800, height=400, top=0, left=0";
+	var newWin = window.open(service_url, "sc_16010_dailyWorkTotalization_popup", pop_win_style); 
+	newWin.focus();
+    
+//    if(newWin == -1)
+//    {
+//        GoSearch('xx');
+//    }
+}
+

@@ -1,141 +1,141 @@
-<?xml version="1.0" encoding="euc-kr"?>
-
-<jobs>
-
-	<!-- 
-	=======================
-	  유통가공 조정
-	=======================
-	-->
-	<!-- 유통가공 조정 관리 By KIM 추가 --> 
-	<job id="sc_01100_etc_plan_list" job_type="single" check_permission="no">
-		<path>/sinc/20.Scheduling</path>
-		<navigation>생산계획 >> 운영정보 >> 유통가공정보 조정</navigation>
-		<toolbars>0010</toolbars>  
-		<title>유통가공정보 관리</title>
-		<authority>1</authority>		
-		<description>유통가공정보 관리</description> 
-		<request_type>list</request_type>   
-		<queries>       
-		    <query idref="plant_alloc_combo_version_list" datasource="t3sinc"/> 
-			<query idref="etc_day_list" datasource="t3sinc"/>  	
-			<query idref="grid_p_loc_list" datasource="t3sinc"/>	
-			<query idref="sc_01100_etc_plan_list" datasource="t3sinc"/>	
-		</queries>   
-	</job>  	  
-
-	<!-- 유통가공품 상세조회 : POPUP -->  
-	<job id="sc_01100_etc_plan_popup" job_type="single">
-		<path>/sinc/20.Scheduling</path>
-		<navigation>생산계획 >> 운영정보 >> 유통가공정보 조정(popup)</navigation>
-		<toolbars>0000</toolbars>
-		<title>유통가공품 상세조회</title>
-		<authority>1</authority> 
-		<description>popup</description>
-		<request_type>list</request_type>  
-		<queries>
-		    <query idref="etc_day_list" datasource="t3sinc"/> 
-			<query idref="sc_01100_etc_plan_popup" datasource="t3sinc"/>		
-		</queries>
-	</job>  
-		     	 
-	<!-- 유통가공품 조정 관리 : 저장 --> 
-	<job id="sc_01100_etc_plan_list_save_comp" job_type="composite" check_permission="no">
-		<sub_job id="sc_01100_etc_plan_list_save"/>		
-		<sub_job id="sc_01100_etc_plan_list"/>
-		<permission_desc>유통가공 조정 관리-저장</permission_desc>
-	</job>
-	<job id="sc_01100_etc_plan_list_save" job_type="single" check_permission="no">				
-		<request_type>insert</request_type> 
-		<queries>
-			<!-- 01. ETC_INFO_MST 테이블에 수정  VERSION이 있을때는  DELETE  -->	
-			<!-- 02. ETC_INFO_MST 테이블에 수정한 VERSION의 데이터가 없을 경우만 INSERT  -->			
-			<query idref="sc_01100_etc_plan_list_save_01" datasource="t3sinc"/>		
-			<query idref="sc_01100_etc_plan_list_save_02" datasource="t3sinc"/>
-		</queries>	
-	</job> 
-  
-	<!-- 유통가공 구성품 조정 관리 : 저장 --> 
-	<job id="sc_01100_etc_plan_detail_list_save_comp" job_type="composite" check_permission="no">
-		<sub_job id="sc_01100_etc_plan_detail_list_save"/>	 	
-		<sub_job id="sc_01100_etc_plan_detail_list"/>
-		<permission_desc>유통가공 조정 관리-저장</permission_desc>
-	</job>
-	<job id="sc_01100_etc_plan_detail_list_save" job_type="single" check_permission="no">				
-		<request_type>insert</request_type>
-		<queries> 
-			<!-- 01. ETC_INFO_MST 테이블에 수정  VERSION이 있을때는  DELETE  -->	
-			<!-- 02. ETC_INFO_MST 테이블에 수정한 VERSION의 데이터가 없을 경우만 INSERT  -->			
-			<query idref="sc_01100_etc_plan_detail_list_save_01" datasource="t3sinc"/>		
-			<query idref="sc_01100_etc_plan_detail_list_save_02" datasource="t3sinc"/>
-		</queries>	
-	</job> 
-     
-	<!-- 유통가공 조정 관리(iframe_01) By KIM 추가 -->  
-	<job id="sc_01100_etc_plan_detail_list" job_type="single" check_permission="no">
-		<path>/sinc/20.Scheduling</path>
-		<navigation>생산계획 >> 운영정보 >> 유통가공정보 조정</navigation>
-		<toolbars>0010</toolbars> 
-		<title>유통가공정보 관리</title>
-		<authority>1</authority>		
-		<description>iframe</description>  
-		<request_type>list</request_type> 
-		<queries>     
-		  <query idref="grid_loc_list"     datasource="t3sinc"/>	
-		  <query idref="grid_plant_list"   datasource="t3sinc"/>	
-		  <query idref="etc_day_list"      datasource="t3sinc"/>  	  
-		  <query idref="sc_01100_etc_plan_detail_list" datasource="t3sinc"/>  		  
-		</queries>    
-	</job>  
-
-	<!-- 유통가공 조정 관리(iframe_02) By KIM 추가 -->  
-	<job id="sc_01100_etc_plan_detail02_list" job_type="single" check_permission="no">
-		<path>/sinc/20.Scheduling</path>
-		<navigation>생산계획 >> 운영정보 >> 유통가공정보 조정</navigation>
-		<toolbars>0010</toolbars> 
-		<title>유통가공정보 관리</title>
-		<authority>1</authority>		
-		<description>iframe</description> 
-		<request_type>list</request_type> 
-		<queries>      
-		  <query idref="etc_day_list" datasource="t3sinc"/>
-		  <query idref="sc_01100_etc_plan_detail02_list" datasource="t3sinc"/>  		  
-		</queries>  
-	</job>  
-
-	<!-- 유통가공품 excel down_load By KIM 추가 -->    
-	<job id="sc_01100_etc_plan_excel" job_type="single">
-		<path>/sinc/20.Scheduling</path>
-		<navigation>생산계획 >> 운영정보 >> 유통가공품 EXCEL</navigation>
-		<toolbars>0010</toolbars> 
-		<title>유통가공정보 excel</title>
-		<authority>1</authority>		
-		<description>excel</description> 
-		<request_type>list</request_type> 
-		<queries>        
-		  <query idref="etc_day_list" datasource="t3sinc"/> 
-		  <query idref="sc_01100_etc_plan_excel" datasource="t3sinc"/>  		  		   
-		</queries>  
-	</job>   
-
-	<!-- 유통가공 구성품 excel down_load By KIM 추가 -->    
-	<job id="sc_01100_etc_plan_detail_excel" job_type="single">
-		<path>/sinc/20.Scheduling</path>
-		<navigation>생산계획 >> 운영정보 >> 유통가공구성품 EXCEL </navigation>
-		<toolbars>0010</toolbars> 
-		<title>유통가공정보 excel</title>
-		<authority>1</authority>		
-		<description>excel</description> 
-		<request_type>list</request_type> 
-		<queries>        
-		  <query idref="etc_day_list" datasource="t3sinc"/> 
-		  <query idref="sc_01100_etc_plan_detail_excel" datasource="t3sinc"/>  		  		   
-		</queries>  
-	</job>   
-
-<!-- 
-=====================================================================================================
- 끝 
-=====================================================================================================
--->  	
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+	<!-- 
+	=======================
+	  유통가공 조정
+	=======================
+	-->
+	<!-- 유통가공 조정 관리 By KIM 추가 --> 
+	<job id="sc_01100_etc_plan_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 유통가공정보 조정</navigation>
+		<toolbars>0010</toolbars>  
+		<title>유통가공정보 관리</title>
+		<authority>1</authority>		
+		<description>유통가공정보 관리</description> 
+		<request_type>list</request_type>   
+		<queries>       
+		    <query idref="plant_alloc_combo_version_list" datasource="t3sinc"/> 
+			<query idref="etc_day_list" datasource="t3sinc"/>  	
+			<query idref="grid_p_loc_list" datasource="t3sinc"/>	
+			<query idref="sc_01100_etc_plan_list" datasource="t3sinc"/>	
+		</queries>   
+	</job>  	  
+
+	<!-- 유통가공품 상세조회 : POPUP -->  
+	<job id="sc_01100_etc_plan_popup" job_type="single">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 유통가공정보 조정(popup)</navigation>
+		<toolbars>0000</toolbars>
+		<title>유통가공품 상세조회</title>
+		<authority>1</authority> 
+		<description>popup</description>
+		<request_type>list</request_type>  
+		<queries>
+		    <query idref="etc_day_list" datasource="t3sinc"/> 
+			<query idref="sc_01100_etc_plan_popup" datasource="t3sinc"/>		
+		</queries>
+	</job>  
+		     	 
+	<!-- 유통가공품 조정 관리 : 저장 --> 
+	<job id="sc_01100_etc_plan_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_01100_etc_plan_list_save"/>		
+		<sub_job id="sc_01100_etc_plan_list"/>
+		<permission_desc>유통가공 조정 관리-저장</permission_desc>
+	</job>
+	<job id="sc_01100_etc_plan_list_save" job_type="single" check_permission="no">				
+		<request_type>insert</request_type> 
+		<queries>
+			<!-- 01. ETC_INFO_MST 테이블에 수정  VERSION이 있을때는  DELETE  -->	
+			<!-- 02. ETC_INFO_MST 테이블에 수정한 VERSION의 데이터가 없을 경우만 INSERT  -->			
+			<query idref="sc_01100_etc_plan_list_save_01" datasource="t3sinc"/>		
+			<query idref="sc_01100_etc_plan_list_save_02" datasource="t3sinc"/>
+		</queries>	
+	</job> 
+  
+	<!-- 유통가공 구성품 조정 관리 : 저장 --> 
+	<job id="sc_01100_etc_plan_detail_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="sc_01100_etc_plan_detail_list_save"/>	 	
+		<sub_job id="sc_01100_etc_plan_detail_list"/>
+		<permission_desc>유통가공 조정 관리-저장</permission_desc>
+	</job>
+	<job id="sc_01100_etc_plan_detail_list_save" job_type="single" check_permission="no">				
+		<request_type>insert</request_type>
+		<queries> 
+			<!-- 01. ETC_INFO_MST 테이블에 수정  VERSION이 있을때는  DELETE  -->	
+			<!-- 02. ETC_INFO_MST 테이블에 수정한 VERSION의 데이터가 없을 경우만 INSERT  -->			
+			<query idref="sc_01100_etc_plan_detail_list_save_01" datasource="t3sinc"/>		
+			<query idref="sc_01100_etc_plan_detail_list_save_02" datasource="t3sinc"/>
+		</queries>	
+	</job> 
+     
+	<!-- 유통가공 조정 관리(iframe_01) By KIM 추가 -->  
+	<job id="sc_01100_etc_plan_detail_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 유통가공정보 조정</navigation>
+		<toolbars>0010</toolbars> 
+		<title>유통가공정보 관리</title>
+		<authority>1</authority>		
+		<description>iframe</description>  
+		<request_type>list</request_type> 
+		<queries>     
+		  <query idref="grid_loc_list"     datasource="t3sinc"/>	
+		  <query idref="grid_plant_list"   datasource="t3sinc"/>	
+		  <query idref="etc_day_list"      datasource="t3sinc"/>  	  
+		  <query idref="sc_01100_etc_plan_detail_list" datasource="t3sinc"/>  		  
+		</queries>    
+	</job>  
+
+	<!-- 유통가공 조정 관리(iframe_02) By KIM 추가 -->  
+	<job id="sc_01100_etc_plan_detail02_list" job_type="single" check_permission="no">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 유통가공정보 조정</navigation>
+		<toolbars>0010</toolbars> 
+		<title>유통가공정보 관리</title>
+		<authority>1</authority>		
+		<description>iframe</description> 
+		<request_type>list</request_type> 
+		<queries>      
+		  <query idref="etc_day_list" datasource="t3sinc"/>
+		  <query idref="sc_01100_etc_plan_detail02_list" datasource="t3sinc"/>  		  
+		</queries>  
+	</job>  
+
+	<!-- 유통가공품 excel down_load By KIM 추가 -->    
+	<job id="sc_01100_etc_plan_excel" job_type="single">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 유통가공품 EXCEL</navigation>
+		<toolbars>0010</toolbars> 
+		<title>유통가공정보 excel</title>
+		<authority>1</authority>		
+		<description>excel</description> 
+		<request_type>list</request_type> 
+		<queries>        
+		  <query idref="etc_day_list" datasource="t3sinc"/> 
+		  <query idref="sc_01100_etc_plan_excel" datasource="t3sinc"/>  		  		   
+		</queries>  
+	</job>   
+
+	<!-- 유통가공 구성품 excel down_load By KIM 추가 -->    
+	<job id="sc_01100_etc_plan_detail_excel" job_type="single">
+		<path>/sinc/20.Scheduling</path>
+		<navigation>생산계획 >> 운영정보 >> 유통가공구성품 EXCEL </navigation>
+		<toolbars>0010</toolbars> 
+		<title>유통가공정보 excel</title>
+		<authority>1</authority>		
+		<description>excel</description> 
+		<request_type>list</request_type> 
+		<queries>        
+		  <query idref="etc_day_list" datasource="t3sinc"/> 
+		  <query idref="sc_01100_etc_plan_detail_excel" datasource="t3sinc"/>  		  		   
+		</queries>  
+	</job>   
+
+<!-- 
+=====================================================================================================
+ 끝 
+=====================================================================================================
+-->  	
 </jobs>

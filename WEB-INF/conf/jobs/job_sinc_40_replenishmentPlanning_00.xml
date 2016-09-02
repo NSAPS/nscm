@@ -1,592 +1,592 @@
-<?xml version="1.0" encoding="euc-kr"?>
-
-<jobs>
-
-<!--
-=====================================================================================================
-	수송계획 >> 운영정보
-=====================================================================================================
---> 
-	<!--
-	======================================================================
-		◈1. Route수송조회 및 조정
-	======================================================================
-	-->
-	
-	<!-- Route수송조회 및 조정 : 조회-->
-	<job id="rp_01020_dailyMultiDropAdjust_list" job_type="single" check_permission="no">
-		<path>/sinc/40.ReplenishmentPlanning</path>
-		<navigation>수송계획 >> 운영정보 >> Route수송조회 및 조정</navigation>
-		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>Route수송조회 및 조정</title>
-		<authority>1</authority>		
-		<description>Route수송조회 및 조정</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="dailyTransportPlan_period_type_list" datasource="t3sinc"/> <!-- 계획주기리스트 -->
-		    <query idref="dailyTransportPlan_version_list" datasource="t3sinc"/> <!-- 버전리스트 -->
-		    <query idref="trans_dc_id_and_short_name_list" datasource="t3sinc"/> <!-- 입고장 리스트 -->
-		    <query idref="dc_route_path_route_id" datasource="t3sinc"/> <!-- ROUTE 리스트 -->
-		    <query idref="dc_route_path_rdcs" datasource="t3sinc"/> <!-- DC_ROUTE_PATH의 RDC1, RDC2, RDC3 -->
-			<query idref="rp_01020_dailyMultiDropAdjust_list" datasource="t3sinc"/> 		
-		</queries>
-	</job>
-	
-	<!-- Route수송조회 및 조정 : 저장 -->
-	<job id="rp_01020_dailyMultiDropAdjust_list_save_comp" job_type="composite" check_permission="no">
-		<sub_job id="rp_01020_dailyMultiDropAdjust_list_save"/>		
-		<sub_job id="rp_01020_dailyMultiDropAdjust_list"/>
-		<permission_desc>Route수송조회 및 조정-저장</permission_desc>
-	</job>
-	<job id="rp_01020_dailyMultiDropAdjust_list_save" job_type="single">
-		<request_type>insert</request_type>
-		<queries>
-			<query idref="rp_01020_dailyMultiDropAdjust_list_save_01" datasource="t3sinc"/> <!-- TRANS_PLAN UPDATE -->
-			<query idref="rp_01020_dailyMultiDropAdjust_list_save_02" datasource="t3sinc"/> <!-- TRANS_PLAN INSERT -->
-			<query idref="rp_01020_dailyMultiDropAdjust_list_save_03" datasource="t3sinc"/> <!-- STOCK_PLAN UPDATE : 입고장기준 -->
-			<query idref="rp_01020_dailyMultiDropAdjust_list_save_04" datasource="t3sinc"/> <!-- STOCK_PLAN UPDATE : 출고장기준 -->
-			<query idref="rp_01020_dailyMultiDropAdjust_list_save_05" datasource="t3sinc"/> <!-- TRANS_PLAN DELETE -->
-			<query idref="rp_01020_dailyMultiDropAdjust_list_save_06" datasource="t3sinc"/> <!-- TRANS_PLAN FLAG INIT -->
-		</queries>
-	</job>
-	
-	<!--
-	======================================================================
-		◈2. Push계획 조정
-	======================================================================
-	-->
-	
-	<!-- Push계획 조정 : 조회-->
-	<job id="rp_01030_dailyPushTransportAdjust_list" job_type="single" check_permission="no">
-		<path>/sinc/40.ReplenishmentPlanning</path>
-		<navigation>수송계획 >> 운영정보 >> Push계획 조정</navigation>
-		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>Push계획 조정</title>
-		<authority>1</authority>		
-		<description>Push계획 조정</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="dailyTransportPlan_period_type_list" datasource="t3sinc"/> <!-- 계획주기리스트 -->
-		    <query idref="dailyTransportPlan_version_list" datasource="t3sinc"/> <!-- 버전리스트 -->
-		    <query idref="src_loc_and_max_capa" datasource="t3sinc"/> <!-- 출고장과 최대재고 리스트 -->
-		    <query idref="stock_plan_and_expect_stock" datasource="t3sinc"/> <!-- 마감예상재고 조회 -->
-			<query idref="rp_01030_dailyPushTransportAdjust_list" datasource="t3sinc"/> 		
-		</queries>
-	</job>
-	<!-- Push계획 조정 : 저장 -->
-	<job id="rp_01030_dailyPushTransportAdjust_list_save_comp" job_type="composite" check_permission="no">
-		<sub_job id="rp_01030_dailyPushTransportAdjust_list_save"/>		
-		<sub_job id="rp_01030_dailyPushTransportAdjust_list"/>
-		<permission_desc>Push계획 조정-저장</permission_desc>
-	</job>
-	<job id="rp_01030_dailyPushTransportAdjust_list_save" job_type="single">
-		<request_type>insert</request_type>
-		<queries>
-			<query idref="rp_01030_dailyPushTransportAdjust_list_save_01" datasource="t3sinc"/> <!-- STOCK_PLAN UPDATE : 입고장기준(변경되기전 수송계획일자)-->
-			<query idref="rp_01030_dailyPushTransportAdjust_list_save_02" datasource="t3sinc"/> <!-- STOCK_PLAN UPDATE : 출고장기준(변경되기전 수송계획일자)-->
-			<query idref="rp_01030_dailyPushTransportAdjust_list_save_03" datasource="t3sinc"/> <!-- STOCK_PLAN UPDATE : 입고장기준 (변경된 수송계획일자) -->
-			<query idref="rp_01030_dailyPushTransportAdjust_list_save_04" datasource="t3sinc"/> <!-- STOCK_PLAN UPDATE : 출고장기준(변경된 수송계획일자) -->
-			<query idref="rp_01030_dailyPushTransportAdjust_list_save_05" datasource="t3sinc"/> <!-- TRANS_PLAN UPDATE : 변경된 수송계획일자로 UPDATE -->
-		</queries>
-	</job>
-	
-	<!--
-	======================================================================
-		◈3. 보충계획 요약
-	======================================================================
-	-->
-	
-	<!-- 보충계획 요약 : 조회-->
-	<job id="rp_01040_replenishmentSummary_list" job_type="single" check_permission="no">
-		<path>/sinc/40.ReplenishmentPlanning</path>
-		<navigation>수송계획 >> 운영정보 >> 보충계획 요약</navigation>
-		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>보충계획 요약</title>
-		<authority>1</authority>		
-		<description>보충계획 요약</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="dailyTransportPlan_period_type_list" datasource="t3sinc"/> <!-- 계획주기리스트 -->
-			<query idref="dailyTransportPlan_version_list" datasource="t3sinc"/> <!-- 버전리스트 -->
-			<query idref="code_mst_gubun_list" datasource="t3sinc"/> <!-- CODE_MST : 카테고리가 REPL_SMY_RPT인 리스트 -->
-			<query idref="dc_mst_dc_name_list" datasource="t3sinc"/> <!-- 출고장 이름 리스트 -->
-			<query idref="replenishmentSummary_list_header_width" datasource="t3sinc"/> <!-- UI 해더 각각의 WIDTH를 구하는 쿼리 -->		
-			<query idref="rp_01040_replenishmentSummary_list" datasource="t3sinc"/> 		
-		</queries>
-	</job>
-	
-	<!--
-	======================================================================
-		◈4. 주간 수송계획
-	======================================================================
-	-->
-	
-	<!-- 주간 수송계획 : 조회-->
-	<job id="rp_01050_weeklyReplenishmentExec_list" job_type="single" check_permission="no">
-		<path>/sinc/40.ReplenishmentPlanning</path>
-		<navigation>수송계획 >> 운영정보 >> 주간 수송계획</navigation>
-		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>주간 수송계획</title>
-		<authority>1</authority>		
-		<description>주간 수송계획</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="weeklyTransportPlan_version_list" datasource="t3sinc"/> <!-- 주간 버전리스트 -->
-			<query idref="rp_01050_weeklyReplenishmentExec_list" datasource="t3sinc"/>
-		</queries>
-	</job>
-	
-	<!-- 주간 수송계획 : 확정 -->
-	<job id="rp_01050_weeklyReplenishmentExec_list_confirm_comp" job_type="composite" check_permission="no">
-		<sub_job id="rp_01050_weeklyReplenishmentExec_list_confirm"/>		
-		<sub_job id="rp_01050_weeklyReplenishmentExec_list"/>
-		<permission_desc>주간 수송계획-확정</permission_desc>
-	</job>
-	<job id="rp_01050_weeklyReplenishmentExec_list_confirm" job_type="single">
-		<request_type>insert</request_type>
-		<queries>
-			<query idref="rp_01050_weeklyReplenishmentExec_list_confirm_01" datasource="t3sinc"/> <!-- 일치하는 버전 데이타 삭제 -->
-			<query idref="rp_01050_weeklyReplenishmentExec_list_confirm_02" datasource="t3sinc"/> <!-- TRANS_PLAN_WEEKLY에 입력-->
-		</queries>
-	</job>
-	
-	<!-- 주간 수송계획 : 생성 -->
-	<job id="rp_01050_weeklyReplenishmentExec_list_create_comp" job_type="composite" check_permission="no">
-		<sub_job id="rp_01050_weeklyReplenishmentExec_list_create"/>		
-		<sub_job id="rp_01050_weeklyReplenishmentExec_list"/>
-		<permission_desc>주간 수송계획-생성</permission_desc>
-	</job>
-	<job id="rp_01050_weeklyReplenishmentExec_list_create" job_type="single">
-		<request_type>insert</request_type>
-		<queries>
-			<query idref="rp_01050_weeklyReplenishmentExec_list_create" datasource="t3sinc"/> <!-- PROCEDURE 호출 -->
-		</queries>
-	</job>
-	
-	<!--
-	======================================================================
-		◈5. 월간계획 조회
-	======================================================================
-	-->
-	
-	<!-- 월간계획 조회 : 조회-->
-	<job id="rp_01060_monthlyReplenishment_list" job_type="single" check_permission="no">
-		<path>/sinc/40.ReplenishmentPlanning</path>
-		<navigation>수송계획 >> 운영정보 >> 월간계획 조회</navigation>
-		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>월간계획 조회</title>
-		<authority>1</authority>		
-		<description>월간계획 조회</description>
-		<request_type>list</request_type>
-		<queries>
-			<!--<query idref="dailyTransportPlan_version_list" datasource="t3sinc"/>  일별 버전리스트 -->
-			<query idref="monthlyTransportPlan_version_list" datasource="t3sinc"/> <!-- 월별 버전리스트 -->
-			<query idref="trans_dc_id_and_short_name_list" datasource="t3sinc"/><!-- 입고장 정보 검색 조건 -->
-			<query idref="monthlyReplenishment_list_header" datasource="t3sinc"/><!-- HEADER 정보 -->
-			<query idref="rp_01060_monthlyReplenishment_list" datasource="t3sinc"/>
-		</queries>
-	</job>
-	
-	<!--
-	======================================================================
-		◈6. 주문가능량 정보
-	======================================================================
-	-->
-	
-	<!-- 주문가능량 정보 -->
-	<job id="rp_01080_orderingPossibleAmount_list" job_type="single" check_permission="no">
-		<path>/sinc/40.ReplenishmentPlanning</path>
-		<navigation>수송계획 >> 운영정보 >> 주문가능량 정보</navigation>
-		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>주문가능량 정보</title>
-		<authority>1</authority>		
-		<description>주문가능량 정보</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="dailyTransportPlan_period_type_list" datasource="t3sinc"/> <!-- 계획주기리스트 -->
-			<query idref="dailyTransportPlan_version_list" datasource="t3sinc"/> <!-- 버전리스트 -->
-			<query idref="trans_dc_id_and_short_name_list" datasource="t3sinc"/> <!-- 입고장 리스트 -->
-			<query idref="rp_01080_orderingPossibleAmount_list" datasource="t3sinc"/>
-		</queries>
-	</job>
-	
-	<!--
-	======================================================================
-		◈7. 수송진행 현황
-	======================================================================
-	-->
-	<!-- 수송진행 현황 : 1.상단 그리드 조회-->
-	<job id="rp_01100_transProgress_list" job_type="single" check_permission="no">
-		<path>/sinc/40.ReplenishmentPlanning</path>
-		<navigation>수송계획 >> 운영정보 >> 수송진행 현황</navigation>
-		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>수송진행 현황</title>
-		<authority>1</authority>		
-		<description>수송진행 현황</description>
-		<request_type>list</request_type>
-		<queries>		
-			<query idref="code_mst_of_plan_type" datasource="t3sinc"/> <!-- CODE_MST의 PLAN_TYPE 리스트 -->
-			<query idref="src_loc_and_name_list" datasource="t3sinc"/> <!-- 출고장 리스트 -->
-			<query idref="rp_01100_transProgress_list" datasource="t3sinc"/>
-		</queries>
-	</job>
-	
-	<!-- 수송진행 현황 : 2.중단 그리드 조회-->
-	<job id="rp_01100_transProgressBrandDetail_list" job_type="single" check_permission="no">
-		<path>/sinc/40.ReplenishmentPlanning</path>
-		<navigation></navigation>
-		<toolbars></toolbars>
-		<title>수송진행 현황</title>
-		<authority>1</authority>
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="rp_01100_transProgressBrandDetail_list" datasource="t3sinc"/>			
-		</queries>
-	</job>
-	
-	<!-- 수송진행 현황 : 3.하단 그리드 조회-->
-	<job id="rp_01100_transProgressItemDetail_list" job_type="single" check_permission="no">
-		<path>/sinc/40.ReplenishmentPlanning</path>
-		<navigation></navigation>
-		<toolbars></toolbars>
-		<title>수송진행 현황</title>
-		<authority>1</authority>
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="rp_01100_transProgressItemDetail_list" datasource="t3sinc"/>			
-		</queries>
-	</job>
-	
-	<!--
-	======================================================================
-		◈8. 반품 수송계획
-	======================================================================
-	-->
-	
-	<!-- 반품 수송 계획 : 조회-->
-	<job id="rp_01110_returningProduct_list" job_type="single" check_permission="no">
-		<path>/sinc/40.ReplenishmentPlanning</path>
-		<navigation>수송계획 >> 운영정보 >> 반품 수송계획</navigation>
-		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>반품 수송계획</title>
-		<authority>1</authority>		
-		<description>반품 수송계획</description>
-		<request_type>list</request_type>
-		<queries>		
-			<query idref="src_loc_and_name_list" datasource="t3sinc"/> <!-- 출고장 리스트 -->
-			<query idref="trans_dc_id_and_short_name_list" datasource="t3sinc"/> <!-- 입고장 리스트 -->
-			<query idref="code_mst_and_scrap_flag" datasource="t3sinc"/>
-			<query idref="rp_01110_returningProduct_list_01" datasource="t3sinc"/>
-			<query idref="rp_01110_returningProduct_list_02" datasource="t3sinc"/>	
-		</queries>
-	</job>
-	
-	<!-- 반품 수송계획 : 수송계획생성  -->
-	<job id="rp_01110_returningProduct_list_create_comp" job_type="composite" check_permission="no">
-		<sub_job id="rp_01110_returningProduct_list_create"/>
-		<sub_job id="rp_01110_returningProduct_list"/>
-		<permission_desc>수송계획조회 및 조정-저장</permission_desc>
-	</job>
-	<job id="rp_01110_returningProduct_list_create" job_type="single">
-		<request_type>insert</request_type>
-		<queries>
-			<query idref="rp_01110_returningProduct_list_create_01" datasource="t3sinc"/> <!-- PLAN_VERSION_LOG INSERT -->
-			<query idref="rp_01110_returningProduct_list_create_02" datasource="t3sinc"/> <!-- TRANS_PLAN INSERT -->
-			<query idref="rp_01110_returningProduct_list_create_03" datasource="t3sinc"/> <!-- IF_TRANS_PLAN INSERT -->
-		</queries>
-	</job>
-
-<!--
-=====================================================================================================
-	수송계획 >> 분석정보
-=====================================================================================================
---> 
-	<!--
-	======================================================================
-		◈1. C/D 및 긴급 주문량 확인
-	======================================================================
-	-->
-	
-	<!-- C/D 및 긴급 주문량 확인 : 조회-->
-	<job id="rp_02010_orderCrossDocking_list" job_type="single" check_permission="no">
-		<path>/sinc/40.ReplenishmentPlanning</path>
-		<navigation>수송계획 >> 분석정보 >> C/D 및 긴급 주문량 확인</navigation>
-		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>C/D 및 긴급 주문량 확인</title>
-		<authority>1</authority>		
-		<description>C/D 및 긴급 주문량 확인</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="dailyTransportPlan_period_type_list" datasource="t3sinc"/> <!-- 계획주기리스트 -->
-			<query idref="dailyTransportPlan_version_list" datasource="t3sinc"/> <!-- 버전리스트 -->
-			<query idref="orderCrossDocking_list_header" datasource="t3sinc"/> <!-- C/D(긴급) 주문량 확인 UI HEADER -->
-			<query idref="orderCrossDocking_list_header_width" datasource="t3sinc"/> <!-- C/D(긴급) 주문량 확인 UI HEADER WIDTH-->
-			<query idref="rp_02010_orderCrossDocking_list" datasource="t3sinc"/>
-		</queries>
-	</job>
-
-	<!--
-	======================================================================
-		◈2. 보충계획 현황
-	======================================================================
-	-->
-	
-	<!-- 보충계획 현황 : 조회-->
-	<job id="rp_02020_replenishmentPlan_list" job_type="single" check_permission="no">
-		<path>/sinc/40.ReplenishmentPlanning</path>
-		<navigation>수송계획 >> 분석정보 >> 보충계획 현황</navigation>
-		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>보충계획 현황</title>
-		<authority>1</authority>		
-		<description>보충계획 현황</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="dailyTransportPlan_period_type_list" datasource="t3sinc"/> <!-- 계획주기리스트 -->
-			<query idref="dailyTransportPlan_version_list" datasource="t3sinc"/> <!-- 버전리스트 -->
-			<query idref="trans_dc_id_and_short_name_list" datasource="t3sinc"/> <!-- 입고장 리스트 -->
-			<query idref="src_loc_and_name_list" datasource="t3sinc"/> <!-- 출고장 리스트 -->
-			<query idref="rp_02020_replenishmentPlan_list" datasource="t3sinc"/> 		
-		</queries>
-	</job>
-	
-	<!--
-	======================================================================
-		◈3. 예상재고 현황
-	======================================================================
-	-->
-	
-	<!-- 예상재고 현황 : 조회-->
-	<job id="rp_02030_inventoryProjection_list" job_type="single" check_permission="no">
-		<path>/sinc/40.ReplenishmentPlanning</path>
-		<navigation>수송계획 >> 분석정보 >> 예상재고 현황</navigation>
-		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>예상재고 현황</title>
-		<authority>1</authority>		
-		<description>예상재고 현황</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="dailyTransportPlan_period_type_list" datasource="t3sinc"/> <!-- 계획주기리스트 -->
-			<query idref="dailyTransportPlan_version_list" datasource="t3sinc"/> <!-- 버전리스트 -->
-			<query idref="code_mst_division_list" datasource="t3sinc"/> <!-- 품종구분 -->	
-			<query idref="inventoryProjection_list_header" datasource="t3sinc"/> <!-- 예상재고 HEADER -->
-			<query idref="rp_02030_inventoryProjection_list" datasource="t3sinc"/> 		
-		</queries>
-	</job>
-	
-	<!--
-	======================================================================
-		◈4. RDC별 예상재고 현황
-	======================================================================
-	-->
-	
-	<!-- RDC별 예상재고 현황 : 조회-->
-	<job id="rp_02040_inventoryProjectionByLocation_list" job_type="single" check_permission="no">
-		<path>/sinc/40.ReplenishmentPlanning</path>
-		<navigation>수송계획 >> 분석정보 >> RDC별 예상재고 현황</navigation>
-		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>RDC별 예상재고 현황</title>
-		<authority>1</authority>		
-		<description>RDC별 예상재고 현황</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="dailyTransportPlan_period_type_list" datasource="t3sinc"/> <!-- 계획주기리스트 -->
-			<query idref="dailyTransportPlan_version_list" datasource="t3sinc"/> <!-- 버전리스트 -->
-			<query idref="code_mst_division_list" datasource="t3sinc"/> <!-- 품종구분 -->
-			<query idref="inventoryProjectionByLocation_list_header" datasource="t3sinc"/> <!-- HEADER -->
-			<query idref="inventoryProjectionByLocation_list_header_width" datasource="t3sinc"/> <!-- HEADER WIDTH -->			
-			<query idref="rp_02040_inventoryProjectionByLocation_list" datasource="t3sinc"/> 		
-		</queries>
-	</job>
-	
-	<!--
-	======================================================================
-		◈5. 수송계획 검증
-	======================================================================
-	-->
-	
-	<!-- 수송계획 검증 : 조회-->
-	<job id="rp_02060_transPlanAnaly_list" job_type="single" check_permission="no">
-		<path>/sinc/40.ReplenishmentPlanning</path>
-		<navigation>수송계획 >> 분석정보 >> 수송계획검증</navigation>
-		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>수송계획검증</title>
-		<authority>1</authority>		
-		<description>수송계획검증</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="dailyTransportPlan_period_type_list" datasource="t3sinc"/> <!-- 수송 계획주기리스트 -->
-			<query idref="dailyTransportPlan_version_list" datasource="t3sinc"/> <!-- 수송 버전리스트 -->
-			<query idref="nfos_sales_plan_weekly_version_list" datasource="t3sinc"/><!-- 판매계획  최종버젼  -->
-			<query idref="nfos_order_version_list" datasource="t3sinc"/><!-- NFOS 주문정보 최종 I/F 버젼  -->
-			<query idref="rp_02060_transPlanAnaly_list" datasource="t3sinc"/> 		
-		</queries>
-	</job>
-	
-<!--
-=====================================================================================================
-	보충수송계획 >> 기준 정보
-=====================================================================================================
---> 
-	<!--
-	======================================================================
-		품목별 수송 Route 관리
-	======================================================================
-	-->
-	
-	<!-- 품목별 수송 Route 관리 : 조회-->
-	<job id="rp_01040_transRouteByProduct_list" job_type="single" check_permission="no">
-		<path>/sinc/40.ReplenishmentPlanning</path>
-		<navigation>보충수송계획 >> 기준 정보 >> 품목별 수송 Route 관리</navigation>
-		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>품목별 수송 Route 관리</title>
-		<authority>1</authority>		
-		<description>품목별 수송 Route 관리</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="rp_01040_transRouteByProduct_list" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH_EXCEPT 조회 -->
-			<query idref="transRouteByProduct_header" datasource="t3sinc"/>
-		</queries>
-	</job>
-	
-	<!-- 품목별 수송 Route 관리 : 저장 -->
-	<job id="rp_01040_transRouteByProduct_list_save_comp" job_type="composite" check_permission="no">
-		<sub_job id="rp_01040_transRouteByProduct_list_save"/>		
-		<sub_job id="rp_01040_transRouteByProduct_list"/>
-		<permission_desc>품목별 수송 Route 관리-저장</permission_desc>
-	</job>
-	<job id="rp_01040_transRouteByProduct_list_save" job_type="single">
-		<request_type>insert</request_type>
-		<queries>
-			<query idref="rp_01040_transRouteByProduct_list_save_01" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH_EXCEPT 삭제 -->
-			<query idref="rp_01040_transRouteByProduct_list_save_02" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH_EXCEPT 수정-->
-			<query idref="rp_01040_transRouteByProduct_list_save_03" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH_EXCEPT 입력 -->
-			<query idref="rp_01040_transRouteByProduct_list_save_04" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH 삭제 -->
-			<query idref="rp_01040_transRouteByProduct_list_save_05" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH 수정-->
-			<query idref="rp_01040_transRouteByProduct_list_save_06" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH 입력 -->
-		</queries>
-	</job>
-	
-	
-	<!--
-	======================================================================
-		거점별 수송 Route 관리
-	======================================================================
-	-->
-	
-	<!-- 거점별 수송 Route 관리 : 조회-->
-	<job id="rp_01050_transRouteByLocation_list" job_type="single" check_permission="no">
-		<path>/sinc/40.ReplenishmentPlanning</path>
-		<navigation>보충수송계획 >> 기준 정보 >> 거점별 수송 Route 관리</navigation>
-		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>거점별 수송 Route 관리</title>
-		<authority>1</authority>		
-		<description>거점별 수송 Route 관리</description>
-		<request_type>list</request_type>
-		<queries>
-		    <query idref="dc_id_and_name_list" datasource="t3sinc"/><!-- 입고장 정보 검색 조건 -->			
-			<query idref="transRouteByLocation_header" datasource="t3sinc"/>
-			<query idref="code_mst_cat3" datasource="t3sinc"/>
-			<query idref="rp_01050_transRouteByLocation_list" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH_EXCEPT 조회 -->
-		</queries>
-	</job>
-	
-	<!-- 거점별 수송 Route 관리 : 저장 -->
-	<job id="rp_01050_transRouteByLocation_list_save_comp" job_type="composite" check_permission="no">
-		<sub_job id="rp_01050_transRouteByLocation_list_save"/>		
-		<sub_job id="rp_01050_transRouteByLocation_list"/>
-		<permission_desc>거점별 수송 Route 관리-저장</permission_desc>
-	</job>
-	<job id="rp_01050_transRouteByLocation_list_save" job_type="single">
-		<request_type>insert</request_type>
-		<queries>
-			<query idref="rp_01050_transRouteByLocation_list_save_01" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH_EXCEPT 삭제 -->
-			<query idref="rp_01050_transRouteByLocation_list_save_02" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH_EXCEPT 수정-->
-			<query idref="rp_01050_transRouteByLocation_list_save_03" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH_EXCEPT 입력 -->
-			<query idref="rp_01050_transRouteByLocation_list_save_04" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH 삭제 -->
-			<query idref="rp_01050_transRouteByLocation_list_save_05" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH 수정-->
-			<query idref="rp_01050_transRouteByLocation_list_save_06" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH 입력 -->
-		</queries>
-	</job>
-	
-	<!--
-	======================================================================
-		제품별 수송 Route 자동생성
-	======================================================================
-	-->
-	
-	<!-- 제품별 수송 Route 자동생성 : 조회-->
-	<job id="rp_01030_transRoute_list" job_type="single" check_permission="no">
-		<path>/sinc/40.ReplenishmentPlanning</path>
-		<navigation>보충수송계획 >> 기준 정보 >> 제품별 수송 Route 자동생성</navigation>
-		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>제품별 수송 Route 자동생성</title>
-		<authority>1</authority>		
-		<description>제품별 수송 Route 자동생성</description>
-		<request_type>list</request_type>
-		<queries>
-		    <query idref="dc_id_and_name_list" datasource="t3sinc"/><!-- 입고장 정보 검색 조건 -->
-			<query idref="rp_01030_transRoute_list" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH 조회 -->
-		</queries>
-	</job>
-	
-	<!-- 제품별 수송 Route 자동생성 : 생성버튼 클릭시 -->
-	<job id="rp_01030_transRoute_list_create_comp" job_type="composite" check_permission="no">
-		<sub_job id="rp_01030_transRoute_list_create"/>		
-		<sub_job id="rp_01030_transRoute_list"/>
-		<permission_desc>제품별 수송 Route 자동생성-생성</permission_desc>
-	</job>
-	
-	<!-- 제품별 수송 Route 자동생성 : PROCEDURE 호출 -->
-	<job id="rp_01030_transRoute_list_create" job_type="single">
-		<request_type>insert</request_type>
-		<queries>
-			<query idref="rp_01030_transRoute_list_create" datasource="t3sinc"/>
-		</queries>
-	</job>
-	
-	<!--
-	======================================================================
-		Route 수송 기준정보
-	======================================================================
-	-->
-	
-	<!-- Route 수송 기준정보 : 조회-->
-	<job id="rp_01090_routeMultiDrop_list" job_type="single" check_permission="no">
-		<path>/sinc/40.ReplenishmentPlanning</path>
-		<navigation>보충수송계획 >> 기준 정보 >> Route 수송 기준정보</navigation>
-		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
-		<title>Route 수송 기준정보</title>
-		<authority>1</authority>		
-		<description>Route 수송 기준정보</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="src_loc_and_name_list" datasource="t3sinc"/><!-- 출고장 정보 검색 조건 -->
-			<query idref="dc_id_and_name_list" datasource="t3sinc"/><!-- 입고장 정보 검색 조건 -->
-			<query idref="rp_01090_routeMultiDrop_list" datasource="t3sinc"/> 
-		</queries>
-	</job>
-	
-	<!-- Route 수송 기준정보 : 저장 -->
-	<job id="rp_01090_routeMultiDrop_list_save_comp" job_type="composite" check_permission="no">
-		<sub_job id="rp_01090_routeMultiDrop_list_save"/>		
-		<sub_job id="rp_01090_routeMultiDrop_list"/>
-		<permission_desc>Route 수송 기준정보-저장</permission_desc>
-	</job>
-	<job id="rp_01090_routeMultiDrop_list_save" job_type="single">
-		<request_type>insert</request_type>
-		<queries>
-			<query idref="rp_01090_routeMultiDrop_list_save_01" datasource="t3sinc"/> 
-			<query idref="rp_01090_routeMultiDrop_list_save_02" datasource="t3sinc"/> 
-		</queries>
-	</job>
-	
-
-<!--
-=====================================================================================================
- 끝 
-=====================================================================================================
---> 
-
-</jobs>	
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+<!--
+=====================================================================================================
+	수송계획 >> 운영정보
+=====================================================================================================
+--> 
+	<!--
+	======================================================================
+		◈1. Route수송조회 및 조정
+	======================================================================
+	-->
+	
+	<!-- Route수송조회 및 조정 : 조회-->
+	<job id="rp_01020_dailyMultiDropAdjust_list" job_type="single" check_permission="no">
+		<path>/sinc/40.ReplenishmentPlanning</path>
+		<navigation>수송계획 >> 운영정보 >> Route수송조회 및 조정</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>Route수송조회 및 조정</title>
+		<authority>1</authority>		
+		<description>Route수송조회 및 조정</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="dailyTransportPlan_period_type_list" datasource="t3sinc"/> <!-- 계획주기리스트 -->
+		    <query idref="dailyTransportPlan_version_list" datasource="t3sinc"/> <!-- 버전리스트 -->
+		    <query idref="trans_dc_id_and_short_name_list" datasource="t3sinc"/> <!-- 입고장 리스트 -->
+		    <query idref="dc_route_path_route_id" datasource="t3sinc"/> <!-- ROUTE 리스트 -->
+		    <query idref="dc_route_path_rdcs" datasource="t3sinc"/> <!-- DC_ROUTE_PATH의 RDC1, RDC2, RDC3 -->
+			<query idref="rp_01020_dailyMultiDropAdjust_list" datasource="t3sinc"/> 		
+		</queries>
+	</job>
+	
+	<!-- Route수송조회 및 조정 : 저장 -->
+	<job id="rp_01020_dailyMultiDropAdjust_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="rp_01020_dailyMultiDropAdjust_list_save"/>		
+		<sub_job id="rp_01020_dailyMultiDropAdjust_list"/>
+		<permission_desc>Route수송조회 및 조정-저장</permission_desc>
+	</job>
+	<job id="rp_01020_dailyMultiDropAdjust_list_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="rp_01020_dailyMultiDropAdjust_list_save_01" datasource="t3sinc"/> <!-- TRANS_PLAN UPDATE -->
+			<query idref="rp_01020_dailyMultiDropAdjust_list_save_02" datasource="t3sinc"/> <!-- TRANS_PLAN INSERT -->
+			<query idref="rp_01020_dailyMultiDropAdjust_list_save_03" datasource="t3sinc"/> <!-- STOCK_PLAN UPDATE : 입고장기준 -->
+			<query idref="rp_01020_dailyMultiDropAdjust_list_save_04" datasource="t3sinc"/> <!-- STOCK_PLAN UPDATE : 출고장기준 -->
+			<query idref="rp_01020_dailyMultiDropAdjust_list_save_05" datasource="t3sinc"/> <!-- TRANS_PLAN DELETE -->
+			<query idref="rp_01020_dailyMultiDropAdjust_list_save_06" datasource="t3sinc"/> <!-- TRANS_PLAN FLAG INIT -->
+		</queries>
+	</job>
+	
+	<!--
+	======================================================================
+		◈2. Push계획 조정
+	======================================================================
+	-->
+	
+	<!-- Push계획 조정 : 조회-->
+	<job id="rp_01030_dailyPushTransportAdjust_list" job_type="single" check_permission="no">
+		<path>/sinc/40.ReplenishmentPlanning</path>
+		<navigation>수송계획 >> 운영정보 >> Push계획 조정</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>Push계획 조정</title>
+		<authority>1</authority>		
+		<description>Push계획 조정</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="dailyTransportPlan_period_type_list" datasource="t3sinc"/> <!-- 계획주기리스트 -->
+		    <query idref="dailyTransportPlan_version_list" datasource="t3sinc"/> <!-- 버전리스트 -->
+		    <query idref="src_loc_and_max_capa" datasource="t3sinc"/> <!-- 출고장과 최대재고 리스트 -->
+		    <query idref="stock_plan_and_expect_stock" datasource="t3sinc"/> <!-- 마감예상재고 조회 -->
+			<query idref="rp_01030_dailyPushTransportAdjust_list" datasource="t3sinc"/> 		
+		</queries>
+	</job>
+	<!-- Push계획 조정 : 저장 -->
+	<job id="rp_01030_dailyPushTransportAdjust_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="rp_01030_dailyPushTransportAdjust_list_save"/>		
+		<sub_job id="rp_01030_dailyPushTransportAdjust_list"/>
+		<permission_desc>Push계획 조정-저장</permission_desc>
+	</job>
+	<job id="rp_01030_dailyPushTransportAdjust_list_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="rp_01030_dailyPushTransportAdjust_list_save_01" datasource="t3sinc"/> <!-- STOCK_PLAN UPDATE : 입고장기준(변경되기전 수송계획일자)-->
+			<query idref="rp_01030_dailyPushTransportAdjust_list_save_02" datasource="t3sinc"/> <!-- STOCK_PLAN UPDATE : 출고장기준(변경되기전 수송계획일자)-->
+			<query idref="rp_01030_dailyPushTransportAdjust_list_save_03" datasource="t3sinc"/> <!-- STOCK_PLAN UPDATE : 입고장기준 (변경된 수송계획일자) -->
+			<query idref="rp_01030_dailyPushTransportAdjust_list_save_04" datasource="t3sinc"/> <!-- STOCK_PLAN UPDATE : 출고장기준(변경된 수송계획일자) -->
+			<query idref="rp_01030_dailyPushTransportAdjust_list_save_05" datasource="t3sinc"/> <!-- TRANS_PLAN UPDATE : 변경된 수송계획일자로 UPDATE -->
+		</queries>
+	</job>
+	
+	<!--
+	======================================================================
+		◈3. 보충계획 요약
+	======================================================================
+	-->
+	
+	<!-- 보충계획 요약 : 조회-->
+	<job id="rp_01040_replenishmentSummary_list" job_type="single" check_permission="no">
+		<path>/sinc/40.ReplenishmentPlanning</path>
+		<navigation>수송계획 >> 운영정보 >> 보충계획 요약</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>보충계획 요약</title>
+		<authority>1</authority>		
+		<description>보충계획 요약</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="dailyTransportPlan_period_type_list" datasource="t3sinc"/> <!-- 계획주기리스트 -->
+			<query idref="dailyTransportPlan_version_list" datasource="t3sinc"/> <!-- 버전리스트 -->
+			<query idref="code_mst_gubun_list" datasource="t3sinc"/> <!-- CODE_MST : 카테고리가 REPL_SMY_RPT인 리스트 -->
+			<query idref="dc_mst_dc_name_list" datasource="t3sinc"/> <!-- 출고장 이름 리스트 -->
+			<query idref="replenishmentSummary_list_header_width" datasource="t3sinc"/> <!-- UI 해더 각각의 WIDTH를 구하는 쿼리 -->		
+			<query idref="rp_01040_replenishmentSummary_list" datasource="t3sinc"/> 		
+		</queries>
+	</job>
+	
+	<!--
+	======================================================================
+		◈4. 주간 수송계획
+	======================================================================
+	-->
+	
+	<!-- 주간 수송계획 : 조회-->
+	<job id="rp_01050_weeklyReplenishmentExec_list" job_type="single" check_permission="no">
+		<path>/sinc/40.ReplenishmentPlanning</path>
+		<navigation>수송계획 >> 운영정보 >> 주간 수송계획</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>주간 수송계획</title>
+		<authority>1</authority>		
+		<description>주간 수송계획</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="weeklyTransportPlan_version_list" datasource="t3sinc"/> <!-- 주간 버전리스트 -->
+			<query idref="rp_01050_weeklyReplenishmentExec_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 주간 수송계획 : 확정 -->
+	<job id="rp_01050_weeklyReplenishmentExec_list_confirm_comp" job_type="composite" check_permission="no">
+		<sub_job id="rp_01050_weeklyReplenishmentExec_list_confirm"/>		
+		<sub_job id="rp_01050_weeklyReplenishmentExec_list"/>
+		<permission_desc>주간 수송계획-확정</permission_desc>
+	</job>
+	<job id="rp_01050_weeklyReplenishmentExec_list_confirm" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="rp_01050_weeklyReplenishmentExec_list_confirm_01" datasource="t3sinc"/> <!-- 일치하는 버전 데이타 삭제 -->
+			<query idref="rp_01050_weeklyReplenishmentExec_list_confirm_02" datasource="t3sinc"/> <!-- TRANS_PLAN_WEEKLY에 입력-->
+		</queries>
+	</job>
+	
+	<!-- 주간 수송계획 : 생성 -->
+	<job id="rp_01050_weeklyReplenishmentExec_list_create_comp" job_type="composite" check_permission="no">
+		<sub_job id="rp_01050_weeklyReplenishmentExec_list_create"/>		
+		<sub_job id="rp_01050_weeklyReplenishmentExec_list"/>
+		<permission_desc>주간 수송계획-생성</permission_desc>
+	</job>
+	<job id="rp_01050_weeklyReplenishmentExec_list_create" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="rp_01050_weeklyReplenishmentExec_list_create" datasource="t3sinc"/> <!-- PROCEDURE 호출 -->
+		</queries>
+	</job>
+	
+	<!--
+	======================================================================
+		◈5. 월간계획 조회
+	======================================================================
+	-->
+	
+	<!-- 월간계획 조회 : 조회-->
+	<job id="rp_01060_monthlyReplenishment_list" job_type="single" check_permission="no">
+		<path>/sinc/40.ReplenishmentPlanning</path>
+		<navigation>수송계획 >> 운영정보 >> 월간계획 조회</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>월간계획 조회</title>
+		<authority>1</authority>		
+		<description>월간계획 조회</description>
+		<request_type>list</request_type>
+		<queries>
+			<!--<query idref="dailyTransportPlan_version_list" datasource="t3sinc"/>  일별 버전리스트 -->
+			<query idref="monthlyTransportPlan_version_list" datasource="t3sinc"/> <!-- 월별 버전리스트 -->
+			<query idref="trans_dc_id_and_short_name_list" datasource="t3sinc"/><!-- 입고장 정보 검색 조건 -->
+			<query idref="monthlyReplenishment_list_header" datasource="t3sinc"/><!-- HEADER 정보 -->
+			<query idref="rp_01060_monthlyReplenishment_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!--
+	======================================================================
+		◈6. 주문가능량 정보
+	======================================================================
+	-->
+	
+	<!-- 주문가능량 정보 -->
+	<job id="rp_01080_orderingPossibleAmount_list" job_type="single" check_permission="no">
+		<path>/sinc/40.ReplenishmentPlanning</path>
+		<navigation>수송계획 >> 운영정보 >> 주문가능량 정보</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>주문가능량 정보</title>
+		<authority>1</authority>		
+		<description>주문가능량 정보</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="dailyTransportPlan_period_type_list" datasource="t3sinc"/> <!-- 계획주기리스트 -->
+			<query idref="dailyTransportPlan_version_list" datasource="t3sinc"/> <!-- 버전리스트 -->
+			<query idref="trans_dc_id_and_short_name_list" datasource="t3sinc"/> <!-- 입고장 리스트 -->
+			<query idref="rp_01080_orderingPossibleAmount_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!--
+	======================================================================
+		◈7. 수송진행 현황
+	======================================================================
+	-->
+	<!-- 수송진행 현황 : 1.상단 그리드 조회-->
+	<job id="rp_01100_transProgress_list" job_type="single" check_permission="no">
+		<path>/sinc/40.ReplenishmentPlanning</path>
+		<navigation>수송계획 >> 운영정보 >> 수송진행 현황</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>수송진행 현황</title>
+		<authority>1</authority>		
+		<description>수송진행 현황</description>
+		<request_type>list</request_type>
+		<queries>		
+			<query idref="code_mst_of_plan_type" datasource="t3sinc"/> <!-- CODE_MST의 PLAN_TYPE 리스트 -->
+			<query idref="src_loc_and_name_list" datasource="t3sinc"/> <!-- 출고장 리스트 -->
+			<query idref="rp_01100_transProgress_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 수송진행 현황 : 2.중단 그리드 조회-->
+	<job id="rp_01100_transProgressBrandDetail_list" job_type="single" check_permission="no">
+		<path>/sinc/40.ReplenishmentPlanning</path>
+		<navigation></navigation>
+		<toolbars></toolbars>
+		<title>수송진행 현황</title>
+		<authority>1</authority>
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="rp_01100_transProgressBrandDetail_list" datasource="t3sinc"/>			
+		</queries>
+	</job>
+	
+	<!-- 수송진행 현황 : 3.하단 그리드 조회-->
+	<job id="rp_01100_transProgressItemDetail_list" job_type="single" check_permission="no">
+		<path>/sinc/40.ReplenishmentPlanning</path>
+		<navigation></navigation>
+		<toolbars></toolbars>
+		<title>수송진행 현황</title>
+		<authority>1</authority>
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="rp_01100_transProgressItemDetail_list" datasource="t3sinc"/>			
+		</queries>
+	</job>
+	
+	<!--
+	======================================================================
+		◈8. 반품 수송계획
+	======================================================================
+	-->
+	
+	<!-- 반품 수송 계획 : 조회-->
+	<job id="rp_01110_returningProduct_list" job_type="single" check_permission="no">
+		<path>/sinc/40.ReplenishmentPlanning</path>
+		<navigation>수송계획 >> 운영정보 >> 반품 수송계획</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>반품 수송계획</title>
+		<authority>1</authority>		
+		<description>반품 수송계획</description>
+		<request_type>list</request_type>
+		<queries>		
+			<query idref="src_loc_and_name_list" datasource="t3sinc"/> <!-- 출고장 리스트 -->
+			<query idref="trans_dc_id_and_short_name_list" datasource="t3sinc"/> <!-- 입고장 리스트 -->
+			<query idref="code_mst_and_scrap_flag" datasource="t3sinc"/>
+			<query idref="rp_01110_returningProduct_list_01" datasource="t3sinc"/>
+			<query idref="rp_01110_returningProduct_list_02" datasource="t3sinc"/>	
+		</queries>
+	</job>
+	
+	<!-- 반품 수송계획 : 수송계획생성  -->
+	<job id="rp_01110_returningProduct_list_create_comp" job_type="composite" check_permission="no">
+		<sub_job id="rp_01110_returningProduct_list_create"/>
+		<sub_job id="rp_01110_returningProduct_list"/>
+		<permission_desc>수송계획조회 및 조정-저장</permission_desc>
+	</job>
+	<job id="rp_01110_returningProduct_list_create" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="rp_01110_returningProduct_list_create_01" datasource="t3sinc"/> <!-- PLAN_VERSION_LOG INSERT -->
+			<query idref="rp_01110_returningProduct_list_create_02" datasource="t3sinc"/> <!-- TRANS_PLAN INSERT -->
+			<query idref="rp_01110_returningProduct_list_create_03" datasource="t3sinc"/> <!-- IF_TRANS_PLAN INSERT -->
+		</queries>
+	</job>
+
+<!--
+=====================================================================================================
+	수송계획 >> 분석정보
+=====================================================================================================
+--> 
+	<!--
+	======================================================================
+		◈1. C/D 및 긴급 주문량 확인
+	======================================================================
+	-->
+	
+	<!-- C/D 및 긴급 주문량 확인 : 조회-->
+	<job id="rp_02010_orderCrossDocking_list" job_type="single" check_permission="no">
+		<path>/sinc/40.ReplenishmentPlanning</path>
+		<navigation>수송계획 >> 분석정보 >> C/D 및 긴급 주문량 확인</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>C/D 및 긴급 주문량 확인</title>
+		<authority>1</authority>		
+		<description>C/D 및 긴급 주문량 확인</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="dailyTransportPlan_period_type_list" datasource="t3sinc"/> <!-- 계획주기리스트 -->
+			<query idref="dailyTransportPlan_version_list" datasource="t3sinc"/> <!-- 버전리스트 -->
+			<query idref="orderCrossDocking_list_header" datasource="t3sinc"/> <!-- C/D(긴급) 주문량 확인 UI HEADER -->
+			<query idref="orderCrossDocking_list_header_width" datasource="t3sinc"/> <!-- C/D(긴급) 주문량 확인 UI HEADER WIDTH-->
+			<query idref="rp_02010_orderCrossDocking_list" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+	<!--
+	======================================================================
+		◈2. 보충계획 현황
+	======================================================================
+	-->
+	
+	<!-- 보충계획 현황 : 조회-->
+	<job id="rp_02020_replenishmentPlan_list" job_type="single" check_permission="no">
+		<path>/sinc/40.ReplenishmentPlanning</path>
+		<navigation>수송계획 >> 분석정보 >> 보충계획 현황</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>보충계획 현황</title>
+		<authority>1</authority>		
+		<description>보충계획 현황</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="dailyTransportPlan_period_type_list" datasource="t3sinc"/> <!-- 계획주기리스트 -->
+			<query idref="dailyTransportPlan_version_list" datasource="t3sinc"/> <!-- 버전리스트 -->
+			<query idref="trans_dc_id_and_short_name_list" datasource="t3sinc"/> <!-- 입고장 리스트 -->
+			<query idref="src_loc_and_name_list" datasource="t3sinc"/> <!-- 출고장 리스트 -->
+			<query idref="rp_02020_replenishmentPlan_list" datasource="t3sinc"/> 		
+		</queries>
+	</job>
+	
+	<!--
+	======================================================================
+		◈3. 예상재고 현황
+	======================================================================
+	-->
+	
+	<!-- 예상재고 현황 : 조회-->
+	<job id="rp_02030_inventoryProjection_list" job_type="single" check_permission="no">
+		<path>/sinc/40.ReplenishmentPlanning</path>
+		<navigation>수송계획 >> 분석정보 >> 예상재고 현황</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>예상재고 현황</title>
+		<authority>1</authority>		
+		<description>예상재고 현황</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="dailyTransportPlan_period_type_list" datasource="t3sinc"/> <!-- 계획주기리스트 -->
+			<query idref="dailyTransportPlan_version_list" datasource="t3sinc"/> <!-- 버전리스트 -->
+			<query idref="code_mst_division_list" datasource="t3sinc"/> <!-- 품종구분 -->	
+			<query idref="inventoryProjection_list_header" datasource="t3sinc"/> <!-- 예상재고 HEADER -->
+			<query idref="rp_02030_inventoryProjection_list" datasource="t3sinc"/> 		
+		</queries>
+	</job>
+	
+	<!--
+	======================================================================
+		◈4. RDC별 예상재고 현황
+	======================================================================
+	-->
+	
+	<!-- RDC별 예상재고 현황 : 조회-->
+	<job id="rp_02040_inventoryProjectionByLocation_list" job_type="single" check_permission="no">
+		<path>/sinc/40.ReplenishmentPlanning</path>
+		<navigation>수송계획 >> 분석정보 >> RDC별 예상재고 현황</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>RDC별 예상재고 현황</title>
+		<authority>1</authority>		
+		<description>RDC별 예상재고 현황</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="dailyTransportPlan_period_type_list" datasource="t3sinc"/> <!-- 계획주기리스트 -->
+			<query idref="dailyTransportPlan_version_list" datasource="t3sinc"/> <!-- 버전리스트 -->
+			<query idref="code_mst_division_list" datasource="t3sinc"/> <!-- 품종구분 -->
+			<query idref="inventoryProjectionByLocation_list_header" datasource="t3sinc"/> <!-- HEADER -->
+			<query idref="inventoryProjectionByLocation_list_header_width" datasource="t3sinc"/> <!-- HEADER WIDTH -->			
+			<query idref="rp_02040_inventoryProjectionByLocation_list" datasource="t3sinc"/> 		
+		</queries>
+	</job>
+	
+	<!--
+	======================================================================
+		◈5. 수송계획 검증
+	======================================================================
+	-->
+	
+	<!-- 수송계획 검증 : 조회-->
+	<job id="rp_02060_transPlanAnaly_list" job_type="single" check_permission="no">
+		<path>/sinc/40.ReplenishmentPlanning</path>
+		<navigation>수송계획 >> 분석정보 >> 수송계획검증</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>수송계획검증</title>
+		<authority>1</authority>		
+		<description>수송계획검증</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="dailyTransportPlan_period_type_list" datasource="t3sinc"/> <!-- 수송 계획주기리스트 -->
+			<query idref="dailyTransportPlan_version_list" datasource="t3sinc"/> <!-- 수송 버전리스트 -->
+			<query idref="nfos_sales_plan_weekly_version_list" datasource="t3sinc"/><!-- 판매계획  최종버젼  -->
+			<query idref="nfos_order_version_list" datasource="t3sinc"/><!-- NFOS 주문정보 최종 I/F 버젼  -->
+			<query idref="rp_02060_transPlanAnaly_list" datasource="t3sinc"/> 		
+		</queries>
+	</job>
+	
+<!--
+=====================================================================================================
+	보충수송계획 >> 기준 정보
+=====================================================================================================
+--> 
+	<!--
+	======================================================================
+		품목별 수송 Route 관리
+	======================================================================
+	-->
+	
+	<!-- 품목별 수송 Route 관리 : 조회-->
+	<job id="rp_01040_transRouteByProduct_list" job_type="single" check_permission="no">
+		<path>/sinc/40.ReplenishmentPlanning</path>
+		<navigation>보충수송계획 >> 기준 정보 >> 품목별 수송 Route 관리</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>품목별 수송 Route 관리</title>
+		<authority>1</authority>		
+		<description>품목별 수송 Route 관리</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="rp_01040_transRouteByProduct_list" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH_EXCEPT 조회 -->
+			<query idref="transRouteByProduct_header" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 품목별 수송 Route 관리 : 저장 -->
+	<job id="rp_01040_transRouteByProduct_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="rp_01040_transRouteByProduct_list_save"/>		
+		<sub_job id="rp_01040_transRouteByProduct_list"/>
+		<permission_desc>품목별 수송 Route 관리-저장</permission_desc>
+	</job>
+	<job id="rp_01040_transRouteByProduct_list_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="rp_01040_transRouteByProduct_list_save_01" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH_EXCEPT 삭제 -->
+			<query idref="rp_01040_transRouteByProduct_list_save_02" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH_EXCEPT 수정-->
+			<query idref="rp_01040_transRouteByProduct_list_save_03" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH_EXCEPT 입력 -->
+			<query idref="rp_01040_transRouteByProduct_list_save_04" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH 삭제 -->
+			<query idref="rp_01040_transRouteByProduct_list_save_05" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH 수정-->
+			<query idref="rp_01040_transRouteByProduct_list_save_06" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH 입력 -->
+		</queries>
+	</job>
+	
+	
+	<!--
+	======================================================================
+		거점별 수송 Route 관리
+	======================================================================
+	-->
+	
+	<!-- 거점별 수송 Route 관리 : 조회-->
+	<job id="rp_01050_transRouteByLocation_list" job_type="single" check_permission="no">
+		<path>/sinc/40.ReplenishmentPlanning</path>
+		<navigation>보충수송계획 >> 기준 정보 >> 거점별 수송 Route 관리</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>거점별 수송 Route 관리</title>
+		<authority>1</authority>		
+		<description>거점별 수송 Route 관리</description>
+		<request_type>list</request_type>
+		<queries>
+		    <query idref="dc_id_and_name_list" datasource="t3sinc"/><!-- 입고장 정보 검색 조건 -->			
+			<query idref="transRouteByLocation_header" datasource="t3sinc"/>
+			<query idref="code_mst_cat3" datasource="t3sinc"/>
+			<query idref="rp_01050_transRouteByLocation_list" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH_EXCEPT 조회 -->
+		</queries>
+	</job>
+	
+	<!-- 거점별 수송 Route 관리 : 저장 -->
+	<job id="rp_01050_transRouteByLocation_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="rp_01050_transRouteByLocation_list_save"/>		
+		<sub_job id="rp_01050_transRouteByLocation_list"/>
+		<permission_desc>거점별 수송 Route 관리-저장</permission_desc>
+	</job>
+	<job id="rp_01050_transRouteByLocation_list_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="rp_01050_transRouteByLocation_list_save_01" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH_EXCEPT 삭제 -->
+			<query idref="rp_01050_transRouteByLocation_list_save_02" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH_EXCEPT 수정-->
+			<query idref="rp_01050_transRouteByLocation_list_save_03" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH_EXCEPT 입력 -->
+			<query idref="rp_01050_transRouteByLocation_list_save_04" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH 삭제 -->
+			<query idref="rp_01050_transRouteByLocation_list_save_05" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH 수정-->
+			<query idref="rp_01050_transRouteByLocation_list_save_06" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH 입력 -->
+		</queries>
+	</job>
+	
+	<!--
+	======================================================================
+		제품별 수송 Route 자동생성
+	======================================================================
+	-->
+	
+	<!-- 제품별 수송 Route 자동생성 : 조회-->
+	<job id="rp_01030_transRoute_list" job_type="single" check_permission="no">
+		<path>/sinc/40.ReplenishmentPlanning</path>
+		<navigation>보충수송계획 >> 기준 정보 >> 제품별 수송 Route 자동생성</navigation>
+		<toolbars>0000</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>제품별 수송 Route 자동생성</title>
+		<authority>1</authority>		
+		<description>제품별 수송 Route 자동생성</description>
+		<request_type>list</request_type>
+		<queries>
+		    <query idref="dc_id_and_name_list" datasource="t3sinc"/><!-- 입고장 정보 검색 조건 -->
+			<query idref="rp_01030_transRoute_list" datasource="t3sinc"/> <!-- MAP_PROD_DCPATH 조회 -->
+		</queries>
+	</job>
+	
+	<!-- 제품별 수송 Route 자동생성 : 생성버튼 클릭시 -->
+	<job id="rp_01030_transRoute_list_create_comp" job_type="composite" check_permission="no">
+		<sub_job id="rp_01030_transRoute_list_create"/>		
+		<sub_job id="rp_01030_transRoute_list"/>
+		<permission_desc>제품별 수송 Route 자동생성-생성</permission_desc>
+	</job>
+	
+	<!-- 제품별 수송 Route 자동생성 : PROCEDURE 호출 -->
+	<job id="rp_01030_transRoute_list_create" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="rp_01030_transRoute_list_create" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!--
+	======================================================================
+		Route 수송 기준정보
+	======================================================================
+	-->
+	
+	<!-- Route 수송 기준정보 : 조회-->
+	<job id="rp_01090_routeMultiDrop_list" job_type="single" check_permission="no">
+		<path>/sinc/40.ReplenishmentPlanning</path>
+		<navigation>보충수송계획 >> 기준 정보 >> Route 수송 기준정보</navigation>
+		<toolbars>0010</toolbars> <!--(등록/수정/저장/삭제)-->
+		<title>Route 수송 기준정보</title>
+		<authority>1</authority>		
+		<description>Route 수송 기준정보</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="src_loc_and_name_list" datasource="t3sinc"/><!-- 출고장 정보 검색 조건 -->
+			<query idref="dc_id_and_name_list" datasource="t3sinc"/><!-- 입고장 정보 검색 조건 -->
+			<query idref="rp_01090_routeMultiDrop_list" datasource="t3sinc"/> 
+		</queries>
+	</job>
+	
+	<!-- Route 수송 기준정보 : 저장 -->
+	<job id="rp_01090_routeMultiDrop_list_save_comp" job_type="composite" check_permission="no">
+		<sub_job id="rp_01090_routeMultiDrop_list_save"/>		
+		<sub_job id="rp_01090_routeMultiDrop_list"/>
+		<permission_desc>Route 수송 기준정보-저장</permission_desc>
+	</job>
+	<job id="rp_01090_routeMultiDrop_list_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="rp_01090_routeMultiDrop_list_save_01" datasource="t3sinc"/> 
+			<query idref="rp_01090_routeMultiDrop_list_save_02" datasource="t3sinc"/> 
+		</queries>
+	</job>
+	
+
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+</jobs>	

@@ -1,947 +1,947 @@
-<?xml version="1.0" encoding="euc-kr"?>
-
-<jobs>
-
-<!--
-=====================================================================================================
-	수요예측 >> 수요예측 Report 
-=====================================================================================================
---> 
-	<!--	
-	======================================================================
-		Pop-up Code
-	======================================================================
-	-->
-	
-	<!-- Pop-up Code : header -->	
-	<job id="fc_common_codePopup_header" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>코드 검색</navigation>
-		<toolbars>0000</toolbars>
-		<title>코드 검색</title>
-		<authority>1</authority>
-		<description></description>
-		<request_type>forward</request_type>		
-	</job>
-	
-	<!-- Pop-up Code : tailer -->
-	<job id="fc_common_codePopup_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>코드 검색</navigation>
-		<toolbars>0000</toolbars>
-		<title>코드 검색</title>
-		<authority>1</authority>		
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries> 
-			<query idref="fc_common_codePopup_tailer" datasource="fcst"/>						
-		</queries>
-	</job>
-	
-	<!--	
-	======================================================================
-		품목/영업조직 관리
-	======================================================================
-	-->
-	
-	<!-- 품목/영업조직 관리 : header -->	
-	<job id="fc_01010_itemSiteMgmt_header" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>기준정보 >> 수요예측 >> 품목/영업조직 관리</navigation>
-		<toolbars>0011</toolbars>
-		<title>품목/영업조직 관리</title>
-		<authority>1</authority>		
-		<description>품목/영업조직 관리</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="fc_01010_hrchy_codes" datasource="fcst"/>			
-		</queries>
-	</job>
-	
-	<!-- 품목/영업조직 관리 : tailer -->	
-	<job id="fc_01010_itemSiteMgmt_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>기준정보 >> 수요예측 >> 품목/영업조직 관리</navigation>
-		<toolbars>0000</toolbars>
-		<title>품목/영업조직 관리</title>
-		<authority>1</authority>		
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="fc_01010_itemSiteMgmt_tailer" datasource="fcst"/>			
-		</queries>		
-	</job>
-	
-	<!-- 품목/영업조직 관리 : 신규 Class 추가 --> 
-	<job id="fc_01010_newClass_insert_action" job_type="composite" check_permission="no">
-		<sub_job id="fc_01010_newClass_insert"/>		
-		<sub_job id="fc_01010_itemSiteMgmt_header"/>
-		<permission_desc>신제품/Refresh 이력관리 - 저장</permission_desc>
-	</job>
-	<job id="fc_01010_newClass_insert" job_type="single" check_permission="no">
-		<request_type>insert</request_type>
-		<queries>				 
-			<query idref="fc_01010_newClass_insert" datasource="fcst"/>
-			<query idref="fc_01010_newClass_insert2" datasource="fcst"/>												
-		</queries>
-	</job>
-	
-	<!-- 품목/영업조직 관리 : Class 삭제 -->
-	<job id="fc_01010_newClass_delete_action" job_type="composite" check_permission="no">
-		<sub_job id="fc_01010_newClass_delete"/>		
-		<sub_job id="fc_01010_itemSiteMgmt_header"/>
-		<permission_desc>신제품/Refresh 이력관리 - 저장</permission_desc>
-	</job>
-	<job id="fc_01010_newClass_delete" job_type="single" check_permission="no">
-		<request_type>insert</request_type>
-		<queries>				 
-			<query idref="fc_01010_newClass_delete1" datasource="fcst"/>
-			<query idref="fc_01010_newClass_delete2" datasource="fcst"/>
-			<query idref="fc_01010_newClass_delete3" datasource="fcst"/>
-			<query idref="fc_01010_newClass_delete4" datasource="fcst"/>														
-		</queries>
-	</job>
-	
-	<!--	
-	======================================================================
-		신제품/Refresh 이력관리
-	======================================================================
-	-->
-	
-	<!-- 신제품/Refresh 이력관리 : header -->	
-	<job id="fc_01020_newRefreshMgmt_header" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>기준정보 >> 수요예측 >> 신제품/Refresh 이력 관리</navigation>
-		<toolbars>0011</toolbars>
-		<title>신제품/Refresh 이력 관리</title>
-		<authority>1</authority>		
-		<description>신제품/Refresh 이력 관리</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="fc_01020_realign_types" datasource="fcst"/>			
-		</queries>
-	</job>
-	
-	<!-- 신제품/Refresh 이력관리 : tailer -->	
-	<job id="fc_01020_newRefreshMgmt_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>기준정보 >> 수요예측 >> 신제품/Refresh 이력 관리</navigation>
-		<toolbars>0000</toolbars>
-		<title>신제품/Refresh 이력 관리</title>
-		<authority>1</authority>		
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="fc_01020_newRefreshMgmt_tailer" datasource="fcst"/>			
-		</queries>		
-	</job>
-	
-	<!-- 신제품/Refresh 이력관리 : detailer -->	
-	<job id="fc_01020_newRefreshMgmt_detailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>기준정보 >> 수요예측 >> 신제품/Refresh 이력 관리</navigation>
-		<toolbars>0000</toolbars>
-		<title>신제품/Refresh 이력 관리</title>
-		<authority>1</authority>		
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="fc_01020_newRefreshMgmt_detailer" datasource="fcst"/>			
-		</queries>		
-	</job>
-	
-	<!-- 신제품/Refresh 이력관리 : 저장 --> 
-	<job id="fc_01020_newRefreshMgmt_save_action" job_type="composite" check_permission="no">
-		<sub_job id="fc_01020_newRefreshMgmt_save"/>		
-		<sub_job id="fc_01020_newRefreshMgmt_tailer"/>
-		<permission_desc>신제품/Refresh 이력관리 - 저장</permission_desc>
-	</job>
-	<job id="fc_01020_newRefreshMgmt_save" job_type="single" check_permission="no">
-		<request_type>insert</request_type>
-		<queries>				 
-			<query idref="fc_01020_newRefreshMgmt_save" datasource="fcst"/>												
-		</queries>
-	</job>
-	
-	<!-- 신제품/Refresh 이력관리 : 삭제 --> 
-	<job id="fc_01020_newRefreshMgmt_delete_action" job_type="composite" check_permission="no">
-		<sub_job id="fc_01020_newRefreshMgmt_delete"/>		
-		<sub_job id="fc_01020_newRefreshMgmt_tailer"/>
-		<permission_desc>신제품/Refresh 이력관리 - 삭제</permission_desc>
-	</job>
-	<job id="fc_01020_newRefreshMgmt_delete" job_type="single" check_permission="no">
-		<request_type>insert</request_type>
-		<queries>				 
-			<query idref="fc_01020_newRefreshMgmt_delete" datasource="fcst"/>		
-			<query idref="fc_01020_newRefreshMgmt_qty_update" datasource="fcst"/>										
-		</queries>
-	</job>
-	
-	<!-- 신제품/Refresh 이력관리 : 적용 --> 
-	<job id="fc_01020_newRefreshMgmt_apply_action" job_type="composite" check_permission="no">
-		<sub_job id="fc_01020_newRefreshMgmt_apply"/>		
-		<sub_job id="fc_01020_newRefreshMgmt_tailer"/>
-		<permission_desc>신제품/Refresh 이력관리 - 적용</permission_desc>
-	</job>
-	<job id="fc_01020_newRefreshMgmt_apply" job_type="single" check_permission="no">
-		<request_type>insert</request_type>
-		<queries>				 
-			<query idref="fc_01020_newRefreshMgmt_apply" datasource="fcst"/>												
-		</queries>
-	</job>
-	
-	<!--	
-	======================================================================
-		영업달력(일별지수) 관리
-	======================================================================
-	-->
-	
-	<!-- 영업달력(일별지수) 관리 : header -->	
-	<job id="fc_01030_calendarMgmt_header" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>기준정보 >> 수요예측 >> 영업달력(일별지수) 관리</navigation>
-		<toolbars>0000</toolbars>
-		<title>영업달력(일별지수) 관리</title>
-		<authority>1</authority>		
-		<description>영업달력(일별지수) 관리</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="fc_01030_calendarMgmt_yyyymm" datasource="fcst"/>			
-		</queries>
-	</job>
-	
-	<!-- 영업달력(일별지수) 관리 : tailer -->	
-	<job id="fc_01030_calendarMgmt_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>기준정보 >> 수요예측 >> 영업달력(일별지수) 관리</navigation>
-		<toolbars>0000</toolbars>
-		<title>영업달력(일별지수) 관리</title>
-		<authority>1</authority>		
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries> 
-			<query idref="fc_01030_calendarMgmt_tailer" datasource="fcst"/>					
-		</queries>
-	</job>
-	
-	<!-- 영업달력(일별지수) 관리 : plan calendar create -->	
-	<job id="fc_01030_calendarMgmt_create_action" job_type="composite" check_permission="no">
-		<sub_job id="fc_01030_calendarMgmt_create"/>		
-		<sub_job id="fc_01030_calendarMgmt_tailer"/>
-		<permission_desc>영업달력(일별지수) 관리 - 달력생성</permission_desc>
-	</job>
-	<job id="fc_01030_calendarMgmt_create" job_type="single" check_permission="no">
-		<request_type>insert</request_type>
-		<queries>				 
-			<query idref="fc_01030_calendarMgmt_create" datasource="fcst"/>												
-		</queries>
-	</job>	
-	<!--	
-	======================================================================
-		요일지수 관리
-	======================================================================
-	-->
-	
-	<!-- 요일지수 관리 : header -->	
-	<job id="fc_01040_dow_header" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>기준정보 >> 수요예측 >> 요일지수 관리</navigation>
-		<toolbars>0010</toolbars>
-		<title>요일지수 관리</title>
-		<authority>1</authority>		
-		<description>요일지수 관리</description>
-		<request_type>list</request_type>
-		<queries> 
-			<query idref="fc_01040_items" datasource="fcst"/>
-			<query idref="fc_01040_sites" datasource="fcst"/>
-			<query idref="fc_01040_dc" datasource="fcst"/>	
-			<query idref="fc_01040_start_month" datasource="fcst"/>	
-		</queries>	
-	</job>
-	
-	<!-- 요일지수 관리 : tailer -->	
-	<job id="fc_01040_dow_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>기준정보 >> 수요예측 >> 요일지수 관리</navigation>
-		<toolbars>0000</toolbars>
-		<title>요일지수 관리</title>
-		<authority>1</authority>		
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries> 
-			<query idref="fc_01040_dow_tailer" datasource="fcst"/>					
-		</queries>
-	</job>
-	
-	<!-- 요일지수 관리 : 재생성 -->
-	<job id="fc_01040_dow_recreation_action" job_type="composite" check_permission="no">
-		<sub_job id="fc_01040_dow_recreation"/>		
-		<sub_job id="fc_01040_dow_tailer"/>
-		<permission_desc>요일지수 관리 : 재생성</permission_desc>
-	</job>
-	<job id="fc_01040_dow_recreation" job_type="single" check_permission="no">
-		<request_type>insert</request_type>
-		<queries>				 
-			<query idref="fc_01040_dow_recreation" datasource="fcst"/>												
-		</queries>
-	</job>
-	
-	<!-- 요일지수 관리 : 저장 -->	
-	<job id="fc_01040_dow_tailer_update" job_type="single" check_permission="no">
-		<request_type>insert</request_type>
-		<queries>				 
-			<query idref="fc_01040_dow_tailer_update" datasource="fcst"/>												
-		</queries>
-	</job>
-	
-	<!--	
-	======================================================================
-		수요예측 Option 관리
-	======================================================================
-	-->
-	
-	<!-- 수요예측 Option 관리 : header -->	
-	<job id="fc_01050_optionMgmt_header" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>기준정보 >> 수요예측 >> 수요예측 Option 관리</navigation>
-		<toolbars>0010</toolbars>
-		<title>수요예측 Option 관리</title>
-		<authority>1</authority>		
-		<description>수요예측 Option 관리</description>
-		<request_type>list</request_type>
-		<queries> 
-			<query idref="fc_01050_options" datasource="fcst"/>			
-		</queries>	
-	</job>
-	
-	<!-- 수요예측 Option 관리 : tailer -->	
-	<job id="fc_01050_optionMgmt_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>기준정보 >> 수요예측 >> 수요예측 Option 관리</navigation>
-		<toolbars>0000</toolbars>
-		<title>수요예측 Option 관리</title>
-		<authority>1</authority>		
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries> 
-			<query idref="fc_01050_optionMgmt_tailer" datasource="fcst"/>					
-		</queries>
-	</job>
-	
-	<!-- 수요예측 Option 관리 : 저장 -->	
-	<job id="fc_01050_optionMgmt_tailer_update" job_type="single" check_permission="no">
-		<request_type>insert</request_type>
-		<queries>
-			<query idref="fc_01050_optionMgmt_tailer_update" datasource="fcst"/>												
-		</queries>
-	</job>
-	
-	<!--	
-	======================================================================
-		수요예측 방법 분석
-	======================================================================
-	-->
-	
-	<!-- 수요예측 방법 분석 : header -->	
-	<job id="fc_04010_methodAnalysis_header" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 Report >> 수요예측 방법 분석</navigation>
-		<toolbars>0000</toolbars>
-		<title>수요예측 방법 분석</title>
-		<authority>1</authority>		
-		<description>수요예측 방법 분석</description>
-		<request_type>list</request_type>
-		<queries> 
-			<query idref="oper_types" datasource="fcst"/>
-			<query idref="forecasts_methods" datasource="fcst"/>			
-		</queries>
-	</job>
-	
-	<!-- 수요예측 방법 분석 : tailer -->	
-	<job id="fc_04010_methodAnalysis_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 Report >> 수요예측 방법 분석</navigation>
-		<toolbars>0000</toolbars>
-		<title>수요예측 방법 분석</title>
-		<authority>1</authority>		
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries> 
-			<query idref="fc_04010_methodAnalysis_tailer" datasource="fcst"/>		
-			<query idref="fc_04010_methodAnalysis_tailer_chart" datasource="fcst"/>				
-		</queries>
-	</job> 
-	
-	<!--	
-	======================================================================
-		수요예측 상세 조회
-	======================================================================
-	-->
-	
-	<!-- 수요예측 상세 조회 : header -->	
-	<job id="fc_04020_detailFcst_header" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 Report >> 수요예측 상세 조회</navigation>
-		<toolbars>0000</toolbars>
-		<title>수요예측 상세 조회</title>
-		<authority>1</authority>		
-		<description>수요예측 상세 조회</description>
-		<request_type>list</request_type>
-		<queries> 
-			<query idref="fc_04020_oper_types" datasource="fcst"/>
-			<query idref="s_start" datasource="fcst"/>
-			<query idref="s_end" datasource="fcst"/>
-			<query idref="select_1st" datasource="fcst"/>			
-			<query idref="s_units" datasource="fcst"/>
-			<query idref="product_type1" datasource="fcst"/>
-			<query idref="product_type2" datasource="fcst"/>
-			<query idref="product_type3" datasource="fcst"/>
-			<query idref="product_type4" datasource="fcst"/>			
-			<query idref="sales_centers" datasource="fcst"/>
-			<query idref="sales_depts" datasource="fcst"/>
-			<query idref="sales_locs" datasource="fcst"/>
-			<query idref="delivery_locs" datasource="fcst"/>			
-		</queries>
-	</job>
-	
-	<!-- 수요예측 방법 분석 : tailer -->	
-	<job id="fc_04020_detailFcst_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 Report >> 수요예측 상세 조회</navigation>
-		<toolbars>0000</toolbars>
-		<title>수요예측  상세 조회</title>
-		<authority>1</authority>		
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries> 
-			<query idref="fc_04020_detailFcst_tailer_cols" datasource="fcst"/>		
-			<query idref="fc_04020_detailFcst_tailer" datasource="fcst"/>				
-		</queries>
-	</job> 
-	
-	<!--	
-	======================================================================
-		수요예측 Error 조회
-	======================================================================
-	-->
-	
-	<!-- 수요예측 Error 조회 : header -->	
-	<job id="fc_04030_errorAnaly_list" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 Report >> 수요예측 Error 조회</navigation>
-		<toolbars>0000</toolbars>
-		<title>수요예측 Error 조회</title>
-		<authority>1</authority>		
-		<description>수요예측 Error 조회</description>
-		<request_type>list</request_type>
-		<queries> 
-			<query idref="err_analy_plan_type" datasource="fcst"/>
-			<query idref="err_analy_plan_name" datasource="fcst"/>
-			<query idref="err_analy_error_type" datasource="fcst"/>
-			<query idref="fcst_ctl_cols" datasource="fcst"/>
-			<query idref="fcst_ctl_rows" datasource="fcst"/>		
-		</queries>
-	</job> 
-	
-	<!-- 수요예측 Error 조회 : tailer--> 
-	<job id="fc_04030_errorAnalySearchResult_list" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 Report >> 수요예측 Error 조회</navigation>
-		<toolbars>0000</toolbars>
-		<title>수요예측 Error 조회 : 조회 결과</title>
-		<authority>1</authority>		
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries>			
-			<query idref="fc_04030_errorAnalySearchResult_list" datasource="fcst"/>
-		</queries>
-	</job>	
-	
-<!--
-=====================================================================================================
-	수요예측 >> 수요예측 관리 
-=====================================================================================================
---> 
-	
-	
-	
-<!--
-=====================================================================================================
-	수요예측 >> 판매실적 관리 
-=====================================================================================================
---> 
-
-	<!--  판매실적 관리/판매실적 조회 및 조정 -->
-	<!-- 판매실적 조회 및 조정 -->
-	<job id="fc_02020_controlSales_header" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 판매실적 관리 >> 판매실적 조회 및 조정</navigation>
-		<toolbars>0000</toolbars>
-		<title>판매실적 조회 및 조정</title>
-		<authority>1</authority>
-		<description></description>
-		<request_type>list</request_type>
-		<queries>				
-			<query idref="bucket_units" datasource="fcst"/>
-			<query idref="sales_start" datasource="fcst"/>	
-			<query idref="sales_end" datasource="fcst"/>	
-			<query idref="select_1st" datasource="fcst"/>			
-			<query idref="s_units" datasource="fcst"/>	
-			<query idref="product_type1" datasource="fcst"/>
-			<query idref="product_type2" datasource="fcst"/>
-			<query idref="product_type3" datasource="fcst"/>
-			<query idref="product_type4" datasource="fcst"/>			
-			<query idref="sales_centers" datasource="fcst"/>
-			<query idref="sales_depts" datasource="fcst"/>
-			<query idref="sales_locs" datasource="fcst"/>
-			<query idref="delivery_locs" datasource="fcst"/>						
-		</queries>
-	</job>
-	
-	<job id="fc_02020_controlSales_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation></navigation>
-		<toolbars></toolbars>
-		<title>판매실적 조회 및 조정</title>
-		<authority>1</authority>
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="fcst_ctl_cols" datasource="fcst"/>
-			<query idref="sales_ctl_rows" datasource="fcst"/>
-		</queries>
-	</job>
-	
-	<!--	
-	======================================================================
-		이상요인 조정
-	======================================================================
-	-->
-	
-	<!-- 이상요인 조정 -->
-	<job id="fc_02030_removeOutlier_header" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 판매실적 관리 >> 이상요인 조정 </navigation>
-		<toolbars>0000</toolbars>
-		<title>이상요인 조정</title>
-		<authority>1</authority>		
-		<description>이상요인 조정</description>
-		<request_type>list</request_type>
-		<queries>	
-			<query idref="rem_out_period_list" datasource="fcst"/>		
-					
-		</queries>
-	</job>	
-	<job id="fc_02030_removeOutlier_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation></navigation>
-		<toolbars></toolbars>
-		<title>이상요인 조정</title>
-		<authority>1</authority>
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="fc_02030_removeOutlier_list" datasource="fcst"/>	
-		</queries>
-	</job>
-	
-	<!-- 이상요인 찾기 : 찾기 버튼 클릭시 --> 
-	<job id="fc_02030_removeOutlier_list_search_comp" job_type="composite" check_permission="no">
-		<sub_job id="fc_02030_removeOutlier_list_search"/>		
-		<sub_job id="fc_02030_removeOutlier_tailer"/>
-		<permission_desc>이상요인 찾기 - 찾기</permission_desc>
-	</job>
-	<job id="fc_02030_removeOutlier_list_search" job_type="single" check_permission="no">
-		<request_type>insert</request_type>
-		<queries>
-			<!-- SP 실행 -->			 
-			<query idref="fc_02030_removeOutlier_list_search" datasource="fcst"/>												
-		</queries>
-	</job>
-	
-	<!-- 이상요인 조정 : 조정 버튼 클릭시 --> 
-	<job id="fc_02030_removeOutlier_list_update_comp" job_type="composite" check_permission="no">
-		<sub_job id="fc_02030_removeOutlier_list_update"/>		
-		<sub_job id="fc_02030_removeOutlier_tailer"/>
-		<permission_desc>이상요인 찾기 - 조정</permission_desc>
-	</job>
-	<job id="fc_02030_removeOutlier_list_update" job_type="single" check_permission="no">
-		<request_type>insert</request_type>
-		<queries>
-			<!-- SP 실행 -->			 
-			<query idref="fc_02030_removeOutlier_list_update_01" datasource="fcst"/>
-			<query idref="fc_02030_removeOutlier_list_update_02" datasource="fcst"/>												
-		</queries>
-	</job>
-	
-	<!--	
-	======================================================================
-		ABC 분석
-	======================================================================
-	-->
-	
-	<!-- ABC 분석 -->
-	<job id="fc_02040_abc_header" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 판매실적 관리 >> ABC 분석 </navigation>
-		<toolbars>0000</toolbars>
-		<title>ABC 분석</title>
-		<authority>1</authority>		
-		<description>ABC 분석</description>
-		<request_type>list</request_type>
-		<queries>					 
-			<query idref="fc_02040_analysis_groups" datasource="fcst"/>
-			<query idref="fc_02040_analyze_by_points" datasource="fcst"/>
-			<query idref="fc_02040_abc_start" datasource="fcst"/>										
-		</queries>		
-	</job>	
-	<job id="fc_02040_abc_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation></navigation>
-		<toolbars></toolbars>
-		<title>ABC 분석</title>
-		<authority>1</authority>
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries>					 
-			<query idref="fc_02040_abc_tailer" datasource="fcst"/>												
-		</queries>	
-	</job>
-	
-	<!-- ABC 분석 : 저장 버튼 클릭시 --> 
-	<job id="fc_02040_abc_tailer_save" job_type="composite" check_permission="no">
-		<sub_job id="fc_02040_abc_save"/>		
-		<sub_job id="fc_02040_abc_tailer"/>
-		<permission_desc>ABC 저장</permission_desc>
-	</job>
-	<job id="fc_02040_abc_save" job_type="single" check_permission="no">
-		<request_type>insert</request_type>
-		<queries>				 
-			<query idref="fc_02040_abc_delete" datasource="fcst"/>
-			<query idref="fc_02040_abc_insert" datasource="fcst"/>												
-		</queries>
-	</job>
-	
-	<!--	
-	======================================================================
-		COV 분석
-	======================================================================
-	-->
-	
-	<!-- COV 분석 -->
-	<job id="fc_02050_cov_header" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 판매실적 관리 >> COV 분석 </navigation>
-		<toolbars>0000</toolbars>
-		<title>COV 분석</title>
-		<authority>1</authority>		
-		<description>COV 분석</description>
-		<request_type>list</request_type>
-		<queries>					 
-			<query idref="analysis_groups" datasource="fcst"/>
-			<query idref="analyze_by_points" datasource="fcst"/>
-			<query idref="analysis_methods" datasource="fcst"/>
-			<query idref="fc_02050_cov_start" datasource="fcst"/>
-			<query idref="fc_01040_items" datasource="fcst"/>												
-		</queries>		
-	</job>	
-	<job id="fc_02050_cov_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation></navigation>
-		<toolbars></toolbars>
-		<title>COV 분석</title>
-		<authority>1</authority>
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries>	
-		    <query idref="fc_02050_cov_type" datasource="fcst"/>					 
-			<query idref="fc_02050_cov_tailer" datasource="fcst"/>												
-		</queries>	
-	</job>
-	
-	<!-- COV 분석 : 저장 버튼 클릭시 --> 
-	<job id="fc_02050_cov_tailer_save" job_type="composite" check_permission="no">
-		<sub_job id="fc_02050_cov_save"/>		
-		<sub_job id="fc_02050_cov_tailer"/>
-		<permission_desc>COV 저장</permission_desc>
-	</job>
-	<job id="fc_02050_cov_save" job_type="single" check_permission="no">
-		<request_type>insert</request_type>
-		<queries>				 
-			<query idref="fc_02050_cov_delete" datasource="fcst"/>
-			<query idref="fc_02050_cov_insert" datasource="fcst"/>												
-		</queries>
-	</job>
-<!--
-=====================================================================================================
- 끝 
-=====================================================================================================
---> 
-
-	<!--	
-	======================================================================
-		수요예측 Parameter 관리
-	======================================================================
-	-->
-	
-	<!-- 수요예측 Parameter 관리 : header -->	
-	<job id="fc_03010_parameterMgmt_header" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 관리 >> 수요예측 Parameter 관리</navigation>
-		<toolbars>0010</toolbars>
-		<title>수요예측 Parameter 관리</title>
-		<authority>1</authority>		
-		<description>수요예측 Parameter 관리</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="fc_03010_fcst_methods" datasource="fcst"/>			
-		</queries>		
-	</job>
-	
-	<job id="fc_03010_parameterMgmt_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation></navigation>
-		<toolbars></toolbars>
-		<title>수요예측 Parameter 관리</title>
-		<authority>1</authority>
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="fc_03010_parameterMgmt_tailer" datasource="fcst"/>			
-		</queries>
-	</job>
-	
-	<job id="fc_03010_parameterMgmt_tailer_update" job_type="single" check_permission="no">
-		<request_type>insert</request_type>
-		<queries>				 
-			<query idref="fc_03010_parameterMgmt_tailer_update" datasource="fcst"/>										
-		</queries>
-	</job>
-	
-<!-- 수요예측 관리/수요예측 생성 -->
-	<!-- 수요예측 생성 -->
-	<job id="fc_03020_creationFcst_header" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 관리 >> 수요예측 생성</navigation>
-		<toolbars>0000</toolbars>
-		<title>Forecasts Creation</title>
-		<authority>1</authority>
-		<description></description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="prod_groups" datasource="fcst"/>
-			<query idref="sales_groups" datasource="fcst"/>	
-			<query idref="delivery_groups" datasource="fcst"/>			
-			<query idref="oper_types" datasource="fcst"/>
-			<query idref="act_res_start" datasource="fcst"/>	
-			<query idref="act_res_end" datasource="fcst"/>	
-			<query idref="forecasts_methods" datasource="fcst"/>	
-			<query idref="disaggr_rules" datasource="fcst"/>
-			<query idref="product_type1" datasource="fcst"/>
-			<query idref="product_type2" datasource="fcst"/>
-			<query idref="product_type3" datasource="fcst"/>
-			<query idref="product_type4" datasource="fcst"/>			
-			<query idref="sales_centers" datasource="fcst"/>
-			<query idref="sales_depts" datasource="fcst"/>
-			<query idref="sales_locs" datasource="fcst"/>
-			<query idref="delivery_locs" datasource="fcst"/>
-			<query idref="item_types" datasource="fcst"/>
-			<query idref="items" datasource="fcst"/>
-			<query idref="transfers" datasource="fcst"/>
-			<query idref="customers" datasource="fcst"/>
-		</queries>
-	</job>
-	
-	<job id="fc_03020_creationFcst_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation></navigation>
-		<toolbars></toolbars>
-		<title>수요예측 생성</title>
-		<authority>1</authority>
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="fcst_log_list" datasource="fcst"/>			
-			<query idref="fcst_res_list" datasource="fcst"/>			
-		</queries>
-	</job>
-	
-<!-- Demand Manager Workbench/Data Management Workbench -->
-	<!-- Forecasts Controller -->
-	<job id="fc_03030_controlFcst_header" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 관리 >> 수요예측 결과조정</navigation>
-		<toolbars>0000</toolbars>
-		<title>Forecasts Controller</title>
-		<authority>1</authority>
-		<description></description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="oper_types" datasource="fcst"/>			
-			<query idref="s_start" datasource="fcst"/>
-			<query idref="s_end" datasource="fcst"/>
-			<query idref="select_1st" datasource="fcst"/>			
-			<query idref="s_units" datasource="fcst"/>
-			<query idref="product_type1" datasource="fcst"/>
-			<query idref="product_type2" datasource="fcst"/>
-			<query idref="product_type3" datasource="fcst"/>
-			<query idref="product_type4" datasource="fcst"/>			
-			<query idref="sales_centers" datasource="fcst"/>
-			<query idref="sales_depts" datasource="fcst"/>
-			<query idref="sales_locs" datasource="fcst"/>
-			<query idref="delivery_locs" datasource="fcst"/>					
-		</queries>
-	</job>
-	
-	<job id="fc_03030_controlFcst_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation></navigation>
-		<toolbars></toolbars>
-		<title>수요예측 결과조정</title>
-		<authority>1</authority>
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="fcst_ctl_cols" datasource="fcst"/>
-			<query idref="fcst_ctl_rows" datasource="fcst"/>
-		</queries>
-	</job>
-	
-<!-- 수요예측 관리 / 수요예측 확정 및 결과 Export -->
-	<!-- 수요예측 확정 및 결과 Export : header --> 
-	<job id="fc_03050_confirmFcst_list" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 관리 >> 수요예측 확정 및 결과 Export</navigation>
-		<toolbars>0001</toolbars>
-		<title>수요예측 확정 및 결과 Export</title>
-		<authority>1</authority>
-		<description>수요예측 확정 및 결과 Export</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="conf_fcst_plan_type" datasource="fcst"/>
-			<query idref="conf_fcst_month_fcst" datasource="fcst"/>
-			<query idref="conf_fcst_week_fcst" datasource="fcst"/>
-		</queries>
-	</job>
-	
-	<!-- 수요예측 확정 및 결과 Export : tailer-->
-	<job id="fc_03050_confirmFcstSearchResult_list" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 관리 >> 수요예측 확정 및 결과 Export</navigation>
-		<toolbars>0000</toolbars>
-		<title>수요예측 확정 및 결과 Export : 조회 결과</title>
-		<authority>1</authority>
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries>
-			<query idref="fc_03050_confirmFcstSearchResult_list0" datasource="fcst"/>
-			<query idref="fc_03050_confirmFcstSearchResult_list1" datasource="fcst"/>
-		</queries>
-	</job>	
-	
-	<!-- 수요예측 확정 : 삭제 시 -->
-	<job id="fc_03050_confirmFcstSearchResult_delete_action" job_type="composite" check_permission="no">
-		<sub_job id="fc_03050_confirmFcstSearchResult_delete"/>		
-		<sub_job id="fc_03050_confirmFcst_list"/>
-		<permission_desc>수요예측 확정 및 결과 Export - 삭제</permission_desc>
-	</job>
-	<job id="fc_03050_confirmFcstSearchResult_delete" job_type="single" check_permission="no">
-		<request_type>insert</request_type>
-		<queries>			
-			<query idref="fc_03050_confirmFcstSearchResult_fcstMast1_del" datasource="fcst"/>
-			<query idref="fc_03050_confirmFcstSearchResult_fcstMast2_del" datasource="fcst"/>
-			<query idref="fc_03050_confirmFcstSearchResult_fcstMast3_del" datasource="fcst"/>
-			<query idref="fc_03050_confirmFcstSearchResult_fcstPlan_del" datasource="fcst"/>											
-		</queries>
-	</job>
-	
-	<!-- 수요예측 확정 : 확정 버튼 클릭시 -->
-	<job id="fc_03050_confirmFcst_list_confirm_comp" job_type="composite" check_permission="no">
-		<sub_job id="fc_03050_confirmFcst_list_confirm"/>		
-		<sub_job id="fc_03050_confirmFcst_list"/>
-		<permission_desc>수요예측 확정 및 결과 Export - 확정</permission_desc>
-	</job>
-	<job id="fc_03050_confirmFcst_list_confirm" job_type="single" check_permission="no">
-		<request_type>insert</request_type>
-		<queries>
-			<!-- SP 실행 -->			 
-			<query idref="fc_03050_confirmFcst_list_confirm" datasource="fcst"/>												
-		</queries>
-	</job>
-	
-	<!-- 수요예측 확정 : I/F 버튼 클릭시 -->
-	<job id="fc_03050_confirmFcst_list_interface_comp" job_type="composite" check_permission="no">
-		<sub_job id="fc_03050_confirmFcst_list_interface"/>		
-		<sub_job id="fc_03050_confirmFcst_list"/>
-		<permission_desc>수요예측 확정 및 결과 Export - I/F</permission_desc>
-	</job>
-	<job id="fc_03050_confirmFcst_list_interface" job_type="single" check_permission="no">
-		<request_type>insert</request_type>
-		<queries>
-			<!-- SP 실행 -->			 
-			<query idref="fc_03050_confirmFcst_list_interface" datasource="fcst"/>												
-		</queries>
-	</job>
-	
-	
-<!-- 수요예측 관리 / 수요예측 버전 관리 -->	
-	<!-- 수요예측 버전 관리 : header --> 
-	<job id="fc_03060_versionMgmt_header" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 관리 >> 수요예측 버전 관리</navigation>
-		<toolbars>0011</toolbars>
-		<title>수요예측 버전 관리</title>
-		<authority>1</authority>		
-		<description>수요예측 버전 관리</description>
-		<request_type>list</request_type>
-		<queries>			
-			<query idref="fc_03060_oper_types" datasource="fcst"/>
-			<query idref="fc_03060_fcst_names" datasource="fcst"/>			
-			<query idref="fc_03060_start_dates" datasource="fcst"/>				
-			<query idref="fc_03060_save_types" datasource="fcst"/>			
-		</queries>
-	</job>
-	
-	<!-- 수요예측 버전 관리 : tailer--> 
-	<job id="fc_03060_versionMgmt_tailer" job_type="single" check_permission="no">
-		<path>/sinc/50.Forecast</path>
-		<navigation>수요예측 >> 수요예측 관리 >> 수요예측 버전 관리</navigation>
-		<toolbars>0000</toolbars>
-		<title>수요예측 버전</title>
-		<authority>1</authority>		
-		<description>iframe</description>
-		<request_type>list</request_type>
-		<queries>			
-			<query idref="fc_03060_versionMgmt_tailer" datasource="fcst"/>
-			<query idref="fc_03060_versionMgmt_tailer1" datasource="fcst"/>
-		</queries>
-	</job>
-	
-	<!-- 수요예측 버전 저장 : 저장 버튼 클릭시 --> 
-	<job id="fc_03060_versionMgmt_save_action" job_type="composite" check_permission="no">
-		<sub_job id="fc_03060_versionMgmt_save"/>		
-		<sub_job id="fc_03060_versionMgmt_tailer"/>
-		<permission_desc>수요예측 버전 - 저장</permission_desc>
-	</job>
-	<job id="fc_03060_versionMgmt_save" job_type="single" check_permission="no">
-		<request_type>insert</request_type>
-		<queries>
-			<!-- SP 실행 -->			 
-			<query idref="fc_03060_versionMgmt_save" datasource="fcst"/>												
-		</queries>
-	</job>
-	
-	<!-- 수요예측 버전 삭제 : 삭제 버튼 클릭시 --> 
-	<job id="fc_03060_versionMgmt_delete_action" job_type="composite" check_permission="no">
-		<sub_job id="fc_03060_versionMgmt_delete"/>
-		<sub_job id="fc_03060_versionMgmt_tailer"/>
-		<permission_desc>수요예측 버전 - 삭제</permission_desc>
-	</job>
-	<job id="fc_03060_versionMgmt_delete" job_type="single" check_permission="no">
-		<request_type>insert</request_type>
-		<queries>
-			<query idref="fc_03060_versionMgmt_fcstMast_del" datasource="fcst"/>
-			<query idref="fc_03060_versionMgmt_fcstHist_del" datasource="fcst"/>												
-		</queries>
-	</job>
+<?xml version="1.0" encoding="euc-kr"?>
+
+<jobs>
+
+<!--
+=====================================================================================================
+	수요예측 >> 수요예측 Report 
+=====================================================================================================
+--> 
+	<!--	
+	======================================================================
+		Pop-up Code
+	======================================================================
+	-->
+	
+	<!-- Pop-up Code : header -->	
+	<job id="fc_common_codePopup_header" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>코드 검색</navigation>
+		<toolbars>0000</toolbars>
+		<title>코드 검색</title>
+		<authority>1</authority>
+		<description></description>
+		<request_type>forward</request_type>		
+	</job>
+	
+	<!-- Pop-up Code : tailer -->
+	<job id="fc_common_codePopup_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>코드 검색</navigation>
+		<toolbars>0000</toolbars>
+		<title>코드 검색</title>
+		<authority>1</authority>		
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="fc_common_codePopup_tailer" datasource="fcst"/>						
+		</queries>
+	</job>
+	
+	<!--	
+	======================================================================
+		품목/영업조직 관리
+	======================================================================
+	-->
+	
+	<!-- 품목/영업조직 관리 : header -->	
+	<job id="fc_01010_itemSiteMgmt_header" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>기준정보 >> 수요예측 >> 품목/영업조직 관리</navigation>
+		<toolbars>0011</toolbars>
+		<title>품목/영업조직 관리</title>
+		<authority>1</authority>		
+		<description>품목/영업조직 관리</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="fc_01010_hrchy_codes" datasource="fcst"/>			
+		</queries>
+	</job>
+	
+	<!-- 품목/영업조직 관리 : tailer -->	
+	<job id="fc_01010_itemSiteMgmt_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>기준정보 >> 수요예측 >> 품목/영업조직 관리</navigation>
+		<toolbars>0000</toolbars>
+		<title>품목/영업조직 관리</title>
+		<authority>1</authority>		
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="fc_01010_itemSiteMgmt_tailer" datasource="fcst"/>			
+		</queries>		
+	</job>
+	
+	<!-- 품목/영업조직 관리 : 신규 Class 추가 --> 
+	<job id="fc_01010_newClass_insert_action" job_type="composite" check_permission="no">
+		<sub_job id="fc_01010_newClass_insert"/>		
+		<sub_job id="fc_01010_itemSiteMgmt_header"/>
+		<permission_desc>신제품/Refresh 이력관리 - 저장</permission_desc>
+	</job>
+	<job id="fc_01010_newClass_insert" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>				 
+			<query idref="fc_01010_newClass_insert" datasource="fcst"/>
+			<query idref="fc_01010_newClass_insert2" datasource="fcst"/>												
+		</queries>
+	</job>
+	
+	<!-- 품목/영업조직 관리 : Class 삭제 -->
+	<job id="fc_01010_newClass_delete_action" job_type="composite" check_permission="no">
+		<sub_job id="fc_01010_newClass_delete"/>		
+		<sub_job id="fc_01010_itemSiteMgmt_header"/>
+		<permission_desc>신제품/Refresh 이력관리 - 저장</permission_desc>
+	</job>
+	<job id="fc_01010_newClass_delete" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>				 
+			<query idref="fc_01010_newClass_delete1" datasource="fcst"/>
+			<query idref="fc_01010_newClass_delete2" datasource="fcst"/>
+			<query idref="fc_01010_newClass_delete3" datasource="fcst"/>
+			<query idref="fc_01010_newClass_delete4" datasource="fcst"/>														
+		</queries>
+	</job>
+	
+	<!--	
+	======================================================================
+		신제품/Refresh 이력관리
+	======================================================================
+	-->
+	
+	<!-- 신제품/Refresh 이력관리 : header -->	
+	<job id="fc_01020_newRefreshMgmt_header" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>기준정보 >> 수요예측 >> 신제품/Refresh 이력 관리</navigation>
+		<toolbars>0011</toolbars>
+		<title>신제품/Refresh 이력 관리</title>
+		<authority>1</authority>		
+		<description>신제품/Refresh 이력 관리</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="fc_01020_realign_types" datasource="fcst"/>			
+		</queries>
+	</job>
+	
+	<!-- 신제품/Refresh 이력관리 : tailer -->	
+	<job id="fc_01020_newRefreshMgmt_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>기준정보 >> 수요예측 >> 신제품/Refresh 이력 관리</navigation>
+		<toolbars>0000</toolbars>
+		<title>신제품/Refresh 이력 관리</title>
+		<authority>1</authority>		
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="fc_01020_newRefreshMgmt_tailer" datasource="fcst"/>			
+		</queries>		
+	</job>
+	
+	<!-- 신제품/Refresh 이력관리 : detailer -->	
+	<job id="fc_01020_newRefreshMgmt_detailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>기준정보 >> 수요예측 >> 신제품/Refresh 이력 관리</navigation>
+		<toolbars>0000</toolbars>
+		<title>신제품/Refresh 이력 관리</title>
+		<authority>1</authority>		
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="fc_01020_newRefreshMgmt_detailer" datasource="fcst"/>			
+		</queries>		
+	</job>
+	
+	<!-- 신제품/Refresh 이력관리 : 저장 --> 
+	<job id="fc_01020_newRefreshMgmt_save_action" job_type="composite" check_permission="no">
+		<sub_job id="fc_01020_newRefreshMgmt_save"/>		
+		<sub_job id="fc_01020_newRefreshMgmt_tailer"/>
+		<permission_desc>신제품/Refresh 이력관리 - 저장</permission_desc>
+	</job>
+	<job id="fc_01020_newRefreshMgmt_save" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>				 
+			<query idref="fc_01020_newRefreshMgmt_save" datasource="fcst"/>												
+		</queries>
+	</job>
+	
+	<!-- 신제품/Refresh 이력관리 : 삭제 --> 
+	<job id="fc_01020_newRefreshMgmt_delete_action" job_type="composite" check_permission="no">
+		<sub_job id="fc_01020_newRefreshMgmt_delete"/>		
+		<sub_job id="fc_01020_newRefreshMgmt_tailer"/>
+		<permission_desc>신제품/Refresh 이력관리 - 삭제</permission_desc>
+	</job>
+	<job id="fc_01020_newRefreshMgmt_delete" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>				 
+			<query idref="fc_01020_newRefreshMgmt_delete" datasource="fcst"/>		
+			<query idref="fc_01020_newRefreshMgmt_qty_update" datasource="fcst"/>										
+		</queries>
+	</job>
+	
+	<!-- 신제품/Refresh 이력관리 : 적용 --> 
+	<job id="fc_01020_newRefreshMgmt_apply_action" job_type="composite" check_permission="no">
+		<sub_job id="fc_01020_newRefreshMgmt_apply"/>		
+		<sub_job id="fc_01020_newRefreshMgmt_tailer"/>
+		<permission_desc>신제품/Refresh 이력관리 - 적용</permission_desc>
+	</job>
+	<job id="fc_01020_newRefreshMgmt_apply" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>				 
+			<query idref="fc_01020_newRefreshMgmt_apply" datasource="fcst"/>												
+		</queries>
+	</job>
+	
+	<!--	
+	======================================================================
+		영업달력(일별지수) 관리
+	======================================================================
+	-->
+	
+	<!-- 영업달력(일별지수) 관리 : header -->	
+	<job id="fc_01030_calendarMgmt_header" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>기준정보 >> 수요예측 >> 영업달력(일별지수) 관리</navigation>
+		<toolbars>0000</toolbars>
+		<title>영업달력(일별지수) 관리</title>
+		<authority>1</authority>		
+		<description>영업달력(일별지수) 관리</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="fc_01030_calendarMgmt_yyyymm" datasource="fcst"/>			
+		</queries>
+	</job>
+	
+	<!-- 영업달력(일별지수) 관리 : tailer -->	
+	<job id="fc_01030_calendarMgmt_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>기준정보 >> 수요예측 >> 영업달력(일별지수) 관리</navigation>
+		<toolbars>0000</toolbars>
+		<title>영업달력(일별지수) 관리</title>
+		<authority>1</authority>		
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="fc_01030_calendarMgmt_tailer" datasource="fcst"/>					
+		</queries>
+	</job>
+	
+	<!-- 영업달력(일별지수) 관리 : plan calendar create -->	
+	<job id="fc_01030_calendarMgmt_create_action" job_type="composite" check_permission="no">
+		<sub_job id="fc_01030_calendarMgmt_create"/>		
+		<sub_job id="fc_01030_calendarMgmt_tailer"/>
+		<permission_desc>영업달력(일별지수) 관리 - 달력생성</permission_desc>
+	</job>
+	<job id="fc_01030_calendarMgmt_create" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>				 
+			<query idref="fc_01030_calendarMgmt_create" datasource="fcst"/>												
+		</queries>
+	</job>	
+	<!--	
+	======================================================================
+		요일지수 관리
+	======================================================================
+	-->
+	
+	<!-- 요일지수 관리 : header -->	
+	<job id="fc_01040_dow_header" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>기준정보 >> 수요예측 >> 요일지수 관리</navigation>
+		<toolbars>0010</toolbars>
+		<title>요일지수 관리</title>
+		<authority>1</authority>		
+		<description>요일지수 관리</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="fc_01040_items" datasource="fcst"/>
+			<query idref="fc_01040_sites" datasource="fcst"/>
+			<query idref="fc_01040_dc" datasource="fcst"/>	
+			<query idref="fc_01040_start_month" datasource="fcst"/>	
+		</queries>	
+	</job>
+	
+	<!-- 요일지수 관리 : tailer -->	
+	<job id="fc_01040_dow_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>기준정보 >> 수요예측 >> 요일지수 관리</navigation>
+		<toolbars>0000</toolbars>
+		<title>요일지수 관리</title>
+		<authority>1</authority>		
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="fc_01040_dow_tailer" datasource="fcst"/>					
+		</queries>
+	</job>
+	
+	<!-- 요일지수 관리 : 재생성 -->
+	<job id="fc_01040_dow_recreation_action" job_type="composite" check_permission="no">
+		<sub_job id="fc_01040_dow_recreation"/>		
+		<sub_job id="fc_01040_dow_tailer"/>
+		<permission_desc>요일지수 관리 : 재생성</permission_desc>
+	</job>
+	<job id="fc_01040_dow_recreation" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>				 
+			<query idref="fc_01040_dow_recreation" datasource="fcst"/>												
+		</queries>
+	</job>
+	
+	<!-- 요일지수 관리 : 저장 -->	
+	<job id="fc_01040_dow_tailer_update" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>				 
+			<query idref="fc_01040_dow_tailer_update" datasource="fcst"/>												
+		</queries>
+	</job>
+	
+	<!--	
+	======================================================================
+		수요예측 Option 관리
+	======================================================================
+	-->
+	
+	<!-- 수요예측 Option 관리 : header -->	
+	<job id="fc_01050_optionMgmt_header" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>기준정보 >> 수요예측 >> 수요예측 Option 관리</navigation>
+		<toolbars>0010</toolbars>
+		<title>수요예측 Option 관리</title>
+		<authority>1</authority>		
+		<description>수요예측 Option 관리</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="fc_01050_options" datasource="fcst"/>			
+		</queries>	
+	</job>
+	
+	<!-- 수요예측 Option 관리 : tailer -->	
+	<job id="fc_01050_optionMgmt_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>기준정보 >> 수요예측 >> 수요예측 Option 관리</navigation>
+		<toolbars>0000</toolbars>
+		<title>수요예측 Option 관리</title>
+		<authority>1</authority>		
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="fc_01050_optionMgmt_tailer" datasource="fcst"/>					
+		</queries>
+	</job>
+	
+	<!-- 수요예측 Option 관리 : 저장 -->	
+	<job id="fc_01050_optionMgmt_tailer_update" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="fc_01050_optionMgmt_tailer_update" datasource="fcst"/>												
+		</queries>
+	</job>
+	
+	<!--	
+	======================================================================
+		수요예측 방법 분석
+	======================================================================
+	-->
+	
+	<!-- 수요예측 방법 분석 : header -->	
+	<job id="fc_04010_methodAnalysis_header" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 Report >> 수요예측 방법 분석</navigation>
+		<toolbars>0000</toolbars>
+		<title>수요예측 방법 분석</title>
+		<authority>1</authority>		
+		<description>수요예측 방법 분석</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="oper_types" datasource="fcst"/>
+			<query idref="forecasts_methods" datasource="fcst"/>			
+		</queries>
+	</job>
+	
+	<!-- 수요예측 방법 분석 : tailer -->	
+	<job id="fc_04010_methodAnalysis_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 Report >> 수요예측 방법 분석</navigation>
+		<toolbars>0000</toolbars>
+		<title>수요예측 방법 분석</title>
+		<authority>1</authority>		
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="fc_04010_methodAnalysis_tailer" datasource="fcst"/>		
+			<query idref="fc_04010_methodAnalysis_tailer_chart" datasource="fcst"/>				
+		</queries>
+	</job> 
+	
+	<!--	
+	======================================================================
+		수요예측 상세 조회
+	======================================================================
+	-->
+	
+	<!-- 수요예측 상세 조회 : header -->	
+	<job id="fc_04020_detailFcst_header" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 Report >> 수요예측 상세 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>수요예측 상세 조회</title>
+		<authority>1</authority>		
+		<description>수요예측 상세 조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="fc_04020_oper_types" datasource="fcst"/>
+			<query idref="s_start" datasource="fcst"/>
+			<query idref="s_end" datasource="fcst"/>
+			<query idref="select_1st" datasource="fcst"/>			
+			<query idref="s_units" datasource="fcst"/>
+			<query idref="product_type1" datasource="fcst"/>
+			<query idref="product_type2" datasource="fcst"/>
+			<query idref="product_type3" datasource="fcst"/>
+			<query idref="product_type4" datasource="fcst"/>			
+			<query idref="sales_centers" datasource="fcst"/>
+			<query idref="sales_depts" datasource="fcst"/>
+			<query idref="sales_locs" datasource="fcst"/>
+			<query idref="delivery_locs" datasource="fcst"/>			
+		</queries>
+	</job>
+	
+	<!-- 수요예측 방법 분석 : tailer -->	
+	<job id="fc_04020_detailFcst_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 Report >> 수요예측 상세 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>수요예측  상세 조회</title>
+		<authority>1</authority>		
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="fc_04020_detailFcst_tailer_cols" datasource="fcst"/>		
+			<query idref="fc_04020_detailFcst_tailer" datasource="fcst"/>				
+		</queries>
+	</job> 
+	
+	<!--	
+	======================================================================
+		수요예측 Error 조회
+	======================================================================
+	-->
+	
+	<!-- 수요예측 Error 조회 : header -->	
+	<job id="fc_04030_errorAnaly_list" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 Report >> 수요예측 Error 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>수요예측 Error 조회</title>
+		<authority>1</authority>		
+		<description>수요예측 Error 조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="err_analy_plan_type" datasource="fcst"/>
+			<query idref="err_analy_plan_name" datasource="fcst"/>
+			<query idref="err_analy_error_type" datasource="fcst"/>
+			<query idref="fcst_ctl_cols" datasource="fcst"/>
+			<query idref="fcst_ctl_rows" datasource="fcst"/>		
+		</queries>
+	</job> 
+	
+	<!-- 수요예측 Error 조회 : tailer--> 
+	<job id="fc_04030_errorAnalySearchResult_list" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 Report >> 수요예측 Error 조회</navigation>
+		<toolbars>0000</toolbars>
+		<title>수요예측 Error 조회 : 조회 결과</title>
+		<authority>1</authority>		
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries>			
+			<query idref="fc_04030_errorAnalySearchResult_list" datasource="fcst"/>
+		</queries>
+	</job>	
+	
+<!--
+=====================================================================================================
+	수요예측 >> 수요예측 관리 
+=====================================================================================================
+--> 
+	
+	
+	
+<!--
+=====================================================================================================
+	수요예측 >> 판매실적 관리 
+=====================================================================================================
+--> 
+
+	<!--  판매실적 관리/판매실적 조회 및 조정 -->
+	<!-- 판매실적 조회 및 조정 -->
+	<job id="fc_02020_controlSales_header" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 판매실적 관리 >> 판매실적 조회 및 조정</navigation>
+		<toolbars>0000</toolbars>
+		<title>판매실적 조회 및 조정</title>
+		<authority>1</authority>
+		<description></description>
+		<request_type>list</request_type>
+		<queries>				
+			<query idref="bucket_units" datasource="fcst"/>
+			<query idref="sales_start" datasource="fcst"/>	
+			<query idref="sales_end" datasource="fcst"/>	
+			<query idref="select_1st" datasource="fcst"/>			
+			<query idref="s_units" datasource="fcst"/>	
+			<query idref="product_type1" datasource="fcst"/>
+			<query idref="product_type2" datasource="fcst"/>
+			<query idref="product_type3" datasource="fcst"/>
+			<query idref="product_type4" datasource="fcst"/>			
+			<query idref="sales_centers" datasource="fcst"/>
+			<query idref="sales_depts" datasource="fcst"/>
+			<query idref="sales_locs" datasource="fcst"/>
+			<query idref="delivery_locs" datasource="fcst"/>						
+		</queries>
+	</job>
+	
+	<job id="fc_02020_controlSales_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation></navigation>
+		<toolbars></toolbars>
+		<title>판매실적 조회 및 조정</title>
+		<authority>1</authority>
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="fcst_ctl_cols" datasource="fcst"/>
+			<query idref="sales_ctl_rows" datasource="fcst"/>
+		</queries>
+	</job>
+	
+	<!--	
+	======================================================================
+		이상요인 조정
+	======================================================================
+	-->
+	
+	<!-- 이상요인 조정 -->
+	<job id="fc_02030_removeOutlier_header" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 판매실적 관리 >> 이상요인 조정 </navigation>
+		<toolbars>0000</toolbars>
+		<title>이상요인 조정</title>
+		<authority>1</authority>		
+		<description>이상요인 조정</description>
+		<request_type>list</request_type>
+		<queries>	
+			<query idref="rem_out_period_list" datasource="fcst"/>		
+					
+		</queries>
+	</job>	
+	<job id="fc_02030_removeOutlier_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation></navigation>
+		<toolbars></toolbars>
+		<title>이상요인 조정</title>
+		<authority>1</authority>
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="fc_02030_removeOutlier_list" datasource="fcst"/>	
+		</queries>
+	</job>
+	
+	<!-- 이상요인 찾기 : 찾기 버튼 클릭시 --> 
+	<job id="fc_02030_removeOutlier_list_search_comp" job_type="composite" check_permission="no">
+		<sub_job id="fc_02030_removeOutlier_list_search"/>		
+		<sub_job id="fc_02030_removeOutlier_tailer"/>
+		<permission_desc>이상요인 찾기 - 찾기</permission_desc>
+	</job>
+	<job id="fc_02030_removeOutlier_list_search" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>
+			<!-- SP 실행 -->			 
+			<query idref="fc_02030_removeOutlier_list_search" datasource="fcst"/>												
+		</queries>
+	</job>
+	
+	<!-- 이상요인 조정 : 조정 버튼 클릭시 --> 
+	<job id="fc_02030_removeOutlier_list_update_comp" job_type="composite" check_permission="no">
+		<sub_job id="fc_02030_removeOutlier_list_update"/>		
+		<sub_job id="fc_02030_removeOutlier_tailer"/>
+		<permission_desc>이상요인 찾기 - 조정</permission_desc>
+	</job>
+	<job id="fc_02030_removeOutlier_list_update" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>
+			<!-- SP 실행 -->			 
+			<query idref="fc_02030_removeOutlier_list_update_01" datasource="fcst"/>
+			<query idref="fc_02030_removeOutlier_list_update_02" datasource="fcst"/>												
+		</queries>
+	</job>
+	
+	<!--	
+	======================================================================
+		ABC 분석
+	======================================================================
+	-->
+	
+	<!-- ABC 분석 -->
+	<job id="fc_02040_abc_header" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 판매실적 관리 >> ABC 분석 </navigation>
+		<toolbars>0000</toolbars>
+		<title>ABC 분석</title>
+		<authority>1</authority>		
+		<description>ABC 분석</description>
+		<request_type>list</request_type>
+		<queries>					 
+			<query idref="fc_02040_analysis_groups" datasource="fcst"/>
+			<query idref="fc_02040_analyze_by_points" datasource="fcst"/>
+			<query idref="fc_02040_abc_start" datasource="fcst"/>										
+		</queries>		
+	</job>	
+	<job id="fc_02040_abc_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation></navigation>
+		<toolbars></toolbars>
+		<title>ABC 분석</title>
+		<authority>1</authority>
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries>					 
+			<query idref="fc_02040_abc_tailer" datasource="fcst"/>												
+		</queries>	
+	</job>
+	
+	<!-- ABC 분석 : 저장 버튼 클릭시 --> 
+	<job id="fc_02040_abc_tailer_save" job_type="composite" check_permission="no">
+		<sub_job id="fc_02040_abc_save"/>		
+		<sub_job id="fc_02040_abc_tailer"/>
+		<permission_desc>ABC 저장</permission_desc>
+	</job>
+	<job id="fc_02040_abc_save" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>				 
+			<query idref="fc_02040_abc_delete" datasource="fcst"/>
+			<query idref="fc_02040_abc_insert" datasource="fcst"/>												
+		</queries>
+	</job>
+	
+	<!--	
+	======================================================================
+		COV 분석
+	======================================================================
+	-->
+	
+	<!-- COV 분석 -->
+	<job id="fc_02050_cov_header" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 판매실적 관리 >> COV 분석 </navigation>
+		<toolbars>0000</toolbars>
+		<title>COV 분석</title>
+		<authority>1</authority>		
+		<description>COV 분석</description>
+		<request_type>list</request_type>
+		<queries>					 
+			<query idref="analysis_groups" datasource="fcst"/>
+			<query idref="analyze_by_points" datasource="fcst"/>
+			<query idref="analysis_methods" datasource="fcst"/>
+			<query idref="fc_02050_cov_start" datasource="fcst"/>
+			<query idref="fc_01040_items" datasource="fcst"/>												
+		</queries>		
+	</job>	
+	<job id="fc_02050_cov_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation></navigation>
+		<toolbars></toolbars>
+		<title>COV 분석</title>
+		<authority>1</authority>
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries>	
+		    <query idref="fc_02050_cov_type" datasource="fcst"/>					 
+			<query idref="fc_02050_cov_tailer" datasource="fcst"/>												
+		</queries>	
+	</job>
+	
+	<!-- COV 분석 : 저장 버튼 클릭시 --> 
+	<job id="fc_02050_cov_tailer_save" job_type="composite" check_permission="no">
+		<sub_job id="fc_02050_cov_save"/>		
+		<sub_job id="fc_02050_cov_tailer"/>
+		<permission_desc>COV 저장</permission_desc>
+	</job>
+	<job id="fc_02050_cov_save" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>				 
+			<query idref="fc_02050_cov_delete" datasource="fcst"/>
+			<query idref="fc_02050_cov_insert" datasource="fcst"/>												
+		</queries>
+	</job>
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+
+	<!--	
+	======================================================================
+		수요예측 Parameter 관리
+	======================================================================
+	-->
+	
+	<!-- 수요예측 Parameter 관리 : header -->	
+	<job id="fc_03010_parameterMgmt_header" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 관리 >> 수요예측 Parameter 관리</navigation>
+		<toolbars>0010</toolbars>
+		<title>수요예측 Parameter 관리</title>
+		<authority>1</authority>		
+		<description>수요예측 Parameter 관리</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="fc_03010_fcst_methods" datasource="fcst"/>			
+		</queries>		
+	</job>
+	
+	<job id="fc_03010_parameterMgmt_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation></navigation>
+		<toolbars></toolbars>
+		<title>수요예측 Parameter 관리</title>
+		<authority>1</authority>
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="fc_03010_parameterMgmt_tailer" datasource="fcst"/>			
+		</queries>
+	</job>
+	
+	<job id="fc_03010_parameterMgmt_tailer_update" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>				 
+			<query idref="fc_03010_parameterMgmt_tailer_update" datasource="fcst"/>										
+		</queries>
+	</job>
+	
+<!-- 수요예측 관리/수요예측 생성 -->
+	<!-- 수요예측 생성 -->
+	<job id="fc_03020_creationFcst_header" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 관리 >> 수요예측 생성</navigation>
+		<toolbars>0000</toolbars>
+		<title>Forecasts Creation</title>
+		<authority>1</authority>
+		<description></description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="prod_groups" datasource="fcst"/>
+			<query idref="sales_groups" datasource="fcst"/>	
+			<query idref="delivery_groups" datasource="fcst"/>			
+			<query idref="oper_types" datasource="fcst"/>
+			<query idref="act_res_start" datasource="fcst"/>	
+			<query idref="act_res_end" datasource="fcst"/>	
+			<query idref="forecasts_methods" datasource="fcst"/>	
+			<query idref="disaggr_rules" datasource="fcst"/>
+			<query idref="product_type1" datasource="fcst"/>
+			<query idref="product_type2" datasource="fcst"/>
+			<query idref="product_type3" datasource="fcst"/>
+			<query idref="product_type4" datasource="fcst"/>			
+			<query idref="sales_centers" datasource="fcst"/>
+			<query idref="sales_depts" datasource="fcst"/>
+			<query idref="sales_locs" datasource="fcst"/>
+			<query idref="delivery_locs" datasource="fcst"/>
+			<query idref="item_types" datasource="fcst"/>
+			<query idref="items" datasource="fcst"/>
+			<query idref="transfers" datasource="fcst"/>
+			<query idref="customers" datasource="fcst"/>
+		</queries>
+	</job>
+	
+	<job id="fc_03020_creationFcst_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation></navigation>
+		<toolbars></toolbars>
+		<title>수요예측 생성</title>
+		<authority>1</authority>
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="fcst_log_list" datasource="fcst"/>			
+			<query idref="fcst_res_list" datasource="fcst"/>			
+		</queries>
+	</job>
+	
+<!-- Demand Manager Workbench/Data Management Workbench -->
+	<!-- Forecasts Controller -->
+	<job id="fc_03030_controlFcst_header" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 관리 >> 수요예측 결과조정</navigation>
+		<toolbars>0000</toolbars>
+		<title>Forecasts Controller</title>
+		<authority>1</authority>
+		<description></description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="oper_types" datasource="fcst"/>			
+			<query idref="s_start" datasource="fcst"/>
+			<query idref="s_end" datasource="fcst"/>
+			<query idref="select_1st" datasource="fcst"/>			
+			<query idref="s_units" datasource="fcst"/>
+			<query idref="product_type1" datasource="fcst"/>
+			<query idref="product_type2" datasource="fcst"/>
+			<query idref="product_type3" datasource="fcst"/>
+			<query idref="product_type4" datasource="fcst"/>			
+			<query idref="sales_centers" datasource="fcst"/>
+			<query idref="sales_depts" datasource="fcst"/>
+			<query idref="sales_locs" datasource="fcst"/>
+			<query idref="delivery_locs" datasource="fcst"/>					
+		</queries>
+	</job>
+	
+	<job id="fc_03030_controlFcst_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation></navigation>
+		<toolbars></toolbars>
+		<title>수요예측 결과조정</title>
+		<authority>1</authority>
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="fcst_ctl_cols" datasource="fcst"/>
+			<query idref="fcst_ctl_rows" datasource="fcst"/>
+		</queries>
+	</job>
+	
+<!-- 수요예측 관리 / 수요예측 확정 및 결과 Export -->
+	<!-- 수요예측 확정 및 결과 Export : header --> 
+	<job id="fc_03050_confirmFcst_list" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 관리 >> 수요예측 확정 및 결과 Export</navigation>
+		<toolbars>0001</toolbars>
+		<title>수요예측 확정 및 결과 Export</title>
+		<authority>1</authority>
+		<description>수요예측 확정 및 결과 Export</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="conf_fcst_plan_type" datasource="fcst"/>
+			<query idref="conf_fcst_month_fcst" datasource="fcst"/>
+			<query idref="conf_fcst_week_fcst" datasource="fcst"/>
+		</queries>
+	</job>
+	
+	<!-- 수요예측 확정 및 결과 Export : tailer-->
+	<job id="fc_03050_confirmFcstSearchResult_list" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 관리 >> 수요예측 확정 및 결과 Export</navigation>
+		<toolbars>0000</toolbars>
+		<title>수요예측 확정 및 결과 Export : 조회 결과</title>
+		<authority>1</authority>
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries>
+			<query idref="fc_03050_confirmFcstSearchResult_list0" datasource="fcst"/>
+			<query idref="fc_03050_confirmFcstSearchResult_list1" datasource="fcst"/>
+		</queries>
+	</job>	
+	
+	<!-- 수요예측 확정 : 삭제 시 -->
+	<job id="fc_03050_confirmFcstSearchResult_delete_action" job_type="composite" check_permission="no">
+		<sub_job id="fc_03050_confirmFcstSearchResult_delete"/>		
+		<sub_job id="fc_03050_confirmFcst_list"/>
+		<permission_desc>수요예측 확정 및 결과 Export - 삭제</permission_desc>
+	</job>
+	<job id="fc_03050_confirmFcstSearchResult_delete" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>			
+			<query idref="fc_03050_confirmFcstSearchResult_fcstMast1_del" datasource="fcst"/>
+			<query idref="fc_03050_confirmFcstSearchResult_fcstMast2_del" datasource="fcst"/>
+			<query idref="fc_03050_confirmFcstSearchResult_fcstMast3_del" datasource="fcst"/>
+			<query idref="fc_03050_confirmFcstSearchResult_fcstPlan_del" datasource="fcst"/>											
+		</queries>
+	</job>
+	
+	<!-- 수요예측 확정 : 확정 버튼 클릭시 -->
+	<job id="fc_03050_confirmFcst_list_confirm_comp" job_type="composite" check_permission="no">
+		<sub_job id="fc_03050_confirmFcst_list_confirm"/>		
+		<sub_job id="fc_03050_confirmFcst_list"/>
+		<permission_desc>수요예측 확정 및 결과 Export - 확정</permission_desc>
+	</job>
+	<job id="fc_03050_confirmFcst_list_confirm" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>
+			<!-- SP 실행 -->			 
+			<query idref="fc_03050_confirmFcst_list_confirm" datasource="fcst"/>												
+		</queries>
+	</job>
+	
+	<!-- 수요예측 확정 : I/F 버튼 클릭시 -->
+	<job id="fc_03050_confirmFcst_list_interface_comp" job_type="composite" check_permission="no">
+		<sub_job id="fc_03050_confirmFcst_list_interface"/>		
+		<sub_job id="fc_03050_confirmFcst_list"/>
+		<permission_desc>수요예측 확정 및 결과 Export - I/F</permission_desc>
+	</job>
+	<job id="fc_03050_confirmFcst_list_interface" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>
+			<!-- SP 실행 -->			 
+			<query idref="fc_03050_confirmFcst_list_interface" datasource="fcst"/>												
+		</queries>
+	</job>
+	
+	
+<!-- 수요예측 관리 / 수요예측 버전 관리 -->	
+	<!-- 수요예측 버전 관리 : header --> 
+	<job id="fc_03060_versionMgmt_header" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 관리 >> 수요예측 버전 관리</navigation>
+		<toolbars>0011</toolbars>
+		<title>수요예측 버전 관리</title>
+		<authority>1</authority>		
+		<description>수요예측 버전 관리</description>
+		<request_type>list</request_type>
+		<queries>			
+			<query idref="fc_03060_oper_types" datasource="fcst"/>
+			<query idref="fc_03060_fcst_names" datasource="fcst"/>			
+			<query idref="fc_03060_start_dates" datasource="fcst"/>				
+			<query idref="fc_03060_save_types" datasource="fcst"/>			
+		</queries>
+	</job>
+	
+	<!-- 수요예측 버전 관리 : tailer--> 
+	<job id="fc_03060_versionMgmt_tailer" job_type="single" check_permission="no">
+		<path>/sinc/50.Forecast</path>
+		<navigation>수요예측 >> 수요예측 관리 >> 수요예측 버전 관리</navigation>
+		<toolbars>0000</toolbars>
+		<title>수요예측 버전</title>
+		<authority>1</authority>		
+		<description>iframe</description>
+		<request_type>list</request_type>
+		<queries>			
+			<query idref="fc_03060_versionMgmt_tailer" datasource="fcst"/>
+			<query idref="fc_03060_versionMgmt_tailer1" datasource="fcst"/>
+		</queries>
+	</job>
+	
+	<!-- 수요예측 버전 저장 : 저장 버튼 클릭시 --> 
+	<job id="fc_03060_versionMgmt_save_action" job_type="composite" check_permission="no">
+		<sub_job id="fc_03060_versionMgmt_save"/>		
+		<sub_job id="fc_03060_versionMgmt_tailer"/>
+		<permission_desc>수요예측 버전 - 저장</permission_desc>
+	</job>
+	<job id="fc_03060_versionMgmt_save" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>
+			<!-- SP 실행 -->			 
+			<query idref="fc_03060_versionMgmt_save" datasource="fcst"/>												
+		</queries>
+	</job>
+	
+	<!-- 수요예측 버전 삭제 : 삭제 버튼 클릭시 --> 
+	<job id="fc_03060_versionMgmt_delete_action" job_type="composite" check_permission="no">
+		<sub_job id="fc_03060_versionMgmt_delete"/>
+		<sub_job id="fc_03060_versionMgmt_tailer"/>
+		<permission_desc>수요예측 버전 - 삭제</permission_desc>
+	</job>
+	<job id="fc_03060_versionMgmt_delete" job_type="single" check_permission="no">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="fc_03060_versionMgmt_fcstMast_del" datasource="fcst"/>
+			<query idref="fc_03060_versionMgmt_fcstHist_del" datasource="fcst"/>												
+		</queries>
+	</job>
 </jobs>

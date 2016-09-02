@@ -1,518 +1,518 @@
-<?xml version="1.0" encoding="euc-kr"?>
-<jobs>
-
-<!--
-=====================================================================================================
-	사용자 관리
-=====================================================================================================
---> 
-	
-	<!--
-	=======================
-		LOGIN 
-	=======================
-	-->
-	
-	<!--login Start-->
-	<job id="login_check" job_type="single" refresh="false">
-		<target>default_main</target>
-		<navigation>MAIN PAGE</navigation>
-		<path>/sinc/00.admin</path>
-		<request_type>list</request_type>
-		<queries>    
-			<query idref="login" datasource="t3sinc"/>
-		</queries>
-	</job>
-	
-	<!-- 
-	=======================
-		GET PERMISSION 
-	=======================
-	--> 
-	
-	<!-- Permission Check -->
-	<job id="sinc_permission_check" job_type="single">
-		<queries>
-			<query idref="get_permission" datasource="t3sinc"/>
-		</queries>
-	</job>
-	
-	<!-- 
-	=======================
-		GET MENU
-	=======================
-	--> 
-	
-	<!-- Get Menu -->
-	<job id="main_menu" job_type="single">
-		<path>/sinc/template/basic/template</path>
-		<target>left_template</target>
-		<request_type>login</request_type>
-		<queries>    
-			<query idref="menus" datasource="t3sinc"/>
-		</queries>
-	</job>
-	
-	<!-- 
-	=======================
-		사용자 관리 
-	=======================
-	-->
-	
-	<!-- 사용자 조회 -->
-	<job id="user_list" job_type="single" check_permission="yes">
-		<path>/sinc/00.admin</path>
-		<navigation>사용자관리 >> 사용자관리</navigation>
-		<toolbars>1000</toolbars>
-		<title>사용자조회</title>
-		<authority>1</authority>
-		<description>사용자조회</description>
-		<request_type>list</request_type>
-		<queries> 
-			<query idref="super_user_check" datasource="t3sinc"/>
-			<query idref="user_list"  datasource="t3sinc"/>
-		</queries> 
-	</job>
-	
-	<!-- 사용자 추가 -->
-	<job id="user_add" job_type="single" check_permission="yes">
-		<path>/sinc/00.admin</path>
-		<navigation>사용자관리 >> 사용자관리 >> 등록</navigation>
-		<toolbars>0100</toolbars>
-		<title>사용자등록</title>
-		<authority>1</authority>		
-		<description>사용자등록</description>		
-		<request_type>list_with_menu</request_type>
-		<queries>                  
-			<query idref="user_group_add"  datasource="t3sinc"/>
-			<query idref="menus" aliase="menus" datasource="t3sinc"/> 
-			<query idref="menus_group" datasource="t3sinc"/>
-		</queries> 		
-	</job>
-	
-	<!-- 사용자 추가 : 저장 -->
-	<job id="user_register" job_type="composite" check_permission="yes">
-		<sub_job id="user_save"/>		
-		<sub_job id="user_list"/>
-		<permission_desc>사용자등록-저장</permission_desc>
-	</job>
-	<job id="user_save" job_type="single">
-		<request_type>insert</request_type>
-		<queries>     
-			<query idref="user_save" datasource="t3sinc"/>
-			<query idref="user_group_save" datasource="t3sinc"/>
-			<query idref="user_menu_save" datasource="t3sinc"/>
-			<!--query idref ="user_job_save" datasource="t3sinc"/--> <!-- menu 와 job 을 동시에 저장하는 경우 -->
-		</queries>
-	</job>
-	
-	<!-- 사용자 상세 -->
-	<job id="user_detail" check_permission="yes">
-		<path>/sinc/00.admin</path>
-		<navigation>사용자관리 >> 사용자관리 >> 상세</navigation>
-		<toolbars>0010</toolbars>
-		<title>사용자상세조회</title>
-		<authority>1</authority>
-		<description>사용자상세조회</description>
-		<request_type>list_with_menu</request_type>
-		<queries>                  
-			<query idref="user_detail" datasource="t3sinc"/>
-			<query idref="menus_user" aliase="menus" datasource="t3sinc"/>
-			<query idref="super_user_check" datasource="t3sinc"/>
-		</queries> 
-	</job>
-	
-	<!-- 사용자 수정 -->
-	<job id="user_modify" job_type="single" check_permission="yes">
-		<path>/sinc/00.admin</path>
-		<navigation>사용자관리 >> 사용자관리 >> 수정</navigation>
-		<toolbars>0100</toolbars>
-		<title>사용자정보수정</title>
-		<authority>1</authority>		
-		<description>사용자정보수정</description>		
-		<request_type>list_with_menu</request_type>
-		<queries>                  
-			<query idref="user_modify"  datasource="t3sinc"/>
-			<query idref="user_group_add"  datasource="t3sinc"/>
-			<query idref="menus" datasource="t3sinc"/>
-			<query idref="menus_user"  aliase="check_menu" datasource="t3sinc"/>
-			<query idref="menus_group" datasource="t3sinc"/>
-		</queries> 
-	</job>
-	
-	<!-- 사용자 수정 : 저장 -->
-	<job id="user_update" job_type="composite" check_permission="yes">
-		<sub_job id="user_update_single"/>
-		<sub_job id="user_list"/>
-		<permission_desc>사용자정보수정-저장</permission_desc>
-	</job>
-	<job id="user_update_single"  job_type= "single">
-		<request_type>insert</request_type>
-		<queries>
-			<query idref = "user_update" datasource="t3sinc"/>
-		</queries>
-	</job>
-	
-	<!-- 사용자 삭제 -->
-	<job id="user_delete" job_type="composite" check_permission="yes">
-		<sub_job id="user_delete_single"/>
-		<sub_job id="user_list"/>
-		<permission_desc>사용자정보수정-삭제</permission_desc>
-	</job>
-	<job id="user_delete_single"  job_type= "single">
-		<request_type>insert</request_type>
-		<queries>
-			<query idref = "user_menu_delete" datasource="t3sinc"/>
-			<query idref = "user_group_delete" datasource="t3sinc"/>
-			<query idref = "user_job_delete" datasource="t3sinc"/>
-			<query idref = "user_delete" datasource="t3sinc"/>		
-		</queries>
-	</job>
-	
-	<!-- 사용자 수정 : ADMIN -->
-	<job id="super_user_modify" job_type="single" check_permission="yes">
-		<path>/sinc/00.admin</path>
-		<navigation>사용자관리 >> 사용자관리 >> 수정(관리자용)</navigation>
-		<toolbars>0100</toolbars>
-		<title>사용자정보수정(관리자용)</title>
-		<authority>1</authority>		
-		<description>사용자정보수정(관리자용)</description>		
-		<request_type>list_with_menu</request_type>
-		<queries>                  
-			<query idref="user_modify"  datasource="t3sinc"/>
-			<query idref="user_group_add"  datasource="t3sinc"/>
-			<query idref="super_menus" aliase="menus"  datasource="t3sinc"/>
-			<query idref="menus_user"  aliase="check_menu" datasource="t3sinc"/>
-			<query idref="menus_group" datasource="t3sinc"/>
-		</queries> 
-	</job>
-	<job id="super_user_update" job_type="composite" check_permission="yes">
-		<sub_job id="user_update_super"/>
-		<sub_job id="user_list"/>
-		<permission_desc>사용자정보수정(관리자용)-저장</permission_desc>
-	</job>
-	<job id="user_update_super"  job_type= "single">
-		<request_type>insert</request_type>
-		<queries>
-			<query idref = "user_update" datasource="t3sinc"/> 
-			<query idref = "user_group_delete" datasource="t3sinc"/> 
-			<query idref = "user_group_update" datasource="t3sinc"/> 
-			<query idref = "user_menu_delete" datasource="t3sinc"/> 
-			<query idref = "user_menu_save" datasource="t3sinc"/> 
-			<!--query idref = "user_job_delete" datasource="t3sinc"/> 
-			<query idref = "user_job_save" datasource="t3sinc"/--> <!-- menu 와 job 을 동시에 저장하는 경우 -->
-		</queries>
-	</job>
-	
-	<!-- 
-	=======================
-		GROUP 관리 
-	=======================
-	-->
-	
-	<!-- Group 조회 -->
-	<job id="group_list" job_type="single" check_permission="yes">
-		<path>/sinc/00.admin</path>
-		<navigation>사용자관리 >> 사용자그룹관리</navigation>
-		<toolbars>1000</toolbars>
-		<title>사용자그룹조회</title>
-		<authority>1</authority>		
-		<description>사용자그룹조회</description>		
-		<request_type>list</request_type>
-		<queries>                  
-			<query idref="group_list"  datasource="t3sinc"/>
-		</queries> 
-	</job>
-	
-	<!-- Group 추가 -->
-	<job id="group_add" job_type="single" check_permission="yes">
-		<path>/sinc/00.admin</path>
-		<navigation>사용자관리 >> 사용자그룹관리 >> 등록</navigation>
-		<toolbars>0100</toolbars>
-		<title>사용자그룹등록</title>
-		<authority>1</authority>		
-		<description>사용자그룹등록</description>
-		<request_type>list_with_menu</request_type>
-		<queries>                  
-			<query idref="user_list"  datasource="t3sinc"/>
-			<query idref="group_add"  datasource="t3sinc"/>
-			<query idref="menus"  datasource="t3sinc"/>  <!-- _moon_menus -->
-		</queries> 		
-	</job>
-	<job id="group_register" job_type = "composite" check_permission="yes">
-		<sub_job id = "group_save"/>
-		<sub_job id = "group_list"/>
-		<permission_desc>사용자그룹등록-저장</permission_desc>
-	</job>
-	<job id="group_save" job_type="single">
-		<request_type>insert_key</request_type>
-		<queries>                  
-			<query idref="group_save"  datasource="t3sinc"/>
-			<query idref="group_menu_save"  datasource="t3sinc"/>
-		</queries> 
-	</job>
-	
-	<!-- Group 상세 -->
-	<job id="group_detail" check_permission="yes">
-		<path>/sinc/00.admin</path>
-		<navigation>사용자관리 >> 사용자그룹관리 >> 상세</navigation>
-		<toolbars>0011</toolbars>
-		<title>사용자그룹상세조회</title>
-		<authority>1</authority>		
-		<description>사용자그룹상세조회</description>		
-		<request_type>list_with_menu</request_type>
-		<queries>                  
-			<query idref="group_detail"  datasource="t3sinc"/>
-			<query idref="menus_group"  aliase="menus" datasource="t3sinc"/>  <!-- _moon_menus -->
-		</queries> 
-	</job>
-	
-	<!-- Group 수정 : 화면 -->
-	<job id="group_modify" job_type="single" check_permission="yes">
-		<path>/sinc/00.admin</path>
-		<navigation>사용자관리 >> 사용자그룹관리 >> 수정</navigation>
-		<toolbars>0100</toolbars>
-		<title>사용자그룹정보수정</title>
-		<authority>1</authority>		
-		<description>사용자그룹정보수정</description>		
-		<request_type>list_with_menu</request_type>
-		<queries>                  
-			<query idref="group_detail"  datasource="t3sinc"/>
-			<query idref="menus"  datasource="t3sinc"/>
-			<query idref="menus_group"  datasource="t3sinc"/>
-		</queries> 
-	</job>
-	
-	<!-- Group 수정 : 저장 -->
-	<job id="group_update" job_type="composite" check_permission="yes">
-		<sub_job id="group_update_single"/>
-		<sub_job id="group_list"/>
-		<permission_desc>사용자그룹정보수정-저장</permission_desc>
-	</job>
-	<job id="group_update_single"  job_type= "single">
-		<request_type>insert</request_type>
-		<queries>
-			<query idref="group_menu_delete" datasource="t3sinc"/>
-			<query idref="group_menu_update" datasource="t3sinc"/>
-			<!--query idref="group_job_delete" datasource="t3sinc"/>
-			<query idref="group_job_update" datasource="t3sinc"/--> <!-- menu 와 job 을 동시에 저장하는 경우 -->
-			<query idref="group_update" datasource="t3sinc"/>
-		</queries>
-	</job>
-	
-	<!-- Group 삭제 -->
-	<job id="group_delete" job_type="composite" check_permission="yes">
-		<sub_jobs type = "ifelse">
-			<if condition ="group_delete_check" datasource="t3sinc">
-				<true>
-					<job id="group_list"/>		
-				</true>
-				<false>
-					<job id="group_delete_single"/>
-					<job id="group_list"/>
-				</false>
-			</if>
-		</sub_jobs>
-		<permission_desc>사용자그룹정보수정-삭제</permission_desc>
-	</job>	
-	<job id="group_delete_single"  job_type= "single">
-		<request_type>insert</request_type>
-		<queries>			
-			<query idref="group_menu_delete" datasource="t3sinc"/>
-			<query idref="group_job_permission_detail_save_delete" datasource="t3sinc"/>
-			<query idref="group_delete" datasource="t3sinc"/>
-		</queries>
-	</job>
-	<job id="group_delete_check">
-		<request_type>list</request_type>
-		<queries>
-			<query idref="group_delete_check" datasource="t3sinc"/>
-		</queries>
-	</job>
-	
-	<!-- 
-	=======================
-		사용자권한관리 
-	=======================
-	--> 
-	
-	<!-- 사용자권한관리 --> 
-	<job id="user_job_permission_list" job_type="single" check_permission="yes">
-		<path>/sinc/00.admin</path>
-		<navigation>사용자관리 >> 사용자권한관리</navigation>
-		<toolbars>0000</toolbars>
-		<title>사용자권한조회</title>
-		<authority>1</authority>		
-		<description>사용자권한조회</description>
-		<request_type>list</request_type>
-		<queries> 
-			<query idref="super_user_check" datasource="t3sinc"/>
-			<query idref="user_list"  datasource="t3sinc"/>
-		</queries>
-	</job> 
-	
-	<!-- 사용자권한관리 : 권한별 사용자 메뉴/권한 일괄 저장 --> 
-	<job id="execute_permission_batch" job_type="composite" check_permission="yes">
-		<sub_job id="execute_permission_batch_do"/>
-		<sub_job id="user_job_permission_list"/>
-		<permission_desc>권한일괄저장</permission_desc>
-	</job>
-	<job id="execute_permission_batch_do" job_type="single">
-		<request_type>insert</request_type>
-		<queries> 
-			<query idref="map_user_menu_delete" datasource="t3sinc"/> 
-			<query idref="map_user_menu_insert" datasource="t3sinc"/> 
-			<query idref="map_user_job_permission_delete" datasource="t3sinc"/> 
-			<query idref="map_user_job_permission_insert" datasource="t3sinc"/> 
-		</queries>
-	</job>
-	
-	<!-- 사용자권한관리 : 상세 --> 
-	<job id="user_job_permission_detail" job_type="single" check_permission="no">
-		<path>/sinc/00.admin</path>
-		<navigation>사용자관리 >> 사용자권한관리 >> 상세</navigation>
-		<toolbars>0100</toolbars>
-		<title>사용자권한상세조회</title>
-		<authority>1</authority>		
-		<description>사용자권한수정</description>		
-		<request_type>list</request_type>
-		<queries> 
-			<query idref="super_user_check" datasource="t3sinc"/>
-			<query idref="user_job_permission_detail_user_info"  datasource="t3sinc"/> 
-			<query idref="user_group_add"  datasource="t3sinc"/> 
-			<query idref="group_job_permission_detail"  datasource="t3sinc"/> 
-			<query idref="user_job_permission_detail"  datasource="t3sinc"/> 
-		</queries>
-	</job> 
-	
-	<!-- 사용자권한관리 : 상세 : 저장 --> 
-	<job id="user_job_permission_detail_save" job_type="composite" check_permission="no">
-		<sub_job id="user_job_permission_detail_save_do"/>
-		<sub_job id="user_job_permission_list"/>
-		<permission_desc>사용자권한수정-저장</permission_desc>
-	</job> 
-	<job id="user_job_permission_detail_save_do" job_type="single">
-		<request_type>insert</request_type>
-		<queries> 
-			<query idref="user_job_permission_detail_save_delete" datasource="t3sinc"/> 
-			<query idref="user_job_permission_detail_save_insert" datasource="t3sinc"/> 
-		</queries>
-	</job> 
-	
-	<!-- 
-	=======================
-		그룹권한관리 
-	=======================
-	--> 
-	
-	<!-- 그룹권한관리 --> 
-	<job id="group_job_permission_list" job_type="single" check_permission="yes">
-		<path>/sinc/00.admin</path>
-		<navigation>사용자관리 >> 그룹권한관리</navigation>
-		<toolbars>0000</toolbars>
-		<title>그룹권한조회</title>
-		<authority>1</authority>		
-		<description>그룹권한조회</description>		
-		<request_type>list</request_type>
-		<queries> 
-			<query idref="super_user_check" datasource="t3sinc"/>
-			<query idref="group_list"  datasource="t3sinc"/>
-		</queries> 
-	</job> 
-	
-	<!-- 그룹권한관리 : 상세 --> 
-	<job id="group_job_permission_detail" job_type="single" check_permission="no">
-		<path>/sinc/00.admin</path>
-		<navigation>사용자관리 >> 그룹권한관리 >> 상세</navigation>
-		<toolbars>0100</toolbars>
-		<title>그룹권한상세조회</title>
-		<authority>1</authority>		
-		<description>그룹권한수정</description>		
-		<request_type>list</request_type>
-		<queries> 
-			<query idref="super_user_check" datasource="t3sinc"/>
-			<query idref="group_job_permission_detail_user_info"  datasource="t3sinc"/> 
-			<query idref="group_job_permission_detail"  datasource="t3sinc"/> 
-		</queries>
-	</job> 
-	
-	<!-- 그룹권한관리 : 상세 : 저장 --> 
-	<job id="group_job_permission_detail_save" job_type="composite" check_permission="no">
-		<sub_job id="group_job_permission_detail_save_do"/>
-		<sub_job id="group_job_permission_list"/>
-		<permission_desc>그룹권한수정-저장</permission_desc>
-	</job> 
-	<job id="group_job_permission_detail_save_do" job_type="single">
-		<request_type>insert</request_type>
-		<queries> 
-			<query idref="group_job_permission_detail_save_delete" datasource="t3sinc"/>
-			<query idref="group_job_permission_detail_save_insert" datasource="t3sinc"/>
-		</queries>
-	</job>
-
-	<!-- 
-	=======================
-		MENU 관리 
-	=======================
-	-->
-	
-	<!-- 메뉴 ID 조회 -->
-	<job id="menu_list" job_type="single" check_permission="no">
-		<path>/sinc/00.admin</path>
-		<navigation>사용자관리 >> 메뉴관리</navigation>
-		<toolbars>1000</toolbars>
-		<title>메뉴 ID 조회</title>
-		<authority>1</authority>
-		<description>메뉴 ID 조회</description>
-		<request_type>list</request_type>
-		<queries>			
-			<query idref="menu_list"  datasource="t3sinc"/>
-		</queries> 
-	</job>
-	
-	<!-- 메뉴 ID 삭제 : 저장 -->
-	<job id="menu_delete" job_type="composite" check_permission="no">
-		<sub_job id="menu_del"/>
-		<sub_job id="menu_list"/>
-		<permission_desc>메뉴관리-삭제</permission_desc>
-	</job>
-	<job id="menu_del" job_type="single">
-		<request_type>insert</request_type>
-		<queries>
-			<query idref="menu_del_user" datasource="t3sinc"/>
-			<query idref="menu_del_group" datasource="t3sinc"/>
-		</queries>
-	</job>
-	
-	<!-- 메뉴 ID 추가 -->
-	<job id="menu_add" job_type="single" check_permission="no">
-		<path>/sinc/00.admin</path>
-		<navigation>사용자관리 >> 메뉴관리 >> 등록</navigation>
-		<toolbars>0100</toolbars>
-		<title>메뉴등록</title>
-		<authority>1</authority>		
-		<description>메뉴등록</description>		
-		<request_type>list</request_type>			 		
-	</job>
-	
-	<!-- 메뉴ID 추가 : 저장 -->
-	<job id="menu_register" job_type="composite" check_permission="no">
-		<sub_job id="menu_save"/>
-		<sub_job id="menu_list"/>
-		<permission_desc>메뉴등록-저장</permission_desc>
-	</job>
-	<job id="menu_save" job_type="single">
-		<request_type>insert</request_type>
-		<queries>
-			<query idref="menu_save" datasource="t3sinc"/>
-		</queries>
-	</job>
-	
-	
-<!--
-=====================================================================================================
- 끝 
-=====================================================================================================
---> 
-	
-</jobs>
+<?xml version="1.0" encoding="euc-kr"?>
+<jobs>
+
+<!--
+=====================================================================================================
+	사용자 관리
+=====================================================================================================
+--> 
+	
+	<!--
+	=======================
+		LOGIN 
+	=======================
+	-->
+	
+	<!--login Start-->
+	<job id="login_check" job_type="single" refresh="false">
+		<target>default_main</target>
+		<navigation>MAIN PAGE</navigation>
+		<path>/sinc/00.admin</path>
+		<request_type>list</request_type>
+		<queries>    
+			<query idref="login" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 
+	=======================
+		GET PERMISSION 
+	=======================
+	--> 
+	
+	<!-- Permission Check -->
+	<job id="sinc_permission_check" job_type="single">
+		<queries>
+			<query idref="get_permission" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 
+	=======================
+		GET MENU
+	=======================
+	--> 
+	
+	<!-- Get Menu -->
+	<job id="main_menu" job_type="single">
+		<path>/sinc/template/basic/template</path>
+		<target>left_template</target>
+		<request_type>login</request_type>
+		<queries>    
+			<query idref="menus" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 
+	=======================
+		사용자 관리 
+	=======================
+	-->
+	
+	<!-- 사용자 조회 -->
+	<job id="user_list" job_type="single" check_permission="yes">
+		<path>/sinc/00.admin</path>
+		<navigation>사용자관리 >> 사용자관리</navigation>
+		<toolbars>1000</toolbars>
+		<title>사용자조회</title>
+		<authority>1</authority>
+		<description>사용자조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="super_user_check" datasource="t3sinc"/>
+			<query idref="user_list"  datasource="t3sinc"/>
+		</queries> 
+	</job>
+	
+	<!-- 사용자 추가 -->
+	<job id="user_add" job_type="single" check_permission="yes">
+		<path>/sinc/00.admin</path>
+		<navigation>사용자관리 >> 사용자관리 >> 등록</navigation>
+		<toolbars>0100</toolbars>
+		<title>사용자등록</title>
+		<authority>1</authority>		
+		<description>사용자등록</description>		
+		<request_type>list_with_menu</request_type>
+		<queries>                  
+			<query idref="user_group_add"  datasource="t3sinc"/>
+			<query idref="menus" aliase="menus" datasource="t3sinc"/> 
+			<query idref="menus_group" datasource="t3sinc"/>
+		</queries> 		
+	</job>
+	
+	<!-- 사용자 추가 : 저장 -->
+	<job id="user_register" job_type="composite" check_permission="yes">
+		<sub_job id="user_save"/>		
+		<sub_job id="user_list"/>
+		<permission_desc>사용자등록-저장</permission_desc>
+	</job>
+	<job id="user_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>     
+			<query idref="user_save" datasource="t3sinc"/>
+			<query idref="user_group_save" datasource="t3sinc"/>
+			<query idref="user_menu_save" datasource="t3sinc"/>
+			<!--query idref ="user_job_save" datasource="t3sinc"/--> <!-- menu 와 job 을 동시에 저장하는 경우 -->
+		</queries>
+	</job>
+	
+	<!-- 사용자 상세 -->
+	<job id="user_detail" check_permission="yes">
+		<path>/sinc/00.admin</path>
+		<navigation>사용자관리 >> 사용자관리 >> 상세</navigation>
+		<toolbars>0010</toolbars>
+		<title>사용자상세조회</title>
+		<authority>1</authority>
+		<description>사용자상세조회</description>
+		<request_type>list_with_menu</request_type>
+		<queries>                  
+			<query idref="user_detail" datasource="t3sinc"/>
+			<query idref="menus_user" aliase="menus" datasource="t3sinc"/>
+			<query idref="super_user_check" datasource="t3sinc"/>
+		</queries> 
+	</job>
+	
+	<!-- 사용자 수정 -->
+	<job id="user_modify" job_type="single" check_permission="yes">
+		<path>/sinc/00.admin</path>
+		<navigation>사용자관리 >> 사용자관리 >> 수정</navigation>
+		<toolbars>0100</toolbars>
+		<title>사용자정보수정</title>
+		<authority>1</authority>		
+		<description>사용자정보수정</description>		
+		<request_type>list_with_menu</request_type>
+		<queries>                  
+			<query idref="user_modify"  datasource="t3sinc"/>
+			<query idref="user_group_add"  datasource="t3sinc"/>
+			<query idref="menus" datasource="t3sinc"/>
+			<query idref="menus_user"  aliase="check_menu" datasource="t3sinc"/>
+			<query idref="menus_group" datasource="t3sinc"/>
+		</queries> 
+	</job>
+	
+	<!-- 사용자 수정 : 저장 -->
+	<job id="user_update" job_type="composite" check_permission="yes">
+		<sub_job id="user_update_single"/>
+		<sub_job id="user_list"/>
+		<permission_desc>사용자정보수정-저장</permission_desc>
+	</job>
+	<job id="user_update_single"  job_type= "single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref = "user_update" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 사용자 삭제 -->
+	<job id="user_delete" job_type="composite" check_permission="yes">
+		<sub_job id="user_delete_single"/>
+		<sub_job id="user_list"/>
+		<permission_desc>사용자정보수정-삭제</permission_desc>
+	</job>
+	<job id="user_delete_single"  job_type= "single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref = "user_menu_delete" datasource="t3sinc"/>
+			<query idref = "user_group_delete" datasource="t3sinc"/>
+			<query idref = "user_job_delete" datasource="t3sinc"/>
+			<query idref = "user_delete" datasource="t3sinc"/>		
+		</queries>
+	</job>
+	
+	<!-- 사용자 수정 : ADMIN -->
+	<job id="super_user_modify" job_type="single" check_permission="yes">
+		<path>/sinc/00.admin</path>
+		<navigation>사용자관리 >> 사용자관리 >> 수정(관리자용)</navigation>
+		<toolbars>0100</toolbars>
+		<title>사용자정보수정(관리자용)</title>
+		<authority>1</authority>		
+		<description>사용자정보수정(관리자용)</description>		
+		<request_type>list_with_menu</request_type>
+		<queries>                  
+			<query idref="user_modify"  datasource="t3sinc"/>
+			<query idref="user_group_add"  datasource="t3sinc"/>
+			<query idref="super_menus" aliase="menus"  datasource="t3sinc"/>
+			<query idref="menus_user"  aliase="check_menu" datasource="t3sinc"/>
+			<query idref="menus_group" datasource="t3sinc"/>
+		</queries> 
+	</job>
+	<job id="super_user_update" job_type="composite" check_permission="yes">
+		<sub_job id="user_update_super"/>
+		<sub_job id="user_list"/>
+		<permission_desc>사용자정보수정(관리자용)-저장</permission_desc>
+	</job>
+	<job id="user_update_super"  job_type= "single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref = "user_update" datasource="t3sinc"/> 
+			<query idref = "user_group_delete" datasource="t3sinc"/> 
+			<query idref = "user_group_update" datasource="t3sinc"/> 
+			<query idref = "user_menu_delete" datasource="t3sinc"/> 
+			<query idref = "user_menu_save" datasource="t3sinc"/> 
+			<!--query idref = "user_job_delete" datasource="t3sinc"/> 
+			<query idref = "user_job_save" datasource="t3sinc"/--> <!-- menu 와 job 을 동시에 저장하는 경우 -->
+		</queries>
+	</job>
+	
+	<!-- 
+	=======================
+		GROUP 관리 
+	=======================
+	-->
+	
+	<!-- Group 조회 -->
+	<job id="group_list" job_type="single" check_permission="yes">
+		<path>/sinc/00.admin</path>
+		<navigation>사용자관리 >> 사용자그룹관리</navigation>
+		<toolbars>1000</toolbars>
+		<title>사용자그룹조회</title>
+		<authority>1</authority>		
+		<description>사용자그룹조회</description>		
+		<request_type>list</request_type>
+		<queries>                  
+			<query idref="group_list"  datasource="t3sinc"/>
+		</queries> 
+	</job>
+	
+	<!-- Group 추가 -->
+	<job id="group_add" job_type="single" check_permission="yes">
+		<path>/sinc/00.admin</path>
+		<navigation>사용자관리 >> 사용자그룹관리 >> 등록</navigation>
+		<toolbars>0100</toolbars>
+		<title>사용자그룹등록</title>
+		<authority>1</authority>		
+		<description>사용자그룹등록</description>
+		<request_type>list_with_menu</request_type>
+		<queries>                  
+			<query idref="user_list"  datasource="t3sinc"/>
+			<query idref="group_add"  datasource="t3sinc"/>
+			<query idref="menus"  datasource="t3sinc"/>  <!-- _moon_menus -->
+		</queries> 		
+	</job>
+	<job id="group_register" job_type = "composite" check_permission="yes">
+		<sub_job id = "group_save"/>
+		<sub_job id = "group_list"/>
+		<permission_desc>사용자그룹등록-저장</permission_desc>
+	</job>
+	<job id="group_save" job_type="single">
+		<request_type>insert_key</request_type>
+		<queries>                  
+			<query idref="group_save"  datasource="t3sinc"/>
+			<query idref="group_menu_save"  datasource="t3sinc"/>
+		</queries> 
+	</job>
+	
+	<!-- Group 상세 -->
+	<job id="group_detail" check_permission="yes">
+		<path>/sinc/00.admin</path>
+		<navigation>사용자관리 >> 사용자그룹관리 >> 상세</navigation>
+		<toolbars>0011</toolbars>
+		<title>사용자그룹상세조회</title>
+		<authority>1</authority>		
+		<description>사용자그룹상세조회</description>		
+		<request_type>list_with_menu</request_type>
+		<queries>                  
+			<query idref="group_detail"  datasource="t3sinc"/>
+			<query idref="menus_group"  aliase="menus" datasource="t3sinc"/>  <!-- _moon_menus -->
+		</queries> 
+	</job>
+	
+	<!-- Group 수정 : 화면 -->
+	<job id="group_modify" job_type="single" check_permission="yes">
+		<path>/sinc/00.admin</path>
+		<navigation>사용자관리 >> 사용자그룹관리 >> 수정</navigation>
+		<toolbars>0100</toolbars>
+		<title>사용자그룹정보수정</title>
+		<authority>1</authority>		
+		<description>사용자그룹정보수정</description>		
+		<request_type>list_with_menu</request_type>
+		<queries>                  
+			<query idref="group_detail"  datasource="t3sinc"/>
+			<query idref="menus"  datasource="t3sinc"/>
+			<query idref="menus_group"  datasource="t3sinc"/>
+		</queries> 
+	</job>
+	
+	<!-- Group 수정 : 저장 -->
+	<job id="group_update" job_type="composite" check_permission="yes">
+		<sub_job id="group_update_single"/>
+		<sub_job id="group_list"/>
+		<permission_desc>사용자그룹정보수정-저장</permission_desc>
+	</job>
+	<job id="group_update_single"  job_type= "single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="group_menu_delete" datasource="t3sinc"/>
+			<query idref="group_menu_update" datasource="t3sinc"/>
+			<!--query idref="group_job_delete" datasource="t3sinc"/>
+			<query idref="group_job_update" datasource="t3sinc"/--> <!-- menu 와 job 을 동시에 저장하는 경우 -->
+			<query idref="group_update" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- Group 삭제 -->
+	<job id="group_delete" job_type="composite" check_permission="yes">
+		<sub_jobs type = "ifelse">
+			<if condition ="group_delete_check" datasource="t3sinc">
+				<true>
+					<job id="group_list"/>		
+				</true>
+				<false>
+					<job id="group_delete_single"/>
+					<job id="group_list"/>
+				</false>
+			</if>
+		</sub_jobs>
+		<permission_desc>사용자그룹정보수정-삭제</permission_desc>
+	</job>	
+	<job id="group_delete_single"  job_type= "single">
+		<request_type>insert</request_type>
+		<queries>			
+			<query idref="group_menu_delete" datasource="t3sinc"/>
+			<query idref="group_job_permission_detail_save_delete" datasource="t3sinc"/>
+			<query idref="group_delete" datasource="t3sinc"/>
+		</queries>
+	</job>
+	<job id="group_delete_check">
+		<request_type>list</request_type>
+		<queries>
+			<query idref="group_delete_check" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 
+	=======================
+		사용자권한관리 
+	=======================
+	--> 
+	
+	<!-- 사용자권한관리 --> 
+	<job id="user_job_permission_list" job_type="single" check_permission="yes">
+		<path>/sinc/00.admin</path>
+		<navigation>사용자관리 >> 사용자권한관리</navigation>
+		<toolbars>0000</toolbars>
+		<title>사용자권한조회</title>
+		<authority>1</authority>		
+		<description>사용자권한조회</description>
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="super_user_check" datasource="t3sinc"/>
+			<query idref="user_list"  datasource="t3sinc"/>
+		</queries>
+	</job> 
+	
+	<!-- 사용자권한관리 : 권한별 사용자 메뉴/권한 일괄 저장 --> 
+	<job id="execute_permission_batch" job_type="composite" check_permission="yes">
+		<sub_job id="execute_permission_batch_do"/>
+		<sub_job id="user_job_permission_list"/>
+		<permission_desc>권한일괄저장</permission_desc>
+	</job>
+	<job id="execute_permission_batch_do" job_type="single">
+		<request_type>insert</request_type>
+		<queries> 
+			<query idref="map_user_menu_delete" datasource="t3sinc"/> 
+			<query idref="map_user_menu_insert" datasource="t3sinc"/> 
+			<query idref="map_user_job_permission_delete" datasource="t3sinc"/> 
+			<query idref="map_user_job_permission_insert" datasource="t3sinc"/> 
+		</queries>
+	</job>
+	
+	<!-- 사용자권한관리 : 상세 --> 
+	<job id="user_job_permission_detail" job_type="single" check_permission="no">
+		<path>/sinc/00.admin</path>
+		<navigation>사용자관리 >> 사용자권한관리 >> 상세</navigation>
+		<toolbars>0100</toolbars>
+		<title>사용자권한상세조회</title>
+		<authority>1</authority>		
+		<description>사용자권한수정</description>		
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="super_user_check" datasource="t3sinc"/>
+			<query idref="user_job_permission_detail_user_info"  datasource="t3sinc"/> 
+			<query idref="user_group_add"  datasource="t3sinc"/> 
+			<query idref="group_job_permission_detail"  datasource="t3sinc"/> 
+			<query idref="user_job_permission_detail"  datasource="t3sinc"/> 
+		</queries>
+	</job> 
+	
+	<!-- 사용자권한관리 : 상세 : 저장 --> 
+	<job id="user_job_permission_detail_save" job_type="composite" check_permission="no">
+		<sub_job id="user_job_permission_detail_save_do"/>
+		<sub_job id="user_job_permission_list"/>
+		<permission_desc>사용자권한수정-저장</permission_desc>
+	</job> 
+	<job id="user_job_permission_detail_save_do" job_type="single">
+		<request_type>insert</request_type>
+		<queries> 
+			<query idref="user_job_permission_detail_save_delete" datasource="t3sinc"/> 
+			<query idref="user_job_permission_detail_save_insert" datasource="t3sinc"/> 
+		</queries>
+	</job> 
+	
+	<!-- 
+	=======================
+		그룹권한관리 
+	=======================
+	--> 
+	
+	<!-- 그룹권한관리 --> 
+	<job id="group_job_permission_list" job_type="single" check_permission="yes">
+		<path>/sinc/00.admin</path>
+		<navigation>사용자관리 >> 그룹권한관리</navigation>
+		<toolbars>0000</toolbars>
+		<title>그룹권한조회</title>
+		<authority>1</authority>		
+		<description>그룹권한조회</description>		
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="super_user_check" datasource="t3sinc"/>
+			<query idref="group_list"  datasource="t3sinc"/>
+		</queries> 
+	</job> 
+	
+	<!-- 그룹권한관리 : 상세 --> 
+	<job id="group_job_permission_detail" job_type="single" check_permission="no">
+		<path>/sinc/00.admin</path>
+		<navigation>사용자관리 >> 그룹권한관리 >> 상세</navigation>
+		<toolbars>0100</toolbars>
+		<title>그룹권한상세조회</title>
+		<authority>1</authority>		
+		<description>그룹권한수정</description>		
+		<request_type>list</request_type>
+		<queries> 
+			<query idref="super_user_check" datasource="t3sinc"/>
+			<query idref="group_job_permission_detail_user_info"  datasource="t3sinc"/> 
+			<query idref="group_job_permission_detail"  datasource="t3sinc"/> 
+		</queries>
+	</job> 
+	
+	<!-- 그룹권한관리 : 상세 : 저장 --> 
+	<job id="group_job_permission_detail_save" job_type="composite" check_permission="no">
+		<sub_job id="group_job_permission_detail_save_do"/>
+		<sub_job id="group_job_permission_list"/>
+		<permission_desc>그룹권한수정-저장</permission_desc>
+	</job> 
+	<job id="group_job_permission_detail_save_do" job_type="single">
+		<request_type>insert</request_type>
+		<queries> 
+			<query idref="group_job_permission_detail_save_delete" datasource="t3sinc"/>
+			<query idref="group_job_permission_detail_save_insert" datasource="t3sinc"/>
+		</queries>
+	</job>
+
+	<!-- 
+	=======================
+		MENU 관리 
+	=======================
+	-->
+	
+	<!-- 메뉴 ID 조회 -->
+	<job id="menu_list" job_type="single" check_permission="no">
+		<path>/sinc/00.admin</path>
+		<navigation>사용자관리 >> 메뉴관리</navigation>
+		<toolbars>1000</toolbars>
+		<title>메뉴 ID 조회</title>
+		<authority>1</authority>
+		<description>메뉴 ID 조회</description>
+		<request_type>list</request_type>
+		<queries>			
+			<query idref="menu_list"  datasource="t3sinc"/>
+		</queries> 
+	</job>
+	
+	<!-- 메뉴 ID 삭제 : 저장 -->
+	<job id="menu_delete" job_type="composite" check_permission="no">
+		<sub_job id="menu_del"/>
+		<sub_job id="menu_list"/>
+		<permission_desc>메뉴관리-삭제</permission_desc>
+	</job>
+	<job id="menu_del" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="menu_del_user" datasource="t3sinc"/>
+			<query idref="menu_del_group" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	<!-- 메뉴 ID 추가 -->
+	<job id="menu_add" job_type="single" check_permission="no">
+		<path>/sinc/00.admin</path>
+		<navigation>사용자관리 >> 메뉴관리 >> 등록</navigation>
+		<toolbars>0100</toolbars>
+		<title>메뉴등록</title>
+		<authority>1</authority>		
+		<description>메뉴등록</description>		
+		<request_type>list</request_type>			 		
+	</job>
+	
+	<!-- 메뉴ID 추가 : 저장 -->
+	<job id="menu_register" job_type="composite" check_permission="no">
+		<sub_job id="menu_save"/>
+		<sub_job id="menu_list"/>
+		<permission_desc>메뉴등록-저장</permission_desc>
+	</job>
+	<job id="menu_save" job_type="single">
+		<request_type>insert</request_type>
+		<queries>
+			<query idref="menu_save" datasource="t3sinc"/>
+		</queries>
+	</job>
+	
+	
+<!--
+=====================================================================================================
+ 끝 
+=====================================================================================================
+--> 
+	
+</jobs>
