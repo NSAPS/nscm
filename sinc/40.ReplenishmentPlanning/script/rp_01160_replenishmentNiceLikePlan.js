@@ -22,6 +22,7 @@
 //## 3.1		2010-09-07  남웅용	  재고일수 평준화를 위해 DO WHILE문으로 배분을 반복한다.
 //## 3.2		2012-01-03  남웅용	  판매계획컬럼 제거, 안전재고설정 컬럼 맨뒤 --> 이승용요청
 //## 3.3		2014-09-26  이강욱	  이벤트 물량 기능 추가 -->이승용 요청
+//## 3.4		2016-09-06  남웅용    거래처수 총합/CDC합계/RDC합계 구현
 //############################################################
 /************************************************************************************************************************************/
 /**********************************************  WiseGrid Java Script   *************************************************************/
@@ -2486,6 +2487,16 @@ function setGrid(){
     
     var safety_stock_flag;
     var rowCnt = GridObj.GetRowCount();
+    // VER 3.4 정정사항
+    var index_tot = 0, index_cdc = 0, index_rdc = 0;
+    var cum_cust_tot = 0, cum_cust_cdc = 0, cum_cust_rdc = 0;
+    var cum_cust10_tot = 0, cum_cust10_cdc = 0, cum_cust10_rdc = 0;
+    var cum_cust11_tot = 0, cum_cust11_cdc = 0, cum_cust11_rdc = 0;
+    var cum_cust16_tot = 0, cum_cust16_cdc = 0, cum_cust16_rdc = 0;
+    var cum_cust14_tot = 0, cum_cust14_cdc = 0, cum_cust14_rdc = 0;
+    var cum_cust19_tot = 0, cum_cust19_cdc = 0, cum_cust19_rdc = 0;
+    var cum_cust18_tot = 0, cum_cust18_cdc = 0, cum_cust18_rdc = 0;
+    var cum_cust99_tot = 0, cum_cust99_cdc = 0, cum_cust99_rdc = 0;
     for ( i = 0 ; i < rowCnt ; i++ ){
 
     	var dc_name = GridObj.GetCellValue("DC_NAME", i);
@@ -2498,15 +2509,78 @@ function setGrid(){
 	    	GridObj.SetCellActivation('SRC_LOC', 		i, 'disable'); //선택할 수 없고 편집할 수 없다. 
 	    	GridObj.SetCellActivation('MIN_PICK_QTY', 	i, 'disable'); //선택할 수 없고 편집할 수 없다. 
 
+	    	if(dc_name == "전체합계") index_tot = i;
+	    	if(dc_name == "CDC합계")  index_cdc = i;
+	    	if(dc_name == "RDC합계")  index_rdc = i;
+	    	
 	    }
 	    else {
 	    	safety_stock_flag = GridObj.GetCellValue("SAFETY_STOCK_FLAG", i);
 	    	if(safety_stock_flag == "01") {
 				GridObj.SetCellBgColor('DC_NAME', i, '255|173|143');
 	    	}
+	    	
+    		cum_cust_tot 	= cum_cust_tot + strToNum(GridObj.GetCellValue('CUST_TOT',i));	
+    		cum_cust10_tot = cum_cust10_tot + strToNum(GridObj.GetCellValue('CUST_10',i));	
+    		cum_cust11_tot = cum_cust11_tot + strToNum(GridObj.GetCellValue('CUST_11',i));	
+    		cum_cust16_tot = cum_cust16_tot + strToNum(GridObj.GetCellValue('CUST_16',i));	
+    		cum_cust14_tot = cum_cust14_tot + strToNum(GridObj.GetCellValue('CUST_14',i));	
+    		cum_cust19_tot = cum_cust19_tot + strToNum(GridObj.GetCellValue('CUST_19',i));	
+    		cum_cust18_tot = cum_cust18_tot + strToNum(GridObj.GetCellValue('CUST_18',i));	
+    		cum_cust99_tot = cum_cust99_tot + strToNum(GridObj.GetCellValue('CUST_99',i));	
+	    	if(index_cdc == 0) { // From cdc row!
+	    		cum_cust_cdc = cum_cust_cdc + strToNum(GridObj.GetCellValue('CUST_TOT',i));	
+	    		cum_cust10_cdc = cum_cust10_cdc + strToNum(GridObj.GetCellValue('CUST_10',i));	
+	    		cum_cust11_cdc = cum_cust11_cdc + strToNum(GridObj.GetCellValue('CUST_11',i));	
+	    		cum_cust16_cdc = cum_cust16_cdc + strToNum(GridObj.GetCellValue('CUST_16',i));	
+	    		cum_cust14_cdc = cum_cust14_cdc + strToNum(GridObj.GetCellValue('CUST_14',i));	
+	    		cum_cust19_cdc = cum_cust19_cdc + strToNum(GridObj.GetCellValue('CUST_19',i));	
+	    		cum_cust18_cdc = cum_cust18_cdc + strToNum(GridObj.GetCellValue('CUST_18',i));	
+	    		cum_cust99_cdc = cum_cust99_cdc + strToNum(GridObj.GetCellValue('CUST_99',i));	
+	    	}
+	    	else {
+	    		cum_cust_rdc = cum_cust_rdc + strToNum(GridObj.GetCellValue('CUST_TOT',i));	
+	    		cum_cust10_rdc = cum_cust10_rdc + strToNum(GridObj.GetCellValue('CUST_10',i));	
+	    		cum_cust11_rdc = cum_cust11_rdc + strToNum(GridObj.GetCellValue('CUST_11',i));	
+	    		cum_cust16_rdc = cum_cust16_rdc + strToNum(GridObj.GetCellValue('CUST_16',i));	
+	    		cum_cust14_rdc = cum_cust14_rdc + strToNum(GridObj.GetCellValue('CUST_14',i));	
+	    		cum_cust19_rdc = cum_cust19_rdc + strToNum(GridObj.GetCellValue('CUST_19',i));	
+	    		cum_cust18_rdc = cum_cust18_rdc + strToNum(GridObj.GetCellValue('CUST_18',i));	
+	    		cum_cust99_rdc = cum_cust99_rdc + strToNum(GridObj.GetCellValue('CUST_99',i));	
+	    	}
+	    	
 	    }
 	    
     }
+
+    // numbers of customer setting to cell
+    GridObj.SetCellValue('CUST_TOT', index_tot, cum_cust_tot); GridObj.SetCellValue('CUST_00', index_tot, cum_cust_tot);
+    GridObj.SetCellValue('CUST_TOT', index_cdc, cum_cust_cdc); GridObj.SetCellValue('CUST_00', index_cdc, cum_cust_cdc);
+    GridObj.SetCellValue('CUST_TOT', index_rdc, cum_cust_rdc); GridObj.SetCellValue('CUST_00', index_rdc, cum_cust_rdc);
+    GridObj.SetCellValue('CUST_10', index_tot, cum_cust10_tot);
+    GridObj.SetCellValue('CUST_11', index_tot, cum_cust11_tot);
+    GridObj.SetCellValue('CUST_16', index_tot, cum_cust16_tot);
+    GridObj.SetCellValue('CUST_14', index_tot, cum_cust14_tot);
+    GridObj.SetCellValue('CUST_19', index_tot, cum_cust19_tot);
+    GridObj.SetCellValue('CUST_18', index_tot, cum_cust18_tot);
+    GridObj.SetCellValue('CUST_99', index_tot, cum_cust99_tot);
+	
+    GridObj.SetCellValue('CUST_10', index_cdc, cum_cust10_cdc);
+    GridObj.SetCellValue('CUST_11', index_cdc, cum_cust11_cdc);
+    GridObj.SetCellValue('CUST_16', index_cdc, cum_cust16_cdc);
+    GridObj.SetCellValue('CUST_14', index_cdc, cum_cust14_cdc);
+    GridObj.SetCellValue('CUST_19', index_cdc, cum_cust19_cdc);
+    GridObj.SetCellValue('CUST_18', index_cdc, cum_cust18_cdc);
+    GridObj.SetCellValue('CUST_99', index_cdc, cum_cust99_cdc);
+
+    GridObj.SetCellValue('CUST_10', index_rdc, cum_cust10_rdc);
+    GridObj.SetCellValue('CUST_11', index_rdc, cum_cust11_rdc);
+    GridObj.SetCellValue('CUST_16', index_rdc, cum_cust16_rdc);
+    GridObj.SetCellValue('CUST_14', index_rdc, cum_cust14_rdc);
+    GridObj.SetCellValue('CUST_19', index_rdc, cum_cust19_rdc);
+    GridObj.SetCellValue('CUST_18', index_rdc, cum_cust18_rdc);
+    GridObj.SetCellValue('CUST_99', index_rdc, cum_cust99_rdc);
+    
     // 초기 공급율, 가감량 구하기
     setSupplyRateAndBox("normal");    
 	
