@@ -798,9 +798,9 @@ function setHeader()
  	GridObj.AddHeader("SRC_LOC"					,"출고장"    				,"t_combo" 		,100	,50   ,true);	//기존 //   
  	GridObj.AddHeader("MIN_PICK_QTY"			,"최소\n수송"		    	,"t_number" 	,100.3	,40   ,true);    //기존 //
  	
- 	GridObj.AddHeader("NEXT_STOCK_DAY"			,"예상일수\n(1주)"		,"t_number" 	,100.3	,55  ,false);   //기존 //
- 	GridObj.AddHeader("NEXT_STOCK_DAY_1W"		,"예상일수\n(1주)"		,"t_number" 	,100.3	,55  ,false);   //2012-03-23 추가 //
+ 	GridObj.AddHeader("NEXT_STOCK_DAY"			,"예상일수\n(1주)"		,"t_number" 	,100.3	,0  ,false);   //기존 //
  	GridObj.AddHeader("NEXT_STOCK_DAY_3W"		,"예상일수\n(3주)"		,"t_number" 	,100.3	,55  ,false);   //기존 //
+ 	GridObj.AddHeader("NEXT_STOCK_DAY_1W"		,"예상일수\n(1주)"		,"t_number" 	,100.3	,55  ,false);   //2012-03-23 추가 //
  	
  	GridObj.AddHeader("NEXT_STOCK_EXPT"			,"익일\n기초재고"			,"t_number" 	,100.3	,55  ,false);   //기존 //
  	
